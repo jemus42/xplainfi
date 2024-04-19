@@ -12,6 +12,8 @@ What the package does (one paragraph).
 Useful links:
 \itemize{
   \item \url{https://jemus42.github.io/xplainvi/}
+  \item \url{https://github.com/jemus42/xplainvi}
+  \item Report bugs at \url{https://github.com/jemus42/xplainvi/issues}
 }
 
 }

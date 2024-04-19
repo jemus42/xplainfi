@@ -4,43 +4,57 @@
 #'
 #' @export
 #'
-#' @examplesIf requireNamespace("mlr3learners")
+#' @examplesIf requireNamespace("mlr3learners") & requireNamespace("ranger")
 #'
 #' library(mlr3)
 #' library(mlr3learners)
 #'
 #' task = tsk("zoo")
 #' learner = lrn("classif.ranger", num.trees = 100)
-#' resampling = rsmp("holdout")
-#' resampling$instantiate(task)
 #' measure = msr("classif.ce")
 #'
-#' learner$train(task, row_ids = resampling$train_set(1))
 #'
 #' pfi = PFI$new(
 #'   task = task,
 #'   learner = learner,
-#'   resampling = resampling,
 #'   measure = measure
 #' )
 #'
 #' pfi$compute()
-PFI = R6::R6Class("PFI",
+PFI = R6Class("PFI",
   inherit = FeatureImportanceLearner,
   public = list(
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
-    #' @param ... Passed to super class.
-    initialize = function(...) {
+    #' @param task,learner,measure,resampling,features Passed to `FeatureImportanceLearner` for construction.
+    initialize = function(task, learner, measure, resampling = NULL, features = NULL) {
 
-      ps = paradox::ps(
+      # params
+      ps = ps(
         relation = paradox::p_fct(c("difference", "ratio"), default = "difference")
       )
 
       ps$values = list(relation = "difference")
 
+      # resampling
+      if (is.null(resampling)) {
+        resampling = mlr3::rsmp("holdout", ratio = 2/3)$instantiate(task)
+      }
+      resampling = resampling
+
+      if (!resampling$is_instantiated) {
+        resampling$instantiate(task)
+      }
+
+      # measure
+      mlr3::assert_measure(measure = measure, task = task, learner = learner)
+
       super$initialize(
-        ...,
+        task = task,
+        learner = learner,
+        measure = measure,
+        resampling = resampling,
+        features = features,
         param_set = ps,
         label = "Permutation Feature Importance"
       )
@@ -62,42 +76,83 @@ PFI = R6::R6Class("PFI",
       # Store relation
       self$param_set$values$relation = relation
 
-      loss_orig = self$learner$predict(task)$score(measure)
+      # Quiet down
+      current_log_threshold = lgr::get_logger("mlr3")$threshold
+      on.exit(lgr::get_logger("mlr3")$set_threshold(current_log_threshold))
+      lgr::get_logger("mlr3")$set_threshold("warn")
 
-      loss_permuted = vapply(self$features, \(feature) {
+      # Initial resampling
+      rr = resample(self$task, self$learner, self$resampling, store_models = TRUE, store_backends = FALSE)
+      self$resample_result = rr
 
-        # Copying task for every feature, not great
-        task_data = task$data(data_format = "data.table")
+      scores_orig = rr$score(self$measure, predict_sets = "test")[, .SD, .SDcols = c("iteration", self$measure$id)]
+      data.table::setnames(scores_orig, old = self$measure$id, "loss_orig")
 
-        # Permute in-place
-        task_data[, (feature) := sample(.SD[[feature]])][]
+      scores_permuted = lapply(seq_len(self$resampling$iters), \(iter) {
 
-        # Use predict_newdata to avoid having to reconstruct a new Task
-        pred = self$learner$predict_newdata(newdata = task_data, task = self$task)
+        # Current test data original, keep target so we have 'truth' for later scoring
+        test_dt = self$task$data(rows = rr$resampling$test_set(iter))
 
-        score = pred$score(self$measure)
-        names(score) = feature
-        score
+        loss_permuted = vapply(self$features, \(feature) {
+          # Copying task for every feature, not great
+          task_data = data.table::copy(test_dt)
+          # pre = data.table::copy(task_data[, .(feature)])
 
-      }, FUN.VALUE = numeric(1))
+          # Permute in-place
+          task_data[, (feature) := sample(.SD[[feature]])][]
 
-      if (self$measure$minimize) {
-        # Smaller is better, e.g. ce
-        self$importance = switch(relation,
-                            difference = loss_permuted - loss_orig,
-                            ratio = loss_permuted / loss_orig
+          # post = data.table::copy(task_data[, .(feature)])
+          # waldo::compare(pre, post)
+
+          # Use predict_newdata to avoid having to reconstruct a new Task
+          pred = rr$learners[[iter]]$predict_newdata(newdata = task_data, task = self$task)
+
+          score = pred$score(self$measure)
+          names(score) = feature
+          score
+
+        }, FUN.VALUE = numeric(1))
+
+        data.table::data.table(
+          feature = names(loss_permuted),
+          loss = loss_permuted
         )
-      } else {
-        # Higher is better, e.g. accuracy
-        self$importance = switch(relation,
-                            difference = loss_orig - loss_permuted,
-                            ratio = loss_orig / loss_permuted
-        )
-      }
+
+      })
+
+      # Collect permuted scores, add original scores
+      scores_permuted = data.table::rbindlist(scores_permuted, idcol = "iteration")
+      scores_permuted = scores_permuted[scores_orig, on = "iteration"]
+      # Calculate PFI depending on relation(-, /), and minimize property
+      scores_permuted[, importance := private$.compute_pfi_relation(loss_orig, loss)]
+      # Aggregate by feature over resamplings
+      scores_permuted_agg = scores_permuted[, .(importance = mean(importance)), by = feature]
+
+      self$importance = scores_permuted_agg$importance
+      names(self$importance) = scores_permuted_agg$feature
 
       self
     }
   ),
 
-  private = list()
+  private = list(
+    .compute_pfi_relation = function(loss_orig, loss_permuted) {
+
+      if (self$measure$minimize) {
+        # Lower is better, e.g. ce
+        switch(self$param_set$values$relation,
+               difference = loss_permuted - loss_orig,
+               ratio = loss_permuted / loss_orig
+        )
+      } else {
+        # Higher is better, e.g. accuracy
+        switch(self$param_set$values$relation,
+               difference = loss_orig - loss_permuted,
+               ratio = loss_orig / loss_permuted
+        )
+      }
+    }
+  )
 )
+
+

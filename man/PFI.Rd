@@ -12,23 +12,19 @@ PFI Class
 Calculates Permutation Feature Importance (PFI) scores.
 }
 \examples{
-\dontshow{if (requireNamespace("mlr3learners")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (requireNamespace("mlr3learners") & requireNamespace("ranger")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 
 library(mlr3)
 library(mlr3learners)
 
 task = tsk("zoo")
 learner = lrn("classif.ranger", num.trees = 100)
-resampling = rsmp("holdout")
-resampling$instantiate(task)
 measure = msr("classif.ce")
 
-learner$train(task, row_ids = resampling$train_set(1))
 
 pfi = PFI$new(
   task = task,
   learner = learner,
-  resampling = resampling,
   measure = measure
 )
 
@@ -59,13 +55,13 @@ pfi$compute()
 \subsection{Method \code{new()}}{
 Creates a new instance of this \link[R6:R6Class]{R6} class.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PFI$new(...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PFI$new(task, learner, measure, resampling = NULL, features = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{...}}{Passed to super class.}
+\item{\code{task, learner, measure, resampling, features}}{Passed to \code{FeatureImportanceLearner} for construction.}
 }
 \if{html}{\out{</div>}}
 }

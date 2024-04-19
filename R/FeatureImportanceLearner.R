@@ -1,7 +1,7 @@
 #' Feature Importance Learner Class
 #'
 #' @export
-FeatureImportanceLearner = R6::R6Class("FeatureImportanceLearner",
+FeatureImportanceLearner = R6Class("FeatureImportanceLearner",
  public = list(
    #' @field label (character(1)) Method label
   label = NA_character_,
@@ -18,7 +18,7 @@ FeatureImportanceLearner = R6::R6Class("FeatureImportanceLearner",
   #' @field features (list())
   features = NULL,
   #' @field param_set (paradox::ps())
-  param_set = paradox::ps(),
+  param_set = ps(),
   #' @field importance (numeric())
   importance = NULL,
 

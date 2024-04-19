@@ -10,11 +10,13 @@ URL: https://jemus42.github.io/xplainvi/, https://github.com/jemus42/xplainvi
 Imports: 
     checkmate,
     data.table,
-    paradox
+    paradox,
+    R6
 Suggests: 
     knitr,
     mlr3,
     mlr3learners,
+    ranger,
     rmarkdown,
     testthat (>= 3.0.0)
 VignetteBuilder: 

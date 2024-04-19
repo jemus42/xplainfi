@@ -33,27 +33,27 @@ Defining a simple example case:
 
 ```{r setup-problem}
 task = tsk("german_credit")
-learner = lrn("classif.ranger", num.trees = 100)
-resampling = rsmp("holdout")
-resampling$instantiate(task)
+learner = lrn("classif.ranger", num.trees = 500)
 measure = msr("classif.ce")
-
-# Train learner on trains et
-learner$train(task, row_ids = resampling$train_set(1))
 ```
+
+## Simple case without resampling
+
+Default behavior will internally construct standard holdout resampling with default ratio
 
 Calculating PFI: 
 
 ```{r}
 pfi = PFI$new(
   task = task, 
-  learner = learner, 
-  # resampling = resampling, # TBI
+  learner = learner,
   measure = measure
 )
 
 # Stores parameter set to calculate PFI in different ways
 pfi$param_set
+
+set.seed(123)
 
 # Default behavior should be sane
 pfi$compute()
@@ -83,5 +83,50 @@ Retrieve scores and convert to DT:
 ```{r}
 pfi$importance
 as.data.table(pfi)
+```
+
+## With resampling
+
+```{r}
+learner = lrn("classif.ranger", num.trees = 100)
+resampling = rsmp("cv", folds = 3)
+measure = msr("classif.ce")
+
+
+pfi = PFI$new(
+  task = task, 
+  learner = learner, 
+  resampling = resampling,
+  measure = measure
+)
+
+pfi$resampling
+pfi$resample_result
+
+pfi$compute(relation = "difference")
+
+pfi$resample_result
+
+pfi$importance
+
+```
+
+Different measure:  
+
+(Note: Maybe it would be worth allowing to change measure post-hoc?)
+
+```{r}
+learner$predict_type = "prob"
+
+pfi = PFI$new(
+  task = task, 
+  learner = learner, 
+  resampling = resampling,
+  measure = msr("classif.auc")
+)
+
+pfi$compute(relation = "ratio")
+pfi$compute(relation = "difference")
+
 ```
 
