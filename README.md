@@ -1,0 +1,35 @@
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# xplainvi
+
+<!-- badges: start -->
+
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![R-CMD-check](https://github.com/jemus42/xplainvi/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jemus42/xplainvi/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+
+The goal of xplainvi is to collect feature importance methods.
+
+For now, it is built specifically around [mlr3](https://mlr-org.com/),
+as available abstractions for learners, tasks, measures, etc. greatly
+simplify the implementation of importance measures.
+
+## Installation
+
+You can install the development version of xplainvi like so:
+
+``` r
+# install.packages(pak)
+pak::pak("jemus42/xplainvi")
+```
+
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+``` r
+library(xplainvi)
+## basic example code
+```
