@@ -1,0 +1,87 @@
+---
+title: "xplainvi"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{xplainvi}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(xplainvi)
+
+# learners, tasks, etc.
+library(mlr3)
+library(mlr3learners)
+```
+
+Defining a simple example case:
+
+- German credit classification task
+- Random forests with 100 trees
+- Holdout split (TBI)
+- Measure: Classification error
+
+```{r setup-problem}
+task = tsk("german_credit")
+learner = lrn("classif.ranger", num.trees = 100)
+resampling = rsmp("holdout")
+resampling$instantiate(task)
+measure = msr("classif.ce")
+
+# Train learner on trains et
+learner$train(task, row_ids = resampling$train_set(1))
+```
+
+Calculating PFI: 
+
+```{r}
+pfi = PFI$new(
+  task = task, 
+  learner = learner, 
+  # resampling = resampling, # TBI
+  measure = measure
+)
+
+# Stores parameter set to calculate PFI in different ways
+pfi$param_set
+
+# Default behavior should be sane
+pfi$compute()
+```
+
+Does not recompute if not needed
+
+```{r}
+pfi$compute(relation = "difference")
+```
+
+Recomputes if param changes, stores new param
+
+```{r}
+pfi$compute(relation = "ratio")
+pfi$param_set
+```
+
+Caveat: When `$compute()` is called again its default value for `"relation"` (i.e. `"difference"`) is used
+
+```{r}
+pfi$compute()
+```
+
+Retrieve scores and convert to DT:
+
+```{r}
+pfi$importance
+as.data.table(pfi)
+```
+
