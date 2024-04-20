@@ -118,7 +118,6 @@ resampling with default ratio</p>
 <span></span>
 <span><span class="co"># Default behavior should be sane</span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Permutation Feature Importance</span></span>
 <span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
 <span><span class="co">#&gt;             0.009009009             0.015015015             0.003003003 </span></span>
 <span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
@@ -136,7 +135,6 @@ resampling with default ratio</p>
 <p>Does not recompute if not needed</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Already computed</span></span>
 <span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
 <span><span class="co">#&gt;             0.009009009             0.015015015             0.003003003 </span></span>
 <span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
@@ -154,7 +152,6 @@ resampling with default ratio</p>
 <p>Recomputes if param changes, stores new param</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Permutation Feature Importance</span></span>
 <span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
 <span><span class="co">#&gt;               1.0574713               1.0344828               1.0919540 </span></span>
 <span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
@@ -179,7 +176,6 @@ value for <code>"relation"</code> (i.e. <code>"difference"</code>) is
 used</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Permutation Feature Importance</span></span>
 <span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
 <span><span class="co">#&gt;             0.015015015            -0.012012012             0.000000000 </span></span>
 <span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
@@ -261,7 +257,6 @@ used</p>
 <span><span class="co">#&gt; NULL</span></span>
 <span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Permutation Feature Importance</span></span>
 <span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
 <span><span class="co">#&gt;             0.004996014             0.016007025             0.028004052 </span></span>
 <span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
@@ -313,7 +308,6 @@ post-hoc?)</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Permutation Feature Importance</span></span>
 <span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
 <span><span class="co">#&gt;               1.0119854               1.0182071               1.0261672 </span></span>
 <span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
@@ -329,7 +323,6 @@ post-hoc?)</p>
 <span><span class="co">#&gt;                  status               telephone </span></span>
 <span><span class="co">#&gt;               1.1509158               1.0025541</span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Permutation Feature Importance</span></span>
 <span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
 <span><span class="co">#&gt;            1.219438e-02            7.990804e-04            1.942118e-02 </span></span>
 <span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
