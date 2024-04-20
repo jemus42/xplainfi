@@ -70,7 +70,7 @@ PFI = R6Class("PFI",
       # Check if already compute with this relation
       # Recompute if different relation chosen
       if (!is.null(self$importance) & self$param_set$values$relation == relation) {
-        message("Already computed")
+        "!DEBUG Already computed with relation `relation`"
         return(self$importance)
       }
       # Store relation
@@ -82,42 +82,17 @@ PFI = R6Class("PFI",
       lgr::get_logger("mlr3")$set_threshold("warn")
 
       # Initial resampling
-      rr = resample(self$task, self$learner, self$resampling, store_models = TRUE, store_backends = FALSE)
+      rr = mlr3::resample(self$task, self$learner, self$resampling, store_models = TRUE, store_backends = FALSE)
       self$resample_result = rr
 
       scores_orig = rr$score(self$measure, predict_sets = "test")[, .SD, .SDcols = c("iteration", self$measure$id)]
       data.table::setnames(scores_orig, old = self$measure$id, "loss_orig")
 
-      scores_permuted = lapply(seq_len(self$resampling$iters), \(iter) {
-
-        # Current test data original, keep target so we have 'truth' for later scoring
-        test_dt = self$task$data(rows = rr$resampling$test_set(iter))
-
-        loss_permuted = vapply(self$features, \(feature) {
-          # Copying task for every feature, not great
-          task_data = data.table::copy(test_dt)
-          # pre = data.table::copy(task_data[, .(feature)])
-
-          # Permute in-place
-          task_data[, (feature) := sample(.SD[[feature]])][]
-
-          # post = data.table::copy(task_data[, .(feature)])
-          # waldo::compare(pre, post)
-
-          # Use predict_newdata to avoid having to reconstruct a new Task
-          pred = rr$learners[[iter]]$predict_newdata(newdata = task_data, task = self$task)
-
-          score = pred$score(self$measure)
-          names(score) = feature
-          score
-
-        }, FUN.VALUE = numeric(1))
-
-        data.table::data.table(
-          feature = names(loss_permuted),
-          loss = loss_permuted
+      scores_permuted =  lapply(seq_len(self$resampling$iters), \(iter) {
+        private$.compute_pfi_score(
+          learner = rr$learners[[iter]],
+          test_dt = self$task$data(rows = rr$resampling$test_set(iter))
         )
-
       })
 
       # Collect permuted scores, add original scores
@@ -131,7 +106,7 @@ PFI = R6Class("PFI",
       self$importance = scores_permuted_agg$importance
       names(self$importance) = scores_permuted_agg$feature
 
-      self
+      self$importance
     }
   ),
 
@@ -151,6 +126,30 @@ PFI = R6Class("PFI",
                ratio = loss_orig / loss_permuted
         )
       }
+    },
+
+    .compute_pfi_score = function(learner, test_dt) {
+
+        loss_permuted = vapply(self$features, \(feature) {
+          # Copying task for every feature, not great
+          task_data = data.table::copy(test_dt)
+
+          # Permute in-place
+          task_data[, (feature) := sample(.SD[[feature]])][]
+
+          # Use predict_newdata to avoid having to reconstruct a new Task, needs orig task
+          pred = learner$predict_newdata(newdata = task_data, task = self$task)
+
+          score = pred$score(self$measure)
+          names(score) = feature
+          score
+
+        }, FUN.VALUE = numeric(1))
+
+        data.table::data.table(
+          feature = names(loss_permuted),
+          loss = loss_permuted
+        )
     }
   )
 )
