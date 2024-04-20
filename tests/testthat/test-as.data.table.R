@@ -1,8 +1,11 @@
-test_that("multiplication works", {
+test_that("as.data.table(PFI)", {
+
+  skip_if_not_installed("mlr3learners")
+
   pfi = PFI$new(
     task = mlr3::tsk("zoo"),
     measure = mlr3::msr("classif.ce"),
-    learner = mlr3::lrn("classif.rpart")
+    learner = mlr3::lrn("classif.ranger")
   )
 
   expect_warning({ tmp <- as.data.table(pfi) })
