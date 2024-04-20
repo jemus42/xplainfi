@@ -23,8 +23,10 @@ test_that("snapshot results", {
 
   # Default behavior should be sane
   res_1 = pfi$compute()
+  # Expect named, non-missing/finite numeric vector corresponding to feature names
+  expect_importance_vec(res_1, task$feature_names)
 
-  expect_snapshot(pfi$importance)
+  expect_snapshot(pfi$importance, variant = Sys.info()[["sysname"]])
   res_2 = pfi$compute()
 
   expect_identical(res_1, res_2)
@@ -33,16 +35,19 @@ test_that("snapshot results", {
   expect_identical(res_1, res_3)
 
   res_4 = pfi$compute("ratio")
-  expect_snapshot(pfi$importance)
+  expect_snapshot(pfi$importance, variant = Sys.info()[["sysname"]])
   res_5 = pfi$compute("difference")
 
   expect_error(expect_equal(res_4, res_5))
 
-  # With resampling
+  expect_importance_vec(res_2, task$feature_names)
+  expect_importance_vec(res_3, task$feature_names)
+  expect_importance_vec(res_4, task$feature_names)
+  expect_importance_vec(res_5, task$feature_names)
 
+  # With resampling
   resampling = rsmp("cv", folds = 3)
   measure = msr("classif.ce")
-
 
   pfi = PFI$new(
     task = task,
@@ -51,10 +56,15 @@ test_that("snapshot results", {
     measure = measure
   )
 
-  pfi$compute()
-  expect_snapshot(pfi$importance)
+  res_1 = pfi$compute()
+  expect_importance_vec(pfi$importance, task$feature_names)
 
-  pfi$compute("ratio")
-  expect_snapshot(pfi$importance)
+  expect_snapshot(pfi$importance, variant = Sys.info()[["sysname"]])
+
+  res_2 = pfi$compute("ratio")
+  expect_importance_vec(pfi$importance, task$feature_names)
+  expect_snapshot(pfi$importance, variant = Sys.info()[["sysname"]])
+
+  expect_error(expect_equal(res_1, res_2))
 
 })
