@@ -7,17 +7,11 @@
 #' @examplesIf requireNamespace("mlr3learners") & requireNamespace("ranger")
 #'
 #' library(mlr3)
-#' library(mlr3learners)
-#'
-#' task = tsk("zoo")
-#' learner = lrn("classif.ranger", num.trees = 100)
-#' measure = msr("classif.ce")
-#'
 #'
 #' pfi = PFI$new(
-#'   task = task,
-#'   learner = learner,
-#'   measure = measure
+#'   task = tsk("zoo"),
+#'   learner = lrn("classif.rpart"),
+#'   measure = msr("classif.ce")
 #' )
 #'
 #' pfi$compute()
@@ -28,7 +22,6 @@ PFI = R6Class("PFI",
     #' Creates a new instance of this [R6][R6::R6Class] class.
     #' @param task,learner,measure,resampling,features Passed to `FeatureImportanceLearner` for construction.
     initialize = function(task, learner, measure, resampling = NULL, features = NULL) {
-
       # params
       ps = ps(
         relation = paradox::p_fct(c("difference", "ratio"), default = "difference")
@@ -82,7 +75,10 @@ PFI = R6Class("PFI",
       lgr::get_logger("mlr3")$set_threshold("warn")
 
       # Initial resampling
-      rr = mlr3::resample(self$task, self$learner, self$resampling, store_models = TRUE, store_backends = FALSE)
+      rr = mlr3::resample(
+        self$task, self$learner, self$resampling,
+        store_models = TRUE, store_backends = FALSE
+      )
       self$resample_result = rr
 
       scores_orig = rr$score(self$measure, predict_sets = "test")[, .SD, .SDcols = c("iteration", self$measure$id)]
@@ -153,5 +149,3 @@ PFI = R6Class("PFI",
     }
   )
 )
-
-

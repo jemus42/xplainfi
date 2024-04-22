@@ -59,7 +59,9 @@ set.seed(123)
 pfi$compute()
 ```
 
-Does not recompute if not needed
+Q: Should `$compute()` be run on construction? Between the call to `$new()` and `$compute()` there's nothing that needs to happen technically, as long as the `relation` param could be set directly.
+
+Does not recompute if not needed:
 
 ```{r}
 pfi$compute(relation = "difference")
@@ -72,7 +74,8 @@ pfi$compute(relation = "ratio")
 pfi$param_set
 ```
 
-Caveat: When `$compute()` is called again its default value for `"relation"` (i.e. `"difference"`) is used
+Q: When `$compute()` is called again its default value for `"relation"` (i.e. `"difference"`) is used, which doesn't seem ideal.
+Maybe this default should be the param stored in the object itself rather than feel like a separate function.
 
 ```{r}
 pfi$compute()
@@ -92,7 +95,6 @@ learner = lrn("classif.ranger", num.trees = 100)
 resampling = rsmp("cv", folds = 3)
 measure = msr("classif.ce")
 
-
 pfi = PFI$new(
   task = task, 
   learner = learner, 
@@ -108,12 +110,11 @@ pfi$compute(relation = "difference")
 pfi$resample_result
 
 pfi$importance
-
 ```
 
 Different measure:  
 
-(Note: Maybe it would be worth allowing to change measure post-hoc?)
+Q: Maybe it would be worth allowing to change measure post-hoc?
 
 ```{r}
 learner$predict_type = "prob"
@@ -127,6 +128,8 @@ pfi = PFI$new(
 
 pfi$compute(relation = "ratio")
 pfi$compute(relation = "difference")
-
 ```
 
+Q: Results are importance scores averaged over resampling iterations to ensure the "named numeric" return format.
+But what about the individual scores across resampling iterations?  
+If we want to attempt uncertainty quantification or at least also report SDs there needs to be a `data.table` return type.

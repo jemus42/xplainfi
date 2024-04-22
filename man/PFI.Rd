@@ -15,17 +15,11 @@ Calculates Permutation Feature Importance (PFI) scores.
 \dontshow{if (requireNamespace("mlr3learners") & requireNamespace("ranger")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 
 library(mlr3)
-library(mlr3learners)
-
-task = tsk("zoo")
-learner = lrn("classif.ranger", num.trees = 100)
-measure = msr("classif.ce")
-
 
 pfi = PFI$new(
-  task = task,
-  learner = learner,
-  measure = measure
+  task = tsk("zoo"),
+  learner = lrn("classif.rpart"),
+  measure = msr("classif.ce")
 )
 
 pfi$compute()
