@@ -13,5 +13,5 @@
 #' @noRd
 expect_importance_vec = function(x, features) {
   checkmate::expect_numeric(x, finite = TRUE, any.missing = FALSE, len = length(features))
-  checkmate::expect_names(x, identical.to = features)
+  checkmate::expect_names(names(x), identical.to = features)
 }
