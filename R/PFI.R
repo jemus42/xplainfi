@@ -4,7 +4,7 @@
 #'
 #' @export
 #'
-#' @examplesIf requireNamespace("mlr3learners") & requireNamespace("ranger")
+#' @examplesIf requireNamespace("rpart")
 #'
 #' library(mlr3)
 #'

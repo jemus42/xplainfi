@@ -22,6 +22,7 @@ Suggests:
     mlr3learners,
     ranger,
     rmarkdown,
+    rpart,
     testthat (>= 3.0.0)
 VignetteBuilder: 
     knitr
