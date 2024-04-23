@@ -1,6 +1,38 @@
-test_that("can be constructed", {
-
+test_that("can't be constructed without args", {
   expect_error(PFI$new())
+})
+
+test_that("can be constructed with simple objects", {
+  skip_if_not_installed("rpart")
+
+  task = mlr3::tsk("zoo")
+
+  pfi = PFI$new(
+    task = task,
+    learner = mlr3::lrn("classif.rpart"),
+    measure = mlr3::msr("classif.ce")
+  )
+
+  checkmate::expect_r6(pfi, c("FeatureImportanceLearner", "PFI"))
+
+  expect_importance_vec(pfi$compute(), features = task$feature_names)
+  expect_importance_vec(pfi$compute(relation = "difference"), features = task$feature_names)
+})
+
+test_that("null result for featureless learner", {
+
+  task = mlr3::tsk("zoo")
+
+  pfi = PFI$new(
+    task = task,
+    learner = mlr3::lrn("classif.featureless"),
+    measure = mlr3::msr("classif.ce")
+  )
+
+  expected = rep(0, length(task$feature_names))
+  names(expected) = task$feature_names
+
+  expect_identical(pfi$compute(), expected)
 })
 
 
