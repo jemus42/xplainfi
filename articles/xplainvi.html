@@ -132,7 +132,11 @@ resampling with default ratio</p>
 <span><span class="co">#&gt;             0.006006006            -0.003003003             0.009009009 </span></span>
 <span><span class="co">#&gt;                  status               telephone </span></span>
 <span><span class="co">#&gt;             0.036036036             0.009009009</span></span></code></pre></div>
-<p>Does not recompute if not needed</p>
+<p>Q: Should <code>$compute()</code> be run on construction? Between the
+call to <code>$new()</code> and <code>$compute()</code> there’s nothing
+that needs to happen technically, as long as the <code>relation</code>
+param could be set directly.</p>
+<p>Does not recompute if not needed:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
@@ -171,9 +175,10 @@ resampling with default ratio</p>
 <span><span class="co">#&gt;          id    class lower upper nlevels    default  value</span></span>
 <span><span class="co">#&gt;      &lt;char&gt;   &lt;char&gt; &lt;num&gt; &lt;num&gt;   &lt;int&gt;     &lt;list&gt; &lt;list&gt;</span></span>
 <span><span class="co">#&gt; 1: relation ParamFct    NA    NA       2 difference  ratio</span></span></code></pre></div>
-<p>Caveat: When <code>$compute()</code> is called again its default
-value for <code>"relation"</code> (i.e. <code>"difference"</code>) is
-used</p>
+<p>Q: When <code>$compute()</code> is called again its default value for
+<code>"relation"</code> (i.e. <code>"difference"</code>) is used, which
+doesn’t seem ideal. Maybe this default should be the param stored in the
+object itself rather than feel like a separate function.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
@@ -240,7 +245,6 @@ used</p>
 <span><span class="va">resampling</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">measure</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.ce"</span><span class="op">)</span></span>
 <span></span>
-<span></span>
 <span><span class="va">pfi</span> <span class="op">=</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task</span>, </span>
 <span>  learner <span class="op">=</span> <span class="va">learner</span>, </span>
@@ -295,8 +299,7 @@ used</p>
 <span><span class="co">#&gt;                  status               telephone </span></span>
 <span><span class="co">#&gt;             0.042995091             0.007004010</span></span></code></pre></div>
 <p>Different measure:</p>
-<p>(Note: Maybe it would be worth allowing to change measure
-post-hoc?)</p>
+<p>Q: Maybe it would be worth allowing to change measure post-hoc?</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">learner</span><span class="op">$</span><span class="va">predict_type</span> <span class="op">=</span> <span class="st">"prob"</span></span>
 <span></span>
@@ -337,6 +340,11 @@ post-hoc?)</p>
 <span><span class="co">#&gt;            1.331438e-03            4.640028e-03            7.728800e-03 </span></span>
 <span><span class="co">#&gt;                  status               telephone </span></span>
 <span><span class="co">#&gt;            1.171140e-01            2.073551e-03</span></span></code></pre></div>
+<p>Q: Results are importance scores averaged over resampling iterations
+to ensure the “named numeric” return format. But what about the
+individual scores across resampling iterations?<br>
+If we want to attempt uncertainty quantification or at least also report
+SDs there needs to be a <code>data.table</code> return type.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
