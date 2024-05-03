@@ -37,7 +37,9 @@ learner = lrn("classif.ranger", num.trees = 500)
 measure = msr("classif.ce")
 ```
 
-## Simple case without resampling
+## PFI
+
+### Simple case without resampling
 
 Default behavior will internally construct standard holdout resampling with default ratio
 
@@ -88,7 +90,7 @@ pfi$importance
 as.data.table(pfi)
 ```
 
-## With resampling
+### With resampling
 
 ```{r}
 learner = lrn("classif.ranger", num.trees = 100)
@@ -133,3 +135,53 @@ pfi$compute(relation = "difference")
 Q: Results are importance scores averaged over resampling iterations to ensure the "named numeric" return format.
 But what about the individual scores across resampling iterations?  
 If we want to attempt uncertainty quantification or at least also report SDs there needs to be a `data.table` return type.
+
+## LOCO
+
+Same setup but now using LOCO, which differs in that it internally needs to refit the model.  
+Notably, the `Task` object does not need to be modified, as it suffices to adjust the `.$col_roles$feature` property.
+
+```{r}
+learner = lrn("classif.ranger", num.trees = 100)
+
+loco = LOCO$new(
+  task = task, 
+  learner = learner, 
+  resampling = resampling,
+  measure = msr("classif.ce")
+)
+
+loco$compute()
+```
+
+## Aggregating results
+
+```{r}
+scores_rel = data.table(
+  feature = task$feature_names,
+  PFI = pfi$compute(relation = "ratio"),
+  LOCO = loco$compute(relation = "ratio")
+)
+
+scores_rel |>
+  knitr::kable(digits = 4, caption = "Importance scores (ratio)")
+
+library(ggplot2)
+
+scores_rel |>
+  data.table::melt(id.vars = "feature", value.name = "score", variable.name = "method") |>
+  ggplot(aes(x = score, y = feature, color = method, fill = method)) +
+  geom_col(position = "dodge", alpha = .5) +
+  scale_color_brewer(palette = "Dark2", aesthetics = c("color", "fill")) +
+  labs(
+    title = "Feature Importance Scores",
+    subtitle = glue::glue("For task {task$id} and measure {measure$id}, using relativ scores"),
+    x = "Score", y = "Feature", color = "Method", fill = "Method",
+    caption = glue::glue("Using {resampling$iters}-fold {resampling$id}")
+  ) +
+  theme(
+    legend.position = "bottom",
+    plot.title.position = "plot"
+  )
+```
+
