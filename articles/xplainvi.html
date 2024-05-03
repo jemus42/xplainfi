@@ -95,8 +95,11 @@
 <span><span class="va">learner</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
 <span><span class="va">measure</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.ce"</span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
-<h2 id="simple-case-without-resampling">Simple case without resampling<a class="anchor" aria-label="anchor" href="#simple-case-without-resampling"></a>
+<h2 id="pfi">PFI<a class="anchor" aria-label="anchor" href="#pfi"></a>
 </h2>
+<div class="section level3">
+<h3 id="simple-case-without-resampling">Simple case without resampling<a class="anchor" aria-label="anchor" href="#simple-case-without-resampling"></a>
+</h3>
 <p>Default behavior will internally construct standard holdout
 resampling with default ratio</p>
 <p>Calculating PFI:</p>
@@ -237,9 +240,9 @@ object itself rather than feel like a separate function.</p>
 <span><span class="co">#&gt; 20:               telephone -0.003003003</span></span>
 <span><span class="co">#&gt;                     feature   importance</span></span></code></pre></div>
 </div>
-<div class="section level2">
-<h2 id="with-resampling">With resampling<a class="anchor" aria-label="anchor" href="#with-resampling"></a>
-</h2>
+<div class="section level3">
+<h3 id="with-resampling">With resampling<a class="anchor" aria-label="anchor" href="#with-resampling"></a>
+</h3>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">learner</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="va">resampling</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
@@ -345,6 +348,183 @@ to ensure the “named numeric” return format. But what about the
 individual scores across resampling iterations?<br>
 If we want to attempt uncertainty quantification or at least also report
 SDs there needs to be a <code>data.table</code> return type.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="loco">LOCO<a class="anchor" aria-label="anchor" href="#loco"></a>
+</h2>
+<p>Same setup but now using LOCO, which differs in that it internally
+needs to refit the model.<br>
+Notably, the <code>Task</code> object does not need to be modified, as
+it suffices to adjust the <code>.$col_roles$feature</code> property.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">learner</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">loco</span> <span class="op">=</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task</span>, </span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>, </span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.ce"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">loco</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
+<span><span class="co">#&gt;           -4.996014e-03            5.994018e-06            3.006000e-03 </span></span>
+<span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
+<span><span class="co">#&gt;           -9.890130e-04            8.991027e-06           -7.984032e-03 </span></span>
+<span><span class="co">#&gt;                 housing        installment_rate                     job </span></span>
+<span><span class="co">#&gt;           -1.699903e-02           -1.999005e-03            5.994018e-06 </span></span>
+<span><span class="co">#&gt;          number_credits           other_debtors other_installment_plans </span></span>
+<span><span class="co">#&gt;           -1.598904e-02           -6.003009e-03           -1.701702e-02 </span></span>
+<span><span class="co">#&gt;           people_liable     personal_status_sex       present_residence </span></span>
+<span><span class="co">#&gt;           -8.008008e-03           -5.005005e-03           -3.986022e-03 </span></span>
+<span><span class="co">#&gt;                property                 purpose                 savings </span></span>
+<span><span class="co">#&gt;           -6.003009e-03           -7.993023e-03           -8.982036e-03 </span></span>
+<span><span class="co">#&gt;                  status               telephone </span></span>
+<span><span class="co">#&gt;            2.400304e-02           -4.004004e-03</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="aggregating-results">Aggregating results<a class="anchor" aria-label="anchor" href="#aggregating-results"></a>
+</h2>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">scores_rel</span> <span class="op">=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span></span>
+<span>  feature <span class="op">=</span> <span class="va">task</span><span class="op">$</span><span class="va">feature_names</span>,</span>
+<span>  PFI <span class="op">=</span> <span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span>,</span>
+<span>  LOCO <span class="op">=</span> <span class="va">loco</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">scores_rel</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"Importance scores (ratio)"</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Importance scores (ratio)</caption>
+<thead><tr class="header">
+<th align="left">feature</th>
+<th align="right">PFI</th>
+<th align="right">LOCO</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">age</td>
+<td align="right">1.0162</td>
+<td align="right">0.9804</td>
+</tr>
+<tr class="even">
+<td align="left">amount</td>
+<td align="right">1.0170</td>
+<td align="right">0.9946</td>
+</tr>
+<tr class="odd">
+<td align="left">credit_history</td>
+<td align="right">1.0306</td>
+<td align="right">0.9994</td>
+</tr>
+<tr class="even">
+<td align="left">duration</td>
+<td align="right">1.0505</td>
+<td align="right">1.0380</td>
+</tr>
+<tr class="odd">
+<td align="left">employment_duration</td>
+<td align="right">1.0060</td>
+<td align="right">0.9962</td>
+</tr>
+<tr class="even">
+<td align="left">foreign_worker</td>
+<td align="right">1.0004</td>
+<td align="right">0.9819</td>
+</tr>
+<tr class="odd">
+<td align="left">housing</td>
+<td align="right">1.0014</td>
+<td align="right">0.9838</td>
+</tr>
+<tr class="even">
+<td align="left">installment_rate</td>
+<td align="right">1.0082</td>
+<td align="right">0.9807</td>
+</tr>
+<tr class="odd">
+<td align="left">job</td>
+<td align="right">0.9972</td>
+<td align="right">0.9607</td>
+</tr>
+<tr class="even">
+<td align="left">number_credits</td>
+<td align="right">0.9964</td>
+<td align="right">0.9680</td>
+</tr>
+<tr class="odd">
+<td align="left">other_debtors</td>
+<td align="right">1.0033</td>
+<td align="right">0.9883</td>
+</tr>
+<tr class="even">
+<td align="left">other_installment_plans</td>
+<td align="right">1.0117</td>
+<td align="right">0.9838</td>
+</tr>
+<tr class="odd">
+<td align="left">people_liable</td>
+<td align="right">1.0013</td>
+<td align="right">0.9525</td>
+</tr>
+<tr class="even">
+<td align="left">personal_status_sex</td>
+<td align="right">0.9987</td>
+<td align="right">0.9834</td>
+</tr>
+<tr class="odd">
+<td align="left">present_residence</td>
+<td align="right">1.0033</td>
+<td align="right">0.9969</td>
+</tr>
+<tr class="even">
+<td align="left">property</td>
+<td align="right">0.9968</td>
+<td align="right">0.9850</td>
+</tr>
+<tr class="odd">
+<td align="left">purpose</td>
+<td align="right">1.0064</td>
+<td align="right">0.9769</td>
+</tr>
+<tr class="even">
+<td align="left">savings</td>
+<td align="right">1.0225</td>
+<td align="right">0.9894</td>
+</tr>
+<tr class="odd">
+<td align="left">status</td>
+<td align="right">1.1889</td>
+<td align="right">1.0908</td>
+</tr>
+<tr class="even">
+<td align="left">telephone</td>
+<td align="right">1.0052</td>
+<td align="right">0.9696</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">scores_rel</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/melt.data.table.html" class="external-link">melt</a></span><span class="op">(</span>id.vars <span class="op">=</span> <span class="st">"feature"</span>, value.name <span class="op">=</span> <span class="st">"score"</span>, variable.name <span class="op">=</span> <span class="st">"method"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">score</span>, y <span class="op">=</span> <span class="va">feature</span>, color <span class="op">=</span> <span class="va">method</span>, fill <span class="op">=</span> <span class="va">method</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span>position <span class="op">=</span> <span class="st">"dodge"</span>, alpha <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_color_brewer</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Dark2"</span>, aesthetics <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"color"</span>, <span class="st">"fill"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
+<span>    title <span class="op">=</span> <span class="st">"Feature Importance Scores"</span>,</span>
+<span>    subtitle <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"For task {task$id} and measure {measure$id}, using relativ scores"</span><span class="op">)</span>,</span>
+<span>    x <span class="op">=</span> <span class="st">"Score"</span>, y <span class="op">=</span> <span class="st">"Feature"</span>, color <span class="op">=</span> <span class="st">"Method"</span>, fill <span class="op">=</span> <span class="st">"Method"</span>,</span>
+<span>    caption <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"Using {resampling$iters}-fold {resampling$id}"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
+<span>    legend.position <span class="op">=</span> <span class="st">"bottom"</span>,</span>
+<span>    plot.title.position <span class="op">=</span> <span class="st">"plot"</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
+<p><img src="xplainvi_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>

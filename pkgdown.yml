@@ -3,7 +3,7 @@ pkgdown: 2.0.9
 pkgdown_sha: ~
 articles:
   xplainvi: xplainvi.html
-last_built: 2024-05-03T10:05Z
+last_built: 2024-05-03T13:20Z
 urls:
   reference: https://jemus42.github.io/xplainvi/reference
   article: https://jemus42.github.io/xplainvi/articles
