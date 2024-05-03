@@ -28,30 +28,27 @@ FeatureImportanceLearner = R6Class("FeatureImportanceLearner",
   #' @param task,learner,measure,resampling,features,param_set,label Used to set fields
   initialize = function(task, learner, measure, resampling = NULL, features = NULL, param_set = paradox::ps(), label) {
 
-    self$task = task
-    self$learner = learner
-    self$measure = measure
-    self$resampling = resampling
-    self$param_set = param_set
-    self$label = label
+    self$task = mlr3::assert_task(task)
+    self$learner = mlr3::assert_learner(learner, task = task)
+    self$measure = mlr3::assert_measure(measure)
+    self$resampling = resampling %??% mlr3::assert_resampling(resampling)
+    self$param_set = paradox::assert_param_set(param_set)
+    self$label = checkmate::assert_string(label, min.chars = 1)
+    self$features = features %??% self$task$feature_names
 
-    if (is.null(features)) {
-      self$features = self$task$feature_names
-    }
 
   },
-  #' #' @description
-  #'   #' Computes importance scores
-  #' compute = function() {
-  #' },
+  # #' @description
+  #   #' Computes importance scores
+  # compute = function() {
+  # },
 
   #' @description
-    #' Print importance scores
-    #'
-    #' @param ... Passed to `print()`
+  #' Print importance scores
+  #'
+  #' @param ... Passed to `print()`
   print = function(...) {
-    mlr3misc::catn(self$label)
-    # browser()
+    cat(self$label, "\n")
     if (!is.null(self$importance)) print(self$importance, ...)
   }
  )

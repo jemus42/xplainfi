@@ -1,7 +1,9 @@
 #' @keywords internal
 "_PACKAGE"
 
+# Importing %??% from checkmate but could use %||% in R >= 4.4.0
 ## usethis namespace: start
+#' @importFrom checkmate %??%
 #' @importFrom data.table :=
 #' @importFrom data.table .BY
 #' @importFrom data.table .EACHI

@@ -60,11 +60,7 @@ This is typically intended for use by derived classes.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task, learner, measure, resampling, features, param_set, label}}{Used to set fields
-#' @description
-#' Computes importance scores
-compute = function() {
-},}
+\item{\code{task, learner, measure, resampling, features, param_set, label}}{Used to set fields}
 }
 \if{html}{\out{</div>}}
 }

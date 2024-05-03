@@ -1,6 +1,6 @@
-#' PFI Class
+#' LOCO Class
 #'
-#' Calculates Permutation Feature Importance (PFI) scores.
+#' Calculates Leave-One-Covariate-Out (LOCO) scores.
 #'
 #' @export
 #'
@@ -8,14 +8,14 @@
 #'
 #' library(mlr3)
 #'
-#' pfi = PFI$new(
+#' loco = LOCO$new(
 #'   task = tsk("zoo"),
 #'   learner = lrn("classif.rpart"),
 #'   measure = msr("classif.ce")
 #' )
 #'
-#' pfi$compute()
-PFI = R6Class("PFI",
+#' loco$compute()
+LOCO = R6Class("LOCO",
   inherit = FeatureImportanceLearner,
   public = list(
     #' @description
@@ -49,7 +49,7 @@ PFI = R6Class("PFI",
         resampling = resampling,
         features = features,
         param_set = ps,
-        label = "Permutation Feature Importance"
+        label = "LOCO Feature Importance"
       )
     },
 
@@ -81,59 +81,68 @@ PFI = R6Class("PFI",
       )
       self$resample_result = rr
 
-      scores_orig = rr$score(self$measure, predict_sets = "test")[, .SD, .SDcols = c("iteration", self$measure$id)]
-      data.table::setnames(scores_orig, old = self$measure$id, "scores_pre")
+      scores_pre = rr$score(self$measure, predict_sets = "test")[, .SD, .SDcols = c("iteration", self$measure$id)]
+      data.table::setnames(scores_pre, old = self$measure$id, "scores_pre")
 
-      scores_permuted =  lapply(seq_len(self$resampling$iters), \(iter) {
-        private$.compute_pfi_score(
-          learner = rr$learners[[iter]],
-          test_dt = self$task$data(rows = rr$resampling$test_set(iter))
+      scores_loco =  lapply(seq_len(self$resampling$iters), \(iter) {
+        private$.compute_loco_score(
+          # Clone learner ans task to prevent modifying originals
+          learner = rr$learners[[iter]]$clone(),
+          task = self$task$clone(),
+          train_ids = rr$resampling$train_set(iter),
+          test_ids = rr$resampling$test_set(iter)
         )
       })
-
+# browser()
       # Collect permuted scores, add original scores
-      scores_permuted = data.table::rbindlist(scores_permuted, idcol = "iteration")
-      scores_permuted = scores_permuted[scores_orig, on = "iteration"]
-      # Calculate PFI depending on relation(-, /), and minimize property
-      scores_permuted[, importance := compute_score_relation(
+      scores_loco = data.table::rbindlist(scores_loco, idcol = "iteration")
+      scores_loco = scores_loco[scores_pre, on = "iteration"]
+      # Calculate LOCO depending on relation(-, /), and minimize property
+      scores_loco[, importance := compute_score_relation(
         scores_pre, scores_post,
         relation = self$param_set$values$relation,
         minimize = self$measure$minimize
       )]
-      # Aggregate by feature over resamplings
-      scores_permuted_agg = scores_permuted[, .(importance = mean(importance)), by = feature]
 
-      self$importance = scores_permuted_agg$importance
-      names(self$importance) = scores_permuted_agg$feature
+      # Aggregate by feature over resamplings
+      scores_loco_agg = scores_loco[, .(importance = mean(importance)), by = feature]
+
+      self$importance = scores_loco_agg$importance
+      names(self$importance) = scores_loco_agg$feature
 
       self$importance
     }
   ),
 
   private = list(
-    # TODO: Should this use self$features etc. or should these be passed as arguments?
-    .compute_pfi_score = function(learner, test_dt) {
+    .compute_loco_score = function(learner, task, train_ids, test_ids) {
+
+      # Store complete set of features as $feature_names will shrink otherwise
+      features_total = task$feature_names
 
       scores_post = vapply(self$features, \(feature) {
-          # Copying task for every feature, not great
-          task_data = data.table::copy(test_dt)
+        "!DEBUG Leaving out `feature`"
+        # browser()
 
-          # Permute in-place
-          task_data[, (feature) := sample(.SD[[feature]])][]
+        # Get set of all features without current feature
+        task$col_roles$feature = setdiff(features_total, feature)
+        "!DEBUG features: `sort(task$feature_names)`"
 
-          # Use predict_newdata to avoid having to reconstruct a new Task, needs orig task
-          pred = learner$predict_newdata(newdata = task_data, task = self$task)
+        learner$reset()
+        learner$train(task, row_ids = train_ids)
+        # Use predict_newdata to avoid having to reconstruct a new Task, needs orig task
+        pred = learner$predict(task, row_ids = test_ids)
 
-          score = pred$score(self$measure)
-          names(score) = feature
-          score
+        score = pred$score(self$measure)
+        names(score) = feature
+        score
 
-        }, FUN.VALUE = numeric(1))
+      }, FUN.VALUE = numeric(1))
 
-        data.table(
-          feature = names(scores_post),
-          scores_post = scores_post
-        )
+      data.table::data.table(
+        feature = names(scores_post),
+        scores_post = scores_post
+      )
     }
   )
 )
