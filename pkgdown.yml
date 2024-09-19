@@ -1,10 +1,9 @@
 pandoc: 3.1.11
-pkgdown: 2.0.9
+pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   xplainvi: xplainvi.html
-last_built: 2024-05-03T13:20Z
+last_built: 2024-09-19T14:53Z
 urls:
   reference: https://jemus42.github.io/xplainvi/reference
   article: https://jemus42.github.io/xplainvi/articles
-
