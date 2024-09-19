@@ -29,11 +29,8 @@ PFI = R6Class("PFI",
 
       ps$values = list(relation = "difference")
 
-      # resampling
-      if (is.null(resampling)) {
-        resampling = mlr3::rsmp("holdout", ratio = 2/3)$instantiate(task)
-      }
-      resampling = resampling
+      # resampling: default to holdout with default ratio if NULL
+      resampling = resampling %||% mlr3::rsmp("holdout")$instantiate(task)
 
       if (!resampling$is_instantiated) {
         resampling$instantiate(task)
@@ -63,7 +60,6 @@ PFI = R6Class("PFI",
       # Check if already compute with this relation
       # Recompute if different relation chosen
       if (!is.null(self$importance) & self$param_set$values$relation == relation) {
-        "!DEBUG Already computed with relation `relation`"
         return(self$importance)
       }
       # Store relation
@@ -81,11 +77,11 @@ PFI = R6Class("PFI",
       )
       self$resample_result = rr
 
-      scores_orig = rr$score(self$measure, predict_sets = "test")[, .SD, .SDcols = c("iteration", self$measure$id)]
+      scores_orig = rr$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
       data.table::setnames(scores_orig, old = self$measure$id, "scores_pre")
 
       scores_permuted =  lapply(seq_len(self$resampling$iters), \(iter) {
-        private$.compute_pfi_score(
+        private$.compute_permuted_score(
           learner = rr$learners[[iter]],
           test_dt = self$task$data(rows = rr$resampling$test_set(iter))
         )
@@ -112,7 +108,7 @@ PFI = R6Class("PFI",
 
   private = list(
     # TODO: Should this use self$features etc. or should these be passed as arguments?
-    .compute_pfi_score = function(learner, test_dt) {
+    .compute_permuted_score = function(learner, test_dt) {
 
       scores_post = vapply(self$features, \(feature) {
           # Copying task for every feature, not great

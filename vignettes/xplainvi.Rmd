@@ -165,7 +165,10 @@ scores_rel = data.table(
 
 scores_rel |>
   knitr::kable(digits = 4, caption = "Importance scores (ratio)")
+```
 
+
+```{r}
 library(ggplot2)
 
 scores_rel |>
@@ -175,9 +178,9 @@ scores_rel |>
   scale_color_brewer(palette = "Dark2", aesthetics = c("color", "fill")) +
   labs(
     title = "Feature Importance Scores",
-    subtitle = glue::glue("For task {task$id} and measure {measure$id}, using relativ scores"),
+    subtitle = sprintf("For task %s and measure %s, using relativ scores", task$id, measure$id),
     x = "Score", y = "Feature", color = "Method", fill = "Method",
-    caption = glue::glue("Using {resampling$iters}-fold {resampling$id}")
+    caption = sprintf("Using %i-fold $s", resampling$iters, resampling$id)
   ) +
   theme(
     legend.position = "bottom",

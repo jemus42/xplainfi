@@ -33,7 +33,6 @@ LOCO = R6Class("LOCO",
       if (is.null(resampling)) {
         resampling = mlr3::rsmp("holdout", ratio = 2/3)$instantiate(task)
       }
-      resampling = resampling
 
       if (!resampling$is_instantiated) {
         resampling$instantiate(task)
@@ -63,7 +62,6 @@ LOCO = R6Class("LOCO",
       # Check if already compute with this relation
       # Recompute if different relation chosen
       if (!is.null(self$importance) & self$param_set$values$relation == relation) {
-        "!DEBUG Already computed with relation `relation`"
         return(self$importance)
       }
       # Store relation
@@ -81,7 +79,7 @@ LOCO = R6Class("LOCO",
       )
       self$resample_result = rr
 
-      scores_pre = rr$score(self$measure, predict_sets = "test")[, .SD, .SDcols = c("iteration", self$measure$id)]
+      scores_pre = rr$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
       data.table::setnames(scores_pre, old = self$measure$id, "scores_pre")
 
       scores_loco =  lapply(seq_len(self$resampling$iters), \(iter) {
@@ -93,7 +91,7 @@ LOCO = R6Class("LOCO",
           test_ids = rr$resampling$test_set(iter)
         )
       })
-# browser()
+
       # Collect permuted scores, add original scores
       scores_loco = data.table::rbindlist(scores_loco, idcol = "iteration")
       scores_loco = scores_loco[scores_pre, on = "iteration"]
@@ -121,12 +119,8 @@ LOCO = R6Class("LOCO",
       features_total = task$feature_names
 
       scores_post = vapply(self$features, \(feature) {
-        "!DEBUG Leaving out `feature`"
-        # browser()
-
         # Get set of all features without current feature
         task$col_roles$feature = setdiff(features_total, feature)
-        "!DEBUG features: `sort(task$feature_names)`"
 
         learner$reset()
         learner$train(task, row_ids = train_ids)

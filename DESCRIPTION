@@ -17,7 +17,6 @@ Imports:
     paradox,
     R6
 Suggests: 
-    debugme,
     ggplot2,
     knitr,
     mlr3learners,
