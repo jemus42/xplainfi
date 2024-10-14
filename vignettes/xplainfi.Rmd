@@ -1,8 +1,8 @@
 ---
-title: "xplainvi"
+title: "xplainfi"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{xplainvi}
+  %\VignetteIndexEntry{xplainfi}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-library(xplainvi)
+library(xplainfi)
 
 # learners, tasks, etc.
 library(mlr3)

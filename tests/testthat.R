@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(xplainvi)
+library(xplainfi)
 
-test_check("xplainvi")
+test_check("xplainfi")

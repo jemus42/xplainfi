@@ -11,34 +11,48 @@ knitr::opts_chunk$set(
   fig.path = "man/figures/README-",
   out.width = "100%"
 )
+set.seed(123)
 ```
 
-# xplainvi
+# `xplainfi`
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![R-CMD-check](https://github.com/jemus42/xplainvi/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jemus42/xplainvi/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/jemus42/xplainfi/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jemus42/xplainfi/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-The goal of xplainvi is to collect feature importance methods.  
+The goal of `xplainfi` is to collect common feature importance methods under a unified and extensible interface.  
 
 For now, it is built specifically around [mlr3](https://mlr-org.com/), as available abstractions for learners, tasks, measures, etc. greatly simplify the implementation of importance measures.
 
 ## Installation
 
-You can install the development version of xplainvi like so:
+You can install the development version of `xplainfi` like so:
 
 ``` r
 # install.packages(pak)
-pak::pak("jemus42/xplainvi")
+pak::pak("jemus42/xplainfi")
 ```
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+Here is a basic example on how to calculate PFI for a given learner and task:
 
 ```{r example}
-library(xplainvi)
-## basic example code
+library(xplainfi)
+library(mlr3)
+library(mlr3learners)
+
+task = tsk("german_credit")
+learner = lrn("classif.ranger", num.trees = 500)
+measure = msr("classif.ce")
+
+pfi = PFI$new(
+  task = task, 
+  learner = learner,
+  measure = measure,
+  resampling = rsmp("cv", folds = 3)
+)
+pfi$compute()
 ```
 

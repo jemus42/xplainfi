@@ -1,14 +1,14 @@
-Package: xplainvi
-Title: What the Package Does (One Line, Title Case)
+Package: xplainfi
+Title: Feature Importance Methods for Model Interpretability
 Version: 0.0.0.9000
 Authors@R: 
     person("Lukas", "Burk", , "github@quantenbrot.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-7528-3795"))
-Description: What the package does (one paragraph).
+Description: Provides a consistent interface for common feature importance methods, such as permutation feature importance, 'LOCO', and 'SAGE'.
 License: MIT + file LICENSE
-URL: https://jemus42.github.io/xplainvi/,
-    https://github.com/jemus42/xplainvi
-BugReports: https://github.com/jemus42/xplainvi/issues
+URL: https://jemus42.github.io/xplainfi/,
+    https://github.com/jemus42/xplainfi
+BugReports: https://github.com/jemus42/xplainfi/issues
 Imports: 
     checkmate,
     data.table,
@@ -27,6 +27,7 @@ Suggests:
 VignetteBuilder: 
     knitr
 Config/testthat/edition: 3
+Config/testthat/parallel: true
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
