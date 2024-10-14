@@ -5,14 +5,14 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>What the Package Does (One Line, Title Case) • xplainvi</title>
+<title>Feature Importance Methods for Model Interpretability • xplainfi</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="What the Package Does (One Line, Title Case)">
-<meta name="description" content="What the package does (one paragraph).">
-<meta property="og:description" content="What the package does (one paragraph).">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Feature Importance Methods for Model Interpretability">
+<meta name="description" content="Provides a consistent interface for common feature importance methods, such as permutation feature importance, LOCO, and SAGE.">
+<meta property="og:description" content="Provides a consistent interface for common feature importance methods, such as permutation feature importance, LOCO, and SAGE.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -20,7 +20,7 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="index.html">xplainvi</a>
+    <a class="navbar-brand me-2" href="index.html">xplainfi</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
 
@@ -31,7 +31,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="articles/xplainvi.html">Get started</a></li>
+<li class="nav-item"><a class="nav-link" href="articles/xplainfi.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
@@ -39,7 +39,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/jemus42/xplainvi/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/jemus42/xplainfi/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -48,34 +48,62 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="xplainvi">xplainvi<a class="anchor" aria-label="anchor" href="#xplainvi"></a>
+<div class="page-header"><h1 id="xplainfi">
+<code>xplainfi</code><a class="anchor" aria-label="anchor" href="#xplainfi"></a>
 </h1></div>
 <!-- badges: start -->
 
-<p>The goal of xplainvi is to collect feature importance methods.</p>
+<p>The goal of <code>xplainfi</code> is to collect common feature importance methods under a unified and extensible interface.</p>
 <p>For now, it is built specifically around <a href="https://mlr-org.com/" class="external-link">mlr3</a>, as available abstractions for learners, tasks, measures, etc. greatly simplify the implementation of importance measures.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>You can install the development version of xplainvi like so:</p>
+<p>You can install the development version of <code>xplainfi</code> like so:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages(pak)</span></span>
-<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"jemus42/xplainvi"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"jemus42/xplainfi"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
-<p>This is a basic example which shows you how to solve a common problem:</p>
+<p>Here is a basic example on how to calculate PFI for a given learner and task:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jemus42.github.io/xplainvi/">xplainvi</a></span><span class="op">)</span></span>
-<span><span class="co">## basic example code</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jemus42.github.io/xplainfi/">xplainfi</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr3.mlr-org.com" class="external-link">mlr3</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr3learners.mlr-org.com" class="external-link">mlr3learners</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">task</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tsk</a></span><span class="op">(</span><span class="st">"german_credit"</span><span class="op">)</span></span>
+<span><span class="va">learner</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
+<span><span class="va">measure</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.ce"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">pfi</span> <span class="op">=</span> <span class="va"><a href="reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task</span>, </span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
+<span><span class="co">#&gt;             0.003998010             0.018995043             0.004009998 </span></span>
+<span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
+<span><span class="co">#&gt;             0.018021015             0.004999011            -0.001999005 </span></span>
+<span><span class="co">#&gt;                 housing        installment_rate                     job </span></span>
+<span><span class="co">#&gt;             0.003006000             0.007013001            -0.000989013 </span></span>
+<span><span class="co">#&gt;          number_credits           other_debtors other_installment_plans </span></span>
+<span><span class="co">#&gt;            -0.000995007             0.005997015             0.001999005 </span></span>
+<span><span class="co">#&gt;           people_liable     personal_status_sex       present_residence </span></span>
+<span><span class="co">#&gt;            -0.002997009             0.004004004             0.003995013 </span></span>
+<span><span class="co">#&gt;                property                 purpose                 savings </span></span>
+<span><span class="co">#&gt;             0.006000012             0.007987029             0.016999035 </span></span>
+<span><span class="co">#&gt;                  status               telephone </span></span>
+<span><span class="co">#&gt;             0.050023077             0.003008997</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/jemus42/xplainvi/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/jemus42/xplainvi/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/jemus42/xplainfi/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/jemus42/xplainfi/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 
@@ -91,7 +119,7 @@
 <div class="citation">
 <h2 data-toc-skip>Citation</h2>
 <ul class="list-unstyled">
-<li><a href="authors.html#citation">Citing xplainvi</a></li>
+<li><a href="authors.html#citation">Citing xplainfi</a></li>
 </ul>
 </div>
 
@@ -106,7 +134,7 @@
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
-<li><a href="https://github.com/jemus42/xplainvi/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/jemus42/xplainvi/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://github.com/jemus42/xplainfi/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/jemus42/xplainfi/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 </ul>
 </div>
 
