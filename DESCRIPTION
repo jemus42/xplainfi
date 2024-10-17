@@ -4,7 +4,8 @@ Version: 0.0.0.9000
 Authors@R: 
     person("Lukas", "Burk", , "github@quantenbrot.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-7528-3795"))
-Description: Provides a consistent interface for common feature importance methods, such as permutation feature importance, 'LOCO', and 'SAGE'.
+Description: Provides a consistent interface for common feature importance
+    methods, such as permutation feature importance, 'LOCO', and 'SAGE'.
 License: MIT + file LICENSE
 URL: https://jemus42.github.io/xplainfi/,
     https://github.com/jemus42/xplainfi
@@ -13,7 +14,7 @@ Imports:
     checkmate,
     data.table,
     lgr,
-    mlr3,
+    mlr3 (>= 0.21.0),
     paradox,
     R6
 Suggests: 
