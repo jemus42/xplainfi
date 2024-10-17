@@ -88,7 +88,7 @@ resampling with default ratio</p>
 <p>Calculating PFI:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span> <span class="op">=</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>, </span>
+<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
 <span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>  measure <span class="op">=</span> <span class="va">measure</span></span>
 <span><span class="op">)</span></span>
@@ -232,8 +232,8 @@ object itself rather than feel like a separate function.</p>
 <span><span class="va">measure</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.ce"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pfi</span> <span class="op">=</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>, </span>
-<span>  learner <span class="op">=</span> <span class="va">learner</span>, </span>
+<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
 <span>  measure <span class="op">=</span> <span class="va">measure</span></span>
 <span><span class="op">)</span></span>
@@ -294,8 +294,8 @@ object itself rather than feel like a separate function.</p>
 <code class="sourceCode R"><span><span class="va">learner</span><span class="op">$</span><span class="va">predict_type</span> <span class="op">=</span> <span class="st">"prob"</span></span>
 <span></span>
 <span><span class="va">pfi</span> <span class="op">=</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>, </span>
-<span>  learner <span class="op">=</span> <span class="va">learner</span>, </span>
+<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
 <span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.auc"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
@@ -348,8 +348,8 @@ it suffices to adjust the <code>.$col_roles$feature</code> property.</p>
 <code class="sourceCode R"><span><span class="va">learner</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">loco</span> <span class="op">=</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>, </span>
-<span>  learner <span class="op">=</span> <span class="va">learner</span>, </span>
+<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
 <span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.ce"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
