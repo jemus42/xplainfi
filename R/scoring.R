@@ -32,14 +32,14 @@ compute_score_relation = function(scores_pre, scores_post, relation = "differenc
   if (minimize) {
     # Lower is better, e.g. ce
     switch(relation,
-           difference = scores_post - scores_pre,
-           ratio = scores_post / scores_pre
+      difference = scores_post - scores_pre,
+      ratio = scores_post / scores_pre
     )
   } else {
     # Higher is better, e.g. accuracy
     switch(relation,
-           difference = scores_pre - scores_post,
-           ratio = scores_pre / scores_post
+      difference = scores_pre - scores_post,
+      ratio = scores_pre / scores_post
     )
   }
 }

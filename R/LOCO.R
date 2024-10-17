@@ -31,7 +31,7 @@ LOCO = R6Class("LOCO",
 
       # resampling
       if (is.null(resampling)) {
-        resampling = mlr3::rsmp("holdout", ratio = 2/3)$instantiate(task)
+        resampling = mlr3::rsmp("holdout", ratio = 2 / 3)$instantiate(task)
       }
 
       if (!resampling$is_instantiated) {
@@ -82,7 +82,7 @@ LOCO = R6Class("LOCO",
       scores_pre = rr$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
       data.table::setnames(scores_pre, old = self$measure$id, "scores_pre")
 
-      scores_loco =  lapply(seq_len(self$resampling$iters), \(iter) {
+      scores_loco = lapply(seq_len(self$resampling$iters), \(iter) {
         private$.compute_loco_score(
           # Clone learner ans task to prevent modifying originals
           learner = rr$learners[[iter]]$clone(),

@@ -41,7 +41,7 @@ learner = lrn("classif.ranger", num.trees = 500)
 measure = msr("classif.ce")
 
 pfi = PFI$new(
-  task = task, 
+  task = task,
   learner = learner,
   measure = measure,
   resampling = rsmp("cv", folds = 3)

@@ -8,7 +8,9 @@ test_that("as.data.table(PFI)", {
     learner = mlr3::lrn("classif.ranger")
   )
 
-  expect_warning({ tmp <- as.data.table(pfi) })
+  expect_warning({
+    tmp = as.data.table(pfi)
+  })
   checkmate::expect_data_table(tmp, nrows = 0)
   checkmate::expect_subset(names(tmp), choices = c("feature", "importance"))
 })

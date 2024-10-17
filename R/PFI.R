@@ -80,7 +80,7 @@ PFI = R6Class("PFI",
       scores_orig = rr$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
       data.table::setnames(scores_orig, old = self$measure$id, "scores_pre")
 
-      scores_permuted =  lapply(seq_len(self$resampling$iters), \(iter) {
+      scores_permuted = lapply(seq_len(self$resampling$iters), \(iter) {
         private$.compute_permuted_score(
           learner = rr$learners[[iter]],
           test_dt = self$task$data(rows = rr$resampling$test_set(iter))
@@ -111,25 +111,25 @@ PFI = R6Class("PFI",
     .compute_permuted_score = function(learner, test_dt) {
 
       scores_post = vapply(self$features, \(feature) {
-          # Copying task for every feature, not great
-          task_data = data.table::copy(test_dt)
+        # Copying task for every feature, not great
+        task_data = data.table::copy(test_dt)
 
-          # Permute in-place
-          task_data[, (feature) := sample(.SD[[feature]])][]
+        # Permute in-place
+        task_data[, (feature) := sample(.SD[[feature]])][]
 
-          # Use predict_newdata to avoid having to reconstruct a new Task, needs orig task
-          pred = learner$predict_newdata(newdata = task_data, task = self$task)
+        # Use predict_newdata to avoid having to reconstruct a new Task, needs orig task
+        pred = learner$predict_newdata(newdata = task_data, task = self$task)
 
-          score = pred$score(self$measure)
-          names(score) = feature
-          score
+        score = pred$score(self$measure)
+        names(score) = feature
+        score
 
-        }, FUN.VALUE = numeric(1))
+      }, FUN.VALUE = numeric(1))
 
-        data.table(
-          feature = names(scores_post),
-          scores_post = scores_post
-        )
+      data.table(
+        feature = names(scores_post),
+        scores_post = scores_post
+      )
     }
   )
 )
