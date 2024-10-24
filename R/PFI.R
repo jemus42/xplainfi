@@ -90,7 +90,7 @@ PFI = R6Class("PFI",
       )
       scores_orig = rr$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
       data.table::setnames(scores_orig, old = self$measure$id, "scores_pre")
-      #browser()
+
       # TODO: Make rr reusable if measure changes
       # to re-score for different measure but not re-compute everything
       scores_permuted = lapply(seq_len(self$resampling$iters), \(iter) {
@@ -104,6 +104,8 @@ PFI = R6Class("PFI",
       # Collect permuted scores, add original scores
       scores_permuted = data.table::rbindlist(scores_permuted, idcol = "iteration")
       scores_permuted = scores_permuted[scores_orig, on = "iteration"]
+      data.table::setcolorder(scores_permuted, c("feature", "iteration", "iter_perm", "scores_pre", "scores_post"))
+
       # Calculate PFI depending on relation(-, /), and minimize property
       scores_permuted[, importance := compute_score_relation(
         scores_pre, scores_post,
