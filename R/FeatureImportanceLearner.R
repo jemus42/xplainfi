@@ -41,10 +41,61 @@ FeatureImportanceLearner = R6Class("FeatureImportanceLearner",
       self$features = features %??% self$task$feature_names
 
     },
-    # #' @description
-    #   #' Computes importance scores
-    # compute = function() {
-    # },
+
+    #' @description
+    #' Combine two `FeatureImportanceLearner` objects with computed scores.
+    #'
+    #' @param y ([FeatureImportanceLearner]) Object to combine. Must have computed scores.
+    #' @param ... (any) Unused.
+    #' @return A new [FeatureImportanceLearner] of the same subclass as `x` and `y`.
+    #' Currently this method merges the following:
+    #' - `$scores` is combined, with `iter_rsmp` increased for `y`.
+    #' - `$importance` is re-computed from the combined `$scores`.
+    #' - `$resample_result` is combined to a [mlr3::BenchmarkResult]
+    #' - `$resampling` is combined into a [mlr3::ResamplingCustom], again continuing te `iteration` count from `x` with that of `y`.
+    combine = function(y, ...) {
+      checkmate::assert_class(self, classes = "FeatureImportanceLearner")
+      checkmate::assert_class(y, classes = "FeatureImportanceLearner")
+      checkmate::assert_true(class(self)[[1]] == class(y)[[1]], .var.name = "Identical subclasses")
+      checkmate::assert_data_table(self$importance, key = "feature")
+      checkmate::assert_data_table(y$importance, key = "feature")
+
+      checkmate::assert_true(self$task$hash == y$task$hash, .var.name = "identical tasks")
+      checkmate::assert_true(self$measure$hash == y$measure$hash, .var.name = "identical measures")
+      checkmate::assert_true(self$learner$hash == y$learner$hash, .var.name = "identical learners")
+
+      # merge importance scores
+      scores_y = copy(y$scores)
+      # Increase iteration count for y for consistency
+      scores_y[, let(iter_rsmp = iter_rsmp + self$resampling$iters)]
+      scores = rbindlist(list(self$scores, scores_y))
+      data.table::setkeyv(scores, c("feature", "iter_rsmp"))
+
+
+      # Merge aggregated cores
+      importance = scores[, list(importance = mean(importance)), by = feature]
+
+      # Modify
+      self$scores = scores
+      self$importance = importance
+      self$resample_result = c(self$resample_result, y$resample_result)
+
+      # Combine resampling objects?
+      rsmp_x = as.data.table(self$resampling)
+      rsmp_y = as.data.table(y$resampling)
+      rsmp_y[, let(iteration = iteration + self$resampling$iters)]
+      rsmp_x = rbind(rsmp_x, rsmp_y)
+      setkeyv(rsmp_x, c("set"))
+
+      resampling = mlr3::ResamplingCustom$new()
+      resampling$instance = list(
+        train_sets = rsmp_x[list("train"), list(ids = list(row_id)), by = "iteration"]$ids,
+        test_sets = rsmp_x[list("test"), list(ids = list(row_id)), by = "iteration"]$ids
+      )
+      self$resampling = resampling
+
+      self
+    },
 
     #' @description
     #' Print importance scores
