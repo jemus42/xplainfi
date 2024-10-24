@@ -107,7 +107,7 @@ PFI = R6Class("PFI",
       data.table::setcolorder(scores_permuted, c("feature", "iteration", "iter_perm", "scores_pre", "scores_post"))
 
       # Calculate PFI depending on relation(-, /), and minimize property
-      scores_permuted[, importance := compute_score_relation(
+      scores_permuted[, importance := compute_score(
         scores_pre, scores_post,
         relation = self$param_set$values$relation,
         minimize = self$measure$minimize

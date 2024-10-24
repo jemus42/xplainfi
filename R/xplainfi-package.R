@@ -1,7 +1,6 @@
 #' @keywords internal
 "_PACKAGE"
 
-# Importing %??% from checkmate but could use %||% in R >= 4.4.0
 ## usethis namespace: start
 #' @importFrom checkmate %??%
 #' @importFrom data.table :=
@@ -12,6 +11,10 @@
 #' @importFrom data.table .N
 #' @importFrom data.table .NGRP
 #' @importFrom data.table .SD
+#' @importFrom data.table let
+#' @importFrom data.table setnames
+#' @importFrom data.table setcolorder
+#' @importFrom data.table copy
 #' @importFrom data.table as.data.table
 #' @importFrom data.table data.table
 #' @importFrom lgr get_logger

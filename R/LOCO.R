@@ -77,7 +77,6 @@ LOCO = R6Class("LOCO",
         self$task, self$learner, self$resampling,
         store_models = TRUE, store_backends = FALSE
       )
-      self$resample_result = rr
 
       scores_pre = rr$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
       data.table::setnames(scores_pre, old = self$measure$id, "scores_pre")
@@ -92,21 +91,34 @@ LOCO = R6Class("LOCO",
         )
       })
 
-      # Collect permuted scores, add original scores
+      # Collect loco's scores, add original scores
       scores_loco = data.table::rbindlist(scores_loco, idcol = "iteration")
       scores_loco = scores_loco[scores_pre, on = "iteration"]
+      data.table::setcolorder(scores_loco, c("feature", "iteration", "scores_pre", "scores_post"))
+
       # Calculate LOCO depending on relation(-, /), and minimize property
-      scores_loco[, importance := compute_score_relation(
+      scores_loco[, importance := compute_score(
         scores_pre, scores_post,
         relation = self$param_set$values$relation,
         minimize = self$measure$minimize
       )]
 
-      # Aggregate by feature over resamplings
-      scores_loco_agg = scores_loco[, .(importance = mean(importance)), by = feature]
+      data.table::setnames(
+        scores_loco,
+        old = c("iteration", "scores_pre", "scores_post"),
+        new = c("iter_rsmp", paste0(self$measure$id, c("_orig", "_loco")))
+      )
 
-      self$importance = scores_loco_agg$importance
-      names(self$importance) = scores_loco_agg$feature
+      data.table::setkeyv(scores_loco, c("feature", "iter_rsmp"))
+
+
+      # Aggregate by feature over resamplings
+      scores_loco_agg = scores_loco[, list(importance = mean(importance)), by = "feature"]
+
+      self$scores = scores_loco
+      self$importance = scores_loco_agg
+      self$resample_result = rr
+
 
       self$importance
     }

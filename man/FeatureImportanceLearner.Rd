@@ -37,6 +37,7 @@ Feature Importance Learner Class
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-FeatureImportanceLearner-new}{\code{FeatureImportanceLearner$new()}}
+\item \href{#method-FeatureImportanceLearner-combine}{\code{FeatureImportanceLearner$combine()}}
 \item \href{#method-FeatureImportanceLearner-print}{\code{FeatureImportanceLearner$print()}}
 \item \href{#method-FeatureImportanceLearner-clone}{\code{FeatureImportanceLearner$clone()}}
 }
@@ -65,6 +66,35 @@ This is typically intended for use by derived classes.
 \item{\code{task, learner, measure, resampling, features, param_set, label}}{Used to set fields}
 }
 \if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-FeatureImportanceLearner-combine"></a>}}
+\if{latex}{\out{\hypertarget{method-FeatureImportanceLearner-combine}{}}}
+\subsection{Method \code{combine()}}{
+Combine two \code{FeatureImportanceLearner} objects with computed scores.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceLearner$combine(y, ...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{y}}{(\link{FeatureImportanceLearner}) Object to combine. Must have computed scores.}
+
+\item{\code{...}}{(any) Unused.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A new \link{FeatureImportanceLearner} of the same subclass as \code{x} and \code{y}.
+Currently this method merges the following:
+\itemize{
+\item \verb{$scores} is combined, with \code{iter_rsmp} increased for \code{y}.
+\item \verb{$importance} is re-computed from the combined \verb{$scores}.
+\item \verb{$resample_result} is combined to a \link[mlr3:BenchmarkResult]{mlr3::BenchmarkResult}
+\item \verb{$resampling} is combined into a \link[mlr3:mlr_resamplings_custom]{mlr3::ResamplingCustom}, again continuing te \code{iteration} count from \code{x} with that of \code{y}.
+}
 }
 }
 \if{html}{\out{<hr>}}

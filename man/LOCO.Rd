@@ -39,6 +39,7 @@ loco$compute()
 \if{html}{\out{
 <details open><summary>Inherited methods</summary>
 <ul>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceLearner" data-id="combine"><a href='../../xplainfi/html/FeatureImportanceLearner.html#method-FeatureImportanceLearner-combine'><code>xplainfi::FeatureImportanceLearner$combine()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceLearner" data-id="print"><a href='../../xplainfi/html/FeatureImportanceLearner.html#method-FeatureImportanceLearner-print'><code>xplainfi::FeatureImportanceLearner$print()</code></a></span></li>
 </ul>
 </details>

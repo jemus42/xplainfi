@@ -1,13 +1,15 @@
 #' Scoring utility
 #'
-#' Computes the relation of score before a change (e.g. permutation, LOCO, ...) and after.
+#' Computes the relation of score before a change (e.g. [PFI], [LOCO], ...) and after.
 #'
-#' If `minimize == TRUE`, then `scores_post - scores_pre` is computed for `relation == "difference"`,
-#' otherwise `scores_pre - scores_post` is given.
+#' If `minimize == TRUE`, then `scores_post - scores_pre` is computed for
+#' `relation == "difference"`, otherwise `scores_pre - scores_post` is given.
+#' If `minimize == FALSE`, then `scores_pre - scores_post` is computed.
 #'
 #' @param scores_pre (numeric()) Score before change.
 #' @param scores_post (numeric()) Score after change.
 #' @param relation (character(1), `"difference"`) Either `"difference"` or `"ratio"`.
+#'  If `"difference"`, then `scores_post - scores_pre` is computed, otherwise `scores_post / scores_pre`.
 #' @param minimize (logical(1), `TRUE`) Whether the score needs to be minimized (e.g. RMSE) or
 #' maximized (e.g. AUC).
 #'
@@ -19,15 +21,17 @@
 #' pre = rnorm(10)
 #' post = pre + runif(10)
 #'
-#' compute_score_relation(pre, post)
-#' compute_score_relation(pre, post, "ratio")
-#' compute_score_relation(pre, post, minimize = FALSE)
-compute_score_relation = function(scores_pre, scores_post, relation = "difference", minimize = TRUE) {
-  checkmate::assert_numeric(scores_pre)
-  checkmate::assert_numeric(scores_post)
+#' compute_score(pre, post)
+#' compute_score(pre, post, "ratio")
+#' compute_score(pre, post, minimize = FALSE)
+compute_score = function(scores_pre, scores_post,
+                         relation = c("difference", "ratio"),
+                         minimize = TRUE) {
+  checkmate::assert_numeric(scores_pre, any.missing = FALSE)
+  checkmate::assert_numeric(scores_post, any.missing = FALSE)
   checkmate::assert_true(length(scores_pre) == length(scores_post))
   checkmate::assert_flag(minimize)
-  checkmate::assert_subset(relation, c("difference", "ratio"))
+  relation = match.arg(relation)
 
   if (minimize) {
     # Lower is better, e.g. ce
