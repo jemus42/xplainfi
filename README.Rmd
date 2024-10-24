@@ -1,5 +1,7 @@
 ---
 output: github_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -34,25 +36,56 @@ You can install the development version of `xplainfi` like so:
 pak::pak("jemus42/xplainfi")
 ```
 
-## Example
+## Example: PFI
 
-Here is a basic example on how to calculate PFI for a given learner and task:
+Here is a basic example on how to calculate PFI for a given learner and task, using repeated cross-validation as resampling strategy and computing PFI within each resampling 5 times:
 
-```{r example}
+```{r}
 library(xplainfi)
 library(mlr3)
 library(mlr3learners)
 
 task = tsk("german_credit")
-learner = lrn("classif.ranger", num.trees = 500)
+learner = lrn("classif.ranger", num.trees = 100)
 measure = msr("classif.ce")
 
 pfi = PFI$new(
   task = task,
   learner = learner,
   measure = measure,
-  resampling = rsmp("cv", folds = 3)
+  resampling = rsmp("repeated_cv", folds = 3, repeats = 2),
+  iters_perm = 5
 )
+```
+
+Compute and print PFI scores:
+
+```{r}
 pfi$compute()
+```
+
+Retrieve scores later in `pfi$importance`.
+
+When PFI is computed based on resampling with multiple iterations, and / or multiple permutation iterations, the individual scores can be retrieved as a `data.table`:
+
+```{r}
+pfi$scores
+```
+
+
+Where `iter_rsmp` corresponds to the resampling iteration, i.e., 3 * 2 = 6 for 2 repeats of 3-fold cross-validation, and `iter_perm` corresponds to the permutation iteration, 5 in this case.
+While `pfi$importance` contains the means across all iterations, `pfi$scores` allows you to manually aggregate them in any way you see fit.
+
+In the simplest case, you run PFI with a single resampling iteration (holdout) and a single permutation iteration, and `pfi$importance` will contain the same values as `pfi$scores`.
+
+```{r}
+pfi_single = PFI$new(
+  task = task,
+  learner = learner,
+  measure = measure
+)
+
+pfi_single$compute()
+pfi_single$scores
 ```
 
