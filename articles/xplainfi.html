@@ -95,29 +95,40 @@ resampling with default ratio</p>
 <span></span>
 <span><span class="co"># Stores parameter set to calculate PFI in different ways</span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="va">param_set</span></span>
-<span><span class="co">#&gt; &lt;ParamSet(1)&gt;</span></span>
-<span><span class="co">#&gt;          id    class lower upper nlevels    default      value</span></span>
-<span><span class="co">#&gt;      &lt;char&gt;   &lt;char&gt; &lt;num&gt; &lt;num&gt;   &lt;num&gt;     &lt;list&gt;     &lt;list&gt;</span></span>
-<span><span class="co">#&gt; 1: relation ParamFct    NA    NA       2 difference difference</span></span>
+<span><span class="co">#&gt; &lt;ParamSet(2)&gt;</span></span>
+<span><span class="co">#&gt;            id    class lower upper nlevels    default      value</span></span>
+<span><span class="co">#&gt;        &lt;char&gt;   &lt;char&gt; &lt;num&gt; &lt;num&gt;   &lt;num&gt;     &lt;list&gt;     &lt;list&gt;</span></span>
+<span><span class="co">#&gt; 1:   relation ParamFct    NA    NA       2 difference difference</span></span>
+<span><span class="co">#&gt; 2: iters_perm ParamInt     1   Inf     Inf          1          1</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Default behavior should be sane</span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
-<span><span class="co">#&gt;             0.009009009             0.015015015             0.003003003 </span></span>
-<span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
-<span><span class="co">#&gt;             0.021021021             0.000000000             0.006006006 </span></span>
-<span><span class="co">#&gt;                 housing        installment_rate                     job </span></span>
-<span><span class="co">#&gt;             0.018018018             0.033033033            -0.009009009 </span></span>
-<span><span class="co">#&gt;          number_credits           other_debtors other_installment_plans </span></span>
-<span><span class="co">#&gt;             0.003003003            -0.006006006             0.003003003 </span></span>
-<span><span class="co">#&gt;           people_liable     personal_status_sex       present_residence </span></span>
-<span><span class="co">#&gt;            -0.003003003             0.012012012             0.000000000 </span></span>
-<span><span class="co">#&gt;                property                 purpose                 savings </span></span>
-<span><span class="co">#&gt;             0.006006006            -0.003003003             0.009009009 </span></span>
-<span><span class="co">#&gt;                  status               telephone </span></span>
-<span><span class="co">#&gt;             0.036036036             0.009009009</span></span></code></pre></div>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;                     feature   importance</span></span>
+<span><span class="co">#&gt;                      &lt;char&gt;        &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:                     age  0.009009009</span></span>
+<span><span class="co">#&gt;  2:                  amount  0.015015015</span></span>
+<span><span class="co">#&gt;  3:          credit_history  0.003003003</span></span>
+<span><span class="co">#&gt;  4:                duration  0.021021021</span></span>
+<span><span class="co">#&gt;  5:     employment_duration  0.000000000</span></span>
+<span><span class="co">#&gt;  6:          foreign_worker  0.006006006</span></span>
+<span><span class="co">#&gt;  7:                 housing  0.018018018</span></span>
+<span><span class="co">#&gt;  8:        installment_rate  0.033033033</span></span>
+<span><span class="co">#&gt;  9:                     job -0.009009009</span></span>
+<span><span class="co">#&gt; 10:          number_credits  0.003003003</span></span>
+<span><span class="co">#&gt; 11:           other_debtors -0.006006006</span></span>
+<span><span class="co">#&gt; 12: other_installment_plans  0.003003003</span></span>
+<span><span class="co">#&gt; 13:           people_liable -0.003003003</span></span>
+<span><span class="co">#&gt; 14:     personal_status_sex  0.012012012</span></span>
+<span><span class="co">#&gt; 15:       present_residence  0.000000000</span></span>
+<span><span class="co">#&gt; 16:                property  0.006006006</span></span>
+<span><span class="co">#&gt; 17:                 purpose -0.003003003</span></span>
+<span><span class="co">#&gt; 18:                 savings  0.009009009</span></span>
+<span><span class="co">#&gt; 19:                  status  0.036036036</span></span>
+<span><span class="co">#&gt; 20:               telephone  0.009009009</span></span>
+<span><span class="co">#&gt;                     feature   importance</span></span></code></pre></div>
 <p>Q: Should <code>$compute()</code> be run on construction? Between the
 call to <code>$new()</code> and <code>$compute()</code> there’s nothing
 that needs to happen technically, as long as the <code>relation</code>
@@ -125,80 +136,70 @@ param could be set directly.</p>
 <p>Does not recompute if not needed:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
-<span><span class="co">#&gt;             0.009009009             0.015015015             0.003003003 </span></span>
-<span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
-<span><span class="co">#&gt;             0.021021021             0.000000000             0.006006006 </span></span>
-<span><span class="co">#&gt;                 housing        installment_rate                     job </span></span>
-<span><span class="co">#&gt;             0.018018018             0.033033033            -0.009009009 </span></span>
-<span><span class="co">#&gt;          number_credits           other_debtors other_installment_plans </span></span>
-<span><span class="co">#&gt;             0.003003003            -0.006006006             0.003003003 </span></span>
-<span><span class="co">#&gt;           people_liable     personal_status_sex       present_residence </span></span>
-<span><span class="co">#&gt;            -0.003003003             0.012012012             0.000000000 </span></span>
-<span><span class="co">#&gt;                property                 purpose                 savings </span></span>
-<span><span class="co">#&gt;             0.006006006            -0.003003003             0.009009009 </span></span>
-<span><span class="co">#&gt;                  status               telephone </span></span>
-<span><span class="co">#&gt;             0.036036036             0.009009009</span></span></code></pre></div>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;                     feature   importance</span></span>
+<span><span class="co">#&gt;                      &lt;char&gt;        &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:                     age  0.009009009</span></span>
+<span><span class="co">#&gt;  2:                  amount  0.015015015</span></span>
+<span><span class="co">#&gt;  3:          credit_history  0.003003003</span></span>
+<span><span class="co">#&gt;  4:                duration  0.021021021</span></span>
+<span><span class="co">#&gt;  5:     employment_duration  0.000000000</span></span>
+<span><span class="co">#&gt;  6:          foreign_worker  0.006006006</span></span>
+<span><span class="co">#&gt;  7:                 housing  0.018018018</span></span>
+<span><span class="co">#&gt;  8:        installment_rate  0.033033033</span></span>
+<span><span class="co">#&gt;  9:                     job -0.009009009</span></span>
+<span><span class="co">#&gt; 10:          number_credits  0.003003003</span></span>
+<span><span class="co">#&gt; 11:           other_debtors -0.006006006</span></span>
+<span><span class="co">#&gt; 12: other_installment_plans  0.003003003</span></span>
+<span><span class="co">#&gt; 13:           people_liable -0.003003003</span></span>
+<span><span class="co">#&gt; 14:     personal_status_sex  0.012012012</span></span>
+<span><span class="co">#&gt; 15:       present_residence  0.000000000</span></span>
+<span><span class="co">#&gt; 16:                property  0.006006006</span></span>
+<span><span class="co">#&gt; 17:                 purpose -0.003003003</span></span>
+<span><span class="co">#&gt; 18:                 savings  0.009009009</span></span>
+<span><span class="co">#&gt; 19:                  status  0.036036036</span></span>
+<span><span class="co">#&gt; 20:               telephone  0.009009009</span></span>
+<span><span class="co">#&gt;                     feature   importance</span></span></code></pre></div>
 <p>Recomputes if param changes, stores new param</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
-<span><span class="co">#&gt;               1.0574713               1.0344828               1.0919540 </span></span>
-<span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
-<span><span class="co">#&gt;               1.0689655               1.0114943               1.0000000 </span></span>
-<span><span class="co">#&gt;                 housing        installment_rate                     job </span></span>
-<span><span class="co">#&gt;               1.0344828               1.0459770               0.9655172 </span></span>
-<span><span class="co">#&gt;          number_credits           other_debtors other_installment_plans </span></span>
-<span><span class="co">#&gt;               0.9655172               1.0114943               1.0114943 </span></span>
-<span><span class="co">#&gt;           people_liable     personal_status_sex       present_residence </span></span>
-<span><span class="co">#&gt;               1.0229885               1.0229885               1.0000000 </span></span>
-<span><span class="co">#&gt;                property                 purpose                 savings </span></span>
-<span><span class="co">#&gt;               1.0344828               1.0114943               1.0344828 </span></span>
-<span><span class="co">#&gt;                  status               telephone </span></span>
-<span><span class="co">#&gt;               1.1149425               1.0114943</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;                     feature importance</span></span>
+<span><span class="co">#&gt;                      &lt;char&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:                     age  1.0574713</span></span>
+<span><span class="co">#&gt;  2:                  amount  1.0344828</span></span>
+<span><span class="co">#&gt;  3:          credit_history  1.0919540</span></span>
+<span><span class="co">#&gt;  4:                duration  1.0689655</span></span>
+<span><span class="co">#&gt;  5:     employment_duration  1.0114943</span></span>
+<span><span class="co">#&gt;  6:          foreign_worker  1.0000000</span></span>
+<span><span class="co">#&gt;  7:                 housing  1.0344828</span></span>
+<span><span class="co">#&gt;  8:        installment_rate  1.0459770</span></span>
+<span><span class="co">#&gt;  9:                     job  0.9655172</span></span>
+<span><span class="co">#&gt; 10:          number_credits  0.9655172</span></span>
+<span><span class="co">#&gt; 11:           other_debtors  1.0114943</span></span>
+<span><span class="co">#&gt; 12: other_installment_plans  1.0114943</span></span>
+<span><span class="co">#&gt; 13:           people_liable  1.0229885</span></span>
+<span><span class="co">#&gt; 14:     personal_status_sex  1.0229885</span></span>
+<span><span class="co">#&gt; 15:       present_residence  1.0000000</span></span>
+<span><span class="co">#&gt; 16:                property  1.0344828</span></span>
+<span><span class="co">#&gt; 17:                 purpose  1.0114943</span></span>
+<span><span class="co">#&gt; 18:                 savings  1.0344828</span></span>
+<span><span class="co">#&gt; 19:                  status  1.1149425</span></span>
+<span><span class="co">#&gt; 20:               telephone  1.0114943</span></span>
+<span><span class="co">#&gt;                     feature importance</span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="va">param_set</span></span>
-<span><span class="co">#&gt; &lt;ParamSet(1)&gt;</span></span>
-<span><span class="co">#&gt;          id    class lower upper nlevels    default  value</span></span>
-<span><span class="co">#&gt;      &lt;char&gt;   &lt;char&gt; &lt;num&gt; &lt;num&gt;   &lt;num&gt;     &lt;list&gt; &lt;list&gt;</span></span>
-<span><span class="co">#&gt; 1: relation ParamFct    NA    NA       2 difference  ratio</span></span></code></pre></div>
+<span><span class="co">#&gt; &lt;ParamSet(2)&gt;</span></span>
+<span><span class="co">#&gt;            id    class lower upper nlevels    default  value</span></span>
+<span><span class="co">#&gt;        &lt;char&gt;   &lt;char&gt; &lt;num&gt; &lt;num&gt;   &lt;num&gt;     &lt;list&gt; &lt;list&gt;</span></span>
+<span><span class="co">#&gt; 1:   relation ParamFct    NA    NA       2 difference  ratio</span></span>
+<span><span class="co">#&gt; 2: iters_perm ParamInt     1   Inf     Inf          1      1</span></span></code></pre></div>
 <p>Q: When <code>$compute()</code> is called again its default value for
 <code>"relation"</code> (i.e. <code>"difference"</code>) is used, which
 doesn’t seem ideal. Maybe this default should be the param stored in the
 object itself rather than feel like a separate function.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
-<span><span class="co">#&gt;             0.015015015            -0.012012012             0.000000000 </span></span>
-<span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
-<span><span class="co">#&gt;             0.057057057            -0.012012012            -0.003003003 </span></span>
-<span><span class="co">#&gt;                 housing        installment_rate                     job </span></span>
-<span><span class="co">#&gt;            -0.003003003             0.009009009            -0.003003003 </span></span>
-<span><span class="co">#&gt;          number_credits           other_debtors other_installment_plans </span></span>
-<span><span class="co">#&gt;            -0.006006006            -0.006006006            -0.012012012 </span></span>
-<span><span class="co">#&gt;           people_liable     personal_status_sex       present_residence </span></span>
-<span><span class="co">#&gt;            -0.006006006             0.006006006            -0.009009009 </span></span>
-<span><span class="co">#&gt;                property                 purpose                 savings </span></span>
-<span><span class="co">#&gt;            -0.003003003            -0.024024024             0.027027027 </span></span>
-<span><span class="co">#&gt;                  status               telephone </span></span>
-<span><span class="co">#&gt;             0.021021021            -0.003003003</span></span></code></pre></div>
-<p>Retrieve scores and convert to DT:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="va">importance</span></span>
-<span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
-<span><span class="co">#&gt;             0.015015015            -0.012012012             0.000000000 </span></span>
-<span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
-<span><span class="co">#&gt;             0.057057057            -0.012012012            -0.003003003 </span></span>
-<span><span class="co">#&gt;                 housing        installment_rate                     job </span></span>
-<span><span class="co">#&gt;            -0.003003003             0.009009009            -0.003003003 </span></span>
-<span><span class="co">#&gt;          number_credits           other_debtors other_installment_plans </span></span>
-<span><span class="co">#&gt;            -0.006006006            -0.006006006            -0.012012012 </span></span>
-<span><span class="co">#&gt;           people_liable     personal_status_sex       present_residence </span></span>
-<span><span class="co">#&gt;            -0.006006006             0.006006006            -0.009009009 </span></span>
-<span><span class="co">#&gt;                property                 purpose                 savings </span></span>
-<span><span class="co">#&gt;            -0.003003003            -0.024024024             0.027027027 </span></span>
-<span><span class="co">#&gt;                  status               telephone </span></span>
-<span><span class="co">#&gt;             0.021021021            -0.003003003</span></span>
-<span><span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/as.data.table.html" class="external-link">as.data.table</a></span><span class="op">(</span><span class="va">pfi</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;                     feature   importance</span></span>
 <span><span class="co">#&gt;                      &lt;char&gt;        &lt;num&gt;</span></span>
 <span><span class="co">#&gt;  1:                     age  0.015015015</span></span>
@@ -222,6 +223,37 @@ object itself rather than feel like a separate function.</p>
 <span><span class="co">#&gt; 19:                  status  0.021021021</span></span>
 <span><span class="co">#&gt; 20:               telephone -0.003003003</span></span>
 <span><span class="co">#&gt;                     feature   importance</span></span></code></pre></div>
+<p>Retrieve scores and convert to DT:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="va">importance</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;                     feature   importance</span></span>
+<span><span class="co">#&gt;                      &lt;char&gt;        &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:                     age  0.015015015</span></span>
+<span><span class="co">#&gt;  2:                  amount -0.012012012</span></span>
+<span><span class="co">#&gt;  3:          credit_history  0.000000000</span></span>
+<span><span class="co">#&gt;  4:                duration  0.057057057</span></span>
+<span><span class="co">#&gt;  5:     employment_duration -0.012012012</span></span>
+<span><span class="co">#&gt;  6:          foreign_worker -0.003003003</span></span>
+<span><span class="co">#&gt;  7:                 housing -0.003003003</span></span>
+<span><span class="co">#&gt;  8:        installment_rate  0.009009009</span></span>
+<span><span class="co">#&gt;  9:                     job -0.003003003</span></span>
+<span><span class="co">#&gt; 10:          number_credits -0.006006006</span></span>
+<span><span class="co">#&gt; 11:           other_debtors -0.006006006</span></span>
+<span><span class="co">#&gt; 12: other_installment_plans -0.012012012</span></span>
+<span><span class="co">#&gt; 13:           people_liable -0.006006006</span></span>
+<span><span class="co">#&gt; 14:     personal_status_sex  0.006006006</span></span>
+<span><span class="co">#&gt; 15:       present_residence -0.009009009</span></span>
+<span><span class="co">#&gt; 16:                property -0.003003003</span></span>
+<span><span class="co">#&gt; 17:                 purpose -0.024024024</span></span>
+<span><span class="co">#&gt; 18:                 savings  0.027027027</span></span>
+<span><span class="co">#&gt; 19:                  status  0.021021021</span></span>
+<span><span class="co">#&gt; 20:               telephone -0.003003003</span></span>
+<span><span class="co">#&gt;                     feature   importance</span></span>
+<span><span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/as.data.table.html" class="external-link">as.data.table</a></span><span class="op">(</span><span class="va">pfi</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in as.data.table.FeatureImportanceLearner(pfi): No importance scores</span></span>
+<span><span class="co">#&gt; found. Did you $compute()?</span></span>
+<span><span class="co">#&gt; Empty data.table (0 rows and 2 cols): feature,importance</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="with-resampling">With resampling<a class="anchor" aria-label="anchor" href="#with-resampling"></a>
@@ -247,20 +279,30 @@ object itself rather than feel like a separate function.</p>
 <span><span class="co">#&gt; NULL</span></span>
 <span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
-<span><span class="co">#&gt;             0.004996014             0.016007025             0.028004052 </span></span>
-<span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
-<span><span class="co">#&gt;             0.021995049             0.004004004             0.001001001 </span></span>
-<span><span class="co">#&gt;                 housing        installment_rate                     job </span></span>
-<span><span class="co">#&gt;             0.007993023             0.013990038             0.003000006 </span></span>
-<span><span class="co">#&gt;          number_credits           other_debtors other_installment_plans </span></span>
-<span><span class="co">#&gt;             0.000000000             0.003995013             0.009998022 </span></span>
-<span><span class="co">#&gt;           people_liable     personal_status_sex       present_residence </span></span>
-<span><span class="co">#&gt;             0.001996008             0.003998010             0.005997015 </span></span>
-<span><span class="co">#&gt;                property                 purpose                 savings </span></span>
-<span><span class="co">#&gt;             0.012989037             0.011002020             0.027989067 </span></span>
-<span><span class="co">#&gt;                  status               telephone </span></span>
-<span><span class="co">#&gt;             0.042995091             0.007004010</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;                     feature  importance</span></span>
+<span><span class="co">#&gt;                      &lt;char&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:                     age 0.004996014</span></span>
+<span><span class="co">#&gt;  2:                  amount 0.016007025</span></span>
+<span><span class="co">#&gt;  3:          credit_history 0.028004052</span></span>
+<span><span class="co">#&gt;  4:                duration 0.021995049</span></span>
+<span><span class="co">#&gt;  5:     employment_duration 0.004004004</span></span>
+<span><span class="co">#&gt;  6:          foreign_worker 0.001001001</span></span>
+<span><span class="co">#&gt;  7:                 housing 0.007993023</span></span>
+<span><span class="co">#&gt;  8:        installment_rate 0.013990038</span></span>
+<span><span class="co">#&gt;  9:                     job 0.003000006</span></span>
+<span><span class="co">#&gt; 10:          number_credits 0.000000000</span></span>
+<span><span class="co">#&gt; 11:           other_debtors 0.003995013</span></span>
+<span><span class="co">#&gt; 12: other_installment_plans 0.009998022</span></span>
+<span><span class="co">#&gt; 13:           people_liable 0.001996008</span></span>
+<span><span class="co">#&gt; 14:     personal_status_sex 0.003998010</span></span>
+<span><span class="co">#&gt; 15:       present_residence 0.005997015</span></span>
+<span><span class="co">#&gt; 16:                property 0.012989037</span></span>
+<span><span class="co">#&gt; 17:                 purpose 0.011002020</span></span>
+<span><span class="co">#&gt; 18:                 savings 0.027989067</span></span>
+<span><span class="co">#&gt; 19:                  status 0.042995091</span></span>
+<span><span class="co">#&gt; 20:               telephone 0.007004010</span></span>
+<span><span class="co">#&gt;                     feature  importance</span></span>
 <span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="va">resample_result</span></span>
 <span><span class="co">#&gt; &lt;ResampleResult&gt; with 3 resampling iterations</span></span>
@@ -274,20 +316,30 @@ object itself rather than feel like a separate function.</p>
 <span><span class="co">#&gt;         0      0</span></span>
 <span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="va">importance</span></span>
-<span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
-<span><span class="co">#&gt;             0.004996014             0.016007025             0.028004052 </span></span>
-<span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
-<span><span class="co">#&gt;             0.021995049             0.004004004             0.001001001 </span></span>
-<span><span class="co">#&gt;                 housing        installment_rate                     job </span></span>
-<span><span class="co">#&gt;             0.007993023             0.013990038             0.003000006 </span></span>
-<span><span class="co">#&gt;          number_credits           other_debtors other_installment_plans </span></span>
-<span><span class="co">#&gt;             0.000000000             0.003995013             0.009998022 </span></span>
-<span><span class="co">#&gt;           people_liable     personal_status_sex       present_residence </span></span>
-<span><span class="co">#&gt;             0.001996008             0.003998010             0.005997015 </span></span>
-<span><span class="co">#&gt;                property                 purpose                 savings </span></span>
-<span><span class="co">#&gt;             0.012989037             0.011002020             0.027989067 </span></span>
-<span><span class="co">#&gt;                  status               telephone </span></span>
-<span><span class="co">#&gt;             0.042995091             0.007004010</span></span></code></pre></div>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;                     feature  importance</span></span>
+<span><span class="co">#&gt;                      &lt;char&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:                     age 0.004996014</span></span>
+<span><span class="co">#&gt;  2:                  amount 0.016007025</span></span>
+<span><span class="co">#&gt;  3:          credit_history 0.028004052</span></span>
+<span><span class="co">#&gt;  4:                duration 0.021995049</span></span>
+<span><span class="co">#&gt;  5:     employment_duration 0.004004004</span></span>
+<span><span class="co">#&gt;  6:          foreign_worker 0.001001001</span></span>
+<span><span class="co">#&gt;  7:                 housing 0.007993023</span></span>
+<span><span class="co">#&gt;  8:        installment_rate 0.013990038</span></span>
+<span><span class="co">#&gt;  9:                     job 0.003000006</span></span>
+<span><span class="co">#&gt; 10:          number_credits 0.000000000</span></span>
+<span><span class="co">#&gt; 11:           other_debtors 0.003995013</span></span>
+<span><span class="co">#&gt; 12: other_installment_plans 0.009998022</span></span>
+<span><span class="co">#&gt; 13:           people_liable 0.001996008</span></span>
+<span><span class="co">#&gt; 14:     personal_status_sex 0.003998010</span></span>
+<span><span class="co">#&gt; 15:       present_residence 0.005997015</span></span>
+<span><span class="co">#&gt; 16:                property 0.012989037</span></span>
+<span><span class="co">#&gt; 17:                 purpose 0.011002020</span></span>
+<span><span class="co">#&gt; 18:                 savings 0.027989067</span></span>
+<span><span class="co">#&gt; 19:                  status 0.042995091</span></span>
+<span><span class="co">#&gt; 20:               telephone 0.007004010</span></span>
+<span><span class="co">#&gt;                     feature  importance</span></span></code></pre></div>
 <p>Different measure:</p>
 <p>Q: Maybe it would be worth allowing to change measure post-hoc?</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
@@ -301,40 +353,98 @@ object itself rather than feel like a separate function.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
-<span><span class="co">#&gt;               1.0119854               1.0182071               1.0261672 </span></span>
-<span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
-<span><span class="co">#&gt;               1.0391916               1.0176308               1.0006448 </span></span>
-<span><span class="co">#&gt;                 housing        installment_rate                     job </span></span>
-<span><span class="co">#&gt;               1.0050683               0.9996105               0.9996705 </span></span>
-<span><span class="co">#&gt;          number_credits           other_debtors other_installment_plans </span></span>
-<span><span class="co">#&gt;               1.0012332               1.0040648               1.0097691 </span></span>
-<span><span class="co">#&gt;           people_liable     personal_status_sex       present_residence </span></span>
-<span><span class="co">#&gt;               0.9996198               1.0010624               0.9972150 </span></span>
-<span><span class="co">#&gt;                property                 purpose                 savings </span></span>
-<span><span class="co">#&gt;               1.0104244               1.0087439               1.0273154 </span></span>
-<span><span class="co">#&gt;                  status               telephone </span></span>
-<span><span class="co">#&gt;               1.1509158               1.0025541</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;                     feature importance</span></span>
+<span><span class="co">#&gt;                      &lt;char&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:                     age  1.0119854</span></span>
+<span><span class="co">#&gt;  2:                  amount  1.0182071</span></span>
+<span><span class="co">#&gt;  3:          credit_history  1.0261672</span></span>
+<span><span class="co">#&gt;  4:                duration  1.0391916</span></span>
+<span><span class="co">#&gt;  5:     employment_duration  1.0176308</span></span>
+<span><span class="co">#&gt;  6:          foreign_worker  1.0006448</span></span>
+<span><span class="co">#&gt;  7:                 housing  1.0050683</span></span>
+<span><span class="co">#&gt;  8:        installment_rate  0.9996105</span></span>
+<span><span class="co">#&gt;  9:                     job  0.9996705</span></span>
+<span><span class="co">#&gt; 10:          number_credits  1.0012332</span></span>
+<span><span class="co">#&gt; 11:           other_debtors  1.0040648</span></span>
+<span><span class="co">#&gt; 12: other_installment_plans  1.0097691</span></span>
+<span><span class="co">#&gt; 13:           people_liable  0.9996198</span></span>
+<span><span class="co">#&gt; 14:     personal_status_sex  1.0010624</span></span>
+<span><span class="co">#&gt; 15:       present_residence  0.9972150</span></span>
+<span><span class="co">#&gt; 16:                property  1.0104244</span></span>
+<span><span class="co">#&gt; 17:                 purpose  1.0087439</span></span>
+<span><span class="co">#&gt; 18:                 savings  1.0273154</span></span>
+<span><span class="co">#&gt; 19:                  status  1.1509158</span></span>
+<span><span class="co">#&gt; 20:               telephone  1.0025541</span></span>
+<span><span class="co">#&gt;                     feature importance</span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
-<span><span class="co">#&gt;            1.219438e-02            7.990804e-04            1.942118e-02 </span></span>
-<span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
-<span><span class="co">#&gt;            3.469820e-02            7.473255e-03            6.846385e-04 </span></span>
-<span><span class="co">#&gt;                 housing        installment_rate                     job </span></span>
-<span><span class="co">#&gt;            2.851689e-03            3.310377e-03           -4.428262e-04 </span></span>
-<span><span class="co">#&gt;          number_credits           other_debtors other_installment_plans </span></span>
-<span><span class="co">#&gt;           -1.266753e-03            6.770134e-03            8.964666e-03 </span></span>
-<span><span class="co">#&gt;           people_liable     personal_status_sex       present_residence </span></span>
-<span><span class="co">#&gt;            1.633042e-03            2.295840e-03            6.110152e-05 </span></span>
-<span><span class="co">#&gt;                property                 purpose                 savings </span></span>
-<span><span class="co">#&gt;            1.331438e-03            4.640028e-03            7.728800e-03 </span></span>
-<span><span class="co">#&gt;                  status               telephone </span></span>
-<span><span class="co">#&gt;            1.171140e-01            2.073551e-03</span></span></code></pre></div>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;                     feature    importance</span></span>
+<span><span class="co">#&gt;                      &lt;char&gt;         &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:                     age  1.219438e-02</span></span>
+<span><span class="co">#&gt;  2:                  amount  7.990804e-04</span></span>
+<span><span class="co">#&gt;  3:          credit_history  1.942118e-02</span></span>
+<span><span class="co">#&gt;  4:                duration  3.469820e-02</span></span>
+<span><span class="co">#&gt;  5:     employment_duration  7.473255e-03</span></span>
+<span><span class="co">#&gt;  6:          foreign_worker  6.846385e-04</span></span>
+<span><span class="co">#&gt;  7:                 housing  2.851689e-03</span></span>
+<span><span class="co">#&gt;  8:        installment_rate  3.310377e-03</span></span>
+<span><span class="co">#&gt;  9:                     job -4.428262e-04</span></span>
+<span><span class="co">#&gt; 10:          number_credits -1.266753e-03</span></span>
+<span><span class="co">#&gt; 11:           other_debtors  6.770134e-03</span></span>
+<span><span class="co">#&gt; 12: other_installment_plans  8.964666e-03</span></span>
+<span><span class="co">#&gt; 13:           people_liable  1.633042e-03</span></span>
+<span><span class="co">#&gt; 14:     personal_status_sex  2.295840e-03</span></span>
+<span><span class="co">#&gt; 15:       present_residence  6.110152e-05</span></span>
+<span><span class="co">#&gt; 16:                property  1.331438e-03</span></span>
+<span><span class="co">#&gt; 17:                 purpose  4.640028e-03</span></span>
+<span><span class="co">#&gt; 18:                 savings  7.728800e-03</span></span>
+<span><span class="co">#&gt; 19:                  status  1.171140e-01</span></span>
+<span><span class="co">#&gt; 20:               telephone  2.073551e-03</span></span>
+<span><span class="co">#&gt;                     feature    importance</span></span></code></pre></div>
 <p>Q: Results are importance scores averaged over resampling iterations
 to ensure the “named numeric” return format. But what about the
 individual scores across resampling iterations?<br>
 If we want to attempt uncertainty quantification or at least also report
 SDs there needs to be a <code>data.table</code> return type.</p>
+</div>
+<div class="section level3">
+<h3 id="with-multiple-permutation-iterations">With multiple permutation iterations<a class="anchor" aria-label="anchor" href="#with-multiple-permutation-iterations"></a>
+</h3>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pfi</span> <span class="op">=</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.ce"</span><span class="op">)</span>,</span>
+<span>  iters_perm <span class="op">=</span> <span class="fl">5</span> <span class="co"># permute each feature 5 times in each resampling iteration</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;                     feature    importance</span></span>
+<span><span class="co">#&gt;                      &lt;char&gt;         &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:                     age -2.997009e-06</span></span>
+<span><span class="co">#&gt;  2:                  amount  1.379643e-02</span></span>
+<span><span class="co">#&gt;  3:          credit_history  1.678625e-02</span></span>
+<span><span class="co">#&gt;  4:                duration  2.720145e-02</span></span>
+<span><span class="co">#&gt;  5:     employment_duration  6.389024e-03</span></span>
+<span><span class="co">#&gt;  6:          foreign_worker  4.004004e-04</span></span>
+<span><span class="co">#&gt;  7:                 housing  1.924080e-04</span></span>
+<span><span class="co">#&gt;  8:        installment_rate  9.191827e-03</span></span>
+<span><span class="co">#&gt;  9:                     job  1.393609e-03</span></span>
+<span><span class="co">#&gt; 10:          number_credits -2.043960e-04</span></span>
+<span><span class="co">#&gt; 11:           other_debtors  6.600613e-03</span></span>
+<span><span class="co">#&gt; 12: other_installment_plans  1.190412e-03</span></span>
+<span><span class="co">#&gt; 13:           people_liable  2.601404e-03</span></span>
+<span><span class="co">#&gt; 14:     personal_status_sex -3.007798e-03</span></span>
+<span><span class="co">#&gt; 15:       present_residence -1.802401e-03</span></span>
+<span><span class="co">#&gt; 16:                property  7.930086e-04</span></span>
+<span><span class="co">#&gt; 17:                 purpose  4.795214e-03</span></span>
+<span><span class="co">#&gt; 18:                 savings  1.160262e-02</span></span>
+<span><span class="co">#&gt; 19:                  status  4.579550e-02</span></span>
+<span><span class="co">#&gt; 20:               telephone  1.002200e-03</span></span>
+<span><span class="co">#&gt;                     feature    importance</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -344,7 +454,7 @@ SDs there needs to be a <code>data.table</code> return type.</p>
 needs to refit the model.<br>
 Notably, the <code>Task</code> object does not need to be modified, as
 it suffices to adjust the <code>.$col_roles$feature</code> property.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">learner</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">loco</span> <span class="op">=</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
@@ -356,24 +466,24 @@ it suffices to adjust the <code>.$col_roles$feature</code> property.</p>
 <span></span>
 <span><span class="va">loco</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                     age                  amount          credit_history </span></span>
-<span><span class="co">#&gt;           -4.996014e-03            5.994018e-06            3.006000e-03 </span></span>
+<span><span class="co">#&gt;            3.977031e-03            4.001007e-03            2.982024e-03 </span></span>
 <span><span class="co">#&gt;                duration     employment_duration          foreign_worker </span></span>
-<span><span class="co">#&gt;           -9.890130e-04            8.991027e-06           -7.984032e-03 </span></span>
+<span><span class="co">#&gt;           -1.003998e-03            2.982024e-03            6.986028e-03 </span></span>
 <span><span class="co">#&gt;                 housing        installment_rate                     job </span></span>
-<span><span class="co">#&gt;           -1.699903e-02           -1.999005e-03            5.994018e-06 </span></span>
+<span><span class="co">#&gt;           -3.014991e-03           -5.005005e-03           -7.024989e-03 </span></span>
 <span><span class="co">#&gt;          number_credits           other_debtors other_installment_plans </span></span>
-<span><span class="co">#&gt;           -1.598904e-02           -6.003009e-03           -1.701702e-02 </span></span>
+<span><span class="co">#&gt;           -7.015998e-03           -3.596411e-05           -9.023994e-03 </span></span>
 <span><span class="co">#&gt;           people_liable     personal_status_sex       present_residence </span></span>
-<span><span class="co">#&gt;           -8.008008e-03           -5.005005e-03           -3.986022e-03 </span></span>
+<span><span class="co">#&gt;            9.830189e-04           -2.022981e-03            9.770249e-04 </span></span>
 <span><span class="co">#&gt;                property                 purpose                 savings </span></span>
-<span><span class="co">#&gt;           -6.003009e-03           -7.993023e-03           -8.982036e-03 </span></span>
+<span><span class="co">#&gt;           -8.019996e-03            1.981023e-03            2.994012e-03 </span></span>
 <span><span class="co">#&gt;                  status               telephone </span></span>
-<span><span class="co">#&gt;            2.400304e-02           -4.004004e-03</span></span></code></pre></div>
+<span><span class="co">#&gt;            1.899504e-02           -3.008997e-03</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="aggregating-results">Aggregating results<a class="anchor" aria-label="anchor" href="#aggregating-results"></a>
 </h2>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">scores_rel</span> <span class="op">=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span></span>
 <span>  feature <span class="op">=</span> <span class="va">task</span><span class="op">$</span><span class="va">feature_names</span>,</span>
 <span>  PFI <span class="op">=</span> <span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span>,</span>
@@ -384,115 +494,142 @@ it suffices to adjust the <code>.$col_roles$feature</code> property.</p>
 <span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"Importance scores (ratio)"</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <caption>Importance scores (ratio)</caption>
+<colgroup>
+<col width="34%">
+<col width="34%">
+<col width="21%">
+<col width="10%">
+</colgroup>
 <thead><tr class="header">
 <th align="left">feature</th>
-<th align="right">PFI</th>
+<th align="left">PFI.feature</th>
+<th align="right">PFI.importance</th>
 <th align="right">LOCO</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left">age</td>
-<td align="right">1.0162</td>
-<td align="right">0.9804</td>
+<td align="left">age</td>
+<td align="right">1.0058</td>
+<td align="right">1.0066</td>
 </tr>
 <tr class="even">
 <td align="left">amount</td>
-<td align="right">1.0170</td>
-<td align="right">0.9946</td>
+<td align="left">amount</td>
+<td align="right">1.0366</td>
+<td align="right">1.0449</td>
 </tr>
 <tr class="odd">
 <td align="left">credit_history</td>
-<td align="right">1.0306</td>
-<td align="right">0.9994</td>
+<td align="left">credit_history</td>
+<td align="right">1.0558</td>
+<td align="right">1.0470</td>
 </tr>
 <tr class="even">
 <td align="left">duration</td>
-<td align="right">1.0505</td>
-<td align="right">1.0380</td>
+<td align="left">duration</td>
+<td align="right">1.1008</td>
+<td align="right">1.0379</td>
 </tr>
 <tr class="odd">
 <td align="left">employment_duration</td>
-<td align="right">1.0060</td>
-<td align="right">0.9962</td>
+<td align="left">employment_duration</td>
+<td align="right">1.0156</td>
+<td align="right">0.9822</td>
 </tr>
 <tr class="even">
 <td align="left">foreign_worker</td>
-<td align="right">1.0004</td>
-<td align="right">0.9819</td>
+<td align="left">foreign_worker</td>
+<td align="right">0.9935</td>
+<td align="right">0.9950</td>
 </tr>
 <tr class="odd">
 <td align="left">housing</td>
-<td align="right">1.0014</td>
-<td align="right">0.9838</td>
+<td align="left">housing</td>
+<td align="right">0.9996</td>
+<td align="right">0.9726</td>
 </tr>
 <tr class="even">
 <td align="left">installment_rate</td>
-<td align="right">1.0082</td>
-<td align="right">0.9807</td>
+<td align="left">installment_rate</td>
+<td align="right">1.0197</td>
+<td align="right">1.0254</td>
 </tr>
 <tr class="odd">
 <td align="left">job</td>
-<td align="right">0.9972</td>
-<td align="right">0.9607</td>
+<td align="left">job</td>
+<td align="right">0.9889</td>
+<td align="right">0.9829</td>
 </tr>
 <tr class="even">
 <td align="left">number_credits</td>
-<td align="right">0.9964</td>
-<td align="right">0.9680</td>
+<td align="left">number_credits</td>
+<td align="right">1.0063</td>
+<td align="right">1.0002</td>
 </tr>
 <tr class="odd">
 <td align="left">other_debtors</td>
-<td align="right">1.0033</td>
-<td align="right">0.9883</td>
+<td align="left">other_debtors</td>
+<td align="right">1.0051</td>
+<td align="right">0.9674</td>
 </tr>
 <tr class="even">
 <td align="left">other_installment_plans</td>
-<td align="right">1.0117</td>
-<td align="right">0.9838</td>
+<td align="left">other_installment_plans</td>
+<td align="right">1.0015</td>
+<td align="right">0.9872</td>
 </tr>
 <tr class="odd">
 <td align="left">people_liable</td>
-<td align="right">1.0013</td>
-<td align="right">0.9525</td>
+<td align="left">people_liable</td>
+<td align="right">0.9899</td>
+<td align="right">0.9623</td>
 </tr>
 <tr class="even">
 <td align="left">personal_status_sex</td>
+<td align="left">personal_status_sex</td>
+<td align="right">1.0054</td>
 <td align="right">0.9987</td>
-<td align="right">0.9834</td>
 </tr>
 <tr class="odd">
 <td align="left">present_residence</td>
-<td align="right">1.0033</td>
-<td align="right">0.9969</td>
+<td align="left">present_residence</td>
+<td align="right">1.0097</td>
+<td align="right">1.0235</td>
 </tr>
 <tr class="even">
 <td align="left">property</td>
-<td align="right">0.9968</td>
-<td align="right">0.9850</td>
+<td align="left">property</td>
+<td align="right">1.0061</td>
+<td align="right">1.0253</td>
 </tr>
 <tr class="odd">
 <td align="left">purpose</td>
-<td align="right">1.0064</td>
-<td align="right">0.9769</td>
+<td align="left">purpose</td>
+<td align="right">1.0251</td>
+<td align="right">0.9991</td>
 </tr>
 <tr class="even">
 <td align="left">savings</td>
-<td align="right">1.0225</td>
-<td align="right">0.9894</td>
+<td align="left">savings</td>
+<td align="right">1.0528</td>
+<td align="right">1.0196</td>
 </tr>
 <tr class="odd">
 <td align="left">status</td>
-<td align="right">1.1889</td>
-<td align="right">1.0908</td>
+<td align="left">status</td>
+<td align="right">1.2157</td>
+<td align="right">1.1075</td>
 </tr>
 <tr class="even">
 <td align="left">telephone</td>
-<td align="right">1.0052</td>
-<td align="right">0.9696</td>
+<td align="left">telephone</td>
+<td align="right">1.0271</td>
+<td align="right">1.0118</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">scores_rel</span> <span class="op">|&gt;</span></span>
@@ -510,9 +647,14 @@ it suffices to adjust the <code>.$col_roles$feature</code> property.</p>
 <span>    legend.position <span class="op">=</span> <span class="st">"bottom"</span>,</span>
 <span>    plot.title.position <span class="op">=</span> <span class="st">"plot"</span></span>
 <span>  <span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in melt.data.table(scores_rel, id.vars = "feature", value.name =</span></span>
+<span><span class="co">#&gt; "score", : 'measure.vars' [PFI.feature, PFI.importance, LOCO] are not all of</span></span>
+<span><span class="co">#&gt; the same type. By order of hierarchy, the molten data value column will be of</span></span>
+<span><span class="co">#&gt; type 'character'. All measure variables not of type 'character' will be coerced</span></span>
+<span><span class="co">#&gt; too. Check DETAILS in ?melt.data.table for more on coercion.</span></span>
 <span><span class="co">#&gt; Warning in sprintf("Using %i-fold $s", resampling$iters, resampling$id): one</span></span>
 <span><span class="co">#&gt; argument not used by format 'Using %i-fold $s'</span></span></code></pre></div>
-<p><img src="xplainfi_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
+<p><img src="xplainfi_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
