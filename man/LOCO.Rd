@@ -26,7 +26,7 @@ loco$compute()
 \dontshow{\}) # examplesIf}
 }
 \section{Super class}{
-\code{xplainfi::FeatureImportanceLearner} -> \code{LOCO}
+\code{\link[xplainfi:FeatureImportanceLearner]{xplainfi::FeatureImportanceLearner}} -> \code{LOCO}
 }
 \section{Methods}{
 \subsection{Public methods}{

@@ -15,8 +15,8 @@ test_that("can be constructed with simple objects", {
 
   checkmate::expect_r6(pfi, c("FeatureImportanceLearner", "PFI"))
 
-  expect_importance_vec(pfi$compute(), features = task$feature_names)
-  expect_importance_vec(pfi$compute(relation = "difference"), features = task$feature_names)
+  expect_importance_dt(pfi$compute(), features = pfi$features)
+  expect_importance_dt(pfi$compute(relation = "difference"), features = pfi$features)
 })
 
 test_that("null result for featureless learner", {
@@ -29,11 +29,70 @@ test_that("null result for featureless learner", {
     measure = mlr3::msr("classif.ce")
   )
 
-  expected = rep(0, length(task$feature_names))
-  names(expected) = task$feature_names
+  pfi$compute()
 
-  expect_identical(pfi$compute(), expected)
+  expected = data.table::data.table(
+    feature = pfi$features,
+    importance = 0,
+    key = "feature"
+  )
+
+  expect_identical(pfi$importance, expected)
 })
+
+test_that("multiple perms", {
+
+  task = mlr3::tsk("zoo")
+
+  pfi = PFI$new(
+    task = task,
+    learner = mlr3::lrn("classif.rpart"),
+    measure = mlr3::msr("classif.ce"),
+    resampling = mlr3::rsmp("cv", folds = 3),
+    iters_perm = 2
+  )
+
+  pfi$compute()
+
+  expect_importance_dt(pfi$importance, features = pfi$features)
+
+  checkmate::expect_data_table(
+    pfi$scores, types = c("character", "integer", "numeric"),
+    nrows = pfi$resampling$iters *
+      pfi$param_set$values$iters_perm *
+      length(pfi$features),
+    ncols = 6,
+    any.missing = FALSE, min.cols = 6
+  )
+})
+
+test_that("only one feature", {
+
+  task = mlr3::tsk("zoo")
+
+  pfi = PFI$new(
+    task = task,
+    learner = mlr3::lrn("classif.rpart"),
+    measure = mlr3::msr("classif.ce"),
+    resampling = mlr3::rsmp("cv", folds = 3),
+    iters_perm = 2,
+    features = "legs"
+  )
+
+  pfi$compute()
+
+  expect_importance_dt(pfi$importance, features = pfi$features)
+
+  checkmate::expect_data_table(
+    pfi$scores, types = c("character", "integer", "numeric"),
+    nrows = pfi$resampling$iters *
+      pfi$param_set$values$iters_perm *
+      length(pfi$features),
+    ncols = 6,
+    any.missing = FALSE, min.cols = 6
+  )
+})
+
 
 
 test_that("snapshot results", {
@@ -56,7 +115,7 @@ test_that("snapshot results", {
   # Default behavior should be sane
   res_1 = pfi$compute()
   # Expect named, non-missing/finite numeric vector corresponding to feature names
-  expect_importance_vec(res_1, task$feature_names)
+  expect_importance_dt(res_1, pfi$features)
 
   expect_snapshot(pfi$importance, variant = Sys.info()[["sysname"]])
   res_2 = pfi$compute()
@@ -72,10 +131,10 @@ test_that("snapshot results", {
 
   expect_error(expect_equal(res_4, res_5))
 
-  expect_importance_vec(res_2, task$feature_names)
-  expect_importance_vec(res_3, task$feature_names)
-  expect_importance_vec(res_4, task$feature_names)
-  expect_importance_vec(res_5, task$feature_names)
+  expect_importance_dt(res_2, pfi$features)
+  expect_importance_dt(res_3, pfi$features)
+  expect_importance_dt(res_4, pfi$features)
+  expect_importance_dt(res_5, pfi$features)
 
   # With resampling
   resampling = rsmp("cv", folds = 3)
@@ -89,12 +148,12 @@ test_that("snapshot results", {
   )
 
   res_1 = pfi$compute()
-  expect_importance_vec(pfi$importance, task$feature_names)
+  expect_importance_dt(pfi$importance, pfi$features)
 
   expect_snapshot(pfi$importance, variant = Sys.info()[["sysname"]])
 
   res_2 = pfi$compute("ratio")
-  expect_importance_vec(pfi$importance, task$feature_names)
+  expect_importance_dt(pfi$importance, pfi$features)
   expect_snapshot(pfi$importance, variant = Sys.info()[["sysname"]])
 
   expect_error(expect_equal(res_1, res_2))

@@ -27,7 +27,9 @@ Feature Importance Learner Class
 
 \item{\code{param_set}}{(paradox::ps())}
 
-\item{\code{importance}}{(numeric())}
+\item{\code{importance}}{(data.table::data.table()) Aggregated importance scores}
+
+\item{\code{scores}}{(data.table::data.table()) Individual performance scores used to compute \verb{$importance}}
 }
 \if{html}{\out{</div>}}
 }

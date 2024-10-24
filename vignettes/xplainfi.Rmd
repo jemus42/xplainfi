@@ -136,6 +136,22 @@ Q: Results are importance scores averaged over resampling iterations to ensure t
 But what about the individual scores across resampling iterations?  
 If we want to attempt uncertainty quantification or at least also report SDs there needs to be a `data.table` return type.
 
+
+### With multiple permutation iterations
+
+```{r}
+pfi = PFI$new(
+  task = task,
+  learner = learner,
+  resampling = resampling,
+  measure = msr("classif.ce"),
+  iters_perm = 5 # permute each feature 5 times in each resampling iteration
+)
+
+pfi$compute()
+```
+
+
 ## LOCO
 
 Same setup but now using LOCO, which differs in that it internally needs to refit the model.  

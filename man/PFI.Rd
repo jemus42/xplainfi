@@ -26,7 +26,7 @@ pfi$compute()
 \dontshow{\}) # examplesIf}
 }
 \section{Super class}{
-\code{xplainfi::FeatureImportanceLearner} -> \code{PFI}
+\code{\link[xplainfi:FeatureImportanceLearner]{xplainfi::FeatureImportanceLearner}} -> \code{PFI}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -49,13 +49,23 @@ pfi$compute()
 \subsection{Method \code{new()}}{
 Creates a new instance of this \link[R6:R6Class]{R6} class.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PFI$new(task, learner, measure, resampling = NULL, features = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PFI$new(
+  task,
+  learner,
+  measure,
+  resampling = NULL,
+  features = NULL,
+  iters_perm = 1L
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{task, learner, measure, resampling, features}}{Passed to \code{FeatureImportanceLearner} for construction.}
+
+\item{\code{iters_perm}}{\code{(integer(1): 1L)} Number of permutations to compute for each feature.
+Permutations are repeated within each resampling fold.}
 }
 \if{html}{\out{</div>}}
 }
@@ -66,7 +76,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 \subsection{Method \code{compute()}}{
 A short description...
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PFI$compute(relation = c("difference", "ratio"))}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PFI$compute(relation = c("difference", "ratio"), store_backends = TRUE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -74,6 +84,10 @@ A short description...
 \describe{
 \item{\code{relation}}{(character(1)) Calculate \code{"difference"} (default) or \code{"ratio"} of
 original scores and scores after permutation}
+
+\item{\code{store_backends}}{(logical(1): \code{TRUE}) Passed to \code{\link[mlr3:resample]{mlr3::resample()}} to store
+backends in resample result.
+Required for some measures, but may increase memory footprint.}
 }
 \if{html}{\out{</div>}}
 }
