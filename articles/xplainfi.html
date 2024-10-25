@@ -101,22 +101,20 @@ resampling with default ratio</p>
 <span><span class="co">#&gt; 1:   relation ParamFct    NA    NA       2 difference difference</span></span>
 <span><span class="co">#&gt; 2: iters_perm ParamInt     1   Inf     Inf          1          1</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
-<span></span>
 <span><span class="co"># Default behavior should be sane</span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;            feature   importance</span></span>
 <span><span class="co">#&gt;             &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei 0.0254328898</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin 0.0038974549</span></span>
-<span><span class="co">#&gt; 3:      cell_shape 0.0142968299</span></span>
-<span><span class="co">#&gt; 4:       cell_size 0.0278796794</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness 0.0112129792</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size 0.0076956133</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion 0.0017461000</span></span>
-<span><span class="co">#&gt; 8:         mitoses 0.0009674993</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli 0.0036466532</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:     bare_nuclei 0.0311134047</span></span>
+<span><span class="co">#&gt; 2:     bl_cromatin 0.0039695264</span></span>
+<span><span class="co">#&gt; 3:      cell_shape 0.0181463463</span></span>
+<span><span class="co">#&gt; 4:       cell_size 0.0260011523</span></span>
+<span><span class="co">#&gt; 5:    cl_thickness 0.0068208143</span></span>
+<span><span class="co">#&gt; 6:    epith_c_size 0.0027591783</span></span>
+<span><span class="co">#&gt; 7:   marg_adhesion 0.0026618505</span></span>
+<span><span class="co">#&gt; 8:         mitoses 0.0004096992</span></span>
+<span><span class="co">#&gt; 9: normal_nucleoli 0.0088215131</span></span></code></pre></div>
 <p>Q: Should <code>$compute()</code> be run on construction? Between the
 call to <code>$new()</code> and <code>$compute()</code> there’s nothing
 that needs to happen technically, as long as the <code>relation</code>
@@ -128,30 +126,30 @@ default:</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;            feature   importance</span></span>
 <span><span class="co">#&gt;             &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei 0.0254328898</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin 0.0038974549</span></span>
-<span><span class="co">#&gt; 3:      cell_shape 0.0142968299</span></span>
-<span><span class="co">#&gt; 4:       cell_size 0.0278796794</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness 0.0112129792</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size 0.0076956133</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion 0.0017461000</span></span>
-<span><span class="co">#&gt; 8:         mitoses 0.0009674993</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli 0.0036466532</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:     bare_nuclei 0.0311134047</span></span>
+<span><span class="co">#&gt; 2:     bl_cromatin 0.0039695264</span></span>
+<span><span class="co">#&gt; 3:      cell_shape 0.0181463463</span></span>
+<span><span class="co">#&gt; 4:       cell_size 0.0260011523</span></span>
+<span><span class="co">#&gt; 5:    cl_thickness 0.0068208143</span></span>
+<span><span class="co">#&gt; 6:    epith_c_size 0.0027591783</span></span>
+<span><span class="co">#&gt; 7:   marg_adhesion 0.0026618505</span></span>
+<span><span class="co">#&gt; 8:         mitoses 0.0004096992</span></span>
+<span><span class="co">#&gt; 9: normal_nucleoli 0.0088215131</span></span></code></pre></div>
 <p>Recomputes if param changes, stores new param</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;            feature importance</span></span>
 <span><span class="co">#&gt;             &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei   2.299456</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin   1.185466</span></span>
-<span><span class="co">#&gt; 3:      cell_shape   1.487071</span></span>
-<span><span class="co">#&gt; 4:       cell_size   2.034809</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness   1.373494</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size   1.207935</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion   1.151517</span></span>
-<span><span class="co">#&gt; 8:         mitoses   1.054015</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli   1.129846</span></span>
+<span><span class="co">#&gt; 1:     bare_nuclei   2.005166</span></span>
+<span><span class="co">#&gt; 2:     bl_cromatin   1.360535</span></span>
+<span><span class="co">#&gt; 3:      cell_shape   1.787501</span></span>
+<span><span class="co">#&gt; 4:       cell_size   1.892795</span></span>
+<span><span class="co">#&gt; 5:    cl_thickness   1.233292</span></span>
+<span><span class="co">#&gt; 6:    epith_c_size   1.073837</span></span>
+<span><span class="co">#&gt; 7:   marg_adhesion   1.143984</span></span>
+<span><span class="co">#&gt; 8:         mitoses   1.038286</span></span>
+<span><span class="co">#&gt; 9: normal_nucleoli   1.377058</span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="va">param_set</span></span>
 <span><span class="co">#&gt; &lt;ParamSet(2)&gt;</span></span>
 <span><span class="co">#&gt;            id    class lower upper nlevels    default  value</span></span>
@@ -167,30 +165,30 @@ object itself rather than feel like a separate function.</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;            feature   importance</span></span>
 <span><span class="co">#&gt;             &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei 0.0255151834</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin 0.0050953447</span></span>
-<span><span class="co">#&gt; 3:      cell_shape 0.0124821000</span></span>
-<span><span class="co">#&gt; 4:       cell_size 0.0263417143</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness 0.0153136659</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size 0.0065399530</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion 0.0029682727</span></span>
-<span><span class="co">#&gt; 8:         mitoses 0.0009206505</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli 0.0045549852</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:     bare_nuclei 0.0269669118</span></span>
+<span><span class="co">#&gt; 2:     bl_cromatin 0.0080938632</span></span>
+<span><span class="co">#&gt; 3:      cell_shape 0.0192081960</span></span>
+<span><span class="co">#&gt; 4:       cell_size 0.0281257099</span></span>
+<span><span class="co">#&gt; 5:    cl_thickness 0.0061718034</span></span>
+<span><span class="co">#&gt; 6:    epith_c_size 0.0010423567</span></span>
+<span><span class="co">#&gt; 7:   marg_adhesion 0.0018831063</span></span>
+<span><span class="co">#&gt; 8:         mitoses 0.0006549462</span></span>
+<span><span class="co">#&gt; 9: normal_nucleoli 0.0086903167</span></span></code></pre></div>
 <p>Retrieve aggregated scores manually:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="va">importance</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;            feature   importance</span></span>
 <span><span class="co">#&gt;             &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei 0.0255151834</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin 0.0050953447</span></span>
-<span><span class="co">#&gt; 3:      cell_shape 0.0124821000</span></span>
-<span><span class="co">#&gt; 4:       cell_size 0.0263417143</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness 0.0153136659</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size 0.0065399530</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion 0.0029682727</span></span>
-<span><span class="co">#&gt; 8:         mitoses 0.0009206505</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli 0.0045549852</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:     bare_nuclei 0.0269669118</span></span>
+<span><span class="co">#&gt; 2:     bl_cromatin 0.0080938632</span></span>
+<span><span class="co">#&gt; 3:      cell_shape 0.0192081960</span></span>
+<span><span class="co">#&gt; 4:       cell_size 0.0281257099</span></span>
+<span><span class="co">#&gt; 5:    cl_thickness 0.0061718034</span></span>
+<span><span class="co">#&gt; 6:    epith_c_size 0.0010423567</span></span>
+<span><span class="co">#&gt; 7:   marg_adhesion 0.0018831063</span></span>
+<span><span class="co">#&gt; 8:         mitoses 0.0006549462</span></span>
+<span><span class="co">#&gt; 9: normal_nucleoli 0.0086903167</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="with-resampling">With resampling<a class="anchor" aria-label="anchor" href="#with-resampling"></a>
@@ -219,15 +217,15 @@ object itself rather than feel like a separate function.</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;            feature   importance</span></span>
 <span><span class="co">#&gt;             &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei 0.0272897859</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin 0.0067380659</span></span>
-<span><span class="co">#&gt; 3:      cell_shape 0.0156334085</span></span>
-<span><span class="co">#&gt; 4:       cell_size 0.0236113883</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness 0.0143316156</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size 0.0025627705</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion 0.0027549200</span></span>
-<span><span class="co">#&gt; 8:         mitoses 0.0004746942</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli 0.0076622376</span></span>
+<span><span class="co">#&gt; 1:     bare_nuclei 0.0312390148</span></span>
+<span><span class="co">#&gt; 2:     bl_cromatin 0.0075122543</span></span>
+<span><span class="co">#&gt; 3:      cell_shape 0.0161138358</span></span>
+<span><span class="co">#&gt; 4:       cell_size 0.0308948666</span></span>
+<span><span class="co">#&gt; 5:    cl_thickness 0.0156788348</span></span>
+<span><span class="co">#&gt; 6:    epith_c_size 0.0018646652</span></span>
+<span><span class="co">#&gt; 7:   marg_adhesion 0.0029774891</span></span>
+<span><span class="co">#&gt; 8:         mitoses 0.0006869458</span></span>
+<span><span class="co">#&gt; 9: normal_nucleoli 0.0055014621</span></span>
 <span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="va">resample_result</span></span>
 <span><span class="co">#&gt; &lt;ResampleResult&gt; with 3 resampling iterations</span></span>
@@ -244,15 +242,15 @@ object itself rather than feel like a separate function.</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;            feature   importance</span></span>
 <span><span class="co">#&gt;             &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei 0.0272897859</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin 0.0067380659</span></span>
-<span><span class="co">#&gt; 3:      cell_shape 0.0156334085</span></span>
-<span><span class="co">#&gt; 4:       cell_size 0.0236113883</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness 0.0143316156</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size 0.0025627705</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion 0.0027549200</span></span>
-<span><span class="co">#&gt; 8:         mitoses 0.0004746942</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli 0.0076622376</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:     bare_nuclei 0.0312390148</span></span>
+<span><span class="co">#&gt; 2:     bl_cromatin 0.0075122543</span></span>
+<span><span class="co">#&gt; 3:      cell_shape 0.0161138358</span></span>
+<span><span class="co">#&gt; 4:       cell_size 0.0308948666</span></span>
+<span><span class="co">#&gt; 5:    cl_thickness 0.0156788348</span></span>
+<span><span class="co">#&gt; 6:    epith_c_size 0.0018646652</span></span>
+<span><span class="co">#&gt; 7:   marg_adhesion 0.0029774891</span></span>
+<span><span class="co">#&gt; 8:         mitoses 0.0006869458</span></span>
+<span><span class="co">#&gt; 9: normal_nucleoli 0.0055014621</span></span></code></pre></div>
 <p>Different measure:</p>
 <p>Q: Maybe it would be worth allowing to change measure post-hoc?</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
@@ -267,28 +265,28 @@ object itself rather than feel like a separate function.</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;            feature importance</span></span>
 <span><span class="co">#&gt;             &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei   1.019417</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin   1.005251</span></span>
-<span><span class="co">#&gt; 3:      cell_shape   1.004522</span></span>
-<span><span class="co">#&gt; 4:       cell_size   1.006057</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness   1.005369</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size   1.001412</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion   1.002061</span></span>
-<span><span class="co">#&gt; 8:         mitoses   1.000170</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli   1.003889</span></span>
+<span><span class="co">#&gt; 1:     bare_nuclei   1.017920</span></span>
+<span><span class="co">#&gt; 2:     bl_cromatin   1.001659</span></span>
+<span><span class="co">#&gt; 3:      cell_shape   1.005498</span></span>
+<span><span class="co">#&gt; 4:       cell_size   1.006188</span></span>
+<span><span class="co">#&gt; 5:    cl_thickness   1.006749</span></span>
+<span><span class="co">#&gt; 6:    epith_c_size   1.001143</span></span>
+<span><span class="co">#&gt; 7:   marg_adhesion   1.001822</span></span>
+<span><span class="co">#&gt; 8:         mitoses   1.000341</span></span>
+<span><span class="co">#&gt; 9: normal_nucleoli   1.002252</span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;            feature   importance</span></span>
 <span><span class="co">#&gt;             &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei 1.978400e-02</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin 1.733766e-03</span></span>
-<span><span class="co">#&gt; 3:      cell_shape 5.030280e-03</span></span>
-<span><span class="co">#&gt; 4:       cell_size 7.869486e-03</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness 6.160114e-03</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size 1.272520e-03</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion 1.824848e-03</span></span>
-<span><span class="co">#&gt; 8:         mitoses 2.986438e-05</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli 1.931261e-03</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:     bare_nuclei 1.487792e-02</span></span>
+<span><span class="co">#&gt; 2:     bl_cromatin 3.758886e-04</span></span>
+<span><span class="co">#&gt; 3:      cell_shape 3.792059e-03</span></span>
+<span><span class="co">#&gt; 4:       cell_size 3.903575e-03</span></span>
+<span><span class="co">#&gt; 5:    cl_thickness 2.910220e-03</span></span>
+<span><span class="co">#&gt; 6:    epith_c_size 7.057850e-04</span></span>
+<span><span class="co">#&gt; 7:   marg_adhesion 1.691431e-03</span></span>
+<span><span class="co">#&gt; 8:         mitoses 3.936168e-04</span></span>
+<span><span class="co">#&gt; 9: normal_nucleoli 3.428817e-05</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="with-multiple-permutation-iterations">With multiple permutation iterations<a class="anchor" aria-label="anchor" href="#with-multiple-permutation-iterations"></a>
@@ -306,15 +304,15 @@ object itself rather than feel like a separate function.</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;            feature importance</span></span>
 <span><span class="co">#&gt;             &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei  1.7802790</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin  0.9582492</span></span>
-<span><span class="co">#&gt; 3:      cell_shape  1.1160173</span></span>
-<span><span class="co">#&gt; 4:       cell_size  1.2696489</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness  1.0663781</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size  0.9655604</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion  1.0024050</span></span>
-<span><span class="co">#&gt; 8:         mitoses  0.9851852</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli  0.9968254</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:     bare_nuclei   2.577778</span></span>
+<span><span class="co">#&gt; 2:     bl_cromatin   1.114286</span></span>
+<span><span class="co">#&gt; 3:      cell_shape   1.221164</span></span>
+<span><span class="co">#&gt; 4:       cell_size   1.341799</span></span>
+<span><span class="co">#&gt; 5:    cl_thickness   1.259259</span></span>
+<span><span class="co">#&gt; 6:    epith_c_size   1.024339</span></span>
+<span><span class="co">#&gt; 7:   marg_adhesion   1.019048</span></span>
+<span><span class="co">#&gt; 8:         mitoses   1.000000</span></span>
+<span><span class="co">#&gt; 9: normal_nucleoli   1.057143</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -338,77 +336,77 @@ it suffices to adjust the <code>.$col_roles$feature</code> property.</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;            feature importance</span></span>
 <span><span class="co">#&gt;             &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei  1.0276717</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin  0.9643640</span></span>
-<span><span class="co">#&gt; 3:      cell_shape  0.9418919</span></span>
-<span><span class="co">#&gt; 4:       cell_size  0.9622936</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness  1.0744790</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size  0.9762456</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion  0.9940892</span></span>
-<span><span class="co">#&gt; 8:         mitoses  0.9846383</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli  0.9956689</span></span>
+<span><span class="co">#&gt; 1:     bare_nuclei  1.0905448</span></span>
+<span><span class="co">#&gt; 2:     bl_cromatin  0.9838583</span></span>
+<span><span class="co">#&gt; 3:      cell_shape  0.9994163</span></span>
+<span><span class="co">#&gt; 4:       cell_size  0.9634430</span></span>
+<span><span class="co">#&gt; 5:    cl_thickness  1.0666010</span></span>
+<span><span class="co">#&gt; 6:    epith_c_size  0.9740075</span></span>
+<span><span class="co">#&gt; 7:   marg_adhesion  0.9867229</span></span>
+<span><span class="co">#&gt; 8:         mitoses  0.9999505</span></span>
+<span><span class="co">#&gt; 9: normal_nucleoli  0.9977767</span></span>
 <span></span>
 <span><span class="va">loco</span><span class="op">$</span><span class="va">scores</span></span>
 <span><span class="co">#&gt; Key: &lt;feature, iter_rsmp&gt;</span></span>
 <span><span class="co">#&gt;             feature iter_rsmp classif.bbrier_orig classif.bbrier_loco</span></span>
 <span><span class="co">#&gt;              &lt;char&gt;     &lt;int&gt;               &lt;num&gt;               &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:     bare_nuclei         1          0.03200358          0.02622812</span></span>
-<span><span class="co">#&gt;  2:     bare_nuclei         2          0.02734384          0.03147671</span></span>
-<span><span class="co">#&gt;  3:     bare_nuclei         3          0.02616236          0.02910128</span></span>
-<span><span class="co">#&gt;  4:     bl_cromatin         1          0.03200358          0.02882791</span></span>
-<span><span class="co">#&gt;  5:     bl_cromatin         2          0.02734384          0.02800971</span></span>
-<span><span class="co">#&gt;  6:     bl_cromatin         3          0.02616236          0.02532436</span></span>
-<span><span class="co">#&gt;  7:      cell_shape         1          0.03200358          0.03083506</span></span>
-<span><span class="co">#&gt;  8:      cell_shape         2          0.02734384          0.02721052</span></span>
-<span><span class="co">#&gt;  9:      cell_shape         3          0.02616236          0.02268444</span></span>
-<span><span class="co">#&gt; 10:       cell_size         1          0.03200358          0.02838324</span></span>
-<span><span class="co">#&gt; 11:       cell_size         2          0.02734384          0.02747339</span></span>
-<span><span class="co">#&gt; 12:       cell_size         3          0.02616236          0.02603852</span></span>
-<span><span class="co">#&gt; 13:    cl_thickness         1          0.03200358          0.03227366</span></span>
-<span><span class="co">#&gt; 14:    cl_thickness         2          0.02734384          0.02949423</span></span>
-<span><span class="co">#&gt; 15:    cl_thickness         3          0.02616236          0.02972975</span></span>
-<span><span class="co">#&gt; 16:    epith_c_size         1          0.03200358          0.03107781</span></span>
-<span><span class="co">#&gt; 17:    epith_c_size         2          0.02734384          0.02689070</span></span>
-<span><span class="co">#&gt; 18:    epith_c_size         3          0.02616236          0.02548832</span></span>
-<span><span class="co">#&gt; 19:   marg_adhesion         1          0.03200358          0.03066976</span></span>
-<span><span class="co">#&gt; 20:   marg_adhesion         2          0.02734384          0.02829665</span></span>
-<span><span class="co">#&gt; 21:   marg_adhesion         3          0.02616236          0.02587718</span></span>
-<span><span class="co">#&gt; 22:         mitoses         1          0.03200358          0.03081796</span></span>
-<span><span class="co">#&gt; 23:         mitoses         2          0.02734384          0.02799976</span></span>
-<span><span class="co">#&gt; 24:         mitoses         3          0.02616236          0.02529833</span></span>
-<span><span class="co">#&gt; 25: normal_nucleoli         1          0.03200358          0.03163508</span></span>
-<span><span class="co">#&gt; 26: normal_nucleoli         2          0.02734384          0.02734376</span></span>
-<span><span class="co">#&gt; 27: normal_nucleoli         3          0.02616236          0.02612376</span></span>
+<span><span class="co">#&gt;  1:     bare_nuclei         1          0.03014357          0.03379549</span></span>
+<span><span class="co">#&gt;  2:     bare_nuclei         2          0.02458370          0.02650079</span></span>
+<span><span class="co">#&gt;  3:     bare_nuclei         3          0.02599303          0.02787756</span></span>
+<span><span class="co">#&gt;  4:     bl_cromatin         1          0.03014357          0.02771802</span></span>
+<span><span class="co">#&gt;  5:     bl_cromatin         2          0.02458370          0.02518596</span></span>
+<span><span class="co">#&gt;  6:     bl_cromatin         3          0.02599303          0.02618910</span></span>
+<span><span class="co">#&gt;  7:      cell_shape         1          0.03014357          0.03003903</span></span>
+<span><span class="co">#&gt;  8:      cell_shape         2          0.02458370          0.02503626</span></span>
+<span><span class="co">#&gt;  9:      cell_shape         3          0.02599303          0.02555915</span></span>
+<span><span class="co">#&gt; 10:       cell_size         1          0.03014357          0.02948189</span></span>
+<span><span class="co">#&gt; 11:       cell_size         2          0.02458370          0.02431988</span></span>
+<span><span class="co">#&gt; 12:       cell_size         3          0.02599303          0.02399186</span></span>
+<span><span class="co">#&gt; 13:    cl_thickness         1          0.03014357          0.03258453</span></span>
+<span><span class="co">#&gt; 14:    cl_thickness         2          0.02458370          0.02592081</span></span>
+<span><span class="co">#&gt; 15:    cl_thickness         3          0.02599303          0.02766789</span></span>
+<span><span class="co">#&gt; 16:    epith_c_size         1          0.03014357          0.03046220</span></span>
+<span><span class="co">#&gt; 17:    epith_c_size         2          0.02458370          0.02186273</span></span>
+<span><span class="co">#&gt; 18:    epith_c_size         3          0.02599303          0.02656836</span></span>
+<span><span class="co">#&gt; 19:   marg_adhesion         1          0.03014357          0.03014357</span></span>
+<span><span class="co">#&gt; 20:   marg_adhesion         2          0.02458370          0.02513951</span></span>
+<span><span class="co">#&gt; 21:   marg_adhesion         3          0.02599303          0.02437002</span></span>
+<span><span class="co">#&gt; 22:         mitoses         1          0.03014357          0.03025939</span></span>
+<span><span class="co">#&gt; 23:         mitoses         2          0.02458370          0.02436608</span></span>
+<span><span class="co">#&gt; 24:         mitoses         3          0.02599303          0.02611939</span></span>
+<span><span class="co">#&gt; 25: normal_nucleoli         1          0.03014357          0.02924740</span></span>
+<span><span class="co">#&gt; 26: normal_nucleoli         2          0.02458370          0.02512095</span></span>
+<span><span class="co">#&gt; 27: normal_nucleoli         3          0.02599303          0.02602437</span></span>
 <span><span class="co">#&gt;             feature iter_rsmp classif.bbrier_orig classif.bbrier_loco</span></span>
 <span><span class="co">#&gt;     importance</span></span>
 <span><span class="co">#&gt;          &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:  0.8195370</span></span>
-<span><span class="co">#&gt;  2:  1.1511443</span></span>
-<span><span class="co">#&gt;  3:  1.1123337</span></span>
-<span><span class="co">#&gt;  4:  0.9007713</span></span>
-<span><span class="co">#&gt;  5:  1.0243515</span></span>
-<span><span class="co">#&gt;  6:  0.9679691</span></span>
-<span><span class="co">#&gt;  7:  0.9634876</span></span>
-<span><span class="co">#&gt;  8:  0.9951241</span></span>
-<span><span class="co">#&gt;  9:  0.8670640</span></span>
-<span><span class="co">#&gt; 10:  0.8868769</span></span>
-<span><span class="co">#&gt; 11:  1.0047375</span></span>
-<span><span class="co">#&gt; 12:  0.9952665</span></span>
-<span><span class="co">#&gt; 13:  1.0084389</span></span>
-<span><span class="co">#&gt; 14:  1.0786423</span></span>
-<span><span class="co">#&gt; 15:  1.1363557</span></span>
-<span><span class="co">#&gt; 16:  0.9710727</span></span>
-<span><span class="co">#&gt; 17:  0.9834279</span></span>
-<span><span class="co">#&gt; 18:  0.9742360</span></span>
-<span><span class="co">#&gt; 19:  0.9583226</span></span>
-<span><span class="co">#&gt; 20:  1.0348455</span></span>
-<span><span class="co">#&gt; 21:  0.9890996</span></span>
-<span><span class="co">#&gt; 22:  0.9629534</span></span>
-<span><span class="co">#&gt; 23:  1.0239876</span></span>
-<span><span class="co">#&gt; 24:  0.9669740</span></span>
-<span><span class="co">#&gt; 25:  0.9884854</span></span>
-<span><span class="co">#&gt; 26:  0.9999969</span></span>
-<span><span class="co">#&gt; 27:  0.9985245</span></span>
+<span><span class="co">#&gt;  1:  1.1211509</span></span>
+<span><span class="co">#&gt;  2:  1.0779822</span></span>
+<span><span class="co">#&gt;  3:  1.0725013</span></span>
+<span><span class="co">#&gt;  4:  0.9195336</span></span>
+<span><span class="co">#&gt;  5:  1.0244983</span></span>
+<span><span class="co">#&gt;  6:  1.0075430</span></span>
+<span><span class="co">#&gt;  7:  0.9965321</span></span>
+<span><span class="co">#&gt;  8:  1.0184089</span></span>
+<span><span class="co">#&gt;  9:  0.9833078</span></span>
+<span><span class="co">#&gt; 10:  0.9780490</span></span>
+<span><span class="co">#&gt; 11:  0.9892686</span></span>
+<span><span class="co">#&gt; 12:  0.9230114</span></span>
+<span><span class="co">#&gt; 13:  1.0809778</span></span>
+<span><span class="co">#&gt; 14:  1.0543901</span></span>
+<span><span class="co">#&gt; 15:  1.0644352</span></span>
+<span><span class="co">#&gt; 16:  1.0105704</span></span>
+<span><span class="co">#&gt; 17:  0.8893181</span></span>
+<span><span class="co">#&gt; 18:  1.0221339</span></span>
+<span><span class="co">#&gt; 19:  0.9999999</span></span>
+<span><span class="co">#&gt; 20:  1.0226088</span></span>
+<span><span class="co">#&gt; 21:  0.9375599</span></span>
+<span><span class="co">#&gt; 22:  1.0038423</span></span>
+<span><span class="co">#&gt; 23:  0.9911478</span></span>
+<span><span class="co">#&gt; 24:  1.0048612</span></span>
+<span><span class="co">#&gt; 25:  0.9702701</span></span>
+<span><span class="co">#&gt; 26:  1.0218541</span></span>
+<span><span class="co">#&gt; 27:  1.0012059</span></span>
 <span><span class="co">#&gt;     importance</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -439,48 +437,48 @@ it suffices to adjust the <code>.$col_roles$feature</code> property.</p>
 <tbody>
 <tr class="odd">
 <td align="left">bare_nuclei</td>
-<td align="right">1.7803</td>
-<td align="right">1.0277</td>
+<td align="right">2.5778</td>
+<td align="right">1.0905</td>
 </tr>
 <tr class="even">
 <td align="left">bl_cromatin</td>
-<td align="right">0.9582</td>
-<td align="right">0.9644</td>
+<td align="right">1.1143</td>
+<td align="right">0.9839</td>
 </tr>
 <tr class="odd">
 <td align="left">cell_shape</td>
-<td align="right">1.1160</td>
-<td align="right">0.9419</td>
+<td align="right">1.2212</td>
+<td align="right">0.9994</td>
 </tr>
 <tr class="even">
 <td align="left">cell_size</td>
-<td align="right">1.2696</td>
-<td align="right">0.9623</td>
+<td align="right">1.3418</td>
+<td align="right">0.9634</td>
 </tr>
 <tr class="odd">
 <td align="left">cl_thickness</td>
-<td align="right">1.0664</td>
-<td align="right">1.0745</td>
+<td align="right">1.2593</td>
+<td align="right">1.0666</td>
 </tr>
 <tr class="even">
 <td align="left">epith_c_size</td>
-<td align="right">0.9656</td>
-<td align="right">0.9762</td>
+<td align="right">1.0243</td>
+<td align="right">0.9740</td>
 </tr>
 <tr class="odd">
 <td align="left">marg_adhesion</td>
-<td align="right">1.0024</td>
-<td align="right">0.9941</td>
+<td align="right">1.0190</td>
+<td align="right">0.9867</td>
 </tr>
 <tr class="even">
 <td align="left">mitoses</td>
-<td align="right">0.9852</td>
-<td align="right">0.9846</td>
+<td align="right">1.0000</td>
+<td align="right">1.0000</td>
 </tr>
 <tr class="odd">
 <td align="left">normal_nucleoli</td>
-<td align="right">0.9968</td>
-<td align="right">0.9957</td>
+<td align="right">1.0571</td>
+<td align="right">0.9978</td>
 </tr>
 </tbody>
 </table>
