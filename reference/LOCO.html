@@ -81,7 +81,7 @@ LOCO Class"></head><body>
 <h3 id="method-compute-">Method <code>compute()</code><a class="anchor" aria-label="anchor" href="#method-compute-"></a></h3>
 <p>A short description...</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LOCO</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"difference"</span>, <span class="st">"ratio"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LOCO</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"difference"</span>, <span class="st">"ratio"</span><span class="op">)</span>, store_backends <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
@@ -89,6 +89,12 @@ LOCO Class"></head><body>
 <p></p><div class="arguments"><dl><dt><code>relation</code></dt>
 <dd><p>(character(1)) Calculate <code>"difference"</code> (default) or <code>"ratio"</code> of
 original scores and scores after permutation</p></dd>
+
+
+<dt><code>store_backends</code></dt>
+<dd><p>(logical(1): <code>TRUE</code>) Passed to <a href="https://mlr3.mlr-org.com/reference/resample.html" class="external-link">mlr3::resample</a> to store
+backends in resample result.
+Required for some measures, but may increase memory footprint.</p></dd>
 
 
 </dl><p></p></div>
