@@ -22,23 +22,13 @@ SAGE = R6Class("SAGE",
     #' Creates a new instance of this [R6][R6::R6Class] class.
     #' @param task,learner,measure,resampling,features Passed to `FeatureImportanceLearner` for construction.
     initialize = function(task, learner, measure, resampling = NULL, features = NULL) {
+
       # params
       ps = ps(
         relation = paradox::p_fct(c("difference", "ratio"), default = "difference")
       )
-
       ps$values = list(relation = "difference")
-
-      # resampling: default to holdout with default ratio if NULL
-      resampling = resampling %||% mlr3::rsmp("holdout")$instantiate(task)
-
-      if (!resampling$is_instantiated) {
-        resampling$instantiate(task)
-      }
-
-      # measure
-      mlr3::assert_measure(measure = measure, task = task, learner = learner)
-
+      
       super$initialize(
         task = task,
         learner = learner,
