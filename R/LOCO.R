@@ -26,20 +26,7 @@ LOCO = R6Class("LOCO",
       ps = ps(
         relation = paradox::p_fct(c("difference", "ratio"), default = "difference")
       )
-
       ps$values = list(relation = "difference")
-
-      # resampling
-      if (is.null(resampling)) {
-        resampling = mlr3::rsmp("holdout", ratio = 2 / 3)$instantiate(task)
-      }
-
-      if (!resampling$is_instantiated) {
-        resampling$instantiate(task)
-      }
-
-      # measure
-      mlr3::assert_measure(measure = measure, task = task, learner = learner)
 
       super$initialize(
         task = task,

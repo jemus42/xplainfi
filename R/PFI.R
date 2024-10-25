@@ -34,17 +34,6 @@ PFI = R6Class("PFI",
       ps$values$relation = "difference"
       ps$values$iters_perm = iters_perm
 
-      # resampling: default to holdout with default ratio if NULL
-      resampling = resampling %||% mlr3::rsmp("holdout")$instantiate(task)
-
-      # TODO: Check if instantiated resampling works fine
-      if (!resampling$is_instantiated) {
-        resampling$instantiate(task)
-      }
-
-      # measure
-      mlr3::assert_measure(measure = measure, task = task, learner = learner)
-
       super$initialize(
         task = task,
         learner = learner,

@@ -35,10 +35,16 @@ FeatureImportanceLearner = R6Class("FeatureImportanceLearner",
       self$task = mlr3::assert_task(task)
       self$learner = mlr3::assert_learner(learner, task = task, task_type = task$task_type)
       self$measure = mlr3::assert_measure(measure, task = task, learner = learner)
-      self$resampling = resampling %??% mlr3::assert_resampling(resampling)
       self$param_set = paradox::assert_param_set(param_set)
       self$label = checkmate::assert_string(label, min.chars = 1)
       self$features = features %??% self$task$feature_names
+
+      # resampling: default to holdout with default ratio if NULL
+      resampling = resampling %||% mlr3::rsmp("holdout")$instantiate(task)
+      if (!resampling$is_instantiated) {
+        resampling$instantiate(task)
+      }
+      self$resampling = mlr3::assert_resampling(resampling)
 
     },
 
