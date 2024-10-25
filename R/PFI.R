@@ -93,7 +93,7 @@ PFI = R6Class("PFI",
 
       # TODO: Make rr reusable if measure changes
       # to re-score for different measure but not re-compute everything
-      scores_permuted = lapply(seq_len(self$resampling$iters), \(iter) {
+      scores = lapply(seq_len(self$resampling$iters), \(iter) {
         private$.compute_permuted_score(
           learner = rr$learners[[iter]],
           test_dt = self$task$data(rows = rr$resampling$test_set(iter)),
@@ -102,32 +102,32 @@ PFI = R6Class("PFI",
       })
 
       # Collect permuted scores, add original scores
-      scores_permuted = data.table::rbindlist(scores_permuted, idcol = "iteration")
-      scores_permuted = scores_permuted[scores_orig, on = "iteration"]
-      data.table::setcolorder(scores_permuted, c("feature", "iteration", "iter_perm", "scores_pre", "scores_post"))
+      scores = data.table::rbindlist(scores, idcol = "iteration")
+      scores = scores[scores_orig, on = "iteration"]
+      data.table::setcolorder(scores, c("feature", "iteration", "iter_perm", "scores_pre", "scores_post"))
 
       # Calculate PFI depending on relation(-, /), and minimize property
-      scores_permuted[, importance := compute_score(
+      scores[, importance := compute_score(
         scores_pre, scores_post,
         relation = self$param_set$values$relation,
         minimize = self$measure$minimize
       )]
 
       data.table::setnames(
-        scores_permuted,
+        scores,
         old = c("iteration", "scores_pre", "scores_post"),
         new = c("iter_rsmp", paste0(self$measure$id, c("_orig", "_perm")))
       )
 
-      data.table::setkeyv(scores_permuted, c("feature", "iter_rsmp", "iter_perm"))
+      data.table::setkeyv(scores, c("feature", "iter_rsmp"))
 
       # Aggregate by feature over resamplings and permutations
-      scores_permuted_agg = scores_permuted[, list(importance = mean(importance)), by = feature]
+      scores_agg = scores[, list(importance = mean(importance)), by = feature]
 
       # Store results
       self$resample_result = rr
-      self$scores = scores_permuted
-      self$importance = scores_permuted_agg
+      self$scores = scores
+      self$importance = scores_agg
 
       self$importance
     }

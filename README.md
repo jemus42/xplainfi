@@ -89,19 +89,19 @@ retrieved as a `data.table`:
 ``` r
 pfi$scores
 #> Key: <feature, iter_rsmp, iter_perm>
-#>      iter_rsmp   feature iter_perm classif.ce_perm classif.ce_orig   importance
-#>          <int>    <char>     <int>           <num>           <num>        <num>
-#>   1:         1       age         1       0.2305389       0.2095808  0.020958084
-#>   2:         1       age         2       0.2335329       0.2095808  0.023952096
-#>   3:         1       age         3       0.2275449       0.2095808  0.017964072
-#>   4:         1       age         4       0.2215569       0.2095808  0.011976048
-#>   5:         1       age         5       0.2155689       0.2095808  0.005988024
+#>        feature iter_rsmp iter_perm classif.ce_orig classif.ce_perm   importance
+#>         <char>     <int>     <int>           <num>           <num>        <num>
+#>   1:       age         1         1       0.2095808       0.2305389  0.020958084
+#>   2:       age         1         2       0.2095808       0.2335329  0.023952096
+#>   3:       age         1         3       0.2095808       0.2275449  0.017964072
+#>   4:       age         1         4       0.2095808       0.2215569  0.011976048
+#>   5:       age         1         5       0.2095808       0.2155689  0.005988024
 #>  ---                                                                           
-#> 596:         6 telephone         1       0.2432432       0.2612613 -0.018018018
-#> 597:         6 telephone         2       0.2552553       0.2612613 -0.006006006
-#> 598:         6 telephone         3       0.2612613       0.2612613  0.000000000
-#> 599:         6 telephone         4       0.2522523       0.2612613 -0.009009009
-#> 600:         6 telephone         5       0.2402402       0.2612613 -0.021021021
+#> 596: telephone         6         1       0.2612613       0.2432432 -0.018018018
+#> 597: telephone         6         2       0.2612613       0.2552553 -0.006006006
+#> 598: telephone         6         3       0.2612613       0.2612613  0.000000000
+#> 599: telephone         6         4       0.2612613       0.2522523 -0.009009009
+#> 600: telephone         6         5       0.2612613       0.2402402 -0.021021021
 ```
 
 Where `iter_rsmp` corresponds to the resampling iteration, i.e., 3 \* 2
@@ -148,23 +148,23 @@ pfi_single$compute()
 #>                     feature   importance
 pfi_single$scores
 #> Key: <feature, iter_rsmp, iter_perm>
-#>     iter_rsmp                 feature iter_perm classif.ce_perm classif.ce_orig
-#>         <int>                  <char>     <int>           <num>           <num>
-#>  1:         1                     age         1       0.2762763       0.2732733
-#>  2:         1                  amount         1       0.2852853       0.2732733
-#>  3:         1          credit_history         1       0.2972973       0.2732733
-#>  4:         1                duration         1       0.2852853       0.2732733
-#>  5:         1     employment_duration         1       0.2792793       0.2732733
-#>  6:         1          foreign_worker         1       0.2732733       0.2732733
-#>  7:         1                 housing         1       0.2792793       0.2732733
-#>  8:         1        installment_rate         1       0.2972973       0.2732733
-#>  9:         1                     job         1       0.2702703       0.2732733
-#> 10:         1          number_credits         1       0.2702703       0.2732733
-#> 11:         1           other_debtors         1       0.2852853       0.2732733
-#> 12:         1 other_installment_plans         1       0.2792793       0.2732733
-#> 13:         1           people_liable         1       0.2822823       0.2732733
-#> 14:         1     personal_status_sex         1       0.2762763       0.2732733
-#> 15:         1       present_residence         1       0.2792793       0.2732733
+#>                     feature iter_rsmp iter_perm classif.ce_orig classif.ce_perm
+#>                      <char>     <int>     <int>           <num>           <num>
+#>  1:                     age         1         1       0.2732733       0.2762763
+#>  2:                  amount         1         1       0.2732733       0.2852853
+#>  3:          credit_history         1         1       0.2732733       0.2972973
+#>  4:                duration         1         1       0.2732733       0.2852853
+#>  5:     employment_duration         1         1       0.2732733       0.2792793
+#>  6:          foreign_worker         1         1       0.2732733       0.2732733
+#>  7:                 housing         1         1       0.2732733       0.2792793
+#>  8:        installment_rate         1         1       0.2732733       0.2972973
+#>  9:                     job         1         1       0.2732733       0.2702703
+#> 10:          number_credits         1         1       0.2732733       0.2702703
+#> 11:           other_debtors         1         1       0.2732733       0.2852853
+#> 12: other_installment_plans         1         1       0.2732733       0.2792793
+#> 13:           people_liable         1         1       0.2732733       0.2822823
+#> 14:     personal_status_sex         1         1       0.2732733       0.2762763
+#> 15:       present_residence         1         1       0.2732733       0.2792793
 #>       importance
 #>            <num>
 #>  1:  0.003003003

@@ -26,15 +26,15 @@ library(mlr3learners)
 
 Defining a simple example case:
 
-- German credit classification task
+- Breast cancer task
 - Random forests with 100 trees
-- Holdout split (TBI)
-- Measure: Classification error
+- Holdout split (default)
+- Measure: Brier score
 
 ```{r setup-problem}
-task = tsk("german_credit")
-learner = lrn("classif.ranger", num.trees = 500)
-measure = msr("classif.ce")
+task = tsk("breast_cancer")
+learner = lrn("classif.ranger", predict_type = "prob")
+measure = msr("classif.bbrier")
 ```
 
 ## PFI
@@ -63,7 +63,7 @@ pfi$compute()
 
 Q: Should `$compute()` be run on construction? Between the call to `$new()` and `$compute()` there's nothing that needs to happen technically, as long as the `relation` param could be set directly.
 
-Does not recompute if not needed:
+Does not recompute if not needed, as `"difference"` is the default:
 
 ```{r}
 pfi$compute(relation = "difference")
@@ -83,19 +83,18 @@ Maybe this default should be the param stored in the object itself rather than f
 pfi$compute()
 ```
 
-Retrieve scores and convert to DT:
+Retrieve aggregated scores manually:
 
 ```{r}
 pfi$importance
-as.data.table(pfi)
 ```
 
 ### With resampling
 
 ```{r}
-learner = lrn("classif.ranger", num.trees = 100)
+learner = lrn("classif.ranger", predict_type = "prob")
 resampling = rsmp("cv", folds = 3)
-measure = msr("classif.ce")
+measure = msr("classif.bbrier")
 
 pfi = PFI$new(
   task = task,
@@ -119,8 +118,6 @@ Different measure:
 Q: Maybe it would be worth allowing to change measure post-hoc?
 
 ```{r}
-learner$predict_type = "prob"
-
 pfi = PFI$new(
   task = task,
   learner = learner,
@@ -131,11 +128,6 @@ pfi = PFI$new(
 pfi$compute(relation = "ratio")
 pfi$compute(relation = "difference")
 ```
-
-Q: Results are importance scores averaged over resampling iterations to ensure the "named numeric" return format.
-But what about the individual scores across resampling iterations?  
-If we want to attempt uncertainty quantification or at least also report SDs there needs to be a `data.table` return type.
-
 
 ### With multiple permutation iterations
 
@@ -148,7 +140,7 @@ pfi = PFI$new(
   iters_perm = 5 # permute each feature 5 times in each resampling iteration
 )
 
-pfi$compute()
+pfi$compute(relation = "ratio")
 ```
 
 
@@ -158,28 +150,36 @@ Same setup but now using LOCO, which differs in that it internally needs to refi
 Notably, the `Task` object does not need to be modified, as it suffices to adjust the `.$col_roles$feature` property.
 
 ```{r}
-learner = lrn("classif.ranger", num.trees = 100)
+learner = lrn("classif.ranger", predict_type = "prob")
 
 loco = LOCO$new(
   task = task,
   learner = learner,
   resampling = resampling,
-  measure = msr("classif.ce")
+  measure = msr("classif.bbrier")
 )
 
-loco$compute()
+loco$compute(relation = "ratio")
+
+loco$scores
 ```
 
 ## Aggregating results
 
 ```{r}
-scores_rel = data.table(
-  feature = task$feature_names,
-  PFI = pfi$compute(relation = "ratio"),
-  LOCO = loco$compute(relation = "ratio")
+importance_combined = merge(
+  pfi$importance,
+  loco$importance,
+  by = "feature"
 )
 
-scores_rel |>
+data.table::setnames(
+  importance_combined,
+  old = c("importance.x", "importance.y"),
+  new = c("pfi", "loco")
+)
+
+importance_combined |>
   knitr::kable(digits = 4, caption = "Importance scores (ratio)")
 ```
 
@@ -187,7 +187,7 @@ scores_rel |>
 ```{r}
 library(ggplot2)
 
-scores_rel |>
+importance_combined |>
   data.table::melt(id.vars = "feature", value.name = "score", variable.name = "method") |>
   ggplot(aes(x = score, y = feature, color = method, fill = method)) +
   geom_col(position = "dodge", alpha = .5) +
@@ -196,8 +196,9 @@ scores_rel |>
     title = "Feature Importance Scores",
     subtitle = sprintf("For task %s and measure %s, using relativ scores", task$id, measure$id),
     x = "Score", y = "Feature", color = "Method", fill = "Method",
-    caption = sprintf("Using %i-fold $s", resampling$iters, resampling$id)
+    caption = sprintf("Using %i-fold %s", resampling$iters, resampling$id)
   ) +
+  theme_minimal() +
   theme(
     legend.position = "bottom",
     plot.title.position = "plot"

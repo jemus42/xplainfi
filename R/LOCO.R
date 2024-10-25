@@ -81,7 +81,7 @@ LOCO = R6Class("LOCO",
       scores_pre = rr$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
       data.table::setnames(scores_pre, old = self$measure$id, "scores_pre")
 
-      scores_loco = lapply(seq_len(self$resampling$iters), \(iter) {
+      scores = lapply(seq_len(self$resampling$iters), \(iter) {
         private$.compute_loco_score(
           # Clone learner ans task to prevent modifying originals
           learner = rr$learners[[iter]]$clone(),
@@ -92,31 +92,31 @@ LOCO = R6Class("LOCO",
       })
 
       # Collect loco's scores, add original scores
-      scores_loco = data.table::rbindlist(scores_loco, idcol = "iteration")
-      scores_loco = scores_loco[scores_pre, on = "iteration"]
-      data.table::setcolorder(scores_loco, c("feature", "iteration", "scores_pre", "scores_post"))
+      scores = data.table::rbindlist(scores, idcol = "iteration")
+      scores = scores[scores_pre, on = "iteration"]
+      data.table::setcolorder(scores, c("feature", "iteration", "scores_pre", "scores_post"))
 
       # Calculate LOCO depending on relation(-, /), and minimize property
-      scores_loco[, importance := compute_score(
+      scores[, importance := compute_score(
         scores_pre, scores_post,
         relation = self$param_set$values$relation,
         minimize = self$measure$minimize
       )]
 
       data.table::setnames(
-        scores_loco,
+        scores,
         old = c("iteration", "scores_pre", "scores_post"),
         new = c("iter_rsmp", paste0(self$measure$id, c("_orig", "_loco")))
       )
 
-      data.table::setkeyv(scores_loco, c("feature", "iter_rsmp"))
+      data.table::setkeyv(scores, c("feature", "iter_rsmp"))
 
 
       # Aggregate by feature over resamplings
-      scores_loco_agg = scores_loco[, list(importance = mean(importance)), by = "feature"]
+      scores_agg = scores[, list(importance = mean(importance)), by = "feature"]
 
-      self$scores = scores_loco
-      self$importance = scores_loco_agg
+      self$scores = scores
+      self$importance = scores_agg
       self$resample_result = rr
 
 
