@@ -67,7 +67,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 \subsection{Method \code{compute()}}{
 A short description...
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{LOCO$compute(relation = c("difference", "ratio"))}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{LOCO$compute(relation = c("difference", "ratio"), store_backends = TRUE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -75,6 +75,10 @@ A short description...
 \describe{
 \item{\code{relation}}{(character(1)) Calculate \code{"difference"} (default) or \code{"ratio"} of
 original scores and scores after permutation}
+
+\item{\code{store_backends}}{(logical(1): \code{TRUE}) Passed to \link[mlr3:resample]{mlr3::resample} to store
+backends in resample result.
+Required for some measures, but may increase memory footprint.}
 }
 \if{html}{\out{</div>}}
 }

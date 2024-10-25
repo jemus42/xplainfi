@@ -43,7 +43,10 @@ LOCO = R6Class("LOCO",
     #' A short description...
     #' @param relation (character(1)) Calculate `"difference"` (default) or `"ratio"` of
     #'   original scores and scores after permutation
-    compute = function(relation = c("difference", "ratio")) {
+    #' @param store_backends (logical(1): `TRUE`) Passed to [mlr3::resample] to store
+    #' backends in resample result.
+    #' Required for some measures, but may increase memory footprint.
+    compute = function(relation = c("difference", "ratio"), store_backends = TRUE) {
       relation = match.arg(relation)
 
       # Check if already compute with this relation
@@ -62,19 +65,21 @@ LOCO = R6Class("LOCO",
       # Initial resampling
       rr = resample(
         self$task, self$learner, self$resampling,
-        store_models = TRUE, store_backends = FALSE
+        store_models = TRUE, store_backends = store_backends
       )
 
       scores_pre = rr$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
       setnames(scores_pre, old = self$measure$id, "scores_pre")
 
       scores = lapply(seq_len(self$resampling$iters), \(iter) {
-        private$.compute_loco_score(
-          # Clone learner ans task to prevent modifying originals
-          learner = rr$learners[[iter]]$clone(),
-          task = self$task$clone(),
+        compute_loc(
+          learner = rr$learners[[iter]],
+          task = self$task,
           train_ids = rr$resampling$train_set(iter),
-          test_ids = rr$resampling$test_set(iter)
+          test_ids = rr$resampling$test_set(iter),
+          features = self$features,
+          measure = self$measure,
+          direction = "leave-out"
         )
       })
 
@@ -98,7 +103,6 @@ LOCO = R6Class("LOCO",
 
       setkeyv(scores, c("feature", "iter_rsmp"))
 
-
       # Aggregate by feature over resamplings
       scores_agg = scores[, list(importance = mean(importance)), by = "feature"]
 
@@ -106,36 +110,9 @@ LOCO = R6Class("LOCO",
       self$importance = scores_agg
       self$resample_result = rr
 
-
       self$importance
     }
   ),
 
-  private = list(
-    .compute_loco_score = function(learner, task, train_ids, test_ids) {
-
-      # Store complete set of features as $feature_names will shrink otherwise
-      features_total = task$feature_names
-
-      scores_post = vapply(self$features, \(feature) {
-        # Get set of all features without current feature
-        task$col_roles$feature = setdiff(features_total, feature)
-
-        learner$reset()
-        learner$train(task, row_ids = train_ids)
-        # Use predict_newdata to avoid having to reconstruct a new Task, needs orig task
-        pred = learner$predict(task, row_ids = test_ids)
-
-        score = pred$score(self$measure)
-        names(score) = feature
-        score
-
-      }, FUN.VALUE = numeric(1))
-
-      data.table(
-        feature = names(scores_post),
-        scores_post = scores_post
-      )
-    }
-  )
+  private = list()
 )
