@@ -93,6 +93,7 @@ Feature Importance Learner Class"></head><body>
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 
 <ul><li><p><a href="#method-FeatureImportanceLearner-new"><code>FeatureImportanceLearner$new()</code></a></p></li>
+<li><p><a href="#method-FeatureImportanceLearner-combine"><code>FeatureImportanceLearner$combine()</code></a></p></li>
 <li><p><a href="#method-FeatureImportanceLearner-print"><code>FeatureImportanceLearner$print()</code></a></p></li>
 <li><p><a href="#method-FeatureImportanceLearner-clone"><code>FeatureImportanceLearner$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-FeatureImportanceLearner-new"></a><div class="section">
@@ -120,15 +121,43 @@ This is typically intended for use by derived classes.</p><div class="section">
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-FeatureImportanceLearner-print"></a><div class="section">
-<h3 id="method-print-">Method <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code><a class="anchor" aria-label="anchor" href="#method-print-"></a></h3>
-<p>Print importance scores</p><div class="section">
+</div><p></p><hr><a id="method-FeatureImportanceLearner-combine"></a><div class="section">
+<h3 id="method-combine-">Method <code>combine()</code><a class="anchor" aria-label="anchor" href="#method-combine-"></a></h3>
+<p>Combine two <code>FeatureImportanceLearner</code> objects with computed scores.</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceLearner</span><span class="op">$</span><span class="fu">print</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceLearner</span><span class="op">$</span><span class="fu">combine</span><span class="op">(</span><span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>y</code></dt>
+<dd><p>(FeatureImportanceLearner) Object to combine. Must have computed scores.</p></dd>
+
+
+<dt><code>...</code></dt>
+<dd><p>(any) Unused.</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p>A new FeatureImportanceLearner of the same subclass as <code>x</code> and <code>y</code>.
+Currently this method merges the following:</p><ul><li><p><code>$scores</code> is combined, with <code>iter_rsmp</code> increased for <code>y</code>.</p></li>
+<li><p><code>$importance</code> is re-computed from the combined <code>$scores</code>.</p></li>
+<li><p><code>$resample_result</code> is combined to a <a href="https://mlr3.mlr-org.com/reference/BenchmarkResult.html" class="external-link">mlr3::BenchmarkResult</a></p></li>
+<li><p><code>$resampling</code> is combined into a <a href="https://mlr3.mlr-org.com/reference/mlr_resamplings_custom.html" class="external-link">mlr3::ResamplingCustom</a>, again continuing te <code>iteration</code> count from <code>x</code> with that of <code>y</code>.</p></li>
+</ul></div>
+
+</div><p></p><hr><a id="method-FeatureImportanceLearner-print"></a><div class="section">
+<h3 id="method-print-">Method <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code><a class="anchor" aria-label="anchor" href="#method-print-"></a></h3>
+<p>Print importance scores</p><div class="section">
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceLearner</span><span class="op">$</span><span class="fu">print</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>...</code></dt>
 <dd><p>Passed to <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code></p></dd>
 
@@ -139,12 +168,12 @@ This is typically intended for use by derived classes.</p><div class="section">
 </div><p></p><hr><a id="method-FeatureImportanceLearner-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceLearner</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
