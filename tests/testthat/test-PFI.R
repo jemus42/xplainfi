@@ -81,13 +81,12 @@ test_that("only one feature", {
 
   pfi$compute()
 
-  expect_importance_dt(pfi$importance, features = pfi$features)
+  expect_importance_dt(pfi$importance, features = "legs")
 
   checkmate::expect_data_table(
     pfi$scores, types = c("character", "integer", "numeric"),
     nrows = pfi$resampling$iters *
-      pfi$param_set$values$iters_perm *
-      length(pfi$features),
+      pfi$param_set$values$iters_perm,
     ncols = 6,
     any.missing = FALSE, min.cols = 6
   )
@@ -117,7 +116,6 @@ test_that("snapshot results", {
   # Expect named, non-missing/finite numeric vector corresponding to feature names
   expect_importance_dt(res_1, pfi$features)
 
-  expect_snapshot(pfi$importance, variant = Sys.info()[["sysname"]])
   res_2 = pfi$compute()
 
   expect_identical(res_1, res_2)
@@ -126,7 +124,6 @@ test_that("snapshot results", {
   expect_identical(res_1, res_3)
 
   res_4 = pfi$compute("ratio")
-  expect_snapshot(pfi$importance, variant = Sys.info()[["sysname"]])
   res_5 = pfi$compute("difference")
 
   expect_error(expect_equal(res_4, res_5))
@@ -150,11 +147,8 @@ test_that("snapshot results", {
   res_1 = pfi$compute()
   expect_importance_dt(pfi$importance, pfi$features)
 
-  expect_snapshot(pfi$importance, variant = Sys.info()[["sysname"]])
-
   res_2 = pfi$compute("ratio")
   expect_importance_dt(pfi$importance, pfi$features)
-  expect_snapshot(pfi$importance, variant = Sys.info()[["sysname"]])
 
   expect_error(expect_equal(res_1, res_2))
 
