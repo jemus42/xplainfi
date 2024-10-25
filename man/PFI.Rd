@@ -86,7 +86,7 @@ A short description...
 \item{\code{relation}}{(character(1)) Calculate \code{"difference"} (default) or \code{"ratio"} of
 original scores and scores after permutation}
 
-\item{\code{store_backends}}{(logical(1): \code{TRUE}) Passed to \code{\link[mlr3:resample]{mlr3::resample()}} to store
+\item{\code{store_backends}}{(logical(1): \code{TRUE}) Passed to \code{\link[=resample]{resample()}} to store
 backends in resample result.
 Required for some measures, but may increase memory footprint.}
 }

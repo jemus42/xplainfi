@@ -37,7 +37,7 @@ FeatureImportanceLearner = R6Class("FeatureImportanceLearner",
       self$measure = mlr3::assert_measure(measure, task = task, learner = learner)
       self$param_set = paradox::assert_param_set(param_set)
       self$label = checkmate::assert_string(label, min.chars = 1)
-      self$features = features %??% self$task$feature_names
+      self$features = features %||% self$task$feature_names
 
       # resampling: default to holdout with default ratio if NULL
       resampling = resampling %||% mlr3::rsmp("holdout")$instantiate(task)
@@ -75,8 +75,7 @@ FeatureImportanceLearner = R6Class("FeatureImportanceLearner",
       # Increase iteration count for y for consistency
       scores_y[, let(iter_rsmp = iter_rsmp + self$resampling$iters)]
       scores = rbindlist(list(self$scores, scores_y))
-      data.table::setkeyv(scores, c("feature", "iter_rsmp"))
-
+      setkeyv(scores, c("feature", "iter_rsmp"))
 
       # Merge aggregated cores
       importance = scores[, list(importance = mean(importance)), by = feature]

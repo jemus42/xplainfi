@@ -60,13 +60,13 @@ LOCO = R6Class("LOCO",
       lgr::get_logger("mlr3")$set_threshold("warn")
 
       # Initial resampling
-      rr = mlr3::resample(
+      rr = resample(
         self$task, self$learner, self$resampling,
         store_models = TRUE, store_backends = FALSE
       )
 
       scores_pre = rr$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
-      data.table::setnames(scores_pre, old = self$measure$id, "scores_pre")
+      setnames(scores_pre, old = self$measure$id, "scores_pre")
 
       scores = lapply(seq_len(self$resampling$iters), \(iter) {
         private$.compute_loco_score(
@@ -79,9 +79,9 @@ LOCO = R6Class("LOCO",
       })
 
       # Collect loco's scores, add original scores
-      scores = data.table::rbindlist(scores, idcol = "iteration")
+      scores = rbindlist(scores, idcol = "iteration")
       scores = scores[scores_pre, on = "iteration"]
-      data.table::setcolorder(scores, c("feature", "iteration", "scores_pre", "scores_post"))
+      setcolorder(scores, c("feature", "iteration", "scores_pre", "scores_post"))
 
       # Calculate LOCO depending on relation(-, /), and minimize property
       scores[, importance := compute_score(
@@ -90,13 +90,13 @@ LOCO = R6Class("LOCO",
         minimize = self$measure$minimize
       )]
 
-      data.table::setnames(
+      setnames(
         scores,
         old = c("iteration", "scores_pre", "scores_post"),
         new = c("iter_rsmp", paste0(self$measure$id, c("_orig", "_loco")))
       )
 
-      data.table::setkeyv(scores, c("feature", "iter_rsmp"))
+      setkeyv(scores, c("feature", "iter_rsmp"))
 
 
       # Aggregate by feature over resamplings
@@ -132,7 +132,7 @@ LOCO = R6Class("LOCO",
 
       }, FUN.VALUE = numeric(1))
 
-      data.table::data.table(
+      data.table(
         feature = names(scores_post),
         scores_post = scores_post
       )
