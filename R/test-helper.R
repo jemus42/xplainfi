@@ -30,9 +30,15 @@ expect_importance_vec = function(x, features) {
 #' @param features (character()) Feature names used to test names and order of importance scores.
 #' @noRd
 expect_importance_dt = function(x, features) {
-  checkmate::expect_data_table(x, types = c("character", "numeric"),
-                               col.names = c("feature", "importance"),
-                               nrows = length(features), ncols = 2,
-                               any.missing = FALSE)
+  checkmate::expect_data_table(
+    x,
+    types = c("character", "numeric"),
+    nrows = length(features),
+    ncols = 2,
+    any.missing = FALSE
+  )
+
+  checkmate::expect_character(x$feature, any.missing = FALSE)
+  checkmate::expect_numeric(x$importance, any.missing = FALSE)
 
 }
