@@ -57,11 +57,6 @@ LOCO = R6Class("LOCO",
       # Store relation
       self$param_set$values$relation = relation
 
-      # Quiet down
-      current_log_threshold = lgr::get_logger("mlr3")$threshold
-      on.exit(lgr::get_logger("mlr3")$set_threshold(current_log_threshold))
-      lgr::get_logger("mlr3")$set_threshold("warn")
-
       # Initial resampling
       rr = resample(
         self$task, self$learner, self$resampling,
