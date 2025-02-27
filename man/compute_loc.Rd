@@ -7,13 +7,15 @@
 compute_loc(learner, task, train_ids, test_ids, features, measure, direction)
 }
 \arguments{
-\item{learner}{(mlr3::Learner)}
+\item{learner}{(\link[mlr3:Learner]{mlr3::Learner}) An untrained learner to use for prediction.}
 
-\item{task}{(mlr3::Task)}
+\item{task}{(\link[mlr3:Task]{mlr3::Task}) The task of interest.}
 
-\item{train_ids, test_ids}{(integer()) Row IDs for train- and test splits.}
+\item{train_ids, test_ids}{(\code{\link[=integer]{integer()}}) Row IDs for train- and test splits.}
 
-\item{features}{(character()) Feature names of interest.}
+\item{features}{(\code{\link[=character]{character()}}) Feature names of interest.}
+
+\item{measure}{(\link[mlr3:Measure]{mlr3::Measure}) The measure to use for scoring. May require observation-wise loss.}
 
 \item{direction}{(character(1)) Either \code{"leave-in"} or \code{"leave-out"}.}
 }
