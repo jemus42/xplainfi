@@ -18,7 +18,7 @@ compute_loc(learner, task, train_ids, test_ids, features, measure, direction)
 \item{direction}{(character(1)) Either \code{"leave-in"} or \code{"leave-out"}.}
 }
 \value{
-A \link{data.table} with columns \code{feature} and \verb{<measure$id>_post}.
+A \link[data.table:data.table]{data.table::data.table} with columns \code{feature} and \verb{<measure$id>_post}.
 }
 \description{
 Computes either LOCO or LOCI depending on whether feature of interest

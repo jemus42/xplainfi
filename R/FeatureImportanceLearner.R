@@ -1,7 +1,8 @@
 #' Feature Importance Learner Class
 #'
 #' @export
-FeatureImportanceLearner = R6Class("FeatureImportanceLearner",
+FeatureImportanceLearner = R6Class(
+  "FeatureImportanceLearner",
   public = list(
     #' @field label (character(1)) Method label
     label = NA_character_,
@@ -29,9 +30,15 @@ FeatureImportanceLearner = R6Class("FeatureImportanceLearner",
     #' Creates a new instance of this [R6][R6::R6Class] class.
     #' This is typically intended for use by derived classes.
     #' @param task,learner,measure,resampling,features,param_set,label Used to set fields
-    initialize = function(task, learner, measure, resampling = NULL,
-                          features = NULL, param_set = paradox::ps(), label) {
-
+    initialize = function(
+      task,
+      learner,
+      measure,
+      resampling = NULL,
+      features = NULL,
+      param_set = paradox::ps(),
+      label
+    ) {
       self$task = mlr3::assert_task(task)
       self$learner = mlr3::assert_learner(learner, task = task, task_type = task$task_type)
       self$measure = mlr3::assert_measure(measure, task = task, learner = learner)
@@ -45,7 +52,6 @@ FeatureImportanceLearner = R6Class("FeatureImportanceLearner",
         resampling$instantiate(task)
       }
       self$resampling = mlr3::assert_resampling(resampling)
-
     },
 
     #' @description

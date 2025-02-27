@@ -20,7 +20,6 @@ test_that("can be constructed with simple objects", {
 })
 
 test_that("null result for featureless learner", {
-
   task = mlr3::tsk("zoo")
 
   pfi = PFI$new(
@@ -41,7 +40,6 @@ test_that("null result for featureless learner", {
 })
 
 test_that("multiple perms", {
-
   task = mlr3::tsk("zoo")
 
   pfi = PFI$new(
@@ -57,17 +55,18 @@ test_that("multiple perms", {
   expect_importance_dt(pfi$importance, features = pfi$features)
 
   checkmate::expect_data_table(
-    pfi$scores, types = c("character", "integer", "numeric"),
+    pfi$scores,
+    types = c("character", "integer", "numeric"),
     nrows = pfi$resampling$iters *
       pfi$param_set$values$iters_perm *
       length(pfi$features),
     ncols = 6,
-    any.missing = FALSE, min.cols = 6
+    any.missing = FALSE,
+    min.cols = 6
   )
 })
 
 test_that("only one feature", {
-
   task = mlr3::tsk("zoo")
 
   pfi = PFI$new(
@@ -84,18 +83,18 @@ test_that("only one feature", {
   expect_importance_dt(pfi$importance, features = "legs")
 
   checkmate::expect_data_table(
-    pfi$scores, types = c("character", "integer", "numeric"),
+    pfi$scores,
+    types = c("character", "integer", "numeric"),
     nrows = pfi$resampling$iters *
       pfi$param_set$values$iters_perm,
     ncols = 6,
-    any.missing = FALSE, min.cols = 6
+    any.missing = FALSE,
+    min.cols = 6
   )
 })
 
 
-
 test_that("snapshot results", {
-
   skip_if_not_installed("ranger")
   skip_if_not_installed("mlr3learners")
 
@@ -151,5 +150,4 @@ test_that("snapshot results", {
   expect_importance_dt(pfi$importance, pfi$features)
 
   expect_error(expect_equal(res_1, res_2))
-
 })

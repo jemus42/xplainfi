@@ -15,7 +15,8 @@
 #' )
 #'
 #' loco$compute()
-LOCO = R6Class("LOCO",
+LOCO = R6Class(
+  "LOCO",
   inherit = FeatureImportanceLearner,
   public = list(
     #' @description
@@ -59,8 +60,11 @@ LOCO = R6Class("LOCO",
 
       # Initial resampling
       rr = resample(
-        self$task, self$learner, self$resampling,
-        store_models = TRUE, store_backends = store_backends
+        self$task,
+        self$learner,
+        self$resampling,
+        store_models = TRUE,
+        store_backends = store_backends
       )
 
       scores_pre = rr$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
@@ -84,11 +88,14 @@ LOCO = R6Class("LOCO",
       setcolorder(scores, c("feature", "iteration", "scores_pre", "scores_post"))
 
       # Calculate LOCO depending on relation(-, /), and minimize property
-      scores[, importance := compute_score(
-        scores_pre, scores_post,
-        relation = self$param_set$values$relation,
-        minimize = self$measure$minimize
-      )]
+      scores[,
+        importance := compute_score(
+          scores_pre,
+          scores_post,
+          relation = self$param_set$values$relation,
+          minimize = self$measure$minimize
+        )
+      ]
 
       setnames(
         scores,
