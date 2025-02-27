@@ -8,8 +8,8 @@
 <title>xplainfi • xplainfi</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="xplainfi">
 </head>
 <body>
@@ -74,9 +74,9 @@
 <li>Measure: Brier score</li>
 </ul>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">task</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tsk</a></span><span class="op">(</span><span class="st">"breast_cancer"</span><span class="op">)</span></span>
-<span><span class="va">learner</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, predict_type <span class="op">=</span> <span class="st">"prob"</span><span class="op">)</span></span>
-<span><span class="va">measure</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.bbrier"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">task</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tsk</a></span><span class="op">(</span><span class="st">"breast_cancer"</span><span class="op">)</span></span>
+<span><span class="va">learner</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, predict_type <span class="op">=</span> <span class="st">"prob"</span><span class="op">)</span></span>
+<span><span class="va">measure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.bbrier"</span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="pfi">PFI<a class="anchor" aria-label="anchor" href="#pfi"></a>
 </h2>
@@ -87,7 +87,7 @@
 resampling with default ratio</p>
 <p>Calculating PFI:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pfi</span> <span class="op">=</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">pfi</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task</span>,</span>
 <span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>  measure <span class="op">=</span> <span class="va">measure</span></span>
@@ -194,11 +194,11 @@ object itself rather than feel like a separate function.</p>
 <h3 id="with-resampling">With resampling<a class="anchor" aria-label="anchor" href="#with-resampling"></a>
 </h3>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">learner</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, predict_type <span class="op">=</span> <span class="st">"prob"</span><span class="op">)</span></span>
-<span><span class="va">resampling</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="va">measure</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.bbrier"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">learner</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, predict_type <span class="op">=</span> <span class="st">"prob"</span><span class="op">)</span></span>
+<span><span class="va">resampling</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">measure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.bbrier"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">pfi</span> <span class="op">=</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span><span class="va">pfi</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task</span>,</span>
 <span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
@@ -213,7 +213,7 @@ object itself rather than feel like a separate function.</p>
 <span><span class="va">pfi</span><span class="op">$</span><span class="va">resample_result</span></span>
 <span><span class="co">#&gt; NULL</span></span>
 <span></span>
-<span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;            feature   importance</span></span>
 <span><span class="co">#&gt;             &lt;char&gt;        &lt;num&gt;</span></span>
@@ -254,7 +254,7 @@ object itself rather than feel like a separate function.</p>
 <p>Different measure:</p>
 <p>Q: Maybe it would be worth allowing to change measure post-hoc?</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pfi</span> <span class="op">=</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">pfi</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task</span>,</span>
 <span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
@@ -292,7 +292,7 @@ object itself rather than feel like a separate function.</p>
 <h3 id="with-multiple-permutation-iterations">With multiple permutation iterations<a class="anchor" aria-label="anchor" href="#with-multiple-permutation-iterations"></a>
 </h3>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pfi</span> <span class="op">=</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">pfi</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task</span>,</span>
 <span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
@@ -323,9 +323,9 @@ needs to refit the model.<br>
 Notably, the <code>Task</code> object does not need to be modified, as
 it suffices to adjust the <code>.$col_roles$feature</code> property.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">learner</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, predict_type <span class="op">=</span> <span class="st">"prob"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">learner</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, predict_type <span class="op">=</span> <span class="st">"prob"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">loco</span> <span class="op">=</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span><span class="va">loco</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task</span>,</span>
 <span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
@@ -412,14 +412,17 @@ it suffices to adjust the <code>.$col_roles$feature</code> property.</p>
 <div class="section level2">
 <h2 id="aggregating-results">Aggregating results<a class="anchor" aria-label="anchor" href="#aggregating-results"></a>
 </h2>
+<p>Not sure if there should be a “blessed” way of combining results like
+this, ideally it should not be possible to lose track of which score
+refers to which measure</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">importance_combined</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">importance_combined</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span></span>
 <span>  <span class="va">pfi</span><span class="op">$</span><span class="va">importance</span>,</span>
 <span>  <span class="va">loco</span><span class="op">$</span><span class="va">importance</span>,</span>
 <span>  by <span class="op">=</span> <span class="st">"feature"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/setattr.html" class="external-link">setnames</a></span><span class="op">(</span></span>
+<span><span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/data.table/man/setattr.html" class="external-link">setnames</a></span><span class="op">(</span></span>
 <span>  <span class="va">importance_combined</span>,</span>
 <span>  old <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"importance.x"</span>, <span class="st">"importance.y"</span><span class="op">)</span>,</span>
 <span>  new <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pfi"</span>, <span class="st">"loco"</span><span class="op">)</span></span>
@@ -486,14 +489,25 @@ it suffices to adjust the <code>.$col_roles$feature</code> property.</p>
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">importance_combined</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/melt.data.table.html" class="external-link">melt</a></span><span class="op">(</span>id.vars <span class="op">=</span> <span class="st">"feature"</span>, value.name <span class="op">=</span> <span class="st">"score"</span>, variable.name <span class="op">=</span> <span class="st">"method"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/data.table/man/melt.data.table.html" class="external-link">melt</a></span><span class="op">(</span></span>
+<span>    id.vars <span class="op">=</span> <span class="st">"feature"</span>,</span>
+<span>    value.name <span class="op">=</span> <span class="st">"score"</span>,</span>
+<span>    variable.name <span class="op">=</span> <span class="st">"method"</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">score</span>, y <span class="op">=</span> <span class="va">feature</span>, color <span class="op">=</span> <span class="va">method</span>, fill <span class="op">=</span> <span class="va">method</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span>position <span class="op">=</span> <span class="st">"dodge"</span>, alpha <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_color_brewer</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Dark2"</span>, aesthetics <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"color"</span>, <span class="st">"fill"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
 <span>    title <span class="op">=</span> <span class="st">"Feature Importance Scores"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"For task %s and measure %s, using relativ scores"</span>, <span class="va">task</span><span class="op">$</span><span class="va">id</span>, <span class="va">measure</span><span class="op">$</span><span class="va">id</span><span class="op">)</span>,</span>
-<span>    x <span class="op">=</span> <span class="st">"Score"</span>, y <span class="op">=</span> <span class="st">"Feature"</span>, color <span class="op">=</span> <span class="st">"Method"</span>, fill <span class="op">=</span> <span class="st">"Method"</span>,</span>
+<span>    subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
+<span>      <span class="st">"For task %s and measure %s, using relativ scores"</span>,</span>
+<span>      <span class="va">task</span><span class="op">$</span><span class="va">id</span>,</span>
+<span>      <span class="va">measure</span><span class="op">$</span><span class="va">id</span></span>
+<span>    <span class="op">)</span>,</span>
+<span>    x <span class="op">=</span> <span class="st">"Score"</span>,</span>
+<span>    y <span class="op">=</span> <span class="st">"Feature"</span>,</span>
+<span>    color <span class="op">=</span> <span class="st">"Method"</span>,</span>
+<span>    fill <span class="op">=</span> <span class="st">"Method"</span>,</span>
 <span>    caption <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Using %i-fold %s"</span>, <span class="va">resampling</span><span class="op">$</span><span class="va">iters</span>, <span class="va">resampling</span><span class="op">$</span><span class="va">id</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
