@@ -15,24 +15,28 @@ library(data.table)
 #' @param target `(character(1))` Name of target column.
 #'
 marginal_imputer <- function(learner, x, S, ins, target) {
-
   S_rep <- S[rep(seq_len(nrow(S)), each = nrow(x)), ]
   ins_rep <- ins[rep(seq_len(nrow(ins)), each = nrow(x)), ]
   ins_rep_x <- ins_rep[, (target) := NULL]
   x_rep <- do.call("rbind", replicate(nrow(ins), x, simplify = FALSE))
 
-  for (c in 1:ncol(x_rep)) {
-    set(x_rep, i = which(S_rep[[c]] == TRUE), j = c, ins_rep[[c]][S_rep[[c]] == TRUE])
+  for (x_col_index in 1:ncol(x_rep)) {
+    set(
+      x = x_rep,
+      i = which(S_rep[[x_col_index]] == TRUE),
+      j = x_col_index,
+      value = ins_rep[[x_col_index]][S_rep[[x_col_index]] == TRUE]
+    )
   }
   # if regression task - average predictions
   # if classification task - average probs
-  pred_raw <- if (is.factor(ins[[target]][1])) {
-    learner$predict_newdata(newdata = x_rep)$prob[, "1"]
+   if (is.factor(ins[[target]][1])) {
+     pred_raw = learner$predict_newdata(newdata = x_rep)$prob[, "1"]
   } else {
-    learner$predict_newdata(newdata = x_rep)$response
+    pred_raw = learner$predict_newdata(newdata = x_rep)$response
   }
   pred_dt <- data.table("pred" = pred_raw, "ins_id" = rep(1:nrow(ins), each = nrow(x)))
-  mean_preds <- setDT(pred_dt)[, .(mean_pred = mean(pred)), by = ins_id]
+  mean_preds <- pred_dt[, .(mean_pred = mean(pred)), by = ins_id]
   mean_preds$mean_pred
 
 }
@@ -47,24 +51,22 @@ marginal_imputer <- function(learner, x, S, ins, target) {
 #' @param batch_count `(integer(1): 5)` Batch size for parallel execution (NYI)
 #' @return Numeric vector of SAGE values with named according to the features
 #' @source Based on code from Blesch et al. 2023, https://github.com/bips-hb/CFI_mixedData/blob/main/3.2_sim_FI_comparison/SAGE_R_efficient.R
-#'
+# TODO: Save value function (perf_empty_model - perf_current_coalition)
 sage <- function(learner, data, target = "y", loss = mlr3measures::se, batch_count = 5) {
-
-  # mlr3::assert_predictable(task, learner)
-
+  mlr3::assert_predictable(task, learner)
   data <- checkmate::assert_data_table(data)
   data_x <- data[, names(data) != target, with = FALSE]
   batch_start_index <- round(seq(1, nrow(data), length.out = (batch_count + 1)))
-  #  batch_n <- ceiling(nrow(data_x)/batch_count)
 
+  # Placeholder table to hold results
   sage_values <- data.table(matrix(data = 0, nrow = batch_count, ncol = ncol(data_x)))
   setnames(sage_values, new = colnames(data_x))
 
   # sage_values <- foreach(i = 1:batch_count, .export = c("marginal_imputer"), .combine = rbind) %dopar% { # in case we want to use foreach
-  cli::cli_inform("Iterating over {batch_count} batches")
+  #  cli::cli_inform("Iterating over {batch_count} batches")
   for (i in 2:(batch_count + 1)) {
     # select an instance
-    cli::cli_inform("Getting instance with index {batch_start_index[i - 1]} to {batch_start_index[i]}")
+    # cli::cli_inform("Getting instance with index {batch_start_index[i - 1]} to {batch_start_index[i]}")
     current_batch_dt <- data[batch_start_index[i - 1]:batch_start_index[i], ]
 
     # initialize SAGE values phi
@@ -76,7 +78,11 @@ sage <- function(learner, data, target = "y", loss = mlr3measures::se, batch_cou
     ))
 
     # sample coalition setup D; subset S of D builds the actual coalition
-    perm <- t(replicate(nrow(current_batch_dt), sample.int(ncol(data_x)), simplify = TRUE))
+    # perm: nrow(current_batch_dt) x ncol(data_x) matrix of random integers
+    perm <- t(replicate(
+      n = nrow(current_batch_dt),
+      expr = sample.int(ncol(data_x)),
+      simplify = TRUE))
     # colnames(perm) <- colnames(data_x)
 
     # calculate initial loss - S = empty set
