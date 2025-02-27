@@ -10,6 +10,9 @@
 #' @param direction (character(1)) Either `"leave-in"` or `"leave-out"`.
 #'
 #' @return A [data.table] with columns `feature` and `<measure$id>_post`.
+#' @export
+#' @keywords internal
+#' @note These functions are used for internal computations and are likely not exported in the future.
 #'
 #' @examples
 #' library(mlr3)

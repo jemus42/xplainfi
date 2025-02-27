@@ -12,7 +12,7 @@ PFI Class
 Calculates Permutation Feature Importance (PFI) scores.
 }
 \examples{
-\dontshow{if (requireNamespace("rpart")) withAutoprint(\{ # examplesIf}
+\dontshow{if (requireNamespace("rpart")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 
 library(mlr3)
 

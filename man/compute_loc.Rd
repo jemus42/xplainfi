@@ -18,11 +18,14 @@ compute_loc(learner, task, train_ids, test_ids, features, measure, direction)
 \item{direction}{(character(1)) Either \code{"leave-in"} or \code{"leave-out"}.}
 }
 \value{
-A \link[data.table:data.table]{data.table::data.table} with columns \code{feature} and \verb{<measure$id>_post}.
+A \link{data.table} with columns \code{feature} and \verb{<measure$id>_post}.
 }
 \description{
 Computes either LOCO or LOCI depending on whether feature of interest
 is designated to be left out (LOCO) or left in (LOCI)
+}
+\note{
+These functions are used for internal computations and are likely not exported in the future.
 }
 \examples{
 library(mlr3)
@@ -38,23 +41,24 @@ features = task$feature_names
 
 # LOCO
 compute_loc(
-  learner, 
-  task, 
-  train_ids = split$train, 
-  test_ids = split$test, 
-  features, 
-  measure, 
+  learner,
+  task,
+  train_ids = split$train,
+  test_ids = split$test,
+  features,
+  measure,
   direction = "leave-out"
 )
 # LOCI
 compute_loc(
-  learner, 
-  task, 
-  train_ids = split$train, 
-  test_ids = split$test, 
-  features, 
-  measure, 
+  learner,
+  task,
+  train_ids = split$train,
+  test_ids = split$test,
+  features,
+  measure,
   direction = "leave-in"
 )
 
 }
+\keyword{internal}
