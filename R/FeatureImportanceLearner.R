@@ -1,7 +1,8 @@
 #' Feature Importance Learner Class
 #'
 #' @export
-FeatureImportanceLearner = R6Class("FeatureImportanceLearner",
+FeatureImportanceLearner = R6Class(
+  "FeatureImportanceLearner",
   public = list(
     #' @field label (character(1)) Method label
     label = NA_character_,
@@ -29,17 +30,28 @@ FeatureImportanceLearner = R6Class("FeatureImportanceLearner",
     #' Creates a new instance of this [R6][R6::R6Class] class.
     #' This is typically intended for use by derived classes.
     #' @param task,learner,measure,resampling,features,param_set,label Used to set fields
-    initialize = function(task, learner, measure, resampling = NULL,
-                          features = NULL, param_set = paradox::ps(), label) {
-
+    initialize = function(
+      task,
+      learner,
+      measure,
+      resampling = NULL,
+      features = NULL,
+      param_set = paradox::ps(),
+      label
+    ) {
       self$task = mlr3::assert_task(task)
       self$learner = mlr3::assert_learner(learner, task = task, task_type = task$task_type)
       self$measure = mlr3::assert_measure(measure, task = task, learner = learner)
-      self$resampling = resampling %??% mlr3::assert_resampling(resampling)
       self$param_set = paradox::assert_param_set(param_set)
       self$label = checkmate::assert_string(label, min.chars = 1)
-      self$features = features %??% self$task$feature_names
+      self$features = features %||% self$task$feature_names
 
+      # resampling: default to holdout with default ratio if NULL
+      resampling = resampling %||% mlr3::rsmp("holdout")$instantiate(task)
+      if (!resampling$is_instantiated) {
+        resampling$instantiate(task)
+      }
+      self$resampling = mlr3::assert_resampling(resampling)
     },
 
     #' @description
@@ -69,8 +81,7 @@ FeatureImportanceLearner = R6Class("FeatureImportanceLearner",
       # Increase iteration count for y for consistency
       scores_y[, let(iter_rsmp = iter_rsmp + self$resampling$iters)]
       scores = rbindlist(list(self$scores, scores_y))
-      data.table::setkeyv(scores, c("feature", "iter_rsmp"))
-
+      setkeyv(scores, c("feature", "iter_rsmp"))
 
       # Merge aggregated cores
       importance = scores[, list(importance = mean(importance)), by = feature]

@@ -24,9 +24,12 @@
 #' compute_score(pre, post)
 #' compute_score(pre, post, "ratio")
 #' compute_score(pre, post, minimize = FALSE)
-compute_score = function(scores_pre, scores_post,
-                         relation = c("difference", "ratio"),
-                         minimize = TRUE) {
+compute_score = function(
+  scores_pre,
+  scores_post,
+  relation = c("difference", "ratio"),
+  minimize = TRUE
+) {
   checkmate::assert_numeric(scores_pre, any.missing = FALSE)
   checkmate::assert_numeric(scores_post, any.missing = FALSE)
   checkmate::assert_true(length(scores_pre) == length(scores_post))
@@ -35,15 +38,9 @@ compute_score = function(scores_pre, scores_post,
 
   if (minimize) {
     # Lower is better, e.g. ce
-    switch(relation,
-      difference = scores_post - scores_pre,
-      ratio = scores_post / scores_pre
-    )
+    switch(relation, difference = scores_post - scores_pre, ratio = scores_post / scores_pre)
   } else {
     # Higher is better, e.g. accuracy
-    switch(relation,
-      difference = scores_pre - scores_post,
-      ratio = scores_pre / scores_post
-    )
+    switch(relation, difference = scores_pre - scores_post, ratio = scores_pre / scores_post)
   }
 }

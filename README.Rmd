@@ -13,6 +13,9 @@ knitr::opts_chunk$set(
   fig.path = "man/figures/README-",
   out.width = "100%"
 )
+# Quiet down
+lgr::get_logger("mlr3")$set_threshold("warn")
+
 set.seed(123)
 ```
 

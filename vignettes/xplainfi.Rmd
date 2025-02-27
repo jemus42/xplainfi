@@ -14,6 +14,9 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+set.seed(123)
+# Quiet down
+lgr::get_logger("mlr3")$set_threshold("warn")
 ```
 
 ```{r setup}
@@ -32,9 +35,9 @@ Defining a simple example case:
 - Measure: Brier score
 
 ```{r setup-problem}
-task = tsk("breast_cancer")
-learner = lrn("classif.ranger", predict_type = "prob")
-measure = msr("classif.bbrier")
+task <- tsk("breast_cancer")
+learner <- lrn("classif.ranger", predict_type = "prob")
+measure <- msr("classif.bbrier")
 ```
 
 ## PFI
@@ -46,7 +49,7 @@ Default behavior will internally construct standard holdout resampling with defa
 Calculating PFI: 
 
 ```{r}
-pfi = PFI$new(
+pfi <- PFI$new(
   task = task,
   learner = learner,
   measure = measure
@@ -54,8 +57,6 @@ pfi = PFI$new(
 
 # Stores parameter set to calculate PFI in different ways
 pfi$param_set
-
-set.seed(123)
 
 # Default behavior should be sane
 pfi$compute()
@@ -92,11 +93,11 @@ pfi$importance
 ### With resampling
 
 ```{r}
-learner = lrn("classif.ranger", predict_type = "prob")
-resampling = rsmp("cv", folds = 3)
-measure = msr("classif.bbrier")
+learner <- lrn("classif.ranger", predict_type = "prob")
+resampling <- rsmp("cv", folds = 3)
+measure <- msr("classif.bbrier")
 
-pfi = PFI$new(
+pfi <- PFI$new(
   task = task,
   learner = learner,
   resampling = resampling,
@@ -106,7 +107,7 @@ pfi = PFI$new(
 pfi$resampling
 pfi$resample_result
 
-pfi$compute(relation = "difference")
+pfi$compute()
 
 pfi$resample_result
 
@@ -118,7 +119,7 @@ Different measure:
 Q: Maybe it would be worth allowing to change measure post-hoc?
 
 ```{r}
-pfi = PFI$new(
+pfi <- PFI$new(
   task = task,
   learner = learner,
   resampling = resampling,
@@ -132,7 +133,7 @@ pfi$compute(relation = "difference")
 ### With multiple permutation iterations
 
 ```{r}
-pfi = PFI$new(
+pfi <- PFI$new(
   task = task,
   learner = learner,
   resampling = resampling,
@@ -150,9 +151,9 @@ Same setup but now using LOCO, which differs in that it internally needs to refi
 Notably, the `Task` object does not need to be modified, as it suffices to adjust the `.$col_roles$feature` property.
 
 ```{r}
-learner = lrn("classif.ranger", predict_type = "prob")
+learner <- lrn("classif.ranger", predict_type = "prob")
 
-loco = LOCO$new(
+loco <- LOCO$new(
   task = task,
   learner = learner,
   resampling = resampling,
@@ -166,8 +167,10 @@ loco$scores
 
 ## Aggregating results
 
+Not sure if there should be a "blessed" way of combining results like this, ideally it should not be possible to lose track of which score refers to which measure
+
 ```{r}
-importance_combined = merge(
+importance_combined <- merge(
   pfi$importance,
   loco$importance,
   by = "feature"
@@ -188,14 +191,25 @@ importance_combined |>
 library(ggplot2)
 
 importance_combined |>
-  data.table::melt(id.vars = "feature", value.name = "score", variable.name = "method") |>
+  data.table::melt(
+    id.vars = "feature",
+    value.name = "score",
+    variable.name = "method"
+  ) |>
   ggplot(aes(x = score, y = feature, color = method, fill = method)) +
   geom_col(position = "dodge", alpha = .5) +
   scale_color_brewer(palette = "Dark2", aesthetics = c("color", "fill")) +
   labs(
     title = "Feature Importance Scores",
-    subtitle = sprintf("For task %s and measure %s, using relativ scores", task$id, measure$id),
-    x = "Score", y = "Feature", color = "Method", fill = "Method",
+    subtitle = sprintf(
+      "For task %s and measure %s, using relativ scores",
+      task$id,
+      measure$id
+    ),
+    x = "Score",
+    y = "Feature",
+    color = "Method",
+    fill = "Method",
     caption = sprintf("Using %i-fold %s", resampling$iters, resampling$id)
   ) +
   theme_minimal() +
@@ -204,4 +218,3 @@ importance_combined |>
     plot.title.position = "plot"
   )
 ```
-
