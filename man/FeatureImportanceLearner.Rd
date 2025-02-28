@@ -11,25 +11,25 @@ Feature Importance Learner Class
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{label}}{(character(1)) Method label}
+\item{\code{label}}{(\code{\link{character(1)}}) Method label}
 
-\item{\code{task}}{(mlr3::Task)}
+\item{\code{task}}{(\code{\link[mlr3:Task]{mlr3::Task}})}
 
-\item{\code{learner}}{(mlr3::Learner)}
+\item{\code{learner}}{(\code{\link[mlr3:Learner]{mlr3::Learner}})}
 
-\item{\code{measure}}{(mlr3::Measure)}
+\item{\code{measure}}{(\code{\link[mlr3:Measure]{mlr3::Measure}})}
 
-\item{\code{resampling}}{(mlr3::Resampling)}
+\item{\code{resampling}}{(\code{\link[mlr3:Resampling]{mlr3::Resampling}})}
 
-\item{\code{resample_result}}{(mlr3::ResampleResult)}
+\item{\code{resample_result}}{(\code{\link[mlr3:ResampleResult]{mlr3::ResampleResult}})}
 
-\item{\code{features}}{(list())}
+\item{\code{features}}{(\code{\link[=list]{list()}})}
 
-\item{\code{param_set}}{(paradox::ps())}
+\item{\code{param_set}}{(\code{\link[paradox:ps]{paradox::ps()}})}
 
-\item{\code{importance}}{(data.table::data.table()) Aggregated importance scores}
+\item{\code{importance}}{(\code{\link[=data.table]{data.table()}}) Aggregated importance scores}
 
-\item{\code{scores}}{(data.table::data.table()) Individual performance scores used to compute \verb{$importance}}
+\item{\code{scores}}{(\code{\link[=data.table]{data.table()}}) Individual performance scores used to compute \verb{$importance}}
 }
 \if{html}{\out{</div>}}
 }
