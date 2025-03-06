@@ -51,19 +51,23 @@ is designated to be left out (LOCO) or left in (LOCI)</p>
 
 
 <dl><dt id="arg-learner">learner<a class="anchor" aria-label="anchor" href="#arg-learner"></a></dt>
-<dd><p>(mlr3::Learner)</p></dd>
+<dd><p>(<a href="https://mlr3.mlr-org.com/reference/Learner.html" class="external-link">mlr3::Learner</a>) An untrained learner to use for prediction.</p></dd>
 
 
 <dt id="arg-task">task<a class="anchor" aria-label="anchor" href="#arg-task"></a></dt>
-<dd><p>(mlr3::Task)</p></dd>
+<dd><p>(<a href="https://mlr3.mlr-org.com/reference/Task.html" class="external-link">mlr3::Task</a>) The task of interest.</p></dd>
 
 
 <dt id="arg-train-ids-test-ids">train_ids, test_ids<a class="anchor" aria-label="anchor" href="#arg-train-ids-test-ids"></a></dt>
-<dd><p>(integer()) Row IDs for train- and test splits.</p></dd>
+<dd><p>(<code><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer()</a></code>) Row IDs for train- and test splits.</p></dd>
 
 
 <dt id="arg-features">features<a class="anchor" aria-label="anchor" href="#arg-features"></a></dt>
-<dd><p>(character()) Feature names of interest.</p></dd>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>) Feature names of interest.</p></dd>
+
+
+<dt id="arg-measure">measure<a class="anchor" aria-label="anchor" href="#arg-measure"></a></dt>
+<dd><p>(<a href="https://mlr3.mlr-org.com/reference/Measure.html" class="external-link">mlr3::Measure</a>) The measure to use for scoring. May require observation-wise loss.</p></dd>
 
 
 <dt id="arg-direction">direction<a class="anchor" aria-label="anchor" href="#arg-direction"></a></dt>
@@ -72,7 +76,7 @@ is designated to be left out (LOCO) or left in (LOCI)</p>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A <a href="https://rdrr.io/pkg/data.table/man/data.table.html" class="external-link">data.table</a> with columns <code>feature</code> and <code>&lt;measure$id&gt;_post</code>.</p>
+    <p>A <a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a> with columns <code>feature</code> and <code>&lt;measure$id&gt;_post</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
