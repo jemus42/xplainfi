@@ -4,26 +4,26 @@
 FeatureImportanceLearner = R6Class(
   "FeatureImportanceLearner",
   public = list(
-    #' @field label (character(1)) Method label
+    #' @field label ([`character(1)`]) Method label
     label = NA_character_,
-    #' @field task (mlr3::Task)
+    #' @field task ([`mlr3::Task`])
     task = NULL,
-    #' @field learner (mlr3::Learner)
+    #' @field learner ([`mlr3::Learner`])
     learner = NULL,
-    #' @field measure (mlr3::Measure)
+    #' @field measure ([`mlr3::Measure`])
     measure = NULL,
-    #' @field resampling (mlr3::Resampling)
+    #' @field resampling ([`mlr3::Resampling`])
     resampling = NULL,
-    #' @field resample_result (mlr3::ResampleResult)
+    #' @field resample_result ([`mlr3::ResampleResult`])
     resample_result = NULL,
     # TODO: list of features, for grouped importance
-    #' @field features (list())
+    #' @field features ([`list()`])
     features = NULL,
-    #' @field param_set (paradox::ps())
+    #' @field param_set ([`paradox::ps()`])
     param_set = ps(),
-    #' @field importance (data.table::data.table()) Aggregated importance scores
+    #' @field importance ([`data.table()`]) Aggregated importance scores
     importance = NULL,
-    #' @field scores (data.table::data.table()) Individual performance scores used to compute `$importance`
+    #' @field scores ([`data.table()`]) Individual performance scores used to compute `$importance`
     scores = NULL,
 
     #' @description
