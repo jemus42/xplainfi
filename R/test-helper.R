@@ -1,5 +1,5 @@
 # TODO: These should most likely be assertions that take a full
-# FeatureImportanceLearner as an input to validate things more thoroughly.
+# FeatureImportanceMeasure as an input to validate things more thoroughly.
 
 #' Expectation for aggregated importance score tables
 #'

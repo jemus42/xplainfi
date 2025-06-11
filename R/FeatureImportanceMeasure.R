@@ -1,8 +1,8 @@
 #' Feature Importance Learner Class
 #'
 #' @export
-FeatureImportanceLearner = R6Class(
-  "FeatureImportanceLearner",
+FeatureImportanceMeasure = R6Class(
+  "FeatureImportanceMeasure",
   public = list(
     #' @field label ([`character(1)`]) Method label
     label = NA_character_,
@@ -55,19 +55,27 @@ FeatureImportanceLearner = R6Class(
     },
 
     #' @description
-    #' Combine two `FeatureImportanceLearner` objects with computed scores.
+    #' Compute feature importance scores
+    #' @param relation (character(1)) How to relate perturbed scores to originals ("difference" or "ratio")
+    #' @param store_backends (logical(1)) Whether to store backends
+    compute = function(relation = c("difference", "ratio"), store_backends = TRUE) {
+      stop("Abstract method. Use a concrete implementation.")
+    },
+
+    #' @description
+    #' Combine two `FeatureImportanceMeasure` objects with computed scores.
     #'
-    #' @param y ([FeatureImportanceLearner]) Object to combine. Must have computed scores.
+    #' @param y ([FeatureImportanceMeasure]) Object to combine. Must have computed scores.
     #' @param ... (any) Unused.
-    #' @return A new [FeatureImportanceLearner] of the same subclass as `x` and `y`.
+    #' @return A new [FeatureImportanceMeasure] of the same subclass as `x` and `y`.
     #' Currently this method merges the following:
     #' - `$scores` is combined, with `iter_rsmp` increased for `y`.
     #' - `$importance` is re-computed from the combined `$scores`.
     #' - `$resample_result` is combined to a [mlr3::BenchmarkResult]
     #' - `$resampling` is combined into a [mlr3::ResamplingCustom], again continuing te `iteration` count from `x` with that of `y`.
     combine = function(y, ...) {
-      checkmate::assert_class(self, classes = "FeatureImportanceLearner")
-      checkmate::assert_class(y, classes = "FeatureImportanceLearner")
+      checkmate::assert_class(self, classes = "FeatureImportanceMeasure")
+      checkmate::assert_class(y, classes = "FeatureImportanceMeasure")
       checkmate::assert_true(class(self)[[1]] == class(y)[[1]], .var.name = "Identical subclasses")
       checkmate::assert_data_table(self$importance, key = "feature")
       checkmate::assert_data_table(y$importance, key = "feature")

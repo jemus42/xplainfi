@@ -17,11 +17,11 @@
 #' loco$compute()
 LOCO = R6Class(
   "LOCO",
-  inherit = FeatureImportanceLearner,
+  inherit = FeatureImportanceMeasure,
   public = list(
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
-    #' @param task,learner,measure,resampling,features Passed to `FeatureImportanceLearner` for construction.
+    #' @param task,learner,measure,resampling,features Passed to `FeatureImportanceMeasure` for construction.
     initialize = function(task, learner, measure, resampling = NULL, features = NULL) {
       # params
       ps = ps(

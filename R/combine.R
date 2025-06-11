@@ -1,6 +1,6 @@
-#' Combine two FeatureImportanceLearner objects
+#' Combine two FeatureImportanceMeasure objects
 #'
-#' @param x,y `([FeatureImportanceLearner])` Objects to combine. Must have computed scores.
+#' @param x,y `([FeatureImportanceMeasure])` Objects to combine. Must have computed scores.
 #' @param ... (any) Ignored.
 #' @return New object of the same subclass as `x` and `y`.
 #' @export
@@ -9,6 +9,6 @@
 #' if (FALSE) {
 #'
 #' }
-c.FeatureImportanceLearner = function(x, y, ...) {
+c.FeatureImportanceMeasure = function(x, y, ...) {
   x$combine(y)
 }
