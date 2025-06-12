@@ -17,6 +17,10 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/xplainfi.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-based Feature Importance Methods</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -45,10 +49,34 @@
 
       <dl><dt>
 
-          <code><a href="FeatureImportanceLearner.html">FeatureImportanceLearner</a></code>
+          <code><a href="ARFSampler.html">ARFSampler</a></code>
+
+        </dt>
+        <dd>ARF-based Conditional Sampler</dd>
+      </dl><dl><dt>
+
+          <code><a href="CFI.html">CFI</a></code>
+
+        </dt>
+        <dd>Conditional Feature Importance</dd>
+      </dl><dl><dt>
+
+          <code><a href="ConditionalSampler.html">ConditionalSampler</a></code>
+
+        </dt>
+        <dd>Conditional Feature Sampler</dd>
+      </dl><dl><dt>
+
+          <code><a href="FeatureImportanceMeasure.html">FeatureImportanceMeasure</a></code>
 
         </dt>
         <dd>Feature Importance Learner Class</dd>
+      </dl><dl><dt>
+
+          <code><a href="FeatureSampler.html">FeatureSampler</a></code>
+
+        </dt>
+        <dd>Feature Sampler Class</dd>
       </dl><dl><dt>
 
           <code><a href="LOCO.html">LOCO</a></code>
@@ -57,16 +85,34 @@
         <dd>LOCO Class</dd>
       </dl><dl><dt>
 
+          <code><a href="MarginalSampler.html">MarginalSampler</a></code>
+
+        </dt>
+        <dd>Marginal Feature Sampler</dd>
+      </dl><dl><dt>
+
           <code><a href="PFI.html">PFI</a></code>
 
         </dt>
-        <dd>PFI Class</dd>
+        <dd>Permutation Feature Importance</dd>
       </dl><dl><dt>
 
-          <code><a href="c.FeatureImportanceLearner.html">c(<i>&lt;FeatureImportanceLearner&gt;</i>)</a></code>
+          <code><a href="PerturbationImportance.html">PerturbationImportance</a></code>
 
         </dt>
-        <dd>Combine two FeatureImportanceLearner objects</dd>
+        <dd>Feature Importance Base Class</dd>
+      </dl><dl><dt>
+
+          <code><a href="RFI.html">RFI</a></code>
+
+        </dt>
+        <dd>Relative Feature Importance</dd>
+      </dl><dl><dt>
+
+          <code><a href="c.FeatureImportanceMeasure.html">c(<i>&lt;FeatureImportanceMeasure&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Combine two FeatureImportanceMeasure objects</dd>
       </dl><dl><dt>
 
           <code><a href="compute_score.html">compute_score()</a></code>
@@ -88,7 +134,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>
