@@ -48,9 +48,9 @@ Sample values for a feature conditionally on all other features
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\link{character(1)}) Feature name to sample}
+\item{\code{feature}}{(\code{character(1)}) Feature name to sample}
 
-\item{\code{data}}{(\link{data.table}) Data containing conditioning features}
+\item{\code{data}}{(\code{\link[data.table:data.table]{data.table}} ) Data containing conditioning features}
 
 \item{\code{conditioning_features}}{(\link{character}) Features to condition on (default: all other features)}
 }

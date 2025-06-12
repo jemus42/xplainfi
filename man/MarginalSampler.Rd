@@ -48,9 +48,9 @@ Sample values for a feature by permutation (marginal distribution)
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\link{character(1)}) Feature name to sample}
+\item{\code{feature}}{(\code{character(1)}) Feature name to sample}
 
-\item{\code{data}}{(\link{data.table}) Data to permute the feature in}
+\item{\code{data}}{(\code{\link[data.table:data.table]{data.table}} ) Data to permute the feature in}
 }
 \if{html}{\out{</div>}}
 }

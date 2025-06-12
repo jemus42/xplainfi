@@ -21,6 +21,7 @@ Imports:
 Suggests: 
     arf,
     ggplot2,
+    glue,
     knitr,
     mlr3data,
     mlr3learners,

@@ -9,7 +9,7 @@ FeatureSampler = R6Class(
   public = list(
     #' @field task ([mlr3::Task]) Original task.
     task = NULL,
-    #' @field label ([character(1)]) Name of the sampler.
+    #' @field label (`character(1)`) Name of the sampler.
     label = NULL,
 
     #' @description
@@ -21,8 +21,8 @@ FeatureSampler = R6Class(
 
     #' @description
     #' Sample values for a feature
-    #' @param feature ([character(1)]) Feature name to sample
-    #' @param data ([data.table]) Data to use for sampling context
+    #' @param feature (`character(1)`) Feature name to sample
+    #' @param data ([`data.table`][data.table::data.table] ) Data to use for sampling context
     #' @return Modified copy of the input data with the feature sampled
     sample = function(feature, data) {
       stop("Abstract method. Use a concrete implementation.")
@@ -50,8 +50,8 @@ MarginalSampler = R6Class(
 
     #' @description
     #' Sample values for a feature by permutation (marginal distribution)
-    #' @param feature ([character(1)]) Feature name to sample
-    #' @param data ([data.table]) Data to permute the feature in
+    #' @param feature (`character(1)`) Feature name to sample
+    #' @param data ([`data.table`][data.table::data.table] ) Data to permute the feature in
     #' @return Modified copy of the input data with the feature permuted
     sample = function(feature, data) {
       # Create a copy to avoid modifying the original data
@@ -94,8 +94,8 @@ ConditionalSampler = R6Class(
 
     #' @description
     #' Sample values for a feature conditionally on all other features
-    #' @param feature ([character(1)]) Feature name to sample
-    #' @param data ([data.table]) Data containing conditioning features
+    #' @param feature (`character(1)`) Feature name to sample
+    #' @param data ([`data.table`][data.table::data.table] ) Data containing conditioning features
     #' @param conditioning_features ([character]) Features to condition on (default: all other features)
     #' @return Modified copy of the input data with the feature sampled conditionally
     sample = function(feature, data, conditioning_features = NULL) {
@@ -112,8 +112,8 @@ ConditionalSampler = R6Class(
 #'
 #' @details
 #' The ARFSampler fits an [Adversarial Random Forest][arf::arf] model on the task data,
-#' then uses it to generate samples from $P(X_j | X_{-j})$ where $X_j$ is the
-#' feature of interest and $X_{-j}$ are the conditioning features.
+#' then uses it to generate samples from \eqn{P(X_j | X_{-j})} where \eqn{X_j} is the
+#' feature of interest and \eqn{X_{-j}} are the conditioning features.
 #'
 #' @references
 #' - Watson, D.S., Blesch, K., Kapar, J. & Wright, M.N.. (2023). Adversarial Random Forests for Density Estimation and Generative Modeling. Proceedings of The 26th International Conference on Artificial Intelligence and Statistics, in Proceedings of Machine Learning Research 206:5357-5375 Available from <https://proceedings.mlr.press/v206/watson23a.html>.
@@ -158,11 +158,11 @@ ARFSampler = R6Class(
 
     #' @description
     #' Sample values for a feature conditionally on other features using ARF
-    #' @param feature ([character(1)]) Feature of interest to sample
-    #' @param data ([data.table]) Data containing conditioning features. Defaults to `$task$data()`, but typically a deidcated test set is provided.
-    #' @param conditioning_features ([character(n) | NULL]) Features to condition on (default: all other features)
-    #' @param n_synth (1) Number of samples to generate (per row of evidence, when `evidence_row_mode = "separate"`). See `arf::forge()`.
-    #' @param evidence_row_mode ("separate") Produce `n_synth` sample per row of evidence. See `arf::forge()`
+    #' @param feature (`character(1)`) Feature of interest to sample
+    #' @param data ([`data.table`][data.table::data.table]) Data containing conditioning features. Defaults to `$task$data()`, but typically a deidcated test set is provided.
+    #' @param conditioning_features (`character(n) | NULL`) Features to condition on (default: all other features)
+    #' @param n_synth (`1`) Number of samples to generate (per row of evidence, when `evidence_row_mode = "separate"`). See `arf::forge()`.
+    #' @param evidence_row_mode (`"separate"`) Produce `n_synth` sample per row of evidence. See `arf::forge()`
     #' @param ... Further arguments passed to `arf::forge()`.
     #' @return Modified copy of the input data with the feature sampled conditionally
     sample = function(

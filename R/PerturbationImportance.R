@@ -199,7 +199,7 @@ CFI = R6Class(
     #' Creates a new instance of the CFI class
     #' @param task,learner,measure,resampling,features Passed to `PerturbationImportance`.
     #' @param iters_perm (integer(1)) Number of sampling iterations.
-    #' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to `ARFSampler`.
+    #' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to instantiationg `ARFSampler` internally with default parameters.
     initialize = function(
       task,
       learner,

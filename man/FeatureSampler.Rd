@@ -12,7 +12,7 @@ for feature importance methods like PFI and CFI
 \describe{
 \item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Original task.}
 
-\item{\code{label}}{(\link{character(1)}) Name of the sampler.}
+\item{\code{label}}{(\code{character(1)}) Name of the sampler.}
 }
 \if{html}{\out{</div>}}
 }
@@ -53,9 +53,9 @@ Sample values for a feature
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\link{character(1)}) Feature name to sample}
+\item{\code{feature}}{(\code{character(1)}) Feature name to sample}
 
-\item{\code{data}}{(\link{data.table}) Data to use for sampling context}
+\item{\code{data}}{(\code{\link[data.table:data.table]{data.table}} ) Data to use for sampling context}
 }
 \if{html}{\out{</div>}}
 }

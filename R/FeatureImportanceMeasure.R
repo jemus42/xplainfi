@@ -4,26 +4,26 @@
 FeatureImportanceMeasure = R6Class(
   "FeatureImportanceMeasure",
   public = list(
-    #' @field label ([`character(1)`]) Method label
+    #' @field label (`character(1)`) Method label.
     label = NA_character_,
-    #' @field task ([`mlr3::Task`])
+    #' @field task ([mlr3::Task])
     task = NULL,
-    #' @field learner ([`mlr3::Learner`])
+    #' @field learner ([mlr3::Learner])
     learner = NULL,
-    #' @field measure ([`mlr3::Measure`])
+    #' @field measure ([mlr3::Measure])
     measure = NULL,
-    #' @field resampling ([`mlr3::Resampling`])
+    #' @field resampling ([mlr3::Resampling])
     resampling = NULL,
-    #' @field resample_result ([`mlr3::ResampleResult`])
+    #' @field resample_result ([mlr3::ResampleResult])
     resample_result = NULL,
     # TODO: list of features, for grouped importance
-    #' @field features ([`list()`])
+    #' @field features (`character`)
     features = NULL,
-    #' @field param_set ([`paradox::ps()`])
+    #' @field param_set ([paradox::ps()])
     param_set = ps(),
-    #' @field importance ([`data.table()`]) Aggregated importance scores
+    #' @field importance ([data.table][data.table::data.table]) Aggregated importance scores
     importance = NULL,
-    #' @field scores ([`data.table()`]) Individual performance scores used to compute `$importance`
+    #' @field scores ([data.table][data.table::data.table]) Individual performance scores used to compute `$importance` per resampling iteration and permutation iteration.
     scores = NULL,
 
     #' @description
@@ -56,8 +56,8 @@ FeatureImportanceMeasure = R6Class(
 
     #' @description
     #' Compute feature importance scores
-    #' @param relation (character(1)) How to relate perturbed scores to originals ("difference" or "ratio")
-    #' @param store_backends (logical(1)) Whether to store backends
+    #' @param relation (`character(1): "difference"`) How to relate perturbed scores to originals ("difference" or "ratio")
+    #' @param store_backends (`logical(1): TRUE`) Whether to store backends.
     compute = function(relation = c("difference", "ratio"), store_backends = TRUE) {
       stop("Abstract method. Use a concrete implementation.")
     },
@@ -99,7 +99,7 @@ FeatureImportanceMeasure = R6Class(
       self$importance = importance
       self$resample_result = c(self$resample_result, y$resample_result)
 
-      # Combine resampling objects?
+      # Combine resampling objects
       rsmp_x = as.data.table(self$resampling)
       rsmp_y = as.data.table(y$resampling)
       rsmp_y[, let(iteration = iteration + self$resampling$iters)]

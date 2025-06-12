@@ -21,7 +21,7 @@ Implementation of CFI using modular sampling approach
 <details open><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMeasure" data-id="combine"><a href='../../xplainfi/html/FeatureImportanceMeasure.html#method-FeatureImportanceMeasure-combine'><code>xplainfi::FeatureImportanceMeasure$combine()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="xplainfi" data-topic="PerturbationImportance" data-id="print"><a href='../../xplainfi/html/PerturbationImportance.html#method-PerturbationImportance-print'><code>xplainfi::PerturbationImportance$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMeasure" data-id="print"><a href='../../xplainfi/html/FeatureImportanceMeasure.html#method-FeatureImportanceMeasure-print'><code>xplainfi::FeatureImportanceMeasure$print()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -49,7 +49,7 @@ Creates a new instance of the CFI class
 
 \item{\code{iters_perm}}{(integer(1)) Number of sampling iterations.}
 
-\item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to \code{ARFSampler}.}
+\item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to instantiationg \code{ARFSampler} internally with default parameters.}
 }
 \if{html}{\out{</div>}}
 }

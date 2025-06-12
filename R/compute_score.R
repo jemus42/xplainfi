@@ -6,9 +6,9 @@
 #' `relation == "difference"`, otherwise `scores_pre - scores_post` is given.
 #' If `minimize == FALSE`, then `scores_pre - scores_post` is computed.
 #'
-#' @param scores_pre (numeric()) Score before change.
-#' @param scores_post (numeric()) Score after change.
-#' @param relation (character(1), `"difference"`) Either `"difference"` or `"ratio"`.
+#' @param scores_pre (`numeric`) Score before change.
+#' @param scores_post (`numeric`) Score after change.
+#' @param relation (`character(1): "difference"`) Either `"difference"` or `"ratio"`.
 #'  If `"difference"`, then `scores_post - scores_pre` is computed, otherwise `scores_post / scores_pre`.
 #' @param minimize (logical(1), `TRUE`) Whether the score needs to be minimized (e.g. RMSE) or
 #' maximized (e.g. AUC).

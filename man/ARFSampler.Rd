@@ -10,8 +10,8 @@ flexible conditional sampling by modeling the joint distribution.
 }
 \details{
 The ARFSampler fits an \link[arf:arf-package]{Adversarial Random Forest} model on the task data,
-then uses it to generate samples from $P(X_j | X_{-j})$ where $X_j$ is the
-feature of interest and $X_{-j}$ are the conditioning features.
+then uses it to generate samples from \eqn{P(X_j | X_{-j})} where \eqn{X_j} is the
+feature of interest and \eqn{X_{-j}} are the conditioning features.
 }
 \references{
 \itemize{
@@ -78,15 +78,15 @@ Sample values for a feature conditionally on other features using ARF
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\link{character(1)}) Feature of interest to sample}
+\item{\code{feature}}{(\code{character(1)}) Feature of interest to sample}
 
-\item{\code{data}}{(\link{data.table}) Data containing conditioning features. Defaults to \verb{$task$data()}, but typically a deidcated test set is provided.}
+\item{\code{data}}{(\code{\link[data.table:data.table]{data.table}}) Data containing conditioning features. Defaults to \verb{$task$data()}, but typically a deidcated test set is provided.}
 
-\item{\code{conditioning_features}}{(\link{character(n) | NULL}) Features to condition on (default: all other features)}
+\item{\code{conditioning_features}}{(\code{character(n) | NULL}) Features to condition on (default: all other features)}
 
-\item{\code{n_synth}}{(1) Number of samples to generate (per row of evidence, when \code{evidence_row_mode = "separate"}). See \code{arf::forge()}.}
+\item{\code{n_synth}}{(\code{1}) Number of samples to generate (per row of evidence, when \code{evidence_row_mode = "separate"}). See \code{arf::forge()}.}
 
-\item{\code{evidence_row_mode}}{("separate") Produce \code{n_synth} sample per row of evidence. See \code{arf::forge()}}
+\item{\code{evidence_row_mode}}{(\code{"separate"}) Produce \code{n_synth} sample per row of evidence. See \code{arf::forge()}}
 
 \item{\code{...}}{Further arguments passed to \code{arf::forge()}.}
 }
