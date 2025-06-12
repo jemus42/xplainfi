@@ -7,7 +7,7 @@
 Implementation of RFI using modular sampling approach
 }
 \section{Super classes}{
-\code{xplainfi::FeatureImportanceMeasure} -> \code{\link[xplainfi:PerturbationImportance]{xplainfi::PerturbationImportance}} -> \code{RFI}
+\code{\link[xplainfi:FeatureImportanceMeasure]{xplainfi::FeatureImportanceMeasure}} -> \code{\link[xplainfi:PerturbationImportance]{xplainfi::PerturbationImportance}} -> \code{RFI}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -46,7 +46,7 @@ Creates a new instance of the RFI class
   features = NULL,
   conditioning_set = NULL,
   iters_perm = 1L,
-  conditional_model_factory = NULL
+  sampler = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -59,7 +59,7 @@ Creates a new instance of the RFI class
 
 \item{\code{iters_perm}}{(integer(1)) Number of permutation iterations}
 
-\item{\code{conditional_model_factory}}{(function) Factory for creating conditional models}
+\item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to ARFSampler}
 }
 \if{html}{\out{</div>}}
 }

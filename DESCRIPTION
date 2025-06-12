@@ -18,8 +18,10 @@ Imports:
     paradox (>= 1.0.0),
     R6
 Suggests: 
+    arf,
     ggplot2,
     knitr,
+    mlr3data,
     mlr3learners,
     ranger,
     rmarkdown,

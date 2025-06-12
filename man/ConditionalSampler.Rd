@@ -4,18 +4,12 @@
 \alias{ConditionalSampler}
 \title{Conditional Feature Sampler}
 \description{
-Implements conditional sampling for CFI, where the feature
-is sampled conditionally on other features
+Base class for conditional sampling methods where features
+are sampled conditionally on other features. This is an abstract class
+that should be extended by concrete implementations.
 }
 \section{Super class}{
 \code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{ConditionalSampler}
-}
-\section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{conditional_model}}{Model used for conditional sampling}
-}
-\if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -31,15 +25,13 @@ is sampled conditionally on other features
 \subsection{Method \code{new()}}{
 Creates a new instance of the ConditionalSampler class
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConditionalSampler$new(task, conditional_model_factory = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ConditionalSampler$new(task)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Task to sample from}
-
-\item{\code{conditional_model_factory}}{(function) Function to create conditional models}
 }
 \if{html}{\out{</div>}}
 }

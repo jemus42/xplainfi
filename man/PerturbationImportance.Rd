@@ -7,7 +7,7 @@
 Abstract base class for feature importance methods
 }
 \section{Super class}{
-\code{xplainfi::FeatureImportanceMeasure} -> \code{PerturbationImportance}
+\code{\link[xplainfi:FeatureImportanceMeasure]{xplainfi::FeatureImportanceMeasure}} -> \code{PerturbationImportance}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}

@@ -4,7 +4,7 @@
 \alias{MarginalSampler}
 \title{Marginal Feature Sampler}
 \description{
-Implements marginal sampling for PFI, where the feature
+Implements marginal sampling for PFI, where the feature of interest
 is sampled independently of other features
 }
 \section{Super class}{

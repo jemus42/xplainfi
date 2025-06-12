@@ -7,7 +7,7 @@
 Implementation of PFI using modular sampling approach
 }
 \section{Super classes}{
-\code{xplainfi::FeatureImportanceMeasure} -> \code{\link[xplainfi:PerturbationImportance]{xplainfi::PerturbationImportance}} -> \code{PFI}
+\code{\link[xplainfi:FeatureImportanceMeasure]{xplainfi::FeatureImportanceMeasure}} -> \code{\link[xplainfi:PerturbationImportance]{xplainfi::PerturbationImportance}} -> \code{PFI}
 }
 \section{Methods}{
 \subsection{Public methods}{

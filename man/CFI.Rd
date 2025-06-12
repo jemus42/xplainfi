@@ -7,7 +7,7 @@
 Implementation of CFI using modular sampling approach
 }
 \section{Super classes}{
-\code{xplainfi::FeatureImportanceMeasure} -> \code{\link[xplainfi:PerturbationImportance]{xplainfi::PerturbationImportance}} -> \code{CFI}
+\code{\link[xplainfi:FeatureImportanceMeasure]{xplainfi::FeatureImportanceMeasure}} -> \code{\link[xplainfi:PerturbationImportance]{xplainfi::PerturbationImportance}} -> \code{CFI}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -38,18 +38,18 @@ Creates a new instance of the CFI class
   resampling = NULL,
   features = NULL,
   iters_perm = 1L,
-  conditional_model_factory = NULL
+  sampler = NULL
 )}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task, learner, measure, resampling, features}}{Passed to PerturbationImportance}
+\item{\code{task, learner, measure, resampling, features}}{Passed to \code{PerturbationImportance}.}
 
-\item{\code{iters_perm}}{(integer(1)) Number of permutation iterations}
+\item{\code{iters_perm}}{(integer(1)) Number of sampling iterations.}
 
-\item{\code{conditional_model_factory}}{(function) Factory for creating conditional models}
+\item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to \code{ARFSampler}.}
 }
 \if{html}{\out{</div>}}
 }
