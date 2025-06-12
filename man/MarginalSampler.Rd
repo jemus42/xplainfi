@@ -15,6 +15,7 @@ is sampled independently of other features
 \itemize{
 \item \href{#method-MarginalSampler-new}{\code{MarginalSampler$new()}}
 \item \href{#method-MarginalSampler-sample}{\code{MarginalSampler$sample()}}
+\item \href{#method-MarginalSampler-print}{\code{MarginalSampler$print()}}
 \item \href{#method-MarginalSampler-clone}{\code{MarginalSampler$clone()}}
 }
 }
@@ -55,6 +56,23 @@ Sample values for a feature by permutation (marginal distribution)
 }
 \subsection{Returns}{
 Modified copy of the input data with the feature permuted
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-MarginalSampler-print"></a>}}
+\if{latex}{\out{\hypertarget{method-MarginalSampler-print}{}}}
+\subsection{Method \code{print()}}{
+Print sampler
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{MarginalSampler$print(...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{...}}{Passed to \code{print()}}
+}
+\if{html}{\out{</div>}}
 }
 }
 \if{html}{\out{<hr>}}

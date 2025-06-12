@@ -9,7 +9,7 @@ ARF can handle mixed data types (continuous and categorical) and provides
 flexible conditional sampling by modeling the joint distribution.
 }
 \details{
-The ARFSampler fits an \link[arf:arf]{Adversarial Random Forest} model on the task data,
+The ARFSampler fits an \link[arf:arf-package]{Adversarial Random Forest} model on the task data,
 then uses it to generate samples from $P(X_j | X_{-j})$ where $X_j$ is the
 feature of interest and $X_{-j}$ are the conditioning features.
 }
@@ -44,7 +44,7 @@ feature of interest and $X_{-j}$ are the conditioning features.
 \if{latex}{\out{\hypertarget{method-ARFSampler-new}{}}}
 \subsection{Method \code{new()}}{
 Creates a new instance of the ARFSampler class.
-To fit the ARF in parallel, set \code{arf_args = list(parallel = TRUE)} and register a parallel backend (see \link[arf:arf]{arf::arf}).
+To fit the ARF in parallel, set \code{arf_args = list(parallel = TRUE)} and register a parallel backend (see \link[arf:arf-package]{arf::arf}).
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ARFSampler$new(task, arf_args = NULL, forde_args = NULL)}\if{html}{\out{</div>}}
 }

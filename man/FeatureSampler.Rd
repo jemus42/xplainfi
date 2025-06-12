@@ -10,7 +10,9 @@ for feature importance methods like PFI and CFI
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Original task}
+\item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Original task.}
+
+\item{\code{label}}{(\link{character(1)}) Name of the sampler.}
 }
 \if{html}{\out{</div>}}
 }

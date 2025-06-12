@@ -121,7 +121,7 @@ FeatureImportanceMeasure = R6Class(
     #'
     #' @param ... Passed to `print()`
     print = function(...) {
-      cat(self$label, "\n")
+      cli::cli_h2(self$label)
       if (!is.null(self$importance)) print(self$importance, ...)
     }
   )

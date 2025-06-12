@@ -7,8 +7,10 @@
 FeatureSampler = R6Class(
   "FeatureSampler",
   public = list(
-    #' @field task ([mlr3::Task]) Original task
+    #' @field task ([mlr3::Task]) Original task.
     task = NULL,
+    #' @field label ([character(1)]) Name of the sampler.
+    label = NULL,
 
     #' @description
     #' Creates a new instance of the FeatureSampler class
@@ -43,6 +45,7 @@ MarginalSampler = R6Class(
     #' @param task ([mlr3::Task]) Task to sample from
     initialize = function(task) {
       super$initialize(task)
+      self$label = "Marginal sampler"
     },
 
     #' @description
@@ -58,6 +61,14 @@ MarginalSampler = R6Class(
       data_copy[, (feature) := sample(.SD[[feature]])]
 
       data_copy[]
+    },
+
+    #' @description
+    #' Print sampler
+    #'
+    #' @param ... Passed to `print()`
+    print = function(...) {
+      cli::cli_h2(self$label)
     }
   )
 )
@@ -78,6 +89,7 @@ ConditionalSampler = R6Class(
     #' @param task ([mlr3::Task]) Task to sample from
     initialize = function(task) {
       super$initialize(task)
+      self$label = "Conditional sampler"
     },
 
     #' @description
@@ -124,6 +136,7 @@ ARFSampler = R6Class(
     #' @param arf_args,forde_args ([list]) Arguments passed to `arf::adversarial_rf` or `arf::forde` respectively.
     initialize = function(task, arf_args = NULL, forde_args = NULL) {
       super$initialize(task)
+      self$label = "Adversarial Random Forest sampler"
 
       if (!requireNamespace("arf", quietly = TRUE)) {
         stop(

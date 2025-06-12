@@ -20,6 +20,7 @@ Abstract base class for feature importance methods
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-PerturbationImportance-new}{\code{PerturbationImportance$new()}}
+\item \href{#method-PerturbationImportance-print}{\code{PerturbationImportance$print()}}
 \item \href{#method-PerturbationImportance-clone}{\code{PerturbationImportance$clone()}}
 }
 }
@@ -28,7 +29,6 @@ Abstract base class for feature importance methods
 <ul>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMeasure" data-id="combine"><a href='../../xplainfi/html/FeatureImportanceMeasure.html#method-FeatureImportanceMeasure-combine'><code>xplainfi::FeatureImportanceMeasure$combine()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMeasure" data-id="compute"><a href='../../xplainfi/html/FeatureImportanceMeasure.html#method-FeatureImportanceMeasure-compute'><code>xplainfi::FeatureImportanceMeasure$compute()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMeasure" data-id="print"><a href='../../xplainfi/html/FeatureImportanceMeasure.html#method-FeatureImportanceMeasure-print'><code>xplainfi::FeatureImportanceMeasure$print()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -54,6 +54,23 @@ Creates a new instance of the PerturbationImportance class
 \item{\code{task, learner, measure, resampling, features}}{Passed to FeatureImportanceMeasure}
 
 \item{\code{sampler}}{(\link{FeatureSampler}) Sampler to use for feature perturbation}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PerturbationImportance-print"></a>}}
+\if{latex}{\out{\hypertarget{method-PerturbationImportance-print}{}}}
+\subsection{Method \code{print()}}{
+Print sampler
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PerturbationImportance$print(...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{...}}{Passed to \code{print()}}
 }
 \if{html}{\out{</div>}}
 }

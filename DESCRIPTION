@@ -12,6 +12,7 @@ URL: https://jemus42.github.io/xplainfi/,
 BugReports: https://github.com/jemus42/xplainfi/issues
 Imports: 
     checkmate,
+    cli,
     data.table (>= 1.15.0),
     lgr,
     mlr3 (>= 0.21.0),
