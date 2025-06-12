@@ -1,29 +1,29 @@
 #' Feature Importance Learner Class
 #'
 #' @export
-FeatureImportanceLearner = R6Class(
-  "FeatureImportanceLearner",
+FeatureImportanceMeasure = R6Class(
+  "FeatureImportanceMeasure",
   public = list(
-    #' @field label ([`character(1)`]) Method label
+    #' @field label (`character(1)`) Method label.
     label = NA_character_,
-    #' @field task ([`mlr3::Task`])
+    #' @field task ([mlr3::Task])
     task = NULL,
-    #' @field learner ([`mlr3::Learner`])
+    #' @field learner ([mlr3::Learner])
     learner = NULL,
-    #' @field measure ([`mlr3::Measure`])
+    #' @field measure ([mlr3::Measure])
     measure = NULL,
-    #' @field resampling ([`mlr3::Resampling`])
+    #' @field resampling ([mlr3::Resampling])
     resampling = NULL,
-    #' @field resample_result ([`mlr3::ResampleResult`])
+    #' @field resample_result ([mlr3::ResampleResult])
     resample_result = NULL,
     # TODO: list of features, for grouped importance
-    #' @field features ([`list()`])
+    #' @field features (`character`)
     features = NULL,
-    #' @field param_set ([`paradox::ps()`])
+    #' @field param_set ([paradox::ps()])
     param_set = ps(),
-    #' @field importance ([`data.table()`]) Aggregated importance scores
+    #' @field importance ([data.table][data.table::data.table]) Aggregated importance scores
     importance = NULL,
-    #' @field scores ([`data.table()`]) Individual performance scores used to compute `$importance`
+    #' @field scores ([data.table][data.table::data.table]) Individual performance scores used to compute `$importance` per resampling iteration and permutation iteration.
     scores = NULL,
 
     #' @description
@@ -55,19 +55,27 @@ FeatureImportanceLearner = R6Class(
     },
 
     #' @description
-    #' Combine two `FeatureImportanceLearner` objects with computed scores.
+    #' Compute feature importance scores
+    #' @param relation (`character(1): "difference"`) How to relate perturbed scores to originals ("difference" or "ratio")
+    #' @param store_backends (`logical(1): TRUE`) Whether to store backends.
+    compute = function(relation = c("difference", "ratio"), store_backends = TRUE) {
+      stop("Abstract method. Use a concrete implementation.")
+    },
+
+    #' @description
+    #' Combine two `FeatureImportanceMeasure` objects with computed scores.
     #'
-    #' @param y ([FeatureImportanceLearner]) Object to combine. Must have computed scores.
+    #' @param y ([FeatureImportanceMeasure]) Object to combine. Must have computed scores.
     #' @param ... (any) Unused.
-    #' @return A new [FeatureImportanceLearner] of the same subclass as `x` and `y`.
+    #' @return A new [FeatureImportanceMeasure] of the same subclass as `x` and `y`.
     #' Currently this method merges the following:
     #' - `$scores` is combined, with `iter_rsmp` increased for `y`.
     #' - `$importance` is re-computed from the combined `$scores`.
     #' - `$resample_result` is combined to a [mlr3::BenchmarkResult]
     #' - `$resampling` is combined into a [mlr3::ResamplingCustom], again continuing te `iteration` count from `x` with that of `y`.
     combine = function(y, ...) {
-      checkmate::assert_class(self, classes = "FeatureImportanceLearner")
-      checkmate::assert_class(y, classes = "FeatureImportanceLearner")
+      checkmate::assert_class(self, classes = "FeatureImportanceMeasure")
+      checkmate::assert_class(y, classes = "FeatureImportanceMeasure")
       checkmate::assert_true(class(self)[[1]] == class(y)[[1]], .var.name = "Identical subclasses")
       checkmate::assert_data_table(self$importance, key = "feature")
       checkmate::assert_data_table(y$importance, key = "feature")
@@ -91,7 +99,7 @@ FeatureImportanceLearner = R6Class(
       self$importance = importance
       self$resample_result = c(self$resample_result, y$resample_result)
 
-      # Combine resampling objects?
+      # Combine resampling objects
       rsmp_x = as.data.table(self$resampling)
       rsmp_y = as.data.table(y$resampling)
       rsmp_y[, let(iteration = iteration + self$resampling$iters)]
@@ -113,7 +121,7 @@ FeatureImportanceLearner = R6Class(
     #'
     #' @param ... Passed to `print()`
     print = function(...) {
-      cat(self$label, "\n")
+      cli::cli_h2(self$label)
       if (!is.null(self$importance)) print(self$importance, ...)
     }
   )

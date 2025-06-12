@@ -12,11 +12,11 @@ compute_score(
 )
 }
 \arguments{
-\item{scores_pre}{(numeric()) Score before change.}
+\item{scores_pre}{(\code{numeric}) Score before change.}
 
-\item{scores_post}{(numeric()) Score after change.}
+\item{scores_post}{(\code{numeric}) Score after change.}
 
-\item{relation}{(character(1), \code{"difference"}) Either \code{"difference"} or \code{"ratio"}.
+\item{relation}{(\code{character(1): "difference"}) Either \code{"difference"} or \code{"ratio"}.
 If \code{"difference"}, then \code{scores_post - scores_pre} is computed, otherwise \code{scores_post / scores_pre}.}
 
 \item{minimize}{(logical(1), \code{TRUE}) Whether the score needs to be minimized (e.g. RMSE) or

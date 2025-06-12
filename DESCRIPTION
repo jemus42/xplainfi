@@ -12,14 +12,18 @@ URL: https://jemus42.github.io/xplainfi/,
 BugReports: https://github.com/jemus42/xplainfi/issues
 Imports: 
     checkmate,
+    cli,
     data.table (>= 1.15.0),
     lgr,
     mlr3 (>= 0.21.0),
     paradox (>= 1.0.0),
     R6
 Suggests: 
+    arf,
     ggplot2,
+    glue,
     knitr,
+    mlr3data,
     mlr3learners,
     ranger,
     rmarkdown,

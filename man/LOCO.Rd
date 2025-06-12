@@ -26,7 +26,7 @@ loco$compute()
 \dontshow{\}) # examplesIf}
 }
 \section{Super class}{
-\code{\link[xplainfi:FeatureImportanceLearner]{xplainfi::FeatureImportanceLearner}} -> \code{LOCO}
+\code{\link[xplainfi:FeatureImportanceMeasure]{xplainfi::FeatureImportanceMeasure}} -> \code{LOCO}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -39,8 +39,8 @@ loco$compute()
 \if{html}{\out{
 <details open><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceLearner" data-id="combine"><a href='../../xplainfi/html/FeatureImportanceLearner.html#method-FeatureImportanceLearner-combine'><code>xplainfi::FeatureImportanceLearner$combine()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceLearner" data-id="print"><a href='../../xplainfi/html/FeatureImportanceLearner.html#method-FeatureImportanceLearner-print'><code>xplainfi::FeatureImportanceLearner$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMeasure" data-id="combine"><a href='../../xplainfi/html/FeatureImportanceMeasure.html#method-FeatureImportanceMeasure-combine'><code>xplainfi::FeatureImportanceMeasure$combine()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMeasure" data-id="print"><a href='../../xplainfi/html/FeatureImportanceMeasure.html#method-FeatureImportanceMeasure-print'><code>xplainfi::FeatureImportanceMeasure$print()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -56,7 +56,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task, learner, measure, resampling, features}}{Passed to \code{FeatureImportanceLearner} for construction.}
+\item{\code{task, learner, measure, resampling, features}}{Passed to \code{FeatureImportanceMeasure} for construction.}
 }
 \if{html}{\out{</div>}}
 }

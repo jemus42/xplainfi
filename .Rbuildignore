@@ -9,3 +9,8 @@
 ^pkgdown$
 ^\.github$
 ^attic$
+^Claude\.md$
+^air\.toml$
+^.*\.Rproj$
+^\.claude$
+^Makefile$

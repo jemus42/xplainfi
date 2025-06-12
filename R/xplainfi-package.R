@@ -2,8 +2,9 @@
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @importFrom checkmate %??%
 #' @import data.table
+#' @importFrom checkmate %??%
+#' @importFrom cli cli
 #' @importFrom lgr get_logger
 #' @importFrom mlr3 resample
 #' @importFrom paradox ps

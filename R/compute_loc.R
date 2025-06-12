@@ -4,12 +4,12 @@
 #' is designated to be left out (LOCO) or left in (LOCI)
 #' @param learner ([mlr3::Learner]) An untrained learner to use for prediction.
 #' @param task ([mlr3::Task]) The task of interest.
-#' @param train_ids,test_ids ([integer()]) Row IDs for train- and test splits.
+#' @param train_ids,test_ids (`integer`) Row IDs for train- and test splits.
 #' @param measure ([mlr3::Measure]) The measure to use for scoring. May require observation-wise loss.
-#' @param features ([character()]) Feature names of interest.
-#' @param direction (character(1)) Either `"leave-in"` or `"leave-out"`.
+#' @param features (`character`) Feature names of interest.
+#' @param direction (`character(1)`) Either `"leave-in"` or `"leave-out"`.
 #'
-#' @return A [data.table] with columns `feature` and `<measure$id>_post`.
+#' @return A [`data.table`][data.table::data.table] with columns `feature` and `<measure$id>_post`.
 #' @export
 #' @keywords internal
 #' @note These functions are used for internal computations and are likely not exported in the future.

@@ -11,16 +11,16 @@ compute_loc(learner, task, train_ids, test_ids, features, measure, direction)
 
 \item{task}{(\link[mlr3:Task]{mlr3::Task}) The task of interest.}
 
-\item{train_ids, test_ids}{(\code{\link[=integer]{integer()}}) Row IDs for train- and test splits.}
+\item{train_ids, test_ids}{(\code{integer}) Row IDs for train- and test splits.}
 
-\item{features}{(\code{\link[=character]{character()}}) Feature names of interest.}
+\item{features}{(\code{character}) Feature names of interest.}
 
 \item{measure}{(\link[mlr3:Measure]{mlr3::Measure}) The measure to use for scoring. May require observation-wise loss.}
 
-\item{direction}{(character(1)) Either \code{"leave-in"} or \code{"leave-out"}.}
+\item{direction}{(\code{character(1)}) Either \code{"leave-in"} or \code{"leave-out"}.}
 }
 \value{
-A \link{data.table} with columns \code{feature} and \verb{<measure$id>_post}.
+A \code{\link[data.table:data.table]{data.table}} with columns \code{feature} and \verb{<measure$id>_post}.
 }
 \description{
 Computes either LOCO or LOCI depending on whether feature of interest

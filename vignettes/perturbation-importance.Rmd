@@ -1,0 +1,281 @@
+---
+title: "Perturbation-based Feature Importance Methods"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Perturbation-based Feature Importance Methods}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+set.seed(123)
+# Quiet down
+lgr::get_logger("mlr3")$set_threshold("warn")
+```
+
+```{r setup}
+library(xplainfi)
+
+# learners, tasks, etc.
+library(mlr3)
+library(mlr3data) # penguins_simple
+library(mlr3learners) # ranger
+library(data.table)
+```
+
+This vignette demonstrates the three perturbation-based feature importance methods implemented in xplainfi:
+
+- **PFI (Permutation Feature Importance)**: Uses marginal sampling (simple permutation)
+- **CFI (Conditional Feature Importance)**: Uses conditional sampling via Adversarial Random Forests
+- **RFI (Relative Feature Importance)**: Uses conditional sampling on a user-specified subset of features
+
+## Problem Setup
+
+We'll use the `penguins_simple` dataset to compare these methods:
+
+```{r setup-problem}
+task <- tsk("penguins")
+learner <- lrn("classif.ranger", num.trees = 100, num.threads = 2)
+resampling <- rsmp("cv", folds = 3)
+measure <- msr("classif.acc")
+
+# Show the task structure
+task
+```
+
+## Permutation Feature Importance (PFI)
+
+PFI shuffles each feature independently, breaking the association between the feature and the target while preserving the marginal distribution.
+
+For more stable results, we 
+
+- a) Use 3-fold CV for more reliable performance estimates
+- b) Within each resampling iteration, we repeat the permutation-prediction-scoring step `iters_perm` times
+
+
+```{r pfi}
+pfi <- PFI$new(
+  task = task,
+  learner = learner,
+  measure = measure,
+  resampling = resampling,
+  iters_perm = 5
+)
+
+# Compute importance scores
+pfi_results <- pfi$compute(relation = "difference")
+pfi_results
+
+# Also stored in
+pfi$importance
+
+# Scores per resampling iteration and permutation iteration
+pfi$scores |>
+  knitr::kable(digits = 4)
+```
+
+## Conditional Feature Importance (CFI)
+
+CFI uses conditional sampling to preserve the joint distribution of all other features when perturbing a feature of interest. By default we use Adversarial Random Forests (ARF) as conditional sampler internally, but it can be provided explicity, as we usually want to supply additional arguments to `arf::adversarial_rf()` or `arf::forde()`.
+
+```{r sampler-arf}
+sampler = ARFSampler$new(
+  task = task, 
+  arf_args = list(verbose = FALSE, parallel = FALSE),
+  forde_args = list(finite_bounds = "no")
+)
+
+# Example sampling for 5 randomly chosen rows from the task
+sampler$sample(
+  feature = "bill_length", 
+  data = task$data(rows = sample(task$nrow, size = 5)), 
+  conditioning_features = "body_mass"
+)
+```
+
+```{r cfi}
+cfi <- CFI$new(
+  task = task,
+  learner = learner,
+  measure = measure,
+  resampling = resampling,
+  iters_perm = 5,
+  sampler = sampler
+)
+
+# Compute importance scores
+cfi_results <- cfi$compute(relation = "difference")
+cfi_results
+```
+
+## Relative Feature Importance (RFI)
+
+RFI conditions on a specific subset of features as opposed to just one as in CFI, measuring importance relative to those features.
+
+```{r rfi}
+conditioning_set <- c("sex", "year")
+
+rfi <- RFI$new(
+  task = task,
+  learner = learner,
+  measure = measure,
+  resampling = resampling,
+  conditioning_set = conditioning_set,
+  iters_perm = 5,
+  sampler = sampler
+)
+
+# Compute importance scores
+rfi_results <- rfi$compute(relation = "difference")
+rfi_results
+```
+
+## Comparing Methods
+
+Now let's compare the results from all three methods:
+
+```{r comparison}
+# Combine results for comparison
+comparison <- merge(
+  pfi_results[, .(feature, pfi = importance)],
+  cfi_results[, .(feature, cfi = importance)],
+  by = "feature"
+)
+comparison <- merge(
+  comparison,
+  rfi_results[, .(feature, rfi = importance)],
+  by = "feature"
+)
+
+comparison
+```
+
+```{r comparison-table}
+comparison |>
+  knitr::kable(
+    digits = 4, 
+    caption = "Feature Importance Comparison (Difference Scores)",
+    col.names = c("Feature", "PFI", "CFI", "RFI")
+  )
+```
+
+## Visualization
+
+```{r visualization, fig.width=8, fig.height=6}
+library(ggplot2)
+
+# Reshape data for plotting
+plot_data <- comparison |>
+  melt(
+    id.vars = "feature",
+    value.name = "importance",
+    variable.name = "method"
+  )
+
+# Clean up method names
+plot_data[, method := toupper(method)]
+
+# Create the plot
+ggplot(plot_data, aes(x = importance, y = reorder(feature, importance), fill = method)) +
+  geom_col(position = "dodge", alpha = 0.7) +
+  scale_fill_brewer(palette = "Dark2") +
+  labs(
+    title = "Feature Importance Comparison",
+    subtitle = glue::glue(
+      "Task: {task$id} 
+      Measure: {measure$id}
+      RFI conditioned on: {paste(conditioning_set, collapse = ', ')}"),
+    x = "Importance Score (Difference)",
+    y = "Feature",
+    fill = "Method",
+    caption = glue::glue("Using {resampling$iters}-fold cross-validation")
+  ) +
+  theme_minimal(base_size = 16) +
+  theme(
+    legend.position = "bottom",
+    plot.title.position = "plot"
+  )
+```
+
+## Understanding the Differences
+
+The three methods can yield different results because they make different assumptions:
+
+1. **PFI** assumes features are independent and measures the marginal importance of each feature.
+
+2. **CFI** preserves the conditional distribution $P(X_{-j} | X_j)$ when perturbing feature $j$, providing a more realistic assessment when features are correlated.
+
+3. **RFI** measures importance relative to a specific conditioning set, answering "what additional information does this feature provide beyond what we already know from features A, B, C?"
+
+In our penguin example:
+- Features like bill dimensions and body mass are likely correlated
+- CFI accounts for these correlations when measuring importance
+- RFI shows which features add value beyond bill_length and flipper_length
+
+## Advanced Usage
+
+### Custom Samplers
+
+You can also provide custom samplers for more control:
+
+```{r custom-sampler, eval=FALSE}
+# Create a custom ARF sampler with specific parameters
+custom_sampler <- ARFSampler$new(
+  task = task,
+  arf_args = list(num_trees = 50),  # Fewer trees for faster computation
+  forde_args = list(finite_bounds = "local") # Avoid out of distribution samples
+)
+
+cfi_custom <- CFI$new(
+  task = task,
+  learner = learner,
+  measure = measure,
+  resampling = resampling,
+  sampler = custom_sampler
+)
+```
+
+### Accessing Detailed Results
+
+As mentioned, individual scores per resampling iteration and permutation iteration are kept in `$scores`.
+
+```{r detailed-scores}
+detailed_scores <- pfi$scores
+head(detailed_scores)
+
+# Summarize variability across iterations
+score_summary <- detailed_scores[, .(
+  mean_importance = mean(importance),
+  sd_importance = sd(importance),
+  n_iterations = .N
+), by = feature]
+
+score_summary
+
+ggplot(score_summary, aes(
+  y = reorder(feature, mean_importance), 
+  xmin = mean_importance - sd_importance, 
+  xmax = mean_importance + sd_importance)
+  ) +
+  geom_errorbarh(linewidth = 1, height = .5) +
+  labs(
+    title = "Permutation Feature Importance: Mean ± SD",
+    subtitle = glue::glue(
+      "Task: {task$id} 
+      Measure: {measure$id}"),
+    x = "PFI Score (Difference)",
+    y = "Feature",
+    caption = glue::glue("Using {resampling$iters}-fold cross-validation and {pfi$param_set$values$iters_perm} permutations each")
+  ) +
+  theme_minimal(base_size = 16) +
+  theme(
+    legend.position = "bottom",
+    plot.title.position = "plot"
+  )
+```
