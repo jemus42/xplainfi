@@ -65,7 +65,7 @@ test_that("CFI with custom ARF sampler", {
 
 test_that("CFI null result for featureless learner", {
   skip_if_not_installed("arf")
-  
+
   set.seed(123)
   task = mlr3::tgen("xor")$generate(n = 200)
 

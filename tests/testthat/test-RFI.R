@@ -86,7 +86,7 @@ test_that("RFI with empty conditioning set (equivalent to PFI)", {
   )
 
   expect_equal(length(rfi$conditioning_set), 0)
-  
+
   # PFI for comparison
   pfi = PFI$new(
     task = task,
@@ -98,7 +98,7 @@ test_that("RFI with empty conditioning set (equivalent to PFI)", {
   # Compute results
   set.seed(456) # Different seed for RFI computation
   rfi_result = rfi$compute()
-  
+
   set.seed(456) # Same seed for PFI computation
   pfi_result = pfi$compute()
 
@@ -109,25 +109,25 @@ test_that("RFI with empty conditioning set (equivalent to PFI)", {
   # Results should be similar but not necessarily identical due to different sampling methods
   # (RFI uses ARF-based conditional sampling, PFI uses marginal permutation)
   # Check that they have similar patterns for important vs unimportant features
-  
+
   # Extract important and unimportant feature scores for both methods
   important_features = grep("^important", rfi_result$feature, value = TRUE)
   unimportant_features = grep("^unimportant", rfi_result$feature, value = TRUE)
-  
+
   rfi_important_scores = rfi_result[feature %in% important_features]$importance
   rfi_unimportant_scores = rfi_result[feature %in% unimportant_features]$importance
-  
-  pfi_important_scores = pfi_result[feature %in% important_features]$importance  
+
+  pfi_important_scores = pfi_result[feature %in% important_features]$importance
   pfi_unimportant_scores = pfi_result[feature %in% unimportant_features]$importance
-  
+
   # Both methods should show that important features have higher scores than unimportant features on average
   expect_gt(mean(rfi_important_scores), mean(rfi_unimportant_scores))
   expect_gt(mean(pfi_important_scores), mean(pfi_unimportant_scores))
-  
+
   # The ranking patterns should be similar - check that the relative difference patterns are consistent
   rfi_diff = mean(rfi_important_scores) - mean(rfi_unimportant_scores)
   pfi_diff = mean(pfi_important_scores) - mean(pfi_unimportant_scores)
-  
+
   # Both should show a positive difference (important > unimportant) and be in the same order of magnitude
   expect_gt(rfi_diff, 0)
   expect_gt(pfi_diff, 0)
