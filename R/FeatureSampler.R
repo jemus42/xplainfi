@@ -184,12 +184,22 @@ ARFSampler = R6Class(
       }
 
       # Create evidence data frame with conditioning features for all rows
-      evidence = data[, ..conditioning_features]
+      # Handle empty conditioning set by passing NULL to arf::forge()
+      if (length(conditioning_features) == 0) {
+        evidence = NULL
+        # When evidence is NULL, ARF generates exactly n_synth rows
+        # We need to generate as many rows as we have in our data
+        n_synth_adjusted = nrow(data)
+      } else {
+        evidence = data[, ..conditioning_features]
+        # When evidence is provided, n_synth is per evidence row
+        n_synth_adjusted = n_synth
+      }
 
-      # Generate conditional samples - one sample per evidence row
+      # Generate conditional samples - one sample per evidence row (or n_rows total when no evidence)
       synthetic = arf::forge(
         params = self$psi,
-        n_synth = n_synth,
+        n_synth = n_synth_adjusted,
         evidence = evidence,
         evidence_row_mode = evidence_row_mode,
         ...

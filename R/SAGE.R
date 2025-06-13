@@ -8,7 +8,7 @@
 #' SAGE uses Shapley values to fairly distribute the total prediction
 #' performance among all features. Unlike perturbation-based methods,
 #' SAGE marginalizes features by integrating over their distribution.
-#' This is approximated by averaging predictions over a background dataset.
+#' This is approximated by averaging predictions over a reference dataset.
 #'
 #' @references
 #' Covert, I., Lundberg, S. M., & Lee, S. I. (2020).
@@ -22,8 +22,8 @@ SAGE = R6Class(
   public = list(
     #' @field n_permutations (integer(1)) Number of permutations to sample.
     n_permutations = NULL,
-    #' @field background_data (data.table) Background dataset for marginalization.
-    background_data = NULL,
+    #' @field reference_data (data.table) Reference dataset for marginalization.
+    reference_data = NULL,
     #' @field sampler ([FeatureSampler]) Sampler object for marginalization.
     sampler = NULL,
 
@@ -31,9 +31,9 @@ SAGE = R6Class(
     #' Creates a new instance of the SAGE class.
     #' @param task,learner,measure,resampling,features Passed to FeatureImportanceMeasure.
     #' @param n_permutations (integer(1)) Number of permutations to sample for Shapley value estimation.
-    #' @param background_data (data.table) Optional background dataset. If NULL, uses training data.
+    #' @param reference_data (data.table) Optional reference dataset. If NULL, uses training data.
     #' @param sampler ([FeatureSampler]) Sampler for marginalization.
-    #' @param max_background_size (integer(1)) Maximum size of background dataset. If background is larger, it will be subsampled.
+    #' @param max_reference_size (integer(1)) Maximum size of reference dataset. If reference is larger, it will be subsampled.
     initialize = function(
       task,
       learner,
@@ -41,9 +41,9 @@ SAGE = R6Class(
       resampling = NULL,
       features = NULL,
       n_permutations = 10L,
-      background_data = NULL,
+      reference_data = NULL,
       sampler = NULL,
-      max_background_size = 100L
+      max_reference_size = 100L
     ) {
       super$initialize(
         task = task,
@@ -61,17 +61,17 @@ SAGE = R6Class(
         self$sampler = sampler
       }
 
-      # Use training data as background if not provided
-      if (is.null(background_data)) {
-        self$background_data = self$task$data(cols = self$task$feature_names)
+      # Use training data as reference if not provided
+      if (is.null(reference_data)) {
+        self$reference_data = self$task$data(cols = self$task$feature_names)
       } else {
-        self$background_data = checkmate::assert_data_table(background_data)
+        self$reference_data = checkmate::assert_data_table(reference_data)
       }
-      
-      # Subsample background data if it's too large for efficiency
-      if (nrow(self$background_data) > max_background_size) {
-        sample_idx = sample(nrow(self$background_data), size = max_background_size)
-        self$background_data = self$background_data[sample_idx, ]
+
+      # Subsample reference data if it's too large for efficiency
+      if (nrow(self$reference_data) > max_reference_size) {
+        sample_idx = sample(nrow(self$reference_data), size = max_reference_size)
+        self$reference_data = self$reference_data[sample_idx, ]
       }
 
       # Set parameters
@@ -131,19 +131,19 @@ SAGE = R6Class(
 
       # Pre-generate all permutations for efficiency
       all_permutations = replicate(self$n_permutations, sample(self$features), simplify = FALSE)
-      
+
       # Collect ALL coalitions that need to be evaluated across all permutations
       all_coalitions = list()
       coalition_map = list() # Maps coalition index to (perm_idx, step)
-      
+
       # Add empty coalition
       all_coalitions[[1]] = character(0)
       coalition_map[[1]] = list(perm_idx = 0, step = 0) # Special case for baseline
-      
+
       coalition_idx = 2
       for (perm_idx in seq_len(self$n_permutations)) {
         perm_features = all_permutations[[perm_idx]]
-        
+
         for (i in seq_along(perm_features)) {
           coalition = perm_features[seq_len(i)]
           all_coalitions[[coalition_idx]] = coalition
@@ -151,31 +151,31 @@ SAGE = R6Class(
           coalition_idx = coalition_idx + 1
         }
       }
-      
+
       # Batch evaluate ALL coalitions at once
       all_losses = private$.evaluate_coalitions_batch(learner, test_dt, all_coalitions)
-      
+
       # Extract baseline loss
       baseline_loss = all_losses[1]
-      
+
       # Process permutations using pre-computed losses
       for (perm_idx in seq_len(self$n_permutations)) {
         perm_features = all_permutations[[perm_idx]]
         prev_loss = baseline_loss
-        
+
         for (i in seq_along(perm_features)) {
           feature = perm_features[i]
-          
+
           # Find the loss for this coalition
           coalition_lookup_idx = which(sapply(coalition_map, function(x) {
             x$perm_idx == perm_idx && x$step == i
           }))
           current_loss = all_losses[coalition_lookup_idx]
-          
+
           # Calculate marginal contribution
           marginal_contribution = prev_loss - current_loss
           sage_values[feature] = sage_values[feature] + marginal_contribution
-          
+
           prev_loss = current_loss
         }
       }
@@ -191,7 +191,7 @@ SAGE = R6Class(
     },
 
     .evaluate_empty_coalition = function(learner, test_dt) {
-      # Marginalize all features by averaging predictions over background data
+      # Marginalize all features by averaging predictions over reference data
       predictions = private$.marginalize_features(
         learner = learner,
         test_dt = test_dt,
@@ -265,29 +265,31 @@ SAGE = R6Class(
       }
 
       # SAGE marginalization according to Ewald et al. paper (vectorized):
-      # Marginalize by expectation over background distribution
+      # Marginalize by expectation over reference distribution
       # For marginal SAGE: E_{X_{-S}}[f(x_S, X_{-S})]
-      # This approximates the expectation by averaging over background data
-      
+      # This approximates the expectation by averaging over reference data
+
       n_test = nrow(test_dt)
-      n_background = nrow(self$background_data)
-      
-      # Vectorized approach: create all test-background combinations at once
-      # Each test instance gets paired with each background instance
-      test_expanded = test_dt[rep(seq_len(n_test), each = n_background)]
-      background_expanded = self$background_data[rep(seq_len(n_background), times = n_test)]
-      
+      n_reference = nrow(self$reference_data)
+
+      # Vectorized approach: create all test-reference combinations at once
+      # Each test instance gets paired with each reference instance
+      test_expanded = test_dt[rep(seq_len(n_test), each = n_reference)]
+      reference_expanded = self$reference_data[rep(seq_len(n_reference), times = n_test)]
+
       # Add test instance ID for later aggregation
-      test_expanded[, .test_instance_id := rep(seq_len(n_test), each = n_background)]
-      
-      # Replace marginalized features with background values (vectorized)
+      test_expanded[, .test_instance_id := rep(seq_len(n_test), each = n_reference)]
+
+      # Replace marginalized features with reference values (vectorized)
       if (length(marginalize_features) > 0) {
-        test_expanded[, (marginalize_features) := background_expanded[, .SD, .SDcols = marginalize_features]]
+        test_expanded[,
+          (marginalize_features) := reference_expanded[, .SD, .SDcols = marginalize_features]
+        ]
       }
-      
+
       # Single prediction call for all combinations (much faster!)
       pred_result = learner$predict_newdata(newdata = test_expanded, task = self$task)
-      
+
       # Extract predictions
       if (self$task$task_type == "classif" && learner$predict_type == "prob") {
         # For binary classification
@@ -299,53 +301,55 @@ SAGE = R6Class(
       } else {
         all_predictions = pred_result$response
       }
-      
+
       # Add predictions to the expanded data and aggregate by test instance
       test_expanded[, .prediction := all_predictions]
       avg_predictions_dt = test_expanded[, .(avg_pred = mean(.prediction)), by = .test_instance_id]
-      
+
       # Return in original test instance order
       return(avg_predictions_dt$avg_pred)
     },
-    
+
     .evaluate_coalitions_batch = function(learner, test_dt, all_coalitions) {
       # Batch evaluate multiple coalitions by creating one large dataset
       n_coalitions = length(all_coalitions)
       n_test = nrow(test_dt)
-      n_background = nrow(self$background_data)
-      
+      n_reference = nrow(self$reference_data)
+
       # Create expanded data for all coalitions at once
-      # Each coalition gets test_dt replicated n_background times
+      # Each coalition gets test_dt replicated n_reference times
       all_expanded_data = list()
       coalition_ids = numeric()
-      
+
       for (i in seq_along(all_coalitions)) {
         coalition = all_coalitions[[i]]
-        
-        # Create test-background combinations for this coalition
-        test_expanded = test_dt[rep(seq_len(n_test), each = n_background)]
-        background_expanded = self$background_data[rep(seq_len(n_background), times = n_test)]
-        
+
+        # Create test-reference combinations for this coalition
+        test_expanded = test_dt[rep(seq_len(n_test), each = n_reference)]
+        reference_expanded = self$reference_data[rep(seq_len(n_reference), times = n_test)]
+
         # Add coalition and test instance IDs for tracking
         test_expanded[, .coalition_id := i]
-        test_expanded[, .test_instance_id := rep(seq_len(n_test), each = n_background)]
-        
+        test_expanded[, .test_instance_id := rep(seq_len(n_test), each = n_reference)]
+
         # Marginalize features not in coalition
         marginalize_features = setdiff(self$features, coalition)
         if (length(marginalize_features) > 0) {
-          test_expanded[, (marginalize_features) := background_expanded[, .SD, .SDcols = marginalize_features]]
+          test_expanded[,
+            (marginalize_features) := reference_expanded[, .SD, .SDcols = marginalize_features]
+          ]
         }
-        
+
         all_expanded_data[[i]] = test_expanded
         coalition_ids = c(coalition_ids, rep(i, nrow(test_expanded)))
       }
-      
+
       # Combine ALL data into one big dataset
       combined_data = rbindlist(all_expanded_data)
-      
+
       # SINGLE prediction call for everything!
       pred_result = learner$predict_newdata(newdata = combined_data, task = self$task)
-      
+
       # Extract predictions
       if (self$task$task_type == "classif") {
         if (learner$predict_type == "prob") {
@@ -365,7 +369,9 @@ SAGE = R6Class(
             all_predictions[is.na(all_predictions)] = 0.5
           } else {
             # Multiclass classification - not yet fully supported, use neutral score
-            stop("Multiclass classification with response predictions not yet supported in SAGE. Use predict_type = 'prob' instead.")
+            stop(
+              "Multiclass classification with response predictions not yet supported in SAGE. Use predict_type = 'prob' instead."
+            )
           }
         }
       } else {
@@ -374,22 +380,25 @@ SAGE = R6Class(
         # Handle NAs in regression predictions
         all_predictions[is.na(all_predictions)] = 0
       }
-      
+
       # Add predictions and aggregate by coalition and test instance
       combined_data[, .prediction := all_predictions]
-      
+
       # Aggregate: mean prediction per test instance per coalition
       # Now all predictions are numeric (probabilities or 0/1 for classification, values for regression)
       # Use na.rm = TRUE to handle any remaining NAs in the aggregation
-      avg_preds_by_coalition = combined_data[, .(
-        avg_pred = mean(.prediction, na.rm = TRUE)
-      ), by = .(.coalition_id, .test_instance_id)]
-      
+      avg_preds_by_coalition = combined_data[,
+        .(
+          avg_pred = mean(.prediction, na.rm = TRUE)
+        ),
+        by = .(.coalition_id, .test_instance_id)
+      ]
+
       # Calculate loss for each coalition
       coalition_losses = numeric(n_coalitions)
       for (i in seq_len(n_coalitions)) {
         coalition_preds = avg_preds_by_coalition[.coalition_id == i]$avg_pred
-        
+
         # Create prediction object and calculate loss
         if (self$task$task_type == "classif") {
           if (learner$predict_type == "prob") {
@@ -397,8 +406,11 @@ SAGE = R6Class(
             pred_obj = PredictionClassif$new(
               row_ids = seq_len(n_test),
               truth = test_dt[[self$task$target_names]],
-              prob = matrix(c(1 - coalition_preds, coalition_preds), ncol = 2,
-                           dimnames = list(NULL, self$task$class_names))
+              prob = matrix(
+                c(1 - coalition_preds, coalition_preds),
+                ncol = 2,
+                dimnames = list(NULL, self$task$class_names)
+              )
             )
           } else {
             # This should only happen for binary classification with response predictions
@@ -406,17 +418,15 @@ SAGE = R6Class(
               # coalition_preds contains averaged 0/1 values, convert back to factor responses
               # Handle NAs by replacing them with 0.5 (neutral probability)
               coalition_preds[is.na(coalition_preds)] = 0.5
-              
+
               # Additional safeguard: ensure coalition_preds is finite
               coalition_preds[!is.finite(coalition_preds)] = 0.5
-              
+
               pred_responses = factor(
-                ifelse(coalition_preds >= 0.5, 
-                       self$task$positive, 
-                       self$task$negative),
+                ifelse(coalition_preds >= 0.5, self$task$positive, self$task$negative),
                 levels = self$task$class_names
               )
-              
+
               pred_obj = PredictionClassif$new(
                 row_ids = seq_len(n_test),
                 truth = test_dt[[self$task$target_names]],
@@ -433,10 +443,10 @@ SAGE = R6Class(
             response = coalition_preds
           )
         }
-        
+
         coalition_losses[i] = pred_obj$score(self$measure)
       }
-      
+
       return(coalition_losses)
     }
   )
@@ -456,8 +466,8 @@ MarginalSAGE = R6Class(
     #' Creates a new instance of the MarginalSAGE class.
     #' @param task,learner,measure,resampling,features Passed to [SAGE].
     #' @param n_permutations (integer(1)) Number of permutations to sample.
-    #' @param background_data (data.table) Optional background dataset.
-    #' @param max_background_size (integer(1)) Maximum size of background dataset.
+    #' @param reference_data (data.table) Optional reference dataset.
+    #' @param max_reference_size (integer(1)) Maximum size of reference dataset.
     initialize = function(
       task,
       learner,
@@ -465,8 +475,8 @@ MarginalSAGE = R6Class(
       resampling = NULL,
       features = NULL,
       n_permutations = 10L,
-      background_data = NULL,
-      max_background_size = 100L
+      reference_data = NULL,
+      max_reference_size = 100L
     ) {
       # Create marginal sampler
       sampler = MarginalSampler$new(task)
@@ -478,9 +488,9 @@ MarginalSAGE = R6Class(
         resampling = resampling,
         features = features,
         n_permutations = n_permutations,
-        background_data = background_data,
+        reference_data = reference_data,
         sampler = sampler,
-        max_background_size = max_background_size
+        max_reference_size = max_reference_size
       )
 
       self$label = "Marginal SAGE"
@@ -502,9 +512,9 @@ ConditionalSAGE = R6Class(
     #' Creates a new instance of the ConditionalSAGE class.
     #' @param task,learner,measure,resampling,features Passed to [SAGE].
     #' @param n_permutations (integer(1)) Number of permutations to sample.
-    #' @param background_data (data.table) Optional background dataset.
+    #' @param reference_data (data.table) Optional reference dataset.
     #' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to ARFSampler.
-    #' @param max_background_size (integer(1)) Maximum size of background dataset.
+    #' @param max_reference_size (integer(1)) Maximum size of reference dataset.
     initialize = function(
       task,
       learner,
@@ -512,9 +522,9 @@ ConditionalSAGE = R6Class(
       resampling = NULL,
       features = NULL,
       n_permutations = 10L,
-      background_data = NULL,
+      reference_data = NULL,
       sampler = NULL,
-      max_background_size = 100L
+      max_reference_size = 100L
     ) {
       # Use ARFSampler by default
       if (is.null(sampler)) {
@@ -528,9 +538,9 @@ ConditionalSAGE = R6Class(
         resampling = resampling,
         features = features,
         n_permutations = n_permutations,
-        background_data = background_data,
+        reference_data = reference_data,
         sampler = sampler,
-        max_background_size = max_background_size
+        max_reference_size = max_reference_size
       )
 
       self$label = "Conditional SAGE"

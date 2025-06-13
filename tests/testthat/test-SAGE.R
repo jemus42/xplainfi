@@ -7,13 +7,15 @@ test_that("ConditionalSAGE can't be constructed without args", {
 })
 
 test_that("MarginalSAGE can be constructed with simple objects", {
-  skip_if_not_installed("rpart")
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
 
-  task = mlr3::tsk("pima")
+  set.seed(123)
+  task = mlr3::tgen("2dnormals")$generate(n = 100)
 
   sage = MarginalSAGE$new(
     task = task,
-    learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
+    learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
     measure = mlr3::msr("classif.ce")
   )
 
@@ -22,14 +24,16 @@ test_that("MarginalSAGE can be constructed with simple objects", {
 })
 
 test_that("ConditionalSAGE can be constructed with simple objects", {
-  skip_if_not_installed("rpart")
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
   skip_if_not_installed("arf")
 
-  task = mlr3::tsk("pima")
+  set.seed(123)
+  task = mlr3::tgen("2dnormals")$generate(n = 100)
 
   sage = ConditionalSAGE$new(
     task = task,
-    learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
+    learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
     measure = mlr3::msr("classif.ce"),
     n_permutations = 2L # Keep small for fast testing
   )
@@ -52,7 +56,7 @@ test_that("MarginalSAGE with friedman1 produces sensible results", {
     learner = learner,
     measure = measure,
     n_permutations = 3L, # Keep small for fast testing
-    max_background_size = 50L
+    max_reference_size = 50L
   )
 
   result = sage$compute()
@@ -89,7 +93,7 @@ test_that("ConditionalSAGE with friedman1 produces sensible results", {
     learner = learner,
     measure = measure,
     n_permutations = 3L, # Keep small for fast testing
-    max_background_size = 50L
+    max_reference_size = 50L
   )
 
   result = sage$compute()
@@ -112,13 +116,15 @@ test_that("ConditionalSAGE with friedman1 produces sensible results", {
 })
 
 test_that("MarginalSAGE with multiple permutations", {
-  skip_if_not_installed("rpart")
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
 
-  task = mlr3::tsk("pima")
+  set.seed(123)
+  task = mlr3::tgen("xor")$generate(n = 200)
 
   sage = MarginalSAGE$new(
     task = task,
-    learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
+    learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
     measure = mlr3::msr("classif.ce"),
     resampling = mlr3::rsmp("cv", folds = 3),
     n_permutations = 2L
@@ -139,70 +145,80 @@ test_that("MarginalSAGE with multiple permutations", {
 })
 
 test_that("MarginalSAGE only one feature", {
-  task = mlr3::tsk("pima")
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
+
+  set.seed(123)
+  task = mlr3::tgen("friedman1")$generate(n = 100)
 
   sage = MarginalSAGE$new(
     task = task,
-    learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
-    measure = mlr3::msr("classif.ce"),
-    features = "glucose",
+    learner = mlr3::lrn("regr.ranger", num.trees = 50),
+    measure = mlr3::msr("regr.mse"),
+    features = "important4",
     n_permutations = 2L
   )
 
   sage$compute()
-  expect_importance_dt(sage$importance, features = "glucose")
+  expect_importance_dt(sage$importance, features = "important4")
 
   # Should only have one feature
   expect_equal(nrow(sage$importance), 1L)
-  expect_equal(sage$importance$feature, "glucose")
+  expect_equal(sage$importance$feature, "important4")
 })
 
-test_that("SAGE with custom background data", {
-  skip_if_not_installed("rpart")
+test_that("SAGE with custom reference data", {
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
 
-  task = mlr3::tsk("pima")
-  background_data = task$data(cols = task$feature_names)[1:20, ]
+  set.seed(123)
+  task = mlr3::tgen("friedman1")$generate(n = 200)
+  reference_data = task$data(cols = task$feature_names)[1:20, ]
 
   sage = MarginalSAGE$new(
     task = task,
-    learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
-    measure = mlr3::msr("classif.ce"),
-    background_data = background_data,
+    learner = mlr3::lrn("regr.ranger", num.trees = 50),
+    measure = mlr3::msr("regr.mse"),
+    reference_data = reference_data,
     n_permutations = 2L
   )
 
   sage$compute()
   expect_importance_dt(sage$importance, features = sage$features)
 
-  # Check that background data was used
-  expect_equal(nrow(sage$background_data), 20L)
+  # Check that reference data was used
+  expect_equal(nrow(sage$reference_data), 20L)
 })
 
-test_that("SAGE with max_background_size parameter", {
-  skip_if_not_installed("rpart")
+test_that("SAGE with max_reference_size parameter", {
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
 
-  task = mlr3::tsk("pima")
+  set.seed(123)
+  task = mlr3::tgen("friedman1")$generate(n = 200)
 
   sage = MarginalSAGE$new(
     task = task,
-    learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
-    measure = mlr3::msr("classif.ce"),
-    max_background_size = 30L,
+    learner = mlr3::lrn("regr.ranger", num.trees = 50),
+    measure = mlr3::msr("regr.mse"),
+    max_reference_size = 30L,
     n_permutations = 2L
   )
 
   sage$compute()
   expect_importance_dt(sage$importance, features = sage$features)
 
-  # Background should be subsampled to max_background_size
-  expect_lte(nrow(sage$background_data), 30L)
+  # Background should be subsampled to max_reference_size
+  expect_lte(nrow(sage$reference_data), 30L)
 })
 
 test_that("SAGE reproducibility with same seed", {
-  skip_if_not_installed("rpart")
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
 
-  task = mlr3::tsk("pima")
-  learner = mlr3::lrn("classif.rpart", predict_type = "prob")
+  set.seed(123)
+  task = mlr3::tgen("2dnormals")$generate(n = 100)
+  learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob")
   measure = mlr3::msr("classif.ce")
 
   set.seed(42)
@@ -228,14 +244,16 @@ test_that("SAGE reproducibility with same seed", {
 })
 
 test_that("ConditionalSAGE uses ARFSampler by default", {
-  skip_if_not_installed("rpart")
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
   skip_if_not_installed("arf")
 
-  task = mlr3::tsk("pima")
+  set.seed(123)
+  task = mlr3::tgen("xor")$generate(n = 100)
 
   sage = ConditionalSAGE$new(
     task = task,
-    learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
+    learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
     measure = mlr3::msr("classif.ce"),
     n_permutations = 2L
   )
@@ -246,14 +264,16 @@ test_that("ConditionalSAGE uses ARFSampler by default", {
 })
 
 test_that("ConditionalSAGE with custom sampler", {
-  skip_if_not_installed("rpart")
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
 
-  task = mlr3::tsk("pima")
+  set.seed(123)
+  task = mlr3::tgen("spirals")$generate(n = 200)
   custom_sampler = MarginalSampler$new(task)
 
   sage = ConditionalSAGE$new(
     task = task,
-    learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
+    learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
     measure = mlr3::msr("classif.ce"),
     sampler = custom_sampler,
     n_permutations = 2L
@@ -266,8 +286,12 @@ test_that("ConditionalSAGE with custom sampler", {
 })
 
 test_that("SAGE parameter validation", {
-  task = mlr3::tsk("pima")
-  learner = mlr3::lrn("classif.rpart", predict_type = "prob")
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
+
+  set.seed(123)
+  task = mlr3::tgen("2dnormals")$generate(n = 50)
+  learner = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob")
   measure = mlr3::msr("classif.ce")
 
   # n_permutations must be positive integer
