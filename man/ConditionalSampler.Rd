@@ -40,7 +40,7 @@ Creates a new instance of the ConditionalSampler class
 \if{html}{\out{<a id="method-ConditionalSampler-sample"></a>}}
 \if{latex}{\out{\hypertarget{method-ConditionalSampler-sample}{}}}
 \subsection{Method \code{sample()}}{
-Sample values for a feature conditionally on all other features
+Sample values for feature(s) conditionally on other features
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ConditionalSampler$sample(feature, data, conditioning_features = NULL)}\if{html}{\out{</div>}}
 }
@@ -48,7 +48,7 @@ Sample values for a feature conditionally on all other features
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\code{character(1)}) Feature name to sample}
+\item{\code{feature}}{(\code{character}) Feature name(s) to sample (can be single or multiple)}
 
 \item{\code{data}}{(\code{\link[data.table:data.table]{data.table}} ) Data containing conditioning features}
 
@@ -57,7 +57,7 @@ Sample values for a feature conditionally on all other features
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Modified copy of the input data with the feature sampled conditionally
+Modified copy of the input data with the feature(s) sampled conditionally
 }
 }
 \if{html}{\out{<hr>}}

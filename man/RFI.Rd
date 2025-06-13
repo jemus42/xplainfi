@@ -6,6 +6,19 @@
 \description{
 Implementation of RFI using modular sampling approach
 }
+\examples{
+\dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE) && requireNamespace("arf", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+library(mlr3)
+task = tgen("friedman1")$generate(n = 200)
+rfi = RFI$new(
+  task = task,
+  learner = lrn("regr.ranger", num.trees = 50),
+  measure = msr("regr.mse"),
+  conditioning_set = c("important1")
+)
+rfi$compute()
+\dontshow{\}) # examplesIf}
+}
 \section{Super classes}{
 \code{\link[xplainfi:FeatureImportanceMeasure]{xplainfi::FeatureImportanceMeasure}} -> \code{\link[xplainfi:PerturbationImportance]{xplainfi::PerturbationImportance}} -> \code{RFI}
 }

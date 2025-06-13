@@ -42,6 +42,15 @@ PerturbationImportance = R6Class(
 #'
 #' @description Implementation of PFI using modular sampling approach
 #'
+#' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
+#' library(mlr3)
+#' task = tgen("2dnormals")$generate(n = 100)
+#' pfi = PFI$new(
+#'   task = task,
+#'   learner = lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
+#'   measure = msr("classif.ce")
+#' )
+#' pfi$compute()
 #' @export
 PFI = R6Class(
   "PFI",
@@ -190,6 +199,15 @@ PFI = R6Class(
 #'
 #' @description Implementation of CFI using modular sampling approach
 #'
+#' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE) && requireNamespace("arf", quietly = TRUE)
+#' library(mlr3)
+#' task = tgen("2dnormals")$generate(n = 100)
+#' cfi = CFI$new(
+#'   task = task,
+#'   learner = lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
+#'   measure = msr("classif.ce")
+#' )
+#' cfi$compute()
 #' @export
 CFI = R6Class(
   "CFI",
@@ -347,6 +365,16 @@ CFI = R6Class(
 #'
 #' @description Implementation of RFI using modular sampling approach
 #'
+#' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE) && requireNamespace("arf", quietly = TRUE)
+#' library(mlr3)
+#' task = tgen("friedman1")$generate(n = 200)
+#' rfi = RFI$new(
+#'   task = task,
+#'   learner = lrn("regr.ranger", num.trees = 50),
+#'   measure = msr("regr.mse"),
+#'   conditioning_set = c("important1")
+#' )
+#' rfi$compute()
 #' @export
 RFI = R6Class(
   "RFI",

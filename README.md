@@ -8,6 +8,8 @@
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![R-CMD-check](https://github.com/jemus42/xplainfi/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jemus42/xplainfi/actions/workflows/R-CMD-check.yaml)
+[![Codecov test
+coverage](https://codecov.io/gh/jemus42/xplainfi/graph/badge.svg)](https://app.codecov.io/gh/jemus42/xplainfi)
 <!-- badges: end -->
 
 The goal of `xplainfi` is to collect common feature importance methods
@@ -88,7 +90,7 @@ retrieved as a `data.table`:
 
 ``` r
 pfi$scores
-#> Key: <feature, iter_rsmp, iter_perm>
+#> Key: <feature, iter_rsmp>
 #>        feature iter_rsmp iter_perm classif.ce_orig classif.ce_perm   importance
 #>         <char>     <int>     <int>           <num>           <num>        <num>
 #>   1:       age         1         1       0.2095808       0.2305389  0.020958084
@@ -147,7 +149,7 @@ pfi_single$compute()
 #> 20:               telephone -0.003003003
 #>                     feature   importance
 pfi_single$scores
-#> Key: <feature, iter_rsmp, iter_perm>
+#> Key: <feature, iter_rsmp>
 #>                     feature iter_rsmp iter_perm classif.ce_orig classif.ce_perm
 #>                      <char>     <int>     <int>           <num>           <num>
 #>  1:                     age         1         1       0.2732733       0.2762763
@@ -165,6 +167,12 @@ pfi_single$scores
 #> 13:           people_liable         1         1       0.2732733       0.2822823
 #> 14:     personal_status_sex         1         1       0.2732733       0.2762763
 #> 15:       present_residence         1         1       0.2732733       0.2792793
+#> 16:                property         1         1       0.2732733       0.2762763
+#> 17:                 purpose         1         1       0.2732733       0.2882883
+#> 18:                 savings         1         1       0.2732733       0.2762763
+#> 19:                  status         1         1       0.2732733       0.3273273
+#> 20:               telephone         1         1       0.2732733       0.2702703
+#>                     feature iter_rsmp iter_perm classif.ce_orig classif.ce_perm
 #>       importance
 #>            <num>
 #>  1:  0.003003003
@@ -182,5 +190,10 @@ pfi_single$scores
 #> 13:  0.009009009
 #> 14:  0.003003003
 #> 15:  0.006006006
-#>  [ reached getOption("max.print") -- omitted 6 rows ]
+#> 16:  0.003003003
+#> 17:  0.015015015
+#> 18:  0.003003003
+#> 19:  0.054054054
+#> 20: -0.003003003
+#>       importance
 ```

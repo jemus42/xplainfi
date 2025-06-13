@@ -20,10 +20,10 @@ FeatureSampler = R6Class(
     },
 
     #' @description
-    #' Sample values for a feature
-    #' @param feature (`character(1)`) Feature name to sample
+    #' Sample values for feature(s)
+    #' @param feature (`character`) Feature name(s) to sample (can be single or multiple)
     #' @param data ([`data.table`][data.table::data.table] ) Data to use for sampling context
-    #' @return Modified copy of the input data with the feature sampled
+    #' @return Modified copy of the input data with the feature(s) sampled
     sample = function(feature, data) {
       stop("Abstract method. Use a concrete implementation.")
     }
@@ -35,6 +35,12 @@ FeatureSampler = R6Class(
 #' @description Implements marginal sampling for PFI, where the feature of interest
 #' is sampled independently of other features
 #'
+#' @examples
+#' library(mlr3)
+#' task = tgen("2dnormals")$generate(n = 100)
+#' sampler = MarginalSampler$new(task)
+#' data = task$data()
+#' sampled_data = sampler$sample("x1", data)
 #' @export
 MarginalSampler = R6Class(
   "MarginalSampler",
@@ -49,16 +55,16 @@ MarginalSampler = R6Class(
     },
 
     #' @description
-    #' Sample values for a feature by permutation (marginal distribution)
-    #' @param feature (`character(1)`) Feature name to sample
-    #' @param data ([`data.table`][data.table::data.table] ) Data to permute the feature in
-    #' @return Modified copy of the input data with the feature permuted
+    #' Sample values for feature(s) by permutation (marginal distribution)
+    #' @param feature (`character`) Feature name(s) to sample (can be single or multiple)
+    #' @param data ([`data.table`][data.table::data.table] ) Data to permute the feature(s) in
+    #' @return Modified copy of the input data with the feature(s) permuted
     sample = function(feature, data) {
       # Create a copy to avoid modifying the original data
       data_copy = data.table::copy(data)
 
-      # Simple permutation (marginal sampling)
-      data_copy[, (feature) := sample(.SD[[feature]])]
+      # Handle both single and multiple features efficiently
+      data_copy[, (feature) := lapply(.SD, sample), .SDcols = feature]
 
       data_copy[]
     },
@@ -93,11 +99,11 @@ ConditionalSampler = R6Class(
     },
 
     #' @description
-    #' Sample values for a feature conditionally on all other features
-    #' @param feature (`character(1)`) Feature name to sample
+    #' Sample values for feature(s) conditionally on other features
+    #' @param feature (`character`) Feature name(s) to sample (can be single or multiple)
     #' @param data ([`data.table`][data.table::data.table] ) Data containing conditioning features
     #' @param conditioning_features ([character]) Features to condition on (default: all other features)
-    #' @return Modified copy of the input data with the feature sampled conditionally
+    #' @return Modified copy of the input data with the feature(s) sampled conditionally
     sample = function(feature, data, conditioning_features = NULL) {
       stop("Abstract method. Use a concrete implementation like ARFSampler.")
     }
@@ -115,6 +121,12 @@ ConditionalSampler = R6Class(
 #' then uses it to generate samples from \eqn{P(X_j | X_{-j})} where \eqn{X_j} is the
 #' feature of interest and \eqn{X_{-j}} are the conditioning features.
 #'
+#' @examplesIf requireNamespace("arf", quietly = TRUE)
+#' library(mlr3)
+#' task = tgen("2dnormals")$generate(n = 100)
+#' sampler = ARFSampler$new(task)
+#' data = task$data()
+#' sampled_data = sampler$sample("x1", data, conditioning_features = "x2")
 #' @references
 #' - Watson, D.S., Blesch, K., Kapar, J. & Wright, M.N.. (2023). Adversarial Random Forests for Density Estimation and Generative Modeling. Proceedings of The 26th International Conference on Artificial Intelligence and Statistics, in Proceedings of Machine Learning Research 206:5357-5375 Available from <https://proceedings.mlr.press/v206/watson23a.html>.
 #' - Blesch, K., Koenen, N., Kapar, J., Golchian, P., Burk, L., Loecher, M. & Wright, M. N. (2025). Conditional feature importance with generative modeling using adversarial random forests. In Proceedings of the 39th AAAI Conference on Artificial Intelligence. Available from <https://arxiv.org/abs/2501.11178>
@@ -148,6 +160,8 @@ ARFSampler = R6Class(
       task_data = self$task$data(cols = self$task$feature_names)
 
       # Train ARF and estimate distribution parameters
+      # Default to verbose = FALSE if not provided
+      arf_args$verbose %||% FALSE
 
       self$arf_model = do.call(arf::adversarial_rf, args = c(x = list(task_data), arf_args))
       self$psi = do.call(
@@ -157,14 +171,14 @@ ARFSampler = R6Class(
     },
 
     #' @description
-    #' Sample values for a feature conditionally on other features using ARF
-    #' @param feature (`character(1)`) Feature of interest to sample
-    #' @param data ([`data.table`][data.table::data.table]) Data containing conditioning features. Defaults to `$task$data()`, but typically a deidcated test set is provided.
+    #' Sample values for feature(s) conditionally on other features using ARF
+    #' @param feature (`character`) Feature(s) of interest to sample (can be single or multiple)
+    #' @param data ([`data.table`][data.table::data.table]) Data containing conditioning features. Defaults to `$task$data()`, but typically a dedicated test set is provided.
     #' @param conditioning_features (`character(n) | NULL`) Features to condition on (default: all other features)
     #' @param n_synth (`1`) Number of samples to generate (per row of evidence, when `evidence_row_mode = "separate"`). See `arf::forge()`.
     #' @param evidence_row_mode (`"separate"`) Produce `n_synth` sample per row of evidence. See `arf::forge()`
     #' @param ... Further arguments passed to `arf::forge()`.
-    #' @return Modified copy of the input data with the feature sampled conditionally
+    #' @return Modified copy of the input data with the feature(s) sampled conditionally
     sample = function(
       feature,
       data = self$task$data(),
@@ -182,12 +196,22 @@ ARFSampler = R6Class(
       }
 
       # Create evidence data frame with conditioning features for all rows
-      evidence = data[, ..conditioning_features]
+      # Handle empty conditioning set by passing NULL to arf::forge()
+      if (length(conditioning_features) == 0) {
+        evidence = NULL
+        # When evidence is NULL, ARF generates exactly n_synth rows
+        # We need to generate as many rows as we have in our data
+        n_synth_adjusted = nrow(data)
+      } else {
+        evidence = data[, ..conditioning_features]
+        # When evidence is provided, n_synth is per evidence row
+        n_synth_adjusted = n_synth
+      }
 
-      # Generate conditional samples - one sample per evidence row
+      # Generate conditional samples - one sample per evidence row (or n_rows total when no evidence)
       synthetic = arf::forge(
         params = self$psi,
-        n_synth = n_synth,
+        n_synth = n_synth_adjusted,
         evidence = evidence,
         evidence_row_mode = evidence_row_mode,
         ...

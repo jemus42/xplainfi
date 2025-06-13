@@ -3,13 +3,15 @@ test_that("can't be constructed without args", {
 })
 
 test_that("can be constructed with simple objects", {
-  skip_if_not_installed("rpart")
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
 
-  task = mlr3::tsk("zoo")
+  set.seed(123)
+  task = mlr3::tgen("2dnormals")$generate(n = 100)
 
   pfi = PFI$new(
     task = task,
-    learner = mlr3::lrn("classif.rpart"),
+    learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
     measure = mlr3::msr("classif.ce")
   )
 
@@ -20,7 +22,8 @@ test_that("can be constructed with simple objects", {
 })
 
 test_that("null result for featureless learner", {
-  task = mlr3::tsk("zoo")
+  set.seed(123)
+  task = mlr3::tgen("xor")$generate(n = 200)
 
   pfi = PFI$new(
     task = task,
@@ -40,12 +43,16 @@ test_that("null result for featureless learner", {
 })
 
 test_that("multiple perms", {
-  task = mlr3::tsk("zoo")
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
+
+  set.seed(123)
+  task = mlr3::tgen("friedman1")$generate(n = 200)
 
   pfi = PFI$new(
     task = task,
-    learner = mlr3::lrn("classif.rpart"),
-    measure = mlr3::msr("classif.ce"),
+    learner = mlr3::lrn("regr.ranger", num.trees = 50),
+    measure = mlr3::msr("regr.mse"),
     resampling = mlr3::rsmp("cv", folds = 3),
     iters_perm = 2
   )
@@ -67,20 +74,24 @@ test_that("multiple perms", {
 })
 
 test_that("only one feature", {
-  task = mlr3::tsk("zoo")
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
+
+  set.seed(123)
+  task = mlr3::tgen("friedman1")$generate(n = 200)
 
   pfi = PFI$new(
     task = task,
-    learner = mlr3::lrn("classif.rpart"),
-    measure = mlr3::msr("classif.ce"),
+    learner = mlr3::lrn("regr.ranger", num.trees = 50),
+    measure = mlr3::msr("regr.mse"),
     resampling = mlr3::rsmp("cv", folds = 3),
     iters_perm = 2,
-    features = "legs"
+    features = "important4"
   )
 
   pfi$compute()
 
-  expect_importance_dt(pfi$importance, features = "legs")
+  expect_importance_dt(pfi$importance, features = "important4")
 
   checkmate::expect_data_table(
     pfi$scores,
@@ -94,29 +105,24 @@ test_that("only one feature", {
 })
 
 
-test_that("snapshot results", {
+test_that("PFI different relations (difference vs ratio)", {
   skip_if_not_installed("ranger")
   skip_if_not_installed("mlr3learners")
 
   set.seed(123)
-
-  task = mlr3::tsk("german_credit")
-  learner = mlr3::lrn("classif.ranger", num.trees = 500)
-  measure = mlr3::msr("classif.ce")
+  task = mlr3::tgen("2dnormals")$generate(n = 100)
 
   pfi = PFI$new(
     task = task,
-    learner = learner,
-    measure = measure
+    learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
+    measure = mlr3::msr("classif.ce")
   )
 
   # Default behavior should be sane
   res_1 = pfi$compute()
-  # Expect named, non-missing/finite numeric vector corresponding to feature names
   expect_importance_dt(res_1, pfi$features)
 
   res_2 = pfi$compute()
-
   expect_identical(res_1, res_2)
 
   res_3 = pfi$compute("difference")
@@ -131,16 +137,24 @@ test_that("snapshot results", {
   expect_importance_dt(res_3, pfi$features)
   expect_importance_dt(res_4, pfi$features)
   expect_importance_dt(res_5, pfi$features)
+})
 
-  # With resampling
-  resampling = rsmp("cv", folds = 3)
-  measure = msr("classif.ce")
+test_that("PFI with resampling", {
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
+
+  set.seed(123)
+  task = mlr3::tgen("xor")$generate(n = 200)
+  learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob")
+  resampling = mlr3::rsmp("cv", folds = 3)
+  measure = mlr3::msr("classif.ce")
 
   pfi = PFI$new(
     task = task,
     learner = learner,
     resampling = resampling,
-    measure = measure
+    measure = measure,
+    iters_perm = 2
   )
 
   res_1 = pfi$compute()

@@ -12,7 +12,9 @@ editor_options:
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 6
 )
 set.seed(123)
 # Quiet down
@@ -21,12 +23,10 @@ lgr::get_logger("mlr3")$set_threshold("warn")
 
 ```{r setup}
 library(xplainfi)
-
-# learners, tasks, etc.
 library(mlr3)
-library(mlr3data) # penguins_simple
-library(mlr3learners) # ranger
+library(mlr3learners)
 library(data.table)
+library(ggplot2)
 ```
 
 This vignette demonstrates the three perturbation-based feature importance methods implemented in xplainfi:
@@ -35,29 +35,34 @@ This vignette demonstrates the three perturbation-based feature importance metho
 - **CFI (Conditional Feature Importance)**: Uses conditional sampling via Adversarial Random Forests
 - **RFI (Relative Feature Importance)**: Uses conditional sampling on a user-specified subset of features
 
-## Problem Setup
+## Problem Setup: Friedman1 Task
 
-We'll use the `penguins_simple` dataset to compare these methods:
+We'll use the Friedman1 task generator which provides an ideal setup for demonstrating feature importance methods. This synthetic regression task has a known ground truth:
+
+- **5 important features** (`important1` to `important5`) that actually affect the target
+- **5 unimportant features** (`unimportant1` to `unimportant5`) that are pure noise
+
+The target function is: $y = 10 * \operatorname{sin}(\pi * x_1 * x_2) + 20 * (x_3 - 0.5)^2 + 10 * x_4 + 5 * x_5 + \epsilon$
+
+This makes it easy to evaluate whether our importance methods correctly identify the truly important features.
 
 ```{r setup-problem}
-task <- tsk("penguins")
-learner <- lrn("classif.ranger", num.trees = 100, num.threads = 2)
+# Generate the task
+task <- tgen("friedman1")$generate(n = 400)
+learner <- lrn("regr.ranger", num.trees = 100)
 resampling <- rsmp("cv", folds = 3)
-measure <- msr("classif.acc")
-
-# Show the task structure
-task
+measure <- msr("regr.mse")
 ```
+
+The task has `r task$nrow` observations with `r length(task$feature_names)` features: `r paste(task$feature_names, collapse = ", ")`. The target variable is `r task$target_names`.
 
 ## Permutation Feature Importance (PFI)
 
 PFI shuffles each feature independently, breaking the association between the feature and the target while preserving the marginal distribution.
 
-For more stable results, we 
-
-- a) Use 3-fold CV for more reliable performance estimates
-- b) Within each resampling iteration, we repeat the permutation-prediction-scoring step `iters_perm` times
-
+For more stable results, we use:
+- 3-fold CV for more reliable performance estimates
+- Within each resampling iteration, we repeat the permutation-prediction-scoring step `iters_perm` times
 
 ```{r pfi}
 pfi <- PFI$new(
@@ -75,29 +80,34 @@ pfi_results
 # Also stored in
 pfi$importance
 
-# Scores per resampling iteration and permutation iteration
-pfi$scores |>
-  knitr::kable(digits = 4)
+# Show a sample of detailed scores
+head(pfi$scores, 10) |>
+  knitr::kable(digits = 4, caption = "Sample of PFI detailed scores")
 ```
 
 ## Conditional Feature Importance (CFI)
 
-CFI uses conditional sampling to preserve the joint distribution of all other features when perturbing a feature of interest. By default we use Adversarial Random Forests (ARF) as conditional sampler internally, but it can be provided explicity, as we usually want to supply additional arguments to `arf::adversarial_rf()` or `arf::forde()`.
+CFI uses conditional sampling to preserve the joint distribution of all other features when perturbing a feature of interest. By default we use Adversarial Random Forests (ARF) as conditional sampler internally.
 
 ```{r sampler-arf}
 sampler = ARFSampler$new(
   task = task, 
-  arf_args = list(verbose = FALSE, parallel = FALSE),
-  forde_args = list(finite_bounds = "no")
+  arf_args = list(verbose = FALSE),
+  forde_args = list()
 )
 
 # Example sampling for 5 randomly chosen rows from the task
-sampler$sample(
-  feature = "bill_length", 
-  data = task$data(rows = sample(task$nrow, size = 5)), 
-  conditioning_features = "body_mass"
+sample_data <- task$data(rows = sample(task$nrow, size = 5))
+sampled_result <- sampler$sample(
+  feature = "important1", 
+  data = sample_data, 
+  conditioning_features = "important2"
 )
 ```
+
+Original `important1` values: `r paste(round(sample_data$important1, 3), collapse = ", ")`
+
+Sampled `important1` values (conditioned on `important2`): `r paste(round(sampled_result$important1, 3), collapse = ", ")`
 
 ```{r cfi}
 cfi <- CFI$new(
@@ -116,10 +126,10 @@ cfi_results
 
 ## Relative Feature Importance (RFI)
 
-RFI conditions on a specific subset of features as opposed to just one as in CFI, measuring importance relative to those features.
+RFI conditions on a specific subset of features, measuring importance relative to those features. Let's condition on two of the important features to see how the others rank relative to this baseline.
 
 ```{r rfi}
-conditioning_set <- c("sex", "year")
+conditioning_set <- c("important1", "important2")
 
 rfi <- RFI$new(
   task = task,
@@ -153,27 +163,27 @@ comparison <- merge(
   by = "feature"
 )
 
-comparison
-```
+# Add feature type for analysis
+comparison[, feature_type := ifelse(grepl("^important", feature), "Important", "Noise")]
 
-```{r comparison-table}
 comparison |>
   knitr::kable(
     digits = 4, 
     caption = "Feature Importance Comparison (Difference Scores)",
-    col.names = c("Feature", "PFI", "CFI", "RFI")
+    col.names = c("Feature", "PFI", "CFI", "RFI", "Type")
   )
 ```
 
 ## Visualization
 
-```{r visualization, fig.width=8, fig.height=6}
-library(ggplot2)
+Let's create comprehensive visualizations to understand the results:
 
+```{r visualization-comparison}
 # Reshape data for plotting
 plot_data <- comparison |>
   melt(
-    id.vars = "feature",
+    id.vars = c("feature", "feature_type"),
+    measure.vars = c("pfi", "cfi", "rfi"),
     value.name = "importance",
     variable.name = "method"
   )
@@ -181,27 +191,139 @@ plot_data <- comparison |>
 # Clean up method names
 plot_data[, method := toupper(method)]
 
-# Create the plot
+# Create the comparison plot
 ggplot(plot_data, aes(x = importance, y = reorder(feature, importance), fill = method)) +
-  geom_col(position = "dodge", alpha = 0.7) +
-  scale_fill_brewer(palette = "Dark2") +
+  geom_col(position = "dodge", alpha = 0.8) +
+  scale_fill_manual(values = c("PFI" = "steelblue", "CFI" = "darkgreen", "RFI" = "orange")) +
   labs(
-    title = "Feature Importance Comparison",
-    subtitle = glue::glue(
-      "Task: {task$id} 
-      Measure: {measure$id}
-      RFI conditioned on: {paste(conditioning_set, collapse = ', ')}"),
+    title = "Feature Importance Comparison: PFI vs CFI vs RFI",
+    subtitle = glue::glue("Friedman1 task: 5 important + 5 noise features
+                          RFI conditioned on: {paste(conditioning_set, collapse = ', ')}"),
     x = "Importance Score (Difference)",
     y = "Feature",
     fill = "Method",
-    caption = glue::glue("Using {resampling$iters}-fold cross-validation")
+    caption = glue::glue("Using {resampling$iters}-fold cross-validation
+                          and 5 permutation iterations")
   ) +
-  theme_minimal(base_size = 16) +
+  theme_minimal() +
   theme(
     legend.position = "bottom",
     plot.title.position = "plot"
-  )
+  ) +
+  facet_wrap(~ feature_type, scales = "free_y", ncol = 1)
 ```
+
+Let's also create a correlation plot to see how similar the methods are:
+
+```{r correlation-analysis}
+# Calculate correlations between methods
+pfi_cfi_cor <- cor(comparison$pfi, comparison$cfi)
+pfi_rfi_cor <- cor(comparison$pfi, comparison$rfi)
+cfi_rfi_cor <- cor(comparison$cfi, comparison$rfi)
+
+# Create correlation matrix plot
+cor_data <- comparison[, .(feature, pfi, cfi, rfi, feature_type)]
+
+# PFI vs CFI
+p1 <- ggplot(cor_data, aes(x = pfi, y = cfi, color = feature_type)) +
+  geom_point(size = 3, alpha = 0.8) +
+  geom_smooth(method = "lm", se = FALSE, color = "gray50", linetype = "dashed") +
+  scale_color_manual(values = c("Important" = "steelblue", "Noise" = "lightcoral")) +
+  labs(
+    title = "PFI vs CFI",
+    subtitle = sprintf("Correlation: %.3f", pfi_cfi_cor),
+    x = "PFI Score", y = "CFI Score"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+# PFI vs RFI  
+p2 <- ggplot(cor_data, aes(x = pfi, y = rfi, color = feature_type)) +
+  geom_point(size = 3, alpha = 0.8) +
+  geom_smooth(method = "lm", se = FALSE, color = "gray50", linetype = "dashed") +
+  scale_color_manual(values = c("Important" = "steelblue", "Noise" = "lightcoral")) +
+  labs(
+    title = "PFI vs RFI",
+    subtitle = sprintf("Correlation: %.3f", pfi_rfi_cor),
+    x = "PFI Score", y = "RFI Score"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+# CFI vs RFI
+p3 <- ggplot(cor_data, aes(x = cfi, y = rfi, color = feature_type)) +
+  geom_point(size = 3, alpha = 0.8) +
+  geom_smooth(method = "lm", se = FALSE, color = "gray50", linetype = "dashed") +
+  scale_color_manual(
+    values = c("Important" = "steelblue", "Noise" = "lightcoral"),
+    name = "Feature Type"
+  ) +
+  labs(
+    title = "CFI vs RFI", 
+    subtitle = sprintf("Correlation: %.3f", cfi_rfi_cor),
+    x = "CFI Score", y = "RFI Score"
+  ) +
+  theme_minimal()
+
+# Combine plots
+library(patchwork)
+(p1 / p2 / p3) + 
+  plot_annotation(
+    title = "Method Correlations",
+    subtitle = "Each point represents one feature"
+  ) +
+  theme(legend.position = "bottom")
+```
+
+## Understanding the Results
+
+Let's analyze how well each method distinguishes important from noise features:
+
+```{r analysis}
+# Calculate summary statistics by feature type
+summary_stats <- comparison[, .(
+  mean_importance = mean(c(pfi, cfi, rfi)),
+  pfi_mean = mean(pfi),
+  cfi_mean = mean(cfi), 
+  rfi_mean = mean(rfi),
+  n_features = .N
+), by = feature_type]
+
+summary_stats |> knitr::kable(digits = 4, caption = "Summary by feature type")
+
+# Calculate separation ratios (how well each method separates signal from noise)
+important_pfi <- comparison[feature_type == "Important", mean(pfi)]
+noise_pfi <- comparison[feature_type == "Noise", mean(abs(pfi))]
+pfi_separation <- important_pfi / noise_pfi
+
+important_cfi <- comparison[feature_type == "Important", mean(cfi)]
+noise_cfi <- comparison[feature_type == "Noise", mean(abs(cfi))]
+cfi_separation <- important_cfi / noise_cfi
+
+important_rfi <- comparison[feature_type == "Important", mean(rfi)]
+noise_rfi <- comparison[feature_type == "Noise", mean(abs(rfi))]
+rfi_separation <- important_rfi / noise_rfi
+
+# Store results for inline reporting
+pfi_sep <- round(pfi_separation, 2)
+cfi_sep <- round(cfi_separation, 2) 
+rfi_sep <- round(rfi_separation, 2)
+pfi_cfi <- round(pfi_cfi_cor, 3)
+pfi_rfi <- round(pfi_rfi_cor, 3)
+cfi_rfi <- round(cfi_rfi_cor, 3)
+```
+
+### Method Performance
+
+**Separation ratios** (how well each method distinguishes important from noise features):
+- PFI: `r pfi_sep`
+- CFI: `r cfi_sep`  
+- RFI: `r rfi_sep`
+
+**Correlations between methods:**
+- PFI vs CFI: `r pfi_cfi`
+- PFI vs RFI: `r pfi_rfi`
+- CFI vs RFI: `r cfi_rfi`
 
 ## Understanding the Differences
 
@@ -211,25 +333,75 @@ The three methods can yield different results because they make different assump
 
 2. **CFI** preserves the conditional distribution $P(X_{-j} | X_j)$ when perturbing feature $j$, providing a more realistic assessment when features are correlated.
 
-3. **RFI** measures importance relative to a specific conditioning set, answering "what additional information does this feature provide beyond what we already know from features A, B, C?"
+3. **RFI** measures importance relative to a specific conditioning set, answering "what additional information does this feature provide beyond what we already know from the conditioning features?"
 
-In our penguin example:
-- Features like bill dimensions and body mass are likely correlated
-- CFI accounts for these correlations when measuring importance
-- RFI shows which features add value beyond bill_length and flipper_length
+In our Friedman1 example:
+- All methods successfully identify that `important1` through `important5` are more important than `unimportant1` through `unimportant5`
+- The relative rankings may differ because:
+  - PFI treats each feature in isolation
+  - CFI accounts for dependencies between all features
+  - RFI shows which features add value beyond `important1` and `important2`
+
+## Variability Analysis
+
+Let's examine the stability of our importance estimates across resampling- and permutation iterations using the `$scores` tables:
+
+```{r variability-analysis}
+detailed_scores <- rbindlist(list(
+  pfi$scores[, method := "PFI"],
+  cfi$scores[, method := "CFI"],
+  rfi$scores[, method := "RFI"]
+))
+
+score_summary <- detailed_scores[, .(
+  mean_importance = mean(importance),
+  sd_importance = sd(importance),
+  n_iterations = .N
+), by = .(feature, method)]
+
+# Add feature type
+score_summary[, feature_type := ifelse(grepl("^important", feature), "Important", "Noise")]
+
+# Plot error bars
+ggplot(score_summary, aes(
+    y = reorder(feature, mean_importance), 
+    x = mean_importance,
+    xmin = mean_importance - sd_importance, 
+    xmax = mean_importance + sd_importance,
+    color = method)
+  ) +
+  facet_wrap(vars(feature_type), ncol = 1, scales = "free_y") +
+  geom_point(size = 3) +
+  geom_errorbarh(linewidth = 1, height = 0.3) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(
+    title = "Importance Score Variability: Mean ± SD",
+    subtitle = glue::glue("Error bars show standard deviation across iterations
+                      RFI conditioned on: {paste(conditioning_set, collapse = ', ')}"),
+    x = "Score (Difference)",
+    y = "Feature",
+    color = "Method",
+    caption = paste("Using", resampling$iters, "-fold CV and", pfi$param_set$values$iters_perm, "permutations each")
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title.position = "plot",
+    legend.position = "bottom"
+  )
+```
 
 ## Advanced Usage
 
 ### Custom Samplers
 
-You can also provide custom samplers for more control:
+You can provide custom samplers for more control:
 
 ```{r custom-sampler, eval=FALSE}
 # Create a custom ARF sampler with specific parameters
 custom_sampler <- ARFSampler$new(
   task = task,
-  arf_args = list(num_trees = 50),  # Fewer trees for faster computation
-  forde_args = list(finite_bounds = "local") # Avoid out of distribution samples
+  arf_args = list(num.trees = 50),  # Fewer trees for faster computation
+  forde_args = list(finite_bounds = "no") # Allow extrapolation
 )
 
 cfi_custom <- CFI$new(
@@ -241,41 +413,42 @@ cfi_custom <- CFI$new(
 )
 ```
 
-### Accessing Detailed Results
+### Empty Conditioning Set for RFI
 
-As mentioned, individual scores per resampling iteration and permutation iteration are kept in `$scores`.
+RFI with an empty conditioning set should produce similar results to PFI:
 
-```{r detailed-scores}
-detailed_scores <- pfi$scores
-head(detailed_scores)
+```{r rfi-empty, eval=TRUE}
+rfi_empty <- RFI$new(
+  task = task,
+  learner = learner,
+  measure = measure,
+  resampling = resampling,
+  conditioning_set = character(0), # Empty conditioning set
+  iters_perm = 5,
+  sampler = sampler
+)
 
-# Summarize variability across iterations
-score_summary <- detailed_scores[, .(
-  mean_importance = mean(importance),
-  sd_importance = sd(importance),
-  n_iterations = .N
-), by = feature]
+rfi_empty_results <- rfi_empty$compute()
 
-score_summary
+# Compare with PFI
+empty_comparison <- merge(
+  pfi_results[, .(feature, pfi = importance)],
+  rfi_empty_results[, .(feature, rfi_empty = importance)],
+  by = "feature"
+)
 
-ggplot(score_summary, aes(
-  y = reorder(feature, mean_importance), 
-  xmin = mean_importance - sd_importance, 
-  xmax = mean_importance + sd_importance)
-  ) +
-  geom_errorbarh(linewidth = 1, height = .5) +
-  labs(
-    title = "Permutation Feature Importance: Mean ± SD",
-    subtitle = glue::glue(
-      "Task: {task$id} 
-      Measure: {measure$id}"),
-    x = "PFI Score (Difference)",
-    y = "Feature",
-    caption = glue::glue("Using {resampling$iters}-fold cross-validation and {pfi$param_set$values$iters_perm} permutations each")
-  ) +
-  theme_minimal(base_size = 16) +
-  theme(
-    legend.position = "bottom",
-    plot.title.position = "plot"
-  )
+correlation_empty <- cor(empty_comparison$pfi, empty_comparison$rfi_empty)
 ```
+
+The correlation between PFI and RFI with empty conditioning set is `r round(correlation_empty, 3)`, confirming that $\mathrm{RFI}(\emptyset) \approx \mathrm{PFI}$ as expected.
+
+## Key Takeaways
+
+1. **All methods correctly identify important features** in this well-structured synthetic task
+2. **PFI provides a baseline** for marginal feature importance
+3. **CFI accounts for feature dependencies** through conditional sampling
+4. **RFI measures relative importance** beyond a specified conditioning set
+5. **Method choice depends on your question**: 
+   - Use PFI for simple, interpretable marginal importance
+   - Use CFI when feature dependencies matter
+   - Use RFI to understand incremental value beyond known important features

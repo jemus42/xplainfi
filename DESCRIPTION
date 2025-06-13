@@ -10,6 +10,8 @@ License: MIT + file LICENSE
 URL: https://jemus42.github.io/xplainfi/,
     https://github.com/jemus42/xplainfi
 BugReports: https://github.com/jemus42/xplainfi/issues
+Depends:
+    R (>= 4.1.0)
 Imports: 
     checkmate,
     cli,
@@ -25,6 +27,7 @@ Suggests:
     knitr,
     mlr3data,
     mlr3learners,
+    patchwork,
     ranger,
     rmarkdown,
     rpart,

@@ -10,7 +10,9 @@
 ^\.github$
 ^attic$
 ^Claude\.md$
+^Claude\.local\.md$
 ^air\.toml$
 ^.*\.Rproj$
 ^\.claude$
 ^Makefile$
+^codecov\.yml$
