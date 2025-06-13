@@ -1,9 +1,20 @@
-all: doc README.md
+PKGNAME = `sed -n "s/Package: *\([^ ]*\)/\1/p" DESCRIPTION`
+PKGVERS = `sed -n "s/Version: *\([^ ]*\)/\1/p" DESCRIPTION`
+
+all: format doc README.md install check
+
+.PHONY: format
+format:
+	air format .
 
 .PHONY: doc
 doc:
 	Rscript -e "usethis::use_tidy_description()"
 	Rscript -e "devtools::document()"
+
+.PHONY: build
+build:
+	Rscript -e "devtools::build()"
 
 .PHONY: install
 install:
@@ -33,3 +44,7 @@ site:
 README.md: README.Rmd
 	Rscript -e "rmarkdown::render('README.Rmd')"
 	rm README.html
+
+clean:
+	rm vignettes/*html
+	rm -r docs

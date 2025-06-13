@@ -1,0 +1,128 @@
+---
+title: "LOCO and LOCI"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{LOCO and LOCI}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+set.seed(123)
+# Quiet down
+lgr::get_logger("mlr3")$set_threshold("warn")
+```
+
+```{r setup}
+library(xplainfi)
+library(mlr3)
+library(mlr3learners)
+```
+
+## Leave-One-Covariate-Out (LOCO)
+
+LOCO measures feature importance by comparing model performance with and without each feature. For each feature, the learner is retrained without that feature and the performance difference indicates the feature's importance.
+
+```{r loco-example}
+# Use Friedman1 task with known feature importance patterns
+task <- tgen("friedman1")$generate(n = 200)
+learner <- lrn("regr.ranger", num.trees = 100)
+measure <- msr("regr.mse")
+
+loco <- LOCO$new(
+  task = task,
+  learner = learner,
+  measure = measure
+)
+
+loco$compute()
+```
+
+## Leave-One-Covariate-In (LOCI)
+
+LOCI measures feature importance by training models with only each individual feature and measuring how much predictive power each feature provides on its own.
+
+```{r loci-example}
+loci <- LOCI$new(
+  task = task,
+  learner = learner,
+  measure = measure
+)
+
+loci$compute()
+```
+
+## Multiple Refits
+
+Like PFI has `iters_perm` for multiple permutation iterations, LOCO and LOCI support `iters_refit` for multiple refit iterations per resampling iteration:
+
+```{r multiple-refits}
+loco_multi = LOCO$new(
+  task = task,
+  learner = learner,
+  measure = measure,
+  resampling = rsmp("cv", folds = 3),
+  iters_refit = 3L
+)
+
+loco_multi$compute()
+
+# Check individual scores with multiple refits
+loco_multi$scores[1:10, ] |>
+  knitr::kable(digits = 4)
+```
+
+## Comparing LOCO and LOCI
+
+```{r comparison}
+# Combine results for comparison
+importance_combined <- rbind(
+  loco$importance[, method := "LOCO"],
+  loci$importance[, method := "LOCI"]
+)
+
+importance_combined <- importance_combined |>
+  dcast(feature ~ method, value.var = "importance")
+
+importance_combined |>
+  knitr::kable(digits = 4, caption = "LOCO vs LOCI importance scores")
+```
+
+The Friedman1 task has known feature importance patterns:
+- `important1`-`important5`: Important features
+- `unimportant1`-`unimportant5`: Noise features
+
+**Interpreting the results:**
+- **LOCO**: Higher values indicate more important features (larger performance drop when removed)
+- **LOCI**: Lower values indicate more important features (better individual performance)
+
+Note that LOCI values represent the performance difference between using only that feature vs. using all features, so they tend to be larger than LOCO values.
+
+```{r plot, fig.width=7, fig.height=4}
+library(ggplot2)
+
+importance_combined |>
+  data.table::melt(
+    id.vars = "feature",
+    value.name = "score",
+    variable.name = "method"
+  ) |>
+  ggplot(aes(x = score, y = feature, color = method, fill = method)) +
+  geom_col(position = "dodge", alpha = 0.7) +
+  scale_color_brewer(palette = "Set1", aesthetics = c("color", "fill")) +
+  labs(
+    title = "LOCO vs LOCI Feature Importance",
+    x = "Importance Score",
+    y = "Feature",
+    color = "Method",
+    fill = "Method"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
