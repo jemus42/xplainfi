@@ -6,9 +6,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Perturbation-based Feature Importance Methods • xplainfi</title>
-<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet">
+<link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet">
+<link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Perturbation-based Feature Importance Methods">
 </head>
@@ -16,7 +19,7 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
@@ -35,6 +38,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-based Feature Importance Methods</a></li>
+    <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -44,6 +48,14 @@
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/jemus42/xplainfi/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
+</li>
       </ul>
 </div>
 
@@ -68,12 +80,10 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jemus42.github.io/xplainfi/">xplainfi</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># learners, tasks, etc.</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr3.mlr-org.com" class="external-link">mlr3</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mlr-org/mlr3data" class="external-link">mlr3data</a></span><span class="op">)</span> <span class="co"># penguins_simple</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr3learners.mlr-org.com" class="external-link">mlr3learners</a></span><span class="op">)</span> <span class="co"># ranger</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-datatable.com" class="external-link">data.table</a></span><span class="op">)</span></span></code></pre></div>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr3learners.mlr-org.com" class="external-link">mlr3learners</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-datatable.com" class="external-link">data.table</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span></code></pre></div>
 <p>This vignette demonstrates the three perturbation-based feature
 importance methods implemented in xplainfi:</p>
 <ul>
@@ -88,25 +98,33 @@ conditional sampling via Adversarial Random Forests</li>
 sampling on a user-specified subset of features</li>
 </ul>
 <div class="section level2">
-<h2 id="problem-setup">Problem Setup<a class="anchor" aria-label="anchor" href="#problem-setup"></a>
+<h2 id="problem-setup-friedman1-task">Problem Setup: Friedman1 Task<a class="anchor" aria-label="anchor" href="#problem-setup-friedman1-task"></a>
 </h2>
-<p>We’ll use the <code>penguins_simple</code> dataset to compare these
-methods:</p>
+<p>We’ll use the Friedman1 task generator which provides an ideal setup
+for demonstrating feature importance methods. This synthetic regression
+task has a known ground truth:</p>
+<ul>
+<li>
+<strong>5 important features</strong> (<code>important1</code> to
+<code>important5</code>) that actually affect the target</li>
+<li>
+<strong>5 unimportant features</strong> (<code>unimportant1</code>
+to <code>unimportant5</code>) that are pure noise</li>
+</ul>
+<p>The target function is:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mn>10</mn><mo>*</mo><mo>sin</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>π</mi><mo>*</mo><msub><mi>x</mi><mn>1</mn></msub><mo>*</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mn>20</mn><mo>*</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mn>3</mn></msub><mo>−</mo><mn>0.5</mn><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo>+</mo><mn>10</mn><mo>*</mo><msub><mi>x</mi><mn>4</mn></msub><mo>+</mo><mn>5</mn><mo>*</mo><msub><mi>x</mi><mn>5</mn></msub><mo>+</mo><mi>ϵ</mi></mrow><annotation encoding="application/x-tex">y = 10 * \operatorname{sin}(\pi * x_1 * x_2) + 20 * (x_3 - 0.5)^2 + 10 * x_4 + 5 * x_5 + \epsilon</annotation></semantics></math></p>
+<p>This makes it easy to evaluate whether our importance methods
+correctly identify the truly important features.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">task</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tsk</a></span><span class="op">(</span><span class="st">"penguins"</span><span class="op">)</span></span>
-<span><span class="va">learner</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">100</span>, num.threads <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># Generate the task</span></span>
+<span><span class="va">task</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tgen</a></span><span class="op">(</span><span class="st">"friedman1"</span><span class="op">)</span><span class="op">$</span><span class="fu">generate</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">400</span><span class="op">)</span></span>
+<span><span class="va">learner</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="va">resampling</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="va">measure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.acc"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Show the task structure</span></span>
-<span><span class="va">task</span></span>
-<span><span class="co">#&gt; &lt;TaskClassif:penguins&gt; (344 x 8): Palmer Penguins</span></span>
-<span><span class="co">#&gt; * Target: species</span></span>
-<span><span class="co">#&gt; * Properties: multiclass</span></span>
-<span><span class="co">#&gt; * Features (7):</span></span>
-<span><span class="co">#&gt;   - int (3): body_mass, flipper_length, year</span></span>
-<span><span class="co">#&gt;   - dbl (2): bill_depth, bill_length</span></span>
-<span><span class="co">#&gt;   - fct (2): island, sex</span></span></code></pre></div>
+<span><span class="va">measure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span></span></code></pre></div>
+<p>The task has 400 observations with 10 features: important1,
+important2, important3, important4, important5, unimportant1,
+unimportant2, unimportant3, unimportant4, unimportant5. The target
+variable is y.</p>
 </div>
 <div class="section level2">
 <h2 id="permutation-feature-importance-pfi">Permutation Feature Importance (PFI)<a class="anchor" aria-label="anchor" href="#permutation-feature-importance-pfi"></a>
@@ -114,16 +132,9 @@ methods:</p>
 <p>PFI shuffles each feature independently, breaking the association
 between the feature and the target while preserving the marginal
 distribution.</p>
-<p>For more stable results, we</p>
-<ul>
-<li><ol style="list-style-type: lower-alpha">
-<li>Use 3-fold CV for more reliable performance estimates</li>
-</ol></li>
-<li><ol start="2" style="list-style-type: lower-alpha">
-<li>Within each resampling iteration, we repeat the
-permutation-prediction-scoring step <code>iters_perm</code> times</li>
-</ol></li>
-</ul>
+<p>For more stable results, we use: - 3-fold CV for more reliable
+performance estimates - Within each resampling iteration, we repeat the
+permutation-prediction-scoring step <code>iters_perm</code> times</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task</span>,</span>
@@ -137,889 +148,136 @@ permutation-prediction-scoring step <code>iters_perm</code> times</li>
 <span><span class="va">pfi_results</span> <span class="op">&lt;-</span> <span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
 <span><span class="va">pfi_results</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;           feature  importance</span></span>
-<span><span class="co">#&gt;            &lt;char&gt;       &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bill_depth 0.029077040</span></span>
-<span><span class="co">#&gt; 2:    bill_length 0.259471142</span></span>
-<span><span class="co">#&gt; 3:      body_mass 0.007002288</span></span>
-<span><span class="co">#&gt; 4: flipper_length 0.012819730</span></span>
-<span><span class="co">#&gt; 5:         island 0.027897279</span></span>
-<span><span class="co">#&gt; 6:            sex 0.005252988</span></span>
-<span><span class="co">#&gt; 7:           year 0.001764556</span></span>
+<span><span class="co">#&gt;          feature  importance</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:   important1  5.86554439</span></span>
+<span><span class="co">#&gt;  2:   important2  7.53042540</span></span>
+<span><span class="co">#&gt;  3:   important3  0.62852245</span></span>
+<span><span class="co">#&gt;  4:   important4 12.07781769</span></span>
+<span><span class="co">#&gt;  5:   important5  1.42191247</span></span>
+<span><span class="co">#&gt;  6: unimportant1  0.03241761</span></span>
+<span><span class="co">#&gt;  7: unimportant2  0.06147252</span></span>
+<span><span class="co">#&gt;  8: unimportant3 -0.04262232</span></span>
+<span><span class="co">#&gt;  9: unimportant4  0.07622793</span></span>
+<span><span class="co">#&gt; 10: unimportant5 -0.01541102</span></span>
 <span></span>
 <span><span class="co"># Also stored in</span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="va">importance</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;           feature  importance</span></span>
-<span><span class="co">#&gt;            &lt;char&gt;       &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bill_depth 0.029077040</span></span>
-<span><span class="co">#&gt; 2:    bill_length 0.259471142</span></span>
-<span><span class="co">#&gt; 3:      body_mass 0.007002288</span></span>
-<span><span class="co">#&gt; 4: flipper_length 0.012819730</span></span>
-<span><span class="co">#&gt; 5:         island 0.027897279</span></span>
-<span><span class="co">#&gt; 6:            sex 0.005252988</span></span>
-<span><span class="co">#&gt; 7:           year 0.001764556</span></span>
+<span><span class="co">#&gt;          feature  importance</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:   important1  5.86554439</span></span>
+<span><span class="co">#&gt;  2:   important2  7.53042540</span></span>
+<span><span class="co">#&gt;  3:   important3  0.62852245</span></span>
+<span><span class="co">#&gt;  4:   important4 12.07781769</span></span>
+<span><span class="co">#&gt;  5:   important5  1.42191247</span></span>
+<span><span class="co">#&gt;  6: unimportant1  0.03241761</span></span>
+<span><span class="co">#&gt;  7: unimportant2  0.06147252</span></span>
+<span><span class="co">#&gt;  8: unimportant3 -0.04262232</span></span>
+<span><span class="co">#&gt;  9: unimportant4  0.07622793</span></span>
+<span><span class="co">#&gt; 10: unimportant5 -0.01541102</span></span>
 <span></span>
-<span><span class="co"># Scores per resampling iteration and permutation iteration</span></span>
-<span><span class="va">pfi</span><span class="op">$</span><span class="va">scores</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
-<table class="table">
+<span><span class="co"># Show a sample of detailed scores</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">pfi</span><span class="op">$</span><span class="va">scores</span>, <span class="fl">10</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"Sample of PFI detailed scores"</span><span class="op">)</span></span></code></pre></div>
+<table style="width:100%;" class="table">
+<caption>Sample of PFI detailed scores</caption>
 <colgroup>
-<col width="18%">
-<col width="12%">
-<col width="12%">
-<col width="21%">
-<col width="21%">
-<col width="13%">
+<col width="15%">
+<col width="14%">
+<col width="14%">
+<col width="20%">
+<col width="20%">
+<col width="15%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">feature</th>
 <th align="right">iter_rsmp</th>
 <th align="right">iter_perm</th>
-<th align="right">classif.acc_orig</th>
-<th align="right">classif.acc_perm</th>
+<th align="right">regr.mse_orig</th>
+<th align="right">regr.mse_perm</th>
 <th align="right">importance</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">bill_depth</td>
+<td align="left">important1</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">0.9565</td>
-<td align="right">0.9217</td>
-<td align="right">0.0348</td>
+<td align="right">7.2702</td>
+<td align="right">12.8889</td>
+<td align="right">5.6187</td>
 </tr>
 <tr class="even">
-<td align="left">bill_depth</td>
+<td align="left">important1</td>
 <td align="right">1</td>
 <td align="right">2</td>
-<td align="right">0.9565</td>
-<td align="right">0.8870</td>
-<td align="right">0.0696</td>
+<td align="right">7.2702</td>
+<td align="right">12.9852</td>
+<td align="right">5.7150</td>
 </tr>
 <tr class="odd">
-<td align="left">bill_depth</td>
+<td align="left">important1</td>
 <td align="right">1</td>
 <td align="right">3</td>
-<td align="right">0.9565</td>
-<td align="right">0.9130</td>
-<td align="right">0.0435</td>
+<td align="right">7.2702</td>
+<td align="right">12.8721</td>
+<td align="right">5.6019</td>
 </tr>
 <tr class="even">
-<td align="left">bill_depth</td>
+<td align="left">important1</td>
 <td align="right">1</td>
 <td align="right">4</td>
-<td align="right">0.9565</td>
-<td align="right">0.9217</td>
-<td align="right">0.0348</td>
+<td align="right">7.2702</td>
+<td align="right">13.3088</td>
+<td align="right">6.0386</td>
 </tr>
 <tr class="odd">
-<td align="left">bill_depth</td>
+<td align="left">important1</td>
 <td align="right">1</td>
 <td align="right">5</td>
-<td align="right">0.9565</td>
-<td align="right">0.9217</td>
-<td align="right">0.0348</td>
+<td align="right">7.2702</td>
+<td align="right">13.8732</td>
+<td align="right">6.6030</td>
 </tr>
 <tr class="even">
-<td align="left">bill_depth</td>
+<td align="left">important1</td>
 <td align="right">2</td>
 <td align="right">1</td>
-<td align="right">0.9826</td>
-<td align="right">0.9652</td>
-<td align="right">0.0174</td>
+<td align="right">6.5886</td>
+<td align="right">12.4538</td>
+<td align="right">5.8652</td>
 </tr>
 <tr class="odd">
-<td align="left">bill_depth</td>
+<td align="left">important1</td>
 <td align="right">2</td>
 <td align="right">2</td>
-<td align="right">0.9826</td>
-<td align="right">0.9652</td>
-<td align="right">0.0174</td>
+<td align="right">6.5886</td>
+<td align="right">12.5989</td>
+<td align="right">6.0103</td>
 </tr>
 <tr class="even">
-<td align="left">bill_depth</td>
+<td align="left">important1</td>
 <td align="right">2</td>
 <td align="right">3</td>
-<td align="right">0.9826</td>
-<td align="right">0.9739</td>
-<td align="right">0.0087</td>
+<td align="right">6.5886</td>
+<td align="right">13.0967</td>
+<td align="right">6.5081</td>
 </tr>
 <tr class="odd">
-<td align="left">bill_depth</td>
+<td align="left">important1</td>
 <td align="right">2</td>
 <td align="right">4</td>
-<td align="right">0.9826</td>
-<td align="right">0.9826</td>
-<td align="right">0.0000</td>
+<td align="right">6.5886</td>
+<td align="right">12.4237</td>
+<td align="right">5.8351</td>
 </tr>
 <tr class="even">
-<td align="left">bill_depth</td>
+<td align="left">important1</td>
 <td align="right">2</td>
 <td align="right">5</td>
-<td align="right">0.9826</td>
-<td align="right">0.9652</td>
-<td align="right">0.0174</td>
-</tr>
-<tr class="odd">
-<td align="left">bill_depth</td>
-<td align="right">3</td>
-<td align="right">1</td>
-<td align="right">1.0000</td>
-<td align="right">0.9561</td>
-<td align="right">0.0439</td>
-</tr>
-<tr class="even">
-<td align="left">bill_depth</td>
-<td align="right">3</td>
-<td align="right">2</td>
-<td align="right">1.0000</td>
-<td align="right">0.9825</td>
-<td align="right">0.0175</td>
-</tr>
-<tr class="odd">
-<td align="left">bill_depth</td>
-<td align="right">3</td>
-<td align="right">3</td>
-<td align="right">1.0000</td>
-<td align="right">0.9649</td>
-<td align="right">0.0351</td>
-</tr>
-<tr class="even">
-<td align="left">bill_depth</td>
-<td align="right">3</td>
-<td align="right">4</td>
-<td align="right">1.0000</td>
-<td align="right">0.9825</td>
-<td align="right">0.0175</td>
-</tr>
-<tr class="odd">
-<td align="left">bill_depth</td>
-<td align="right">3</td>
-<td align="right">5</td>
-<td align="right">1.0000</td>
-<td align="right">0.9561</td>
-<td align="right">0.0439</td>
-</tr>
-<tr class="even">
-<td align="left">bill_length</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">0.9565</td>
-<td align="right">0.7304</td>
-<td align="right">0.2261</td>
-</tr>
-<tr class="odd">
-<td align="left">bill_length</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">0.9565</td>
-<td align="right">0.7217</td>
-<td align="right">0.2348</td>
-</tr>
-<tr class="even">
-<td align="left">bill_length</td>
-<td align="right">1</td>
-<td align="right">3</td>
-<td align="right">0.9565</td>
-<td align="right">0.7391</td>
-<td align="right">0.2174</td>
-</tr>
-<tr class="odd">
-<td align="left">bill_length</td>
-<td align="right">1</td>
-<td align="right">4</td>
-<td align="right">0.9565</td>
-<td align="right">0.7304</td>
-<td align="right">0.2261</td>
-</tr>
-<tr class="even">
-<td align="left">bill_length</td>
-<td align="right">1</td>
-<td align="right">5</td>
-<td align="right">0.9565</td>
-<td align="right">0.6957</td>
-<td align="right">0.2609</td>
-</tr>
-<tr class="odd">
-<td align="left">bill_length</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="right">0.9826</td>
-<td align="right">0.7043</td>
-<td align="right">0.2783</td>
-</tr>
-<tr class="even">
-<td align="left">bill_length</td>
-<td align="right">2</td>
-<td align="right">2</td>
-<td align="right">0.9826</td>
-<td align="right">0.8000</td>
-<td align="right">0.1826</td>
-</tr>
-<tr class="odd">
-<td align="left">bill_length</td>
-<td align="right">2</td>
-<td align="right">3</td>
-<td align="right">0.9826</td>
-<td align="right">0.7565</td>
-<td align="right">0.2261</td>
-</tr>
-<tr class="even">
-<td align="left">bill_length</td>
-<td align="right">2</td>
-<td align="right">4</td>
-<td align="right">0.9826</td>
-<td align="right">0.7652</td>
-<td align="right">0.2174</td>
-</tr>
-<tr class="odd">
-<td align="left">bill_length</td>
-<td align="right">2</td>
-<td align="right">5</td>
-<td align="right">0.9826</td>
-<td align="right">0.7478</td>
-<td align="right">0.2348</td>
-</tr>
-<tr class="even">
-<td align="left">bill_length</td>
-<td align="right">3</td>
-<td align="right">1</td>
-<td align="right">1.0000</td>
-<td align="right">0.7018</td>
-<td align="right">0.2982</td>
-</tr>
-<tr class="odd">
-<td align="left">bill_length</td>
-<td align="right">3</td>
-<td align="right">2</td>
-<td align="right">1.0000</td>
-<td align="right">0.7281</td>
-<td align="right">0.2719</td>
-</tr>
-<tr class="even">
-<td align="left">bill_length</td>
-<td align="right">3</td>
-<td align="right">3</td>
-<td align="right">1.0000</td>
-<td align="right">0.6667</td>
-<td align="right">0.3333</td>
-</tr>
-<tr class="odd">
-<td align="left">bill_length</td>
-<td align="right">3</td>
-<td align="right">4</td>
-<td align="right">1.0000</td>
-<td align="right">0.6316</td>
-<td align="right">0.3684</td>
-</tr>
-<tr class="even">
-<td align="left">bill_length</td>
-<td align="right">3</td>
-<td align="right">5</td>
-<td align="right">1.0000</td>
-<td align="right">0.6842</td>
-<td align="right">0.3158</td>
-</tr>
-<tr class="odd">
-<td align="left">body_mass</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">0.9565</td>
-<td align="right">0.9478</td>
-<td align="right">0.0087</td>
-</tr>
-<tr class="even">
-<td align="left">body_mass</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">0.9565</td>
-<td align="right">0.9565</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="odd">
-<td align="left">body_mass</td>
-<td align="right">1</td>
-<td align="right">3</td>
-<td align="right">0.9565</td>
-<td align="right">0.9391</td>
-<td align="right">0.0174</td>
-</tr>
-<tr class="even">
-<td align="left">body_mass</td>
-<td align="right">1</td>
-<td align="right">4</td>
-<td align="right">0.9565</td>
-<td align="right">0.9565</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="odd">
-<td align="left">body_mass</td>
-<td align="right">1</td>
-<td align="right">5</td>
-<td align="right">0.9565</td>
-<td align="right">0.9565</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="even">
-<td align="left">body_mass</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="right">0.9826</td>
-<td align="right">0.9826</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="odd">
-<td align="left">body_mass</td>
-<td align="right">2</td>
-<td align="right">2</td>
-<td align="right">0.9826</td>
-<td align="right">0.9826</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="even">
-<td align="left">body_mass</td>
-<td align="right">2</td>
-<td align="right">3</td>
-<td align="right">0.9826</td>
-<td align="right">0.9826</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="odd">
-<td align="left">body_mass</td>
-<td align="right">2</td>
-<td align="right">4</td>
-<td align="right">0.9826</td>
-<td align="right">0.9826</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="even">
-<td align="left">body_mass</td>
-<td align="right">2</td>
-<td align="right">5</td>
-<td align="right">0.9826</td>
-<td align="right">0.9826</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="odd">
-<td align="left">body_mass</td>
-<td align="right">3</td>
-<td align="right">1</td>
-<td align="right">1.0000</td>
-<td align="right">0.9912</td>
-<td align="right">0.0088</td>
-</tr>
-<tr class="even">
-<td align="left">body_mass</td>
-<td align="right">3</td>
-<td align="right">2</td>
-<td align="right">1.0000</td>
-<td align="right">0.9825</td>
-<td align="right">0.0175</td>
-</tr>
-<tr class="odd">
-<td align="left">body_mass</td>
-<td align="right">3</td>
-<td align="right">3</td>
-<td align="right">1.0000</td>
-<td align="right">0.9737</td>
-<td align="right">0.0263</td>
-</tr>
-<tr class="even">
-<td align="left">body_mass</td>
-<td align="right">3</td>
-<td align="right">4</td>
-<td align="right">1.0000</td>
-<td align="right">0.9825</td>
-<td align="right">0.0175</td>
-</tr>
-<tr class="odd">
-<td align="left">body_mass</td>
-<td align="right">3</td>
-<td align="right">5</td>
-<td align="right">1.0000</td>
-<td align="right">0.9912</td>
-<td align="right">0.0088</td>
-</tr>
-<tr class="even">
-<td align="left">flipper_length</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">0.9565</td>
-<td align="right">0.9565</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="odd">
-<td align="left">flipper_length</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">0.9565</td>
-<td align="right">0.9217</td>
-<td align="right">0.0348</td>
-</tr>
-<tr class="even">
-<td align="left">flipper_length</td>
-<td align="right">1</td>
-<td align="right">3</td>
-<td align="right">0.9565</td>
-<td align="right">0.9304</td>
-<td align="right">0.0261</td>
-</tr>
-<tr class="odd">
-<td align="left">flipper_length</td>
-<td align="right">1</td>
-<td align="right">4</td>
-<td align="right">0.9565</td>
-<td align="right">0.9391</td>
-<td align="right">0.0174</td>
-</tr>
-<tr class="even">
-<td align="left">flipper_length</td>
-<td align="right">1</td>
-<td align="right">5</td>
-<td align="right">0.9565</td>
-<td align="right">0.9304</td>
-<td align="right">0.0261</td>
-</tr>
-<tr class="odd">
-<td align="left">flipper_length</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="right">0.9826</td>
-<td align="right">0.9913</td>
-<td align="right">-0.0087</td>
-</tr>
-<tr class="even">
-<td align="left">flipper_length</td>
-<td align="right">2</td>
-<td align="right">2</td>
-<td align="right">0.9826</td>
-<td align="right">0.9826</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="odd">
-<td align="left">flipper_length</td>
-<td align="right">2</td>
-<td align="right">3</td>
-<td align="right">0.9826</td>
-<td align="right">1.0000</td>
-<td align="right">-0.0174</td>
-</tr>
-<tr class="even">
-<td align="left">flipper_length</td>
-<td align="right">2</td>
-<td align="right">4</td>
-<td align="right">0.9826</td>
-<td align="right">0.9826</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="odd">
-<td align="left">flipper_length</td>
-<td align="right">2</td>
-<td align="right">5</td>
-<td align="right">0.9826</td>
-<td align="right">0.9826</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="even">
-<td align="left">flipper_length</td>
-<td align="right">3</td>
-<td align="right">1</td>
-<td align="right">1.0000</td>
-<td align="right">0.9561</td>
-<td align="right">0.0439</td>
-</tr>
-<tr class="odd">
-<td align="left">flipper_length</td>
-<td align="right">3</td>
-<td align="right">2</td>
-<td align="right">1.0000</td>
-<td align="right">0.9737</td>
-<td align="right">0.0263</td>
-</tr>
-<tr class="even">
-<td align="left">flipper_length</td>
-<td align="right">3</td>
-<td align="right">3</td>
-<td align="right">1.0000</td>
-<td align="right">0.9912</td>
-<td align="right">0.0088</td>
-</tr>
-<tr class="odd">
-<td align="left">flipper_length</td>
-<td align="right">3</td>
-<td align="right">4</td>
-<td align="right">1.0000</td>
-<td align="right">0.9912</td>
-<td align="right">0.0088</td>
-</tr>
-<tr class="even">
-<td align="left">flipper_length</td>
-<td align="right">3</td>
-<td align="right">5</td>
-<td align="right">1.0000</td>
-<td align="right">0.9737</td>
-<td align="right">0.0263</td>
-</tr>
-<tr class="odd">
-<td align="left">island</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">0.9565</td>
-<td align="right">0.9304</td>
-<td align="right">0.0261</td>
-</tr>
-<tr class="even">
-<td align="left">island</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">0.9565</td>
-<td align="right">0.9391</td>
-<td align="right">0.0174</td>
-</tr>
-<tr class="odd">
-<td align="left">island</td>
-<td align="right">1</td>
-<td align="right">3</td>
-<td align="right">0.9565</td>
-<td align="right">0.9391</td>
-<td align="right">0.0174</td>
-</tr>
-<tr class="even">
-<td align="left">island</td>
-<td align="right">1</td>
-<td align="right">4</td>
-<td align="right">0.9565</td>
-<td align="right">0.9391</td>
-<td align="right">0.0174</td>
-</tr>
-<tr class="odd">
-<td align="left">island</td>
-<td align="right">1</td>
-<td align="right">5</td>
-<td align="right">0.9565</td>
-<td align="right">0.9478</td>
-<td align="right">0.0087</td>
-</tr>
-<tr class="even">
-<td align="left">island</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="right">0.9826</td>
-<td align="right">0.9391</td>
-<td align="right">0.0435</td>
-</tr>
-<tr class="odd">
-<td align="left">island</td>
-<td align="right">2</td>
-<td align="right">2</td>
-<td align="right">0.9826</td>
-<td align="right">0.9652</td>
-<td align="right">0.0174</td>
-</tr>
-<tr class="even">
-<td align="left">island</td>
-<td align="right">2</td>
-<td align="right">3</td>
-<td align="right">0.9826</td>
-<td align="right">0.9391</td>
-<td align="right">0.0435</td>
-</tr>
-<tr class="odd">
-<td align="left">island</td>
-<td align="right">2</td>
-<td align="right">4</td>
-<td align="right">0.9826</td>
-<td align="right">0.9391</td>
-<td align="right">0.0435</td>
-</tr>
-<tr class="even">
-<td align="left">island</td>
-<td align="right">2</td>
-<td align="right">5</td>
-<td align="right">0.9826</td>
-<td align="right">0.9217</td>
-<td align="right">0.0609</td>
-</tr>
-<tr class="odd">
-<td align="left">island</td>
-<td align="right">3</td>
-<td align="right">1</td>
-<td align="right">1.0000</td>
-<td align="right">0.9825</td>
-<td align="right">0.0175</td>
-</tr>
-<tr class="even">
-<td align="left">island</td>
-<td align="right">3</td>
-<td align="right">2</td>
-<td align="right">1.0000</td>
-<td align="right">0.9825</td>
-<td align="right">0.0175</td>
-</tr>
-<tr class="odd">
-<td align="left">island</td>
-<td align="right">3</td>
-<td align="right">3</td>
-<td align="right">1.0000</td>
-<td align="right">0.9649</td>
-<td align="right">0.0351</td>
-</tr>
-<tr class="even">
-<td align="left">island</td>
-<td align="right">3</td>
-<td align="right">4</td>
-<td align="right">1.0000</td>
-<td align="right">0.9825</td>
-<td align="right">0.0175</td>
-</tr>
-<tr class="odd">
-<td align="left">island</td>
-<td align="right">3</td>
-<td align="right">5</td>
-<td align="right">1.0000</td>
-<td align="right">0.9649</td>
-<td align="right">0.0351</td>
-</tr>
-<tr class="even">
-<td align="left">sex</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">0.9565</td>
-<td align="right">0.9478</td>
-<td align="right">0.0087</td>
-</tr>
-<tr class="odd">
-<td align="left">sex</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">0.9565</td>
-<td align="right">0.9565</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="even">
-<td align="left">sex</td>
-<td align="right">1</td>
-<td align="right">3</td>
-<td align="right">0.9565</td>
-<td align="right">0.9565</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="odd">
-<td align="left">sex</td>
-<td align="right">1</td>
-<td align="right">4</td>
-<td align="right">0.9565</td>
-<td align="right">0.9478</td>
-<td align="right">0.0087</td>
-</tr>
-<tr class="even">
-<td align="left">sex</td>
-<td align="right">1</td>
-<td align="right">5</td>
-<td align="right">0.9565</td>
-<td align="right">0.9565</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="odd">
-<td align="left">sex</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="right">0.9826</td>
-<td align="right">0.9826</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="even">
-<td align="left">sex</td>
-<td align="right">2</td>
-<td align="right">2</td>
-<td align="right">0.9826</td>
-<td align="right">0.9826</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="odd">
-<td align="left">sex</td>
-<td align="right">2</td>
-<td align="right">3</td>
-<td align="right">0.9826</td>
-<td align="right">0.9826</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="even">
-<td align="left">sex</td>
-<td align="right">2</td>
-<td align="right">4</td>
-<td align="right">0.9826</td>
-<td align="right">0.9826</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="odd">
-<td align="left">sex</td>
-<td align="right">2</td>
-<td align="right">5</td>
-<td align="right">0.9826</td>
-<td align="right">0.9826</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="even">
-<td align="left">sex</td>
-<td align="right">3</td>
-<td align="right">1</td>
-<td align="right">1.0000</td>
-<td align="right">0.9825</td>
-<td align="right">0.0175</td>
-</tr>
-<tr class="odd">
-<td align="left">sex</td>
-<td align="right">3</td>
-<td align="right">2</td>
-<td align="right">1.0000</td>
-<td align="right">0.9912</td>
-<td align="right">0.0088</td>
-</tr>
-<tr class="even">
-<td align="left">sex</td>
-<td align="right">3</td>
-<td align="right">3</td>
-<td align="right">1.0000</td>
-<td align="right">0.9912</td>
-<td align="right">0.0088</td>
-</tr>
-<tr class="odd">
-<td align="left">sex</td>
-<td align="right">3</td>
-<td align="right">4</td>
-<td align="right">1.0000</td>
-<td align="right">0.9912</td>
-<td align="right">0.0088</td>
-</tr>
-<tr class="even">
-<td align="left">sex</td>
-<td align="right">3</td>
-<td align="right">5</td>
-<td align="right">1.0000</td>
-<td align="right">0.9825</td>
-<td align="right">0.0175</td>
-</tr>
-<tr class="odd">
-<td align="left">year</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">0.9565</td>
-<td align="right">0.9565</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="even">
-<td align="left">year</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">0.9565</td>
-<td align="right">0.9565</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="odd">
-<td align="left">year</td>
-<td align="right">1</td>
-<td align="right">3</td>
-<td align="right">0.9565</td>
-<td align="right">0.9565</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="even">
-<td align="left">year</td>
-<td align="right">1</td>
-<td align="right">4</td>
-<td align="right">0.9565</td>
-<td align="right">0.9565</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="odd">
-<td align="left">year</td>
-<td align="right">1</td>
-<td align="right">5</td>
-<td align="right">0.9565</td>
-<td align="right">0.9565</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="even">
-<td align="left">year</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="right">0.9826</td>
-<td align="right">0.9826</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="odd">
-<td align="left">year</td>
-<td align="right">2</td>
-<td align="right">2</td>
-<td align="right">0.9826</td>
-<td align="right">0.9913</td>
-<td align="right">-0.0087</td>
-</tr>
-<tr class="even">
-<td align="left">year</td>
-<td align="right">2</td>
-<td align="right">3</td>
-<td align="right">0.9826</td>
-<td align="right">0.9826</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="odd">
-<td align="left">year</td>
-<td align="right">2</td>
-<td align="right">4</td>
-<td align="right">0.9826</td>
-<td align="right">0.9826</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="even">
-<td align="left">year</td>
-<td align="right">2</td>
-<td align="right">5</td>
-<td align="right">0.9826</td>
-<td align="right">0.9913</td>
-<td align="right">-0.0087</td>
-</tr>
-<tr class="odd">
-<td align="left">year</td>
-<td align="right">3</td>
-<td align="right">1</td>
-<td align="right">1.0000</td>
-<td align="right">0.9825</td>
-<td align="right">0.0175</td>
-</tr>
-<tr class="even">
-<td align="left">year</td>
-<td align="right">3</td>
-<td align="right">2</td>
-<td align="right">1.0000</td>
-<td align="right">1.0000</td>
-<td align="right">0.0000</td>
-</tr>
-<tr class="odd">
-<td align="left">year</td>
-<td align="right">3</td>
-<td align="right">3</td>
-<td align="right">1.0000</td>
-<td align="right">0.9912</td>
-<td align="right">0.0088</td>
-</tr>
-<tr class="even">
-<td align="left">year</td>
-<td align="right">3</td>
-<td align="right">4</td>
-<td align="right">1.0000</td>
-<td align="right">0.9825</td>
-<td align="right">0.0175</td>
-</tr>
-<tr class="odd">
-<td align="left">year</td>
-<td align="right">3</td>
-<td align="right">5</td>
-<td align="right">1.0000</td>
-<td align="right">1.0000</td>
-<td align="right">0.0000</td>
+<td align="right">6.5886</td>
+<td align="right">12.5381</td>
+<td align="right">5.9495</td>
 </tr>
 </tbody>
 </table>
@@ -1029,38 +287,27 @@ permutation-prediction-scoring step <code>iters_perm</code> times</li>
 </h2>
 <p>CFI uses conditional sampling to preserve the joint distribution of
 all other features when perturbing a feature of interest. By default we
-use Adversarial Random Forests (ARF) as conditional sampler internally,
-but it can be provided explicity, as we usually want to supply
-additional arguments to <code><a href="https://bips-hb.github.io/arf/reference/adversarial_rf.html" class="external-link">arf::adversarial_rf()</a></code> or
-<code><a href="https://bips-hb.github.io/arf/reference/forde.html" class="external-link">arf::forde()</a></code>.</p>
+use Adversarial Random Forests (ARF) as conditional sampler
+internally.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sampler</span> <span class="op">=</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task</span>, </span>
-<span>  arf_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="cn">FALSE</span>, parallel <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
-<span>  forde_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>finite_bounds <span class="op">=</span> <span class="st">"no"</span><span class="op">)</span></span>
+<span>  arf_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>  forde_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: executing %dopar% sequentially: no parallel backend registered</span></span>
 <span></span>
 <span><span class="co"># Example sampling for 5 randomly chosen rows from the task</span></span>
-<span><span class="va">sampler</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span></span>
-<span>  feature <span class="op">=</span> <span class="st">"bill_length"</span>, </span>
-<span>  data <span class="op">=</span> <span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span>rows <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">task</span><span class="op">$</span><span class="va">nrow</span>, size <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span>, </span>
-<span>  conditioning_features <span class="op">=</span> <span class="st">"body_mass"</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt;      species bill_depth bill_length body_mass flipper_length island    sex</span></span>
-<span><span class="co">#&gt;       &lt;fctr&gt;      &lt;num&gt;       &lt;num&gt;     &lt;int&gt;          &lt;int&gt; &lt;fctr&gt; &lt;fctr&gt;</span></span>
-<span><span class="co">#&gt; 1:    Adelie       19.7        43.3      4400            196  Dream   male</span></span>
-<span><span class="co">#&gt; 2:    Gentoo       14.2        43.7      4600            209 Biscoe female</span></span>
-<span><span class="co">#&gt; 3:    Adelie       17.8        34.8      3450            195  Dream female</span></span>
-<span><span class="co">#&gt; 4: Chinstrap       19.0        52.4      3950            201  Dream   male</span></span>
-<span><span class="co">#&gt; 5:    Adelie       18.0        38.3      3150            182  Dream female</span></span>
-<span><span class="co">#&gt;     year</span></span>
-<span><span class="co">#&gt;    &lt;int&gt;</span></span>
-<span><span class="co">#&gt; 1:  2007</span></span>
-<span><span class="co">#&gt; 2:  2008</span></span>
-<span><span class="co">#&gt; 3:  2009</span></span>
-<span><span class="co">#&gt; 4:  2009</span></span>
-<span><span class="co">#&gt; 5:  2007</span></span></code></pre></div>
+<span><span class="va">sample_data</span> <span class="op">&lt;-</span> <span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span>rows <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">task</span><span class="op">$</span><span class="va">nrow</span>, size <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">sampled_result</span> <span class="op">&lt;-</span> <span class="va">sampler</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span></span>
+<span>  feature <span class="op">=</span> <span class="st">"important1"</span>, </span>
+<span>  data <span class="op">=</span> <span class="va">sample_data</span>, </span>
+<span>  conditioning_features <span class="op">=</span> <span class="st">"important2"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>Original <code>important1</code> values: 0.246, 0.786, 0.492, 0.668,
+0.521</p>
+<p>Sampled <code>important1</code> values (conditioned on
+<code>important2</code>): -0.152, 0.829, 0.16, 0.756, 0.74</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cfi</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/CFI.html">CFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task</span>,</span>
@@ -1075,23 +322,27 @@ additional arguments to <code><a href="https://bips-hb.github.io/arf/reference/a
 <span><span class="va">cfi_results</span> <span class="op">&lt;-</span> <span class="va">cfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
 <span><span class="va">cfi_results</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;           feature    importance</span></span>
-<span><span class="co">#&gt;            &lt;char&gt;         &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bill_depth  0.0005949657</span></span>
-<span><span class="co">#&gt; 2:    bill_length  0.0889905924</span></span>
-<span><span class="co">#&gt; 3:      body_mass  0.0017543860</span></span>
-<span><span class="co">#&gt; 4: flipper_length -0.0040579710</span></span>
-<span><span class="co">#&gt; 5:         island  0.0104907196</span></span>
-<span><span class="co">#&gt; 6:            sex  0.0005847953</span></span>
-<span><span class="co">#&gt; 7:           year -0.0005797101</span></span></code></pre></div>
+<span><span class="co">#&gt;          feature   importance</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;        &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:   important1  3.174003832</span></span>
+<span><span class="co">#&gt;  2:   important2  3.435560781</span></span>
+<span><span class="co">#&gt;  3:   important3  0.487036933</span></span>
+<span><span class="co">#&gt;  4:   important4  4.345208881</span></span>
+<span><span class="co">#&gt;  5:   important5  0.551741678</span></span>
+<span><span class="co">#&gt;  6: unimportant1  0.040457097</span></span>
+<span><span class="co">#&gt;  7: unimportant2  0.055751318</span></span>
+<span><span class="co">#&gt;  8: unimportant3 -0.036216862</span></span>
+<span><span class="co">#&gt;  9: unimportant4  0.051101874</span></span>
+<span><span class="co">#&gt; 10: unimportant5 -0.008660248</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="relative-feature-importance-rfi">Relative Feature Importance (RFI)<a class="anchor" aria-label="anchor" href="#relative-feature-importance-rfi"></a>
 </h2>
-<p>RFI conditions on a specific subset of features as opposed to just
-one as in CFI, measuring importance relative to those features.</p>
+<p>RFI conditions on a specific subset of features, measuring importance
+relative to those features. Let’s condition on two of the important
+features to see how the others rank relative to this baseline.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">conditioning_set</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sex"</span>, <span class="st">"year"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">conditioning_set</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"important1"</span>, <span class="st">"important2"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">rfi</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/RFI.html">RFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task</span>,</span>
@@ -1107,15 +358,18 @@ one as in CFI, measuring importance relative to those features.</p>
 <span><span class="va">rfi_results</span> <span class="op">&lt;-</span> <span class="va">rfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
 <span><span class="va">rfi_results</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;           feature  importance</span></span>
-<span><span class="co">#&gt;            &lt;char&gt;       &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bill_depth 0.008761759</span></span>
-<span><span class="co">#&gt; 2:    bill_length 0.273292652</span></span>
-<span><span class="co">#&gt; 3:      body_mass 0.001164505</span></span>
-<span><span class="co">#&gt; 4: flipper_length 0.017437071</span></span>
-<span><span class="co">#&gt; 5:         island 0.024490211</span></span>
-<span><span class="co">#&gt; 6:            sex 0.000000000</span></span>
-<span><span class="co">#&gt; 7:           year 0.000000000</span></span></code></pre></div>
+<span><span class="co">#&gt;          feature   importance</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;        &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:   important1  0.000000000</span></span>
+<span><span class="co">#&gt;  2:   important2  0.000000000</span></span>
+<span><span class="co">#&gt;  3:   important3  0.659032969</span></span>
+<span><span class="co">#&gt;  4:   important4 11.168278482</span></span>
+<span><span class="co">#&gt;  5:   important5  1.391927039</span></span>
+<span><span class="co">#&gt;  6: unimportant1  0.035829586</span></span>
+<span><span class="co">#&gt;  7: unimportant2  0.111951122</span></span>
+<span><span class="co">#&gt;  8: unimportant3 -0.003414726</span></span>
+<span><span class="co">#&gt;  9: unimportant4  0.063271393</span></span>
+<span><span class="co">#&gt; 10: unimportant5  0.022609332</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="comparing-methods">Comparing Methods<a class="anchor" aria-label="anchor" href="#comparing-methods"></a>
@@ -1134,23 +388,14 @@ one as in CFI, measuring importance relative to those features.</p>
 <span>  by <span class="op">=</span> <span class="st">"feature"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">comparison</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;           feature         pfi           cfi         rfi</span></span>
-<span><span class="co">#&gt;            &lt;char&gt;       &lt;num&gt;         &lt;num&gt;       &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bill_depth 0.029077040  0.0005949657 0.008761759</span></span>
-<span><span class="co">#&gt; 2:    bill_length 0.259471142  0.0889905924 0.273292652</span></span>
-<span><span class="co">#&gt; 3:      body_mass 0.007002288  0.0017543860 0.001164505</span></span>
-<span><span class="co">#&gt; 4: flipper_length 0.012819730 -0.0040579710 0.017437071</span></span>
-<span><span class="co">#&gt; 5:         island 0.027897279  0.0104907196 0.024490211</span></span>
-<span><span class="co">#&gt; 6:            sex 0.005252988  0.0005847953 0.000000000</span></span>
-<span><span class="co">#&gt; 7:           year 0.001764556 -0.0005797101 0.000000000</span></span></code></pre></div>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">comparison</span> <span class="op">|&gt;</span></span>
+<span><span class="co"># Add feature type for analysis</span></span>
+<span><span class="va">comparison</span><span class="op">[</span>, <span class="va">feature_type</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"^important"</span>, <span class="va">feature</span><span class="op">)</span>, <span class="st">"Important"</span>, <span class="st">"Noise"</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">comparison</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
 <span>    digits <span class="op">=</span> <span class="fl">4</span>, </span>
 <span>    caption <span class="op">=</span> <span class="st">"Feature Importance Comparison (Difference Scores)"</span>,</span>
-<span>    col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Feature"</span>, <span class="st">"PFI"</span>, <span class="st">"CFI"</span>, <span class="st">"RFI"</span><span class="op">)</span></span>
+<span>    col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Feature"</span>, <span class="st">"PFI"</span>, <span class="st">"CFI"</span>, <span class="st">"RFI"</span>, <span class="st">"Type"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <table class="table">
 <caption>Feature Importance Comparison (Difference Scores)</caption>
@@ -1159,49 +404,78 @@ one as in CFI, measuring importance relative to those features.</p>
 <th align="right">PFI</th>
 <th align="right">CFI</th>
 <th align="right">RFI</th>
+<th align="left">Type</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">bill_depth</td>
-<td align="right">0.0291</td>
-<td align="right">0.0006</td>
-<td align="right">0.0088</td>
-</tr>
-<tr class="even">
-<td align="left">bill_length</td>
-<td align="right">0.2595</td>
-<td align="right">0.0890</td>
-<td align="right">0.2733</td>
-</tr>
-<tr class="odd">
-<td align="left">body_mass</td>
-<td align="right">0.0070</td>
-<td align="right">0.0018</td>
-<td align="right">0.0012</td>
-</tr>
-<tr class="even">
-<td align="left">flipper_length</td>
-<td align="right">0.0128</td>
-<td align="right">-0.0041</td>
-<td align="right">0.0174</td>
-</tr>
-<tr class="odd">
-<td align="left">island</td>
-<td align="right">0.0279</td>
-<td align="right">0.0105</td>
-<td align="right">0.0245</td>
-</tr>
-<tr class="even">
-<td align="left">sex</td>
-<td align="right">0.0053</td>
-<td align="right">0.0006</td>
+<td align="left">important1</td>
+<td align="right">5.8655</td>
+<td align="right">3.1740</td>
 <td align="right">0.0000</td>
+<td align="left">Important</td>
+</tr>
+<tr class="even">
+<td align="left">important2</td>
+<td align="right">7.5304</td>
+<td align="right">3.4356</td>
+<td align="right">0.0000</td>
+<td align="left">Important</td>
 </tr>
 <tr class="odd">
-<td align="left">year</td>
-<td align="right">0.0018</td>
-<td align="right">-0.0006</td>
-<td align="right">0.0000</td>
+<td align="left">important3</td>
+<td align="right">0.6285</td>
+<td align="right">0.4870</td>
+<td align="right">0.6590</td>
+<td align="left">Important</td>
+</tr>
+<tr class="even">
+<td align="left">important4</td>
+<td align="right">12.0778</td>
+<td align="right">4.3452</td>
+<td align="right">11.1683</td>
+<td align="left">Important</td>
+</tr>
+<tr class="odd">
+<td align="left">important5</td>
+<td align="right">1.4219</td>
+<td align="right">0.5517</td>
+<td align="right">1.3919</td>
+<td align="left">Important</td>
+</tr>
+<tr class="even">
+<td align="left">unimportant1</td>
+<td align="right">0.0324</td>
+<td align="right">0.0405</td>
+<td align="right">0.0358</td>
+<td align="left">Noise</td>
+</tr>
+<tr class="odd">
+<td align="left">unimportant2</td>
+<td align="right">0.0615</td>
+<td align="right">0.0558</td>
+<td align="right">0.1120</td>
+<td align="left">Noise</td>
+</tr>
+<tr class="even">
+<td align="left">unimportant3</td>
+<td align="right">-0.0426</td>
+<td align="right">-0.0362</td>
+<td align="right">-0.0034</td>
+<td align="left">Noise</td>
+</tr>
+<tr class="odd">
+<td align="left">unimportant4</td>
+<td align="right">0.0762</td>
+<td align="right">0.0511</td>
+<td align="right">0.0633</td>
+<td align="left">Noise</td>
+</tr>
+<tr class="even">
+<td align="left">unimportant5</td>
+<td align="right">-0.0154</td>
+<td align="right">-0.0087</td>
+<td align="right">0.0226</td>
+<td align="left">Noise</td>
 </tr>
 </tbody>
 </table>
@@ -1209,13 +483,14 @@ one as in CFI, measuring importance relative to those features.</p>
 <div class="section level2">
 <h2 id="visualization">Visualization<a class="anchor" aria-label="anchor" href="#visualization"></a>
 </h2>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Reshape data for plotting</span></span>
+<p>Let’s create comprehensive visualizations to understand the
+results:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Reshape data for plotting</span></span>
 <span><span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="va">comparison</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/melt.data.table.html" class="external-link">melt</a></span><span class="op">(</span></span>
-<span>    id.vars <span class="op">=</span> <span class="st">"feature"</span>,</span>
+<span>    id.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"feature"</span>, <span class="st">"feature_type"</span><span class="op">)</span>,</span>
+<span>    measure.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pfi"</span>, <span class="st">"cfi"</span>, <span class="st">"rfi"</span><span class="op">)</span>,</span>
 <span>    value.name <span class="op">=</span> <span class="st">"importance"</span>,</span>
 <span>    variable.name <span class="op">=</span> <span class="st">"method"</span></span>
 <span>  <span class="op">)</span></span>
@@ -1223,27 +498,177 @@ one as in CFI, measuring importance relative to those features.</p>
 <span><span class="co"># Clean up method names</span></span>
 <span><span class="va">plot_data</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/chartr.html" class="external-link">toupper</a></span><span class="op">(</span><span class="va">method</span><span class="op">)</span><span class="op">]</span></span>
 <span></span>
-<span><span class="co"># Create the plot</span></span>
+<span><span class="co"># Create the comparison plot</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">plot_data</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">importance</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">feature</span>, <span class="va">importance</span><span class="op">)</span>, fill <span class="op">=</span> <span class="va">method</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span>position <span class="op">=</span> <span class="st">"dodge"</span>, alpha <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_brewer</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Dark2"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span>position <span class="op">=</span> <span class="st">"dodge"</span>, alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_fill_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PFI"</span> <span class="op">=</span> <span class="st">"steelblue"</span>, <span class="st">"CFI"</span> <span class="op">=</span> <span class="st">"darkgreen"</span>, <span class="st">"RFI"</span> <span class="op">=</span> <span class="st">"orange"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"Feature Importance Comparison"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span></span>
-<span>      <span class="st">"Task: {task$id} </span></span>
-<span><span class="st">      Measure: {measure$id}</span></span>
-<span><span class="st">      RFI conditioned on: {paste(conditioning_set, collapse = ', ')}"</span><span class="op">)</span>,</span>
+<span>    title <span class="op">=</span> <span class="st">"Feature Importance Comparison: PFI vs CFI vs RFI"</span>,</span>
+<span>    subtitle <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"Friedman1 task: 5 important + 5 noise features</span></span>
+<span><span class="st">                          RFI conditioned on: {paste(conditioning_set, collapse = ', ')}"</span><span class="op">)</span>,</span>
 <span>    x <span class="op">=</span> <span class="st">"Importance Score (Difference)"</span>,</span>
 <span>    y <span class="op">=</span> <span class="st">"Feature"</span>,</span>
 <span>    fill <span class="op">=</span> <span class="st">"Method"</span>,</span>
-<span>    caption <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"Using {resampling$iters}-fold cross-validation"</span><span class="op">)</span></span>
+<span>    caption <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"Using {resampling$iters}-fold cross-validation</span></span>
+<span><span class="st">                          and 5 permutation iterations"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">16</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
 <span>    legend.position <span class="op">=</span> <span class="st">"bottom"</span>,</span>
 <span>    plot.title.position <span class="op">=</span> <span class="st">"plot"</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="perturbation-importance_files/figure-html/visualization-1.png" width="768"></p>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">feature_type</span>, scales <span class="op">=</span> <span class="st">"free_y"</span>, ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<p><img src="perturbation-importance_files/figure-html/visualization-comparison-1.png" width="768"></p>
+<p>Let’s also create a correlation plot to see how similar the methods
+are:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Calculate correlations between methods</span></span>
+<span><span class="va">pfi_cfi_cor</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">comparison</span><span class="op">$</span><span class="va">pfi</span>, <span class="va">comparison</span><span class="op">$</span><span class="va">cfi</span><span class="op">)</span></span>
+<span><span class="va">pfi_rfi_cor</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">comparison</span><span class="op">$</span><span class="va">pfi</span>, <span class="va">comparison</span><span class="op">$</span><span class="va">rfi</span><span class="op">)</span></span>
+<span><span class="va">cfi_rfi_cor</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">comparison</span><span class="op">$</span><span class="va">cfi</span>, <span class="va">comparison</span><span class="op">$</span><span class="va">rfi</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Create correlation matrix plot</span></span>
+<span><span class="va">cor_data</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, <span class="va">pfi</span>, <span class="va">cfi</span>, <span class="va">rfi</span>, <span class="va">feature_type</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="co"># PFI vs CFI</span></span>
+<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">cor_data</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">pfi</span>, y <span class="op">=</span> <span class="va">cfi</span>, color <span class="op">=</span> <span class="va">feature_type</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">3</span>, alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth</a></span><span class="op">(</span>method <span class="op">=</span> <span class="st">"lm"</span>, se <span class="op">=</span> <span class="cn">FALSE</span>, color <span class="op">=</span> <span class="st">"gray50"</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Important"</span> <span class="op">=</span> <span class="st">"steelblue"</span>, <span class="st">"Noise"</span> <span class="op">=</span> <span class="st">"lightcoral"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
+<span>    title <span class="op">=</span> <span class="st">"PFI vs CFI"</span>,</span>
+<span>    subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Correlation: %.3f"</span>, <span class="va">pfi_cfi_cor</span><span class="op">)</span>,</span>
+<span>    x <span class="op">=</span> <span class="st">"PFI Score"</span>, y <span class="op">=</span> <span class="st">"CFI Score"</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># PFI vs RFI  </span></span>
+<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">cor_data</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">pfi</span>, y <span class="op">=</span> <span class="va">rfi</span>, color <span class="op">=</span> <span class="va">feature_type</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">3</span>, alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth</a></span><span class="op">(</span>method <span class="op">=</span> <span class="st">"lm"</span>, se <span class="op">=</span> <span class="cn">FALSE</span>, color <span class="op">=</span> <span class="st">"gray50"</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Important"</span> <span class="op">=</span> <span class="st">"steelblue"</span>, <span class="st">"Noise"</span> <span class="op">=</span> <span class="st">"lightcoral"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
+<span>    title <span class="op">=</span> <span class="st">"PFI vs RFI"</span>,</span>
+<span>    subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Correlation: %.3f"</span>, <span class="va">pfi_rfi_cor</span><span class="op">)</span>,</span>
+<span>    x <span class="op">=</span> <span class="st">"PFI Score"</span>, y <span class="op">=</span> <span class="st">"RFI Score"</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># CFI vs RFI</span></span>
+<span><span class="va">p3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">cor_data</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">cfi</span>, y <span class="op">=</span> <span class="va">rfi</span>, color <span class="op">=</span> <span class="va">feature_type</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">3</span>, alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth</a></span><span class="op">(</span>method <span class="op">=</span> <span class="st">"lm"</span>, se <span class="op">=</span> <span class="cn">FALSE</span>, color <span class="op">=</span> <span class="st">"gray50"</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span></span>
+<span>    values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Important"</span> <span class="op">=</span> <span class="st">"steelblue"</span>, <span class="st">"Noise"</span> <span class="op">=</span> <span class="st">"lightcoral"</span><span class="op">)</span>,</span>
+<span>    name <span class="op">=</span> <span class="st">"Feature Type"</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
+<span>    title <span class="op">=</span> <span class="st">"CFI vs RFI"</span>, </span>
+<span>    subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Correlation: %.3f"</span>, <span class="va">cfi_rfi_cor</span><span class="op">)</span>,</span>
+<span>    x <span class="op">=</span> <span class="st">"CFI Score"</span>, y <span class="op">=</span> <span class="st">"RFI Score"</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Combine plots</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
+<span><span class="op">(</span><span class="va">p1</span> <span class="op">/</span> <span class="va">p2</span> <span class="op">/</span> <span class="va">p3</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span></span>
+<span>    title <span class="op">=</span> <span class="st">"Method Correlations"</span>,</span>
+<span>    subtitle <span class="op">=</span> <span class="st">"Each point represents one feature"</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span>
+<span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span>
+<span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
+<p><img src="perturbation-importance_files/figure-html/correlation-analysis-1.png" width="768"></p>
+</div>
+<div class="section level2">
+<h2 id="understanding-the-results">Understanding the Results<a class="anchor" aria-label="anchor" href="#understanding-the-results"></a>
+</h2>
+<p>Let’s analyze how well each method distinguishes important from noise
+features:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Calculate summary statistics by feature type</span></span>
+<span><span class="va">summary_stats</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span></span>
+<span>  mean_importance <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">pfi</span>, <span class="va">cfi</span>, <span class="va">rfi</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  pfi_mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">pfi</span><span class="op">)</span>,</span>
+<span>  cfi_mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">cfi</span><span class="op">)</span>, </span>
+<span>  rfi_mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">rfi</span><span class="op">)</span>,</span>
+<span>  n_features <span class="op">=</span> <span class="va">.N</span></span>
+<span><span class="op">)</span>, by <span class="op">=</span> <span class="va">feature_type</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">summary_stats</span> <span class="op">|&gt;</span> <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"Summary by feature type"</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Summary by feature type</caption>
+<colgroup>
+<col width="19%">
+<col width="23%">
+<col width="13%">
+<col width="13%">
+<col width="13%">
+<col width="16%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">feature_type</th>
+<th align="right">mean_importance</th>
+<th align="right">pfi_mean</th>
+<th align="right">cfi_mean</th>
+<th align="right">rfi_mean</th>
+<th align="right">n_features</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Important</td>
+<td align="right">3.5158</td>
+<td align="right">5.5048</td>
+<td align="right">2.3987</td>
+<td align="right">2.6438</td>
+<td align="right">5</td>
+</tr>
+<tr class="even">
+<td align="left">Noise</td>
+<td align="right">0.0297</td>
+<td align="right">0.0224</td>
+<td align="right">0.0205</td>
+<td align="right">0.0460</td>
+<td align="right">5</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="co"># Calculate separation ratios (how well each method separates signal from noise)</span></span>
+<span><span class="va">important_pfi</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span><span class="va">feature_type</span> <span class="op">==</span> <span class="st">"Important"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">pfi</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">noise_pfi</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span><span class="va">feature_type</span> <span class="op">==</span> <span class="st">"Noise"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">pfi</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">pfi_separation</span> <span class="op">&lt;-</span> <span class="va">important_pfi</span> <span class="op">/</span> <span class="va">noise_pfi</span></span>
+<span></span>
+<span><span class="va">important_cfi</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span><span class="va">feature_type</span> <span class="op">==</span> <span class="st">"Important"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">cfi</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">noise_cfi</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span><span class="va">feature_type</span> <span class="op">==</span> <span class="st">"Noise"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">cfi</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">cfi_separation</span> <span class="op">&lt;-</span> <span class="va">important_cfi</span> <span class="op">/</span> <span class="va">noise_cfi</span></span>
+<span></span>
+<span><span class="va">important_rfi</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span><span class="va">feature_type</span> <span class="op">==</span> <span class="st">"Important"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">rfi</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">noise_rfi</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span><span class="va">feature_type</span> <span class="op">==</span> <span class="st">"Noise"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">rfi</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">rfi_separation</span> <span class="op">&lt;-</span> <span class="va">important_rfi</span> <span class="op">/</span> <span class="va">noise_rfi</span></span>
+<span></span>
+<span><span class="co"># Store results for inline reporting</span></span>
+<span><span class="va">pfi_sep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">pfi_separation</span>, <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">cfi_sep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">cfi_separation</span>, <span class="fl">2</span><span class="op">)</span> </span>
+<span><span class="va">rfi_sep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">rfi_separation</span>, <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">pfi_cfi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">pfi_cfi_cor</span>, <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">pfi_rfi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">pfi_rfi_cor</span>, <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">cfi_rfi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">cfi_rfi_cor</span>, <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="method-performance">Method Performance<a class="anchor" aria-label="anchor" href="#method-performance"></a>
+</h3>
+<p><strong>Separation ratios</strong> (how well each method
+distinguishes important from noise features): - PFI: 120.64 - CFI:
+62.41<br>
+- RFI: 55.76</p>
+<p><strong>Correlations between methods:</strong> - PFI vs CFI: 0.98 -
+PFI vs RFI: 0.751 - CFI vs RFI: 0.619</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="understanding-the-differences">Understanding the Differences<a class="anchor" aria-label="anchor" href="#understanding-the-differences"></a>
@@ -1261,13 +686,66 @@ providing a more realistic assessment when features are
 correlated.</p></li>
 <li><p><strong>RFI</strong> measures importance relative to a specific
 conditioning set, answering “what additional information does this
-feature provide beyond what we already know from features A, B,
-C?”</p></li>
+feature provide beyond what we already know from the conditioning
+features?”</p></li>
 </ol>
-<p>In our penguin example: - Features like bill dimensions and body mass
-are likely correlated - CFI accounts for these correlations when
-measuring importance - RFI shows which features add value beyond
-bill_length and flipper_length</p>
+<p>In our Friedman1 example: - All methods successfully identify that
+<code>important1</code> through <code>important5</code> are more
+important than <code>unimportant1</code> through
+<code>unimportant5</code> - The relative rankings may differ because: -
+PFI treats each feature in isolation - CFI accounts for dependencies
+between all features - RFI shows which features add value beyond
+<code>important1</code> and <code>important2</code></p>
+</div>
+<div class="section level2">
+<h2 id="variability-analysis">Variability Analysis<a class="anchor" aria-label="anchor" href="#variability-analysis"></a>
+</h2>
+<p>Let’s examine the stability of our importance estimates across
+resampling- and permutation iterations using the <code>$scores</code>
+tables:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">detailed_scores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/rbindlist.html" class="external-link">rbindlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  <span class="va">pfi</span><span class="op">$</span><span class="va">scores</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"PFI"</span><span class="op">]</span>,</span>
+<span>  <span class="va">cfi</span><span class="op">$</span><span class="va">scores</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"CFI"</span><span class="op">]</span>,</span>
+<span>  <span class="va">rfi</span><span class="op">$</span><span class="va">scores</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"RFI"</span><span class="op">]</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">score_summary</span> <span class="op">&lt;-</span> <span class="va">detailed_scores</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span></span>
+<span>  mean_importance <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">importance</span><span class="op">)</span>,</span>
+<span>  sd_importance <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">importance</span><span class="op">)</span>,</span>
+<span>  n_iterations <span class="op">=</span> <span class="va">.N</span></span>
+<span><span class="op">)</span>, by <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, <span class="va">method</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="co"># Add feature type</span></span>
+<span><span class="va">score_summary</span><span class="op">[</span>, <span class="va">feature_type</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"^important"</span>, <span class="va">feature</span><span class="op">)</span>, <span class="st">"Important"</span>, <span class="st">"Noise"</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="co"># Plot error bars</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">score_summary</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span></span>
+<span>    y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">feature</span>, <span class="va">mean_importance</span><span class="op">)</span>, </span>
+<span>    x <span class="op">=</span> <span class="va">mean_importance</span>,</span>
+<span>    xmin <span class="op">=</span> <span class="va">mean_importance</span> <span class="op">-</span> <span class="va">sd_importance</span>, </span>
+<span>    xmax <span class="op">=</span> <span class="va">mean_importance</span> <span class="op">+</span> <span class="va">sd_importance</span>,</span>
+<span>    color <span class="op">=</span> <span class="va">method</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">feature_type</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">1</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_errorbarh.html" class="external-link">geom_errorbarh</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">1</span>, height <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_color_brewer</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Dark2"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
+<span>    title <span class="op">=</span> <span class="st">"Importance Score Variability: Mean ± SD"</span>,</span>
+<span>    subtitle <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"Error bars show standard deviation across iterations</span></span>
+<span><span class="st">                      RFI conditioned on: {paste(conditioning_set, collapse = ', ')}"</span><span class="op">)</span>,</span>
+<span>    x <span class="op">=</span> <span class="st">"Score (Difference)"</span>,</span>
+<span>    y <span class="op">=</span> <span class="st">"Feature"</span>,</span>
+<span>    color <span class="op">=</span> <span class="st">"Method"</span>,</span>
+<span>    caption <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Using"</span>, <span class="va">resampling</span><span class="op">$</span><span class="va">iters</span>, <span class="st">"-fold CV and"</span>, <span class="va">pfi</span><span class="op">$</span><span class="va">param_set</span><span class="op">$</span><span class="va">values</span><span class="op">$</span><span class="va">iters_perm</span>, <span class="st">"permutations each"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
+<span>    plot.title.position <span class="op">=</span> <span class="st">"plot"</span>,</span>
+<span>    legend.position <span class="op">=</span> <span class="st">"bottom"</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
+<p><img src="perturbation-importance_files/figure-html/variability-analysis-1.png" width="768"></p>
 </div>
 <div class="section level2">
 <h2 id="advanced-usage">Advanced Usage<a class="anchor" aria-label="anchor" href="#advanced-usage"></a>
@@ -1275,13 +753,13 @@ bill_length and flipper_length</p>
 <div class="section level3">
 <h3 id="custom-samplers">Custom Samplers<a class="anchor" aria-label="anchor" href="#custom-samplers"></a>
 </h3>
-<p>You can also provide custom samplers for more control:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<p>You can provide custom samplers for more control:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create a custom ARF sampler with specific parameters</span></span>
 <span><span class="va">custom_sampler</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task</span>,</span>
-<span>  arf_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>num_trees <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>,  <span class="co"># Fewer trees for faster computation</span></span>
-<span>  forde_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>finite_bounds <span class="op">=</span> <span class="st">"local"</span><span class="op">)</span> <span class="co"># Avoid out of distribution samples</span></span>
+<span>  arf_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>num.trees <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>,  <span class="co"># Fewer trees for faster computation</span></span>
+<span>  forde_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>finite_bounds <span class="op">=</span> <span class="st">"no"</span><span class="op">)</span> <span class="co"># Allow extrapolation</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">cfi_custom</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/CFI.html">CFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
@@ -1293,64 +771,63 @@ bill_length and flipper_length</p>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="accessing-detailed-results">Accessing Detailed Results<a class="anchor" aria-label="anchor" href="#accessing-detailed-results"></a>
+<h3 id="empty-conditioning-set-for-rfi">Empty Conditioning Set for RFI<a class="anchor" aria-label="anchor" href="#empty-conditioning-set-for-rfi"></a>
 </h3>
-<p>As mentioned, individual scores per resampling iteration and
-permutation iteration are kept in <code>$scores</code>.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">detailed_scores</span> <span class="op">&lt;-</span> <span class="va">pfi</span><span class="op">$</span><span class="va">scores</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">detailed_scores</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Key: &lt;feature, iter_rsmp&gt;</span></span>
-<span><span class="co">#&gt;       feature iter_rsmp iter_perm classif.acc_orig classif.acc_perm importance</span></span>
-<span><span class="co">#&gt;        &lt;char&gt;     &lt;int&gt;     &lt;int&gt;            &lt;num&gt;            &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1: bill_depth         1         1        0.9565217        0.9217391 0.03478261</span></span>
-<span><span class="co">#&gt; 2: bill_depth         1         2        0.9565217        0.8869565 0.06956522</span></span>
-<span><span class="co">#&gt; 3: bill_depth         1         3        0.9565217        0.9130435 0.04347826</span></span>
-<span><span class="co">#&gt; 4: bill_depth         1         4        0.9565217        0.9217391 0.03478261</span></span>
-<span><span class="co">#&gt; 5: bill_depth         1         5        0.9565217        0.9217391 0.03478261</span></span>
-<span><span class="co">#&gt; 6: bill_depth         2         1        0.9826087        0.9652174 0.01739130</span></span>
+<p>RFI with an empty conditioning set should produce similar results to
+PFI:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rfi_empty</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/RFI.html">RFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  conditioning_set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>, <span class="co"># Empty conditioning set</span></span>
+<span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  sampler <span class="op">=</span> <span class="va">sampler</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Summarize variability across iterations</span></span>
-<span><span class="va">score_summary</span> <span class="op">&lt;-</span> <span class="va">detailed_scores</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span></span>
-<span>  mean_importance <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">importance</span><span class="op">)</span>,</span>
-<span>  sd_importance <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">importance</span><span class="op">)</span>,</span>
-<span>  n_iterations <span class="op">=</span> <span class="va">.N</span></span>
-<span><span class="op">)</span>, by <span class="op">=</span> <span class="va">feature</span><span class="op">]</span></span>
+<span><span class="va">rfi_empty_results</span> <span class="op">&lt;-</span> <span class="va">rfi_empty</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">score_summary</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;           feature mean_importance sd_importance n_iterations</span></span>
-<span><span class="co">#&gt;            &lt;char&gt;           &lt;num&gt;         &lt;num&gt;        &lt;int&gt;</span></span>
-<span><span class="co">#&gt; 1:     bill_depth     0.029077040   0.017635396           15</span></span>
-<span><span class="co">#&gt; 2:    bill_length     0.259471142   0.051076252           15</span></span>
-<span><span class="co">#&gt; 3:      body_mass     0.007002288   0.008882485           15</span></span>
-<span><span class="co">#&gt; 4: flipper_length     0.012819730   0.017420922           15</span></span>
-<span><span class="co">#&gt; 5:         island     0.027897279   0.014769513           15</span></span>
-<span><span class="co">#&gt; 6:            sex     0.005252988   0.006457193           15</span></span>
-<span><span class="co">#&gt; 7:           year     0.001764556   0.007545314           15</span></span>
+<span><span class="co"># Compare with PFI</span></span>
+<span><span class="va">empty_comparison</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span></span>
+<span>  <span class="va">pfi_results</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, pfi <span class="op">=</span> <span class="va">importance</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>  <span class="va">rfi_empty_results</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, rfi_empty <span class="op">=</span> <span class="va">importance</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>  by <span class="op">=</span> <span class="st">"feature"</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">score_summary</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span></span>
-<span>  y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">feature</span>, <span class="va">mean_importance</span><span class="op">)</span>, </span>
-<span>  xmin <span class="op">=</span> <span class="va">mean_importance</span> <span class="op">-</span> <span class="va">sd_importance</span>, </span>
-<span>  xmax <span class="op">=</span> <span class="va">mean_importance</span> <span class="op">+</span> <span class="va">sd_importance</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_errorbarh.html" class="external-link">geom_errorbarh</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">1</span>, height <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"Permutation Feature Importance: Mean ± SD"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span></span>
-<span>      <span class="st">"Task: {task$id} </span></span>
-<span><span class="st">      Measure: {measure$id}"</span><span class="op">)</span>,</span>
-<span>    x <span class="op">=</span> <span class="st">"PFI Score (Difference)"</span>,</span>
-<span>    y <span class="op">=</span> <span class="st">"Feature"</span>,</span>
-<span>    caption <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"Using {resampling$iters}-fold cross-validation and {pfi$param_set$values$iters_perm} permutations each"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">16</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
-<span>    legend.position <span class="op">=</span> <span class="st">"bottom"</span>,</span>
-<span>    plot.title.position <span class="op">=</span> <span class="st">"plot"</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="perturbation-importance_files/figure-html/detailed-scores-1.png" width="700"></p>
+<span><span class="va">correlation_empty</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">empty_comparison</span><span class="op">$</span><span class="va">pfi</span>, <span class="va">empty_comparison</span><span class="op">$</span><span class="va">rfi_empty</span><span class="op">)</span></span></code></pre></div>
+<p>The correlation between PFI and RFI with empty conditioning set is
+0.997, confirming that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">R</mi><mi mathvariant="normal">F</mi><mi mathvariant="normal">I</mi></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>∅</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>≈</mo><mrow><mi mathvariant="normal">P</mi><mi mathvariant="normal">F</mi><mi mathvariant="normal">I</mi></mrow></mrow><annotation encoding="application/x-tex">\mathrm{RFI}(\emptyset) \approx \mathrm{PFI}</annotation></semantics></math>
+as expected.</p>
 </div>
+</div>
+<div class="section level2">
+<h2 id="key-takeaways">Key Takeaways<a class="anchor" aria-label="anchor" href="#key-takeaways"></a>
+</h2>
+<ol style="list-style-type: decimal">
+<li>
+<strong>All methods correctly identify important features</strong>
+in this well-structured synthetic task</li>
+<li>
+<strong>PFI provides a baseline</strong> for marginal feature
+importance</li>
+<li>
+<strong>CFI accounts for feature dependencies</strong> through
+conditional sampling</li>
+<li>
+<strong>RFI measures relative importance</strong> beyond a specified
+conditioning set</li>
+<li>
+<strong>Method choice depends on your question</strong>:
+<ul>
+<li>Use PFI for simple, interpretable marginal importance</li>
+<li>Use CFI when feature dependencies matter</li>
+<li>Use RFI to understand incremental value beyond known important
+features</li>
+</ul>
+</li>
+</ol>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
