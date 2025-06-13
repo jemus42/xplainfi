@@ -23,6 +23,8 @@ lgr::get_logger("mlr3")$set_threshold("warn")
 library(xplainfi)
 library(mlr3)
 library(mlr3learners)
+library(data.table)
+library(ggplot2)
 ```
 
 ## Leave-One-Covariate-Out (LOCO)
@@ -75,7 +77,7 @@ loco_multi$compute()
 
 # Check individual scores with multiple refits
 loco_multi$scores[1:10, ] |>
-  knitr::kable(digits = 4)
+  knitr::kable(digits = 4, caption = "LOCO scores per refit and resampling fold")
 ```
 
 ## Comparing LOCO and LOCI
@@ -105,15 +107,14 @@ The Friedman1 task has known feature importance patterns:
 Note that LOCI values represent the performance difference between using only that feature vs. using all features, so they tend to be larger than LOCO values.
 
 ```{r plot, fig.width=7, fig.height=4}
-library(ggplot2)
-
 importance_combined |>
   data.table::melt(
     id.vars = "feature",
     value.name = "score",
     variable.name = "method"
   ) |>
-  ggplot(aes(x = score, y = feature, color = method, fill = method)) +
+  ggplot(aes(x = score, y = reorder(feature, -score), color = method, fill = method)) +
+  facet_wrap(vars(method), ncol = 1, scales = "free") +
   geom_col(position = "dodge", alpha = 0.7) +
   scale_color_brewer(palette = "Set1", aesthetics = c("color", "fill")) +
   labs(
@@ -123,6 +124,9 @@ importance_combined |>
     color = "Method",
     fill = "Method"
   ) +
-  theme_minimal() +
-  theme(legend.position = "bottom")
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "bottom",
+    plot.title.position = "plot"
+  ) 
 ```
