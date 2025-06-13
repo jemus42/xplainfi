@@ -61,6 +61,7 @@ The task has `r task$nrow` observations with `r length(task$feature_names)` feat
 PFI shuffles each feature independently, breaking the association between the feature and the target while preserving the marginal distribution.
 
 For more stable results, we use:
+
 - 3-fold CV for more reliable performance estimates
 - Within each resampling iteration, we repeat the permutation-prediction-scoring step `iters_perm` times
 
@@ -193,6 +194,7 @@ plot_data[, method := toupper(method)]
 
 # Create the comparison plot
 ggplot(plot_data, aes(x = importance, y = reorder(feature, importance), fill = method)) +
+  facet_wrap(~ feature_type, scales = "free_y", ncol = 1) +
   geom_col(position = "dodge", alpha = 0.8) +
   scale_fill_manual(values = c("PFI" = "steelblue", "CFI" = "darkgreen", "RFI" = "orange")) +
   labs(
@@ -205,12 +207,11 @@ ggplot(plot_data, aes(x = importance, y = reorder(feature, importance), fill = m
     caption = glue::glue("Using {resampling$iters}-fold cross-validation
                           and 5 permutation iterations")
   ) +
-  theme_minimal() +
+  theme_minimal(base_size = 14) +
   theme(
     legend.position = "bottom",
     plot.title.position = "plot"
-  ) +
-  facet_wrap(~ feature_type, scales = "free_y", ncol = 1)
+  )
 ```
 
 Let's also create a correlation plot to see how similar the methods are:
@@ -234,7 +235,7 @@ p1 <- ggplot(cor_data, aes(x = pfi, y = cfi, color = feature_type)) +
     subtitle = sprintf("Correlation: %.3f", pfi_cfi_cor),
     x = "PFI Score", y = "CFI Score"
   ) +
-  theme_minimal() +
+  theme_minimal(base_size = 14) +
   theme(legend.position = "none")
 
 # PFI vs RFI  
@@ -247,7 +248,7 @@ p2 <- ggplot(cor_data, aes(x = pfi, y = rfi, color = feature_type)) +
     subtitle = sprintf("Correlation: %.3f", pfi_rfi_cor),
     x = "PFI Score", y = "RFI Score"
   ) +
-  theme_minimal() +
+  theme_minimal(base_size = 14) +
   theme(legend.position = "none")
 
 # CFI vs RFI
@@ -263,7 +264,7 @@ p3 <- ggplot(cor_data, aes(x = cfi, y = rfi, color = feature_type)) +
     subtitle = sprintf("Correlation: %.3f", cfi_rfi_cor),
     x = "CFI Score", y = "RFI Score"
   ) +
-  theme_minimal()
+  theme_minimal(base_size = 14)
 
 # Combine plots
 library(patchwork)
@@ -336,6 +337,7 @@ The three methods can yield different results because they make different assump
 3. **RFI** measures importance relative to a specific conditioning set, answering "what additional information does this feature provide beyond what we already know from the conditioning features?"
 
 In our Friedman1 example:
+
 - All methods successfully identify that `important1` through `important5` are more important than `unimportant1` through `unimportant5`
 - The relative rankings may differ because:
   - PFI treats each feature in isolation
@@ -383,7 +385,7 @@ ggplot(score_summary, aes(
     color = "Method",
     caption = paste("Using", resampling$iters, "-fold CV and", pfi$param_set$values$iters_perm, "permutations each")
   ) +
-  theme_minimal() +
+  theme_minimal(base_size = 14) +
   theme(
     plot.title.position = "plot",
     legend.position = "bottom"

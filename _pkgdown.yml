@@ -21,9 +21,10 @@ reference:
     - CFI
     - RFI
   - subtitle: Model Refitting Measures
-    desc: Methods which refit models with a set of features omitted.
+    desc: Methods which refit models with one (or more) features omitted (LOCO) or included (LOCI).
     contents:
     - LOCO
+    - LOCI
   - subtitle: Shapley-Based Approaches
     desc: Currently including Shapley Additive Global Importance (SAGE) in marginal and conditional variants
     contents:
