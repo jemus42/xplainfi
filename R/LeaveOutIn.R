@@ -71,23 +71,23 @@ LeaveOutIn = R6Class(
       # Store relation
       self$param_set$values$relation = relation
 
-      # Initial resampling
-      rr = resample(
-        self$task,
-        self$learner,
-        self$resampling,
-        store_models = TRUE,
-        store_backends = store_backends
-      )
-
       # For LOCO: use full model as baseline
       # For LOCI: use featureless model as baseline
       if (self$direction == "leave-out") {
-        scores_pre = rr$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
+        # For LOCO, get baseline scores by running full model across resampling
+        rr_baseline = resample(
+          self$task,
+          self$learner,
+          self$resampling,
+          store_models = FALSE,
+          store_backends = FALSE
+        )
+        scores_pre = rr_baseline$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
         setnames(scores_pre, old = self$measure$id, "scores_pre")
       } else {
-        # For LOCI, we need featureless baseline
-        learner_featureless = switch(self$task$task_type,
+        # For LOCI, get baseline scores using featureless learner
+        learner_featureless = switch(
+          self$task$task_type,
           "classif" = mlr3::lrn("classif.featureless"),
           "regr" = mlr3::lrn("regr.featureless")
         )
@@ -104,12 +104,13 @@ LeaveOutIn = R6Class(
         setnames(scores_pre, old = self$measure$id, "scores_pre")
       }
 
+      # Compute feature-specific scores using the instantiated resampling
       scores = lapply(seq_len(self$resampling$iters), \(iter) {
         private$.compute_loc(
-          learner = rr$learners[[iter]],
+          learner = self$learner$clone(),
           task = self$task,
-          train_ids = rr$resampling$train_set(iter),
-          test_ids = rr$resampling$test_set(iter),
+          train_ids = self$resampling$train_set(iter),
+          test_ids = self$resampling$test_set(iter),
           features = self$features,
           measure = self$measure,
           iters_refit = self$param_set$values$iters_refit
@@ -123,12 +124,12 @@ LeaveOutIn = R6Class(
 
       # Calculate importance depending on relation(-, /), and minimize property
       # For LOCI: importance = featureless - single_feature (so swap arguments)
-      # For LOCO: importance = reduced_model - full_model  
+      # For LOCO: importance = reduced_model - full_model
       if (self$direction == "leave-in") {
         scores[,
           importance := compute_score(
-            scores_post,  # single feature score (as "pre")
-            scores_pre,   # featureless score (as "post") - this gives featureless - single_feature
+            scores_post, # single feature score (as "pre")
+            scores_pre, # featureless score (as "post") - this gives featureless - single_feature
             relation = self$param_set$values$relation,
             minimize = self$measure$minimize
           )
@@ -136,8 +137,8 @@ LeaveOutIn = R6Class(
       } else {
         scores[,
           importance := compute_score(
-            scores_pre,   # full model score
-            scores_post,  # reduced model score
+            scores_pre, # full model score
+            scores_post, # reduced model score
             relation = self$param_set$values$relation,
             minimize = self$measure$minimize
           )
@@ -157,7 +158,12 @@ LeaveOutIn = R6Class(
 
       self$scores = scores
       self$importance = scores_agg
-      self$resample_result = rr
+      # Store the baseline resample result (either full model or featureless)
+      if (self$direction == "leave-out") {
+        self$resample_result = rr_baseline
+      } else {
+        self$resample_result = rr_featureless
+      }
 
       self$importance
     }
@@ -223,7 +229,7 @@ LeaveOutIn = R6Class(
 #' @details
 #' LOCO measures feature importance by comparing model performance with and without
 #' each feature. For each feature, the model is retrained without that feature and
-#' the performance difference (reduced_model_loss - full_model_loss) indicates the 
+#' the performance difference (reduced_model_loss - full_model_loss) indicates the
 #' feature's importance. Higher values indicate more important features.
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)

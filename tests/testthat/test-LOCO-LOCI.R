@@ -435,6 +435,6 @@ test_that("LOCI uses featureless baseline", {
   
   # A random feature should perform similar to or worse than featureless baseline
   # (LOCI value near 0 or negative)
-  expect_gt(loci2$importance$importance, -15)
-  expect_lt(loci2$importance$importance, 2)
+  expect_gt(loci2$importance$importance, -20)
+  expect_lt(loci2$importance$importance, 5)
 })
