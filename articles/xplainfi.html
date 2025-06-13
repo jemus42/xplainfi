@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>xplainfi • xplainfi</title>
+<title>Getting Started with xplainfi • xplainfi</title>
 <script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet">
@@ -13,7 +13,7 @@
 <link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="xplainfi">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Getting Started with xplainfi">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -70,7 +70,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>xplainfi</h1>
+      <h1>Getting Started with xplainfi</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/jemus42/xplainfi/blob/main/vignettes/xplainfi.Rmd" class="external-link"><code>vignettes/xplainfi.Rmd</code></a></small>
@@ -81,460 +81,351 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jemus42.github.io/xplainfi/">xplainfi</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># learners, tasks, etc.</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr3.mlr-org.com" class="external-link">mlr3</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr3learners.mlr-org.com" class="external-link">mlr3learners</a></span><span class="op">)</span></span></code></pre></div>
-<p>Defining a simple example case:</p>
-<ul>
-<li>Breast cancer task</li>
-<li>Random forests with 100 trees</li>
-<li>Holdout split (default)</li>
-<li>Measure: Brier score</li>
-</ul>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">task</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tsk</a></span><span class="op">(</span><span class="st">"breast_cancer"</span><span class="op">)</span></span>
-<span><span class="va">learner</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, predict_type <span class="op">=</span> <span class="st">"prob"</span><span class="op">)</span></span>
-<span><span class="va">measure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.bbrier"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr3learners.mlr-org.com" class="external-link">mlr3learners</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-datatable.com" class="external-link">data.table</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span></code></pre></div>
+<p>The <strong>xplainfi</strong> package provides feature importance
+methods for machine learning models. It implements several approaches
+for measuring how much each feature contributes to model predictions,
+with a focus on model-agnostic methods that work with any learner.</p>
 <div class="section level2">
-<h2 id="pfi">PFI<a class="anchor" aria-label="anchor" href="#pfi"></a>
+<h2 id="core-concepts">Core Concepts<a class="anchor" aria-label="anchor" href="#core-concepts"></a>
 </h2>
-<div class="section level3">
-<h3 id="simple-case-without-resampling">Simple case without resampling<a class="anchor" aria-label="anchor" href="#simple-case-without-resampling"></a>
-</h3>
-<p>Default behavior will internally construct standard holdout
-resampling with default ratio</p>
-<p>Calculating PFI:</p>
+<p>Feature importance methods in xplainfi answer different but related
+questions:</p>
+<ul>
+<li>
+<strong>How much does each feature contribute to model
+performance?</strong> (Permutation Feature Importance)</li>
+<li>
+<strong>What happens when we remove features and retrain?</strong>
+(Leave-One-Covariate-Out)<br>
+</li>
+<li>
+<strong>How much does each feature contribute individually?</strong>
+(Leave-One-Covariate-In)</li>
+<li>
+<strong>How do features depend on each other?</strong> (Conditional
+and Relative methods)</li>
+</ul>
+<p>All methods share a common interface built on <a href="https://mlr3.mlr-org.com/" class="external-link">mlr3</a>, making them easy to use with
+any task, learner, measure, and resampling strategy.</p>
+</div>
+<div class="section level2">
+<h2 id="basic-example">Basic Example<a class="anchor" aria-label="anchor" href="#basic-example"></a>
+</h2>
+<p>Let’s use the Friedman1 task, which provides an ideal setup for
+demonstrating feature importance methods with known ground truth:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">task</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tgen</a></span><span class="op">(</span><span class="st">"friedman1"</span><span class="op">)</span><span class="op">$</span><span class="fu">generate</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span>
+<span><span class="va">learner</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
+<span><span class="va">measure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span></span>
+<span><span class="va">resampling</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<p>The task has 300 observations with 10 features. Features
+<code>important1</code> through <code>important5</code> truly affect the
+target, while <code>unimportant1</code> through
+<code>unimportant5</code> are pure noise. We’ll use a random forest
+learner with cross-validation for more stable estimates.</p>
+<p>The target function is:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mn>10</mn><mo>*</mo><mo>sin</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>π</mi><mo>*</mo><msub><mi>x</mi><mn>1</mn></msub><mo>*</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mn>20</mn><mo>*</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mn>3</mn></msub><mo>−</mo><mn>0.5</mn><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo>+</mo><mn>10</mn><mo>*</mo><msub><mi>x</mi><mn>4</mn></msub><mo>+</mo><mn>5</mn><mo>*</mo><msub><mi>x</mi><mn>5</mn></msub><mo>+</mo><mi>ϵ</mi></mrow><annotation encoding="application/x-tex">y = 10 * \operatorname{sin}(\pi * x_1 * x_2) + 20 * (x_3 - 0.5)^2 + 10 * x_4 + 5 * x_5 + \epsilon</annotation></semantics></math></p>
+</div>
+<div class="section level2">
+<h2 id="permutation-feature-importance-pfi">Permutation Feature Importance (PFI)<a class="anchor" aria-label="anchor" href="#permutation-feature-importance-pfi"></a>
+</h2>
+<p>PFI is the most straightforward method: for each feature, we permute
+(shuffle) its values and measure how much model performance
+deteriorates. More important features cause larger performance drops
+when shuffled.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task</span>,</span>
 <span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
-<span>  measure <span class="op">=</span> <span class="va">measure</span></span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Stores parameter set to calculate PFI in different ways</span></span>
-<span><span class="va">pfi</span><span class="op">$</span><span class="va">param_set</span></span>
-<span><span class="co">#&gt; &lt;ParamSet(2)&gt;</span></span>
-<span><span class="co">#&gt;            id    class lower upper nlevels    default      value</span></span>
-<span><span class="co">#&gt;        &lt;char&gt;   &lt;char&gt; &lt;num&gt; &lt;num&gt;   &lt;num&gt;     &lt;list&gt;     &lt;list&gt;</span></span>
-<span><span class="co">#&gt; 1:   relation ParamFct    NA    NA       2 difference difference</span></span>
-<span><span class="co">#&gt; 2: iters_perm ParamInt     1   Inf     Inf          1          1</span></span>
-<span></span>
-<span><span class="co"># Default behavior should be sane</span></span>
-<span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">pfi_results</span> <span class="op">&lt;-</span> <span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">pfi_results</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;            feature   importance</span></span>
-<span><span class="co">#&gt;             &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei 0.0311134047</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin 0.0039695264</span></span>
-<span><span class="co">#&gt; 3:      cell_shape 0.0181463463</span></span>
-<span><span class="co">#&gt; 4:       cell_size 0.0260011523</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness 0.0068208143</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size 0.0027591783</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion 0.0026618505</span></span>
-<span><span class="co">#&gt; 8:         mitoses 0.0004096992</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli 0.0088215131</span></span></code></pre></div>
-<p>Q: Should <code>$compute()</code> be run on construction? Between the
-call to <code>$new()</code> and <code>$compute()</code> there’s nothing
-that needs to happen technically, as long as the <code>relation</code>
-param could be set directly.</p>
-<p>Does not recompute if not needed, as <code>"difference"</code> is the
-default:</p>
+<span><span class="co">#&gt;          feature   importance</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;        &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:   important1  4.858724892</span></span>
+<span><span class="co">#&gt;  2:   important2  8.155693005</span></span>
+<span><span class="co">#&gt;  3:   important3  1.109254345</span></span>
+<span><span class="co">#&gt;  4:   important4 10.784727349</span></span>
+<span><span class="co">#&gt;  5:   important5  2.395793708</span></span>
+<span><span class="co">#&gt;  6: unimportant1  0.009618005</span></span>
+<span><span class="co">#&gt;  7: unimportant2  0.080903445</span></span>
+<span><span class="co">#&gt;  8: unimportant3  0.044057887</span></span>
+<span><span class="co">#&gt;  9: unimportant4 -0.082032243</span></span>
+<span><span class="co">#&gt; 10: unimportant5 -0.137666350</span></span></code></pre></div>
+<p>The <code>importance</code> column shows the performance difference
+when each feature is permuted. Higher values indicate more important
+features.</p>
+<p>For more stable estimates, we can use multiple permutation iterations
+per resampling fold:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">pfi_stable</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  iters_perm <span class="op">=</span> <span class="fl">5</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">pfi_stable</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;            feature   importance</span></span>
-<span><span class="co">#&gt;             &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei 0.0311134047</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin 0.0039695264</span></span>
-<span><span class="co">#&gt; 3:      cell_shape 0.0181463463</span></span>
-<span><span class="co">#&gt; 4:       cell_size 0.0260011523</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness 0.0068208143</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size 0.0027591783</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion 0.0026618505</span></span>
-<span><span class="co">#&gt; 8:         mitoses 0.0004096992</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli 0.0088215131</span></span></code></pre></div>
-<p>Recomputes if param changes, stores new param</p>
+<span><span class="co">#&gt;          feature   importance</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;        &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:   important1  5.625322621</span></span>
+<span><span class="co">#&gt;  2:   important2  9.609986341</span></span>
+<span><span class="co">#&gt;  3:   important3  1.196388744</span></span>
+<span><span class="co">#&gt;  4:   important4 12.648328883</span></span>
+<span><span class="co">#&gt;  5:   important5  1.705056896</span></span>
+<span><span class="co">#&gt;  6: unimportant1 -0.002597636</span></span>
+<span><span class="co">#&gt;  7: unimportant2  0.108962283</span></span>
+<span><span class="co">#&gt;  8: unimportant3  0.039131183</span></span>
+<span><span class="co">#&gt;  9: unimportant4 -0.058408934</span></span>
+<span><span class="co">#&gt; 10: unimportant5 -0.041202334</span></span></code></pre></div>
+<p>We can also use ratio instead of difference for the importance
+calculation:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">pfi_stable</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;            feature importance</span></span>
-<span><span class="co">#&gt;             &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei   2.005166</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin   1.360535</span></span>
-<span><span class="co">#&gt; 3:      cell_shape   1.787501</span></span>
-<span><span class="co">#&gt; 4:       cell_size   1.892795</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness   1.233292</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size   1.073837</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion   1.143984</span></span>
-<span><span class="co">#&gt; 8:         mitoses   1.038286</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli   1.377058</span></span>
-<span><span class="va">pfi</span><span class="op">$</span><span class="va">param_set</span></span>
-<span><span class="co">#&gt; &lt;ParamSet(2)&gt;</span></span>
-<span><span class="co">#&gt;            id    class lower upper nlevels    default  value</span></span>
-<span><span class="co">#&gt;        &lt;char&gt;   &lt;char&gt; &lt;num&gt; &lt;num&gt;   &lt;num&gt;     &lt;list&gt; &lt;list&gt;</span></span>
-<span><span class="co">#&gt; 1:   relation ParamFct    NA    NA       2 difference  ratio</span></span>
-<span><span class="co">#&gt; 2: iters_perm ParamInt     1   Inf     Inf          1      1</span></span></code></pre></div>
-<p>Q: When <code>$compute()</code> is called again its default value for
-<code>"relation"</code> (i.e. <code>"difference"</code>) is used, which
-doesn’t seem ideal. Maybe this default should be the param stored in the
-object itself rather than feel like a separate function.</p>
+<span><span class="co">#&gt;          feature importance</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:   important1  1.9484469</span></span>
+<span><span class="co">#&gt;  2:   important2  2.4425122</span></span>
+<span><span class="co">#&gt;  3:   important3  1.2212920</span></span>
+<span><span class="co">#&gt;  4:   important4  2.9619275</span></span>
+<span><span class="co">#&gt;  5:   important5  1.3790643</span></span>
+<span><span class="co">#&gt;  6: unimportant1  0.9862282</span></span>
+<span><span class="co">#&gt;  7: unimportant2  1.0098376</span></span>
+<span><span class="co">#&gt;  8: unimportant3  1.0227458</span></span>
+<span><span class="co">#&gt;  9: unimportant4  1.0090616</span></span>
+<span><span class="co">#&gt; 10: unimportant5  0.9909342</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="feature-samplers">Feature Samplers<a class="anchor" aria-label="anchor" href="#feature-samplers"></a>
+</h2>
+<p>For advanced methods that account for feature dependencies, xplainfi
+provides different sampling strategies. While PFI uses simple
+permutation (marginal sampling), conditional samplers can preserve
+feature relationships.</p>
+<p>Let’s demonstrate conditional sampling using Adversarial Random
+Forests, which preserves relationships between features when
+sampling:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;            feature   importance</span></span>
-<span><span class="co">#&gt;             &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei 0.0269669118</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin 0.0080938632</span></span>
-<span><span class="co">#&gt; 3:      cell_shape 0.0192081960</span></span>
-<span><span class="co">#&gt; 4:       cell_size 0.0281257099</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness 0.0061718034</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size 0.0010423567</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion 0.0018831063</span></span>
-<span><span class="co">#&gt; 8:         mitoses 0.0006549462</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli 0.0086903167</span></span></code></pre></div>
-<p>Retrieve aggregated scores manually:</p>
+<code class="sourceCode R"><span><span class="va">arf_sampler</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">task</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Iteration: 0, Accuracy: 47.13%</span></span>
+<span><span class="co">#&gt; Warning: executing %dopar% sequentially: no parallel backend registered</span></span>
+<span></span>
+<span><span class="va">sample_data</span> <span class="op">&lt;-</span> <span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span>rows <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span></span>
+<span><span class="va">sample_data</span><span class="op">$</span><span class="va">important1</span></span>
+<span><span class="co">#&gt; [1] 0.2875775 0.7883051 0.4089769 0.8830174 0.9404673</span></span></code></pre></div>
+<p>Now we’ll conditionally sample the <code>important1</code> feature
+given the values of <code>important2</code> and
+<code>important3</code>:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="va">importance</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;            feature   importance</span></span>
-<span><span class="co">#&gt;             &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei 0.0269669118</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin 0.0080938632</span></span>
-<span><span class="co">#&gt; 3:      cell_shape 0.0192081960</span></span>
-<span><span class="co">#&gt; 4:       cell_size 0.0281257099</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness 0.0061718034</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size 0.0010423567</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion 0.0018831063</span></span>
-<span><span class="co">#&gt; 8:         mitoses 0.0006549462</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli 0.0086903167</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">sampled_conditional</span> <span class="op">&lt;-</span> <span class="va">arf_sampler</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span></span>
+<span>  feature <span class="op">=</span> <span class="st">"important1"</span>, </span>
+<span>  data <span class="op">=</span> <span class="va">sample_data</span>,</span>
+<span>  conditioning_features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"important2"</span>, <span class="st">"important3"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sampled_conditional</span><span class="op">$</span><span class="va">important1</span></span>
+<span><span class="co">#&gt; [1] 0.4796056 0.3169238 0.4274408 0.3023370 0.6075926</span></span></code></pre></div>
+<p>Original values: 0.288, 0.788, 0.409, 0.883, 0.94</p>
+<p>Conditionally sampled values: 0.48, 0.317, 0.427, 0.302, 0.608</p>
+<p>Note how the sampled values respect the conditional distribution
+given the values of important2 and important3.</p>
+<p>This conditional sampling is essential for methods like CFI and RFI
+that need to preserve feature dependencies. See
+<code><a href="../articles/perturbation-importance.html">vignette("perturbation-importance")</a></code> for detailed
+comparisons.</p>
 </div>
-<div class="section level3">
-<h3 id="with-resampling">With resampling<a class="anchor" aria-label="anchor" href="#with-resampling"></a>
-</h3>
+<div class="section level2">
+<h2 id="when-to-use-each-method">When to Use Each Method<a class="anchor" aria-label="anchor" href="#when-to-use-each-method"></a>
+</h2>
+<p><strong>Choose PFI when:</strong> - You want fast, simple importance
+estimates - Features are relatively independent<br>
+- You need a quick baseline assessment</p>
+<p><strong>Choose LOCO when:</strong> - You want the most accurate
+importance estimates - Computational cost is not a major concern -
+Features may be correlated - You want to understand the impact of
+completely removing features</p>
+<p><strong>Choose LOCI when:</strong> - You want to understand
+individual feature contributions - You’re interested in feature
+selection (negative LOCI scores suggest features to remove) - You want
+to compare features to a meaningful baseline</p>
+</div>
+<div class="section level2">
+<h2 id="advanced-features">Advanced Features<a class="anchor" aria-label="anchor" href="#advanced-features"></a>
+</h2>
+<p>xplainfi supports many advanced features for robust importance
+estimation:</p>
+<ul>
+<li>
+<strong>Multiple resampling strategies</strong>: Cross-validation,
+bootstrap, custom splits</li>
+<li>
+<strong>Multiple permutation/refit iterations</strong>: For more
+stable estimates</li>
+<li>
+<strong>Feature grouping</strong>: Compute importance for groups of
+related features</li>
+<li>
+<strong>Different relation types</strong>: Difference vs. ratio
+scoring</li>
+<li>
+<strong>Conditional sampling</strong>: Account for feature
+dependencies (see <code><a href="../articles/perturbation-importance.html">vignette("perturbation-importance")</a></code>)</li>
+<li>
+<strong>SAGE methods</strong>: Shapley-based approaches (see
+<code><a href="../articles/sage-methods.html">vignette("sage-methods")</a></code>)</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="detailed-scoring-information">Detailed Scoring Information<a class="anchor" aria-label="anchor" href="#detailed-scoring-information"></a>
+</h2>
+<p>All methods store detailed scoring information for further analysis.
+Let’s examine the structure of PFI’s detailed scores:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">learner</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, predict_type <span class="op">=</span> <span class="st">"prob"</span><span class="op">)</span></span>
-<span><span class="va">resampling</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="va">measure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.bbrier"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">pfi</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
-<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
-<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>  measure <span class="op">=</span> <span class="va">measure</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">pfi</span><span class="op">$</span><span class="va">resampling</span></span>
-<span><span class="co">#&gt; &lt;ResamplingCV&gt;: Cross-Validation</span></span>
-<span><span class="co">#&gt; * Iterations: 3</span></span>
-<span><span class="co">#&gt; * Instantiated: TRUE</span></span>
-<span><span class="co">#&gt; * Parameters: folds=3</span></span>
-<span><span class="va">pfi</span><span class="op">$</span><span class="va">resample_result</span></span>
-<span><span class="co">#&gt; NULL</span></span>
-<span></span>
-<span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;            feature   importance</span></span>
-<span><span class="co">#&gt;             &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei 0.0312390148</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin 0.0075122543</span></span>
-<span><span class="co">#&gt; 3:      cell_shape 0.0161138358</span></span>
-<span><span class="co">#&gt; 4:       cell_size 0.0308948666</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness 0.0156788348</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size 0.0018646652</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion 0.0029774891</span></span>
-<span><span class="co">#&gt; 8:         mitoses 0.0006869458</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli 0.0055014621</span></span>
-<span></span>
-<span><span class="va">pfi</span><span class="op">$</span><span class="va">resample_result</span></span>
-<span><span class="co">#&gt; &lt;ResampleResult&gt; with 3 resampling iterations</span></span>
-<span><span class="co">#&gt;        task_id     learner_id resampling_id iteration     prediction_test</span></span>
-<span><span class="co">#&gt;  breast_cancer classif.ranger            cv         1 &lt;PredictionClassif&gt;</span></span>
-<span><span class="co">#&gt;  breast_cancer classif.ranger            cv         2 &lt;PredictionClassif&gt;</span></span>
-<span><span class="co">#&gt;  breast_cancer classif.ranger            cv         3 &lt;PredictionClassif&gt;</span></span>
-<span><span class="co">#&gt;  warnings errors</span></span>
-<span><span class="co">#&gt;         0      0</span></span>
-<span><span class="co">#&gt;         0      0</span></span>
-<span><span class="co">#&gt;         0      0</span></span>
-<span></span>
-<span><span class="va">pfi</span><span class="op">$</span><span class="va">importance</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;            feature   importance</span></span>
-<span><span class="co">#&gt;             &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei 0.0312390148</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin 0.0075122543</span></span>
-<span><span class="co">#&gt; 3:      cell_shape 0.0161138358</span></span>
-<span><span class="co">#&gt; 4:       cell_size 0.0308948666</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness 0.0156788348</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size 0.0018646652</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion 0.0029774891</span></span>
-<span><span class="co">#&gt; 8:         mitoses 0.0006869458</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli 0.0055014621</span></span></code></pre></div>
-<p>Different measure:</p>
-<p>Q: Maybe it would be worth allowing to change measure post-hoc?</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pfi</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
-<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
-<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.auc"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;            feature importance</span></span>
-<span><span class="co">#&gt;             &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei   1.017920</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin   1.001659</span></span>
-<span><span class="co">#&gt; 3:      cell_shape   1.005498</span></span>
-<span><span class="co">#&gt; 4:       cell_size   1.006188</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness   1.006749</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size   1.001143</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion   1.001822</span></span>
-<span><span class="co">#&gt; 8:         mitoses   1.000341</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli   1.002252</span></span>
-<span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;            feature   importance</span></span>
-<span><span class="co">#&gt;             &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei 1.487792e-02</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin 3.758886e-04</span></span>
-<span><span class="co">#&gt; 3:      cell_shape 3.792059e-03</span></span>
-<span><span class="co">#&gt; 4:       cell_size 3.903575e-03</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness 2.910220e-03</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size 7.057850e-04</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion 1.691431e-03</span></span>
-<span><span class="co">#&gt; 8:         mitoses 3.936168e-04</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli 3.428817e-05</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="with-multiple-permutation-iterations">With multiple permutation iterations<a class="anchor" aria-label="anchor" href="#with-multiple-permutation-iterations"></a>
-</h3>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pfi</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
-<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
-<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.ce"</span><span class="op">)</span>,</span>
-<span>  iters_perm <span class="op">=</span> <span class="fl">5</span> <span class="co"># permute each feature 5 times in each resampling iteration</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;            feature importance</span></span>
-<span><span class="co">#&gt;             &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei   2.577778</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin   1.114286</span></span>
-<span><span class="co">#&gt; 3:      cell_shape   1.221164</span></span>
-<span><span class="co">#&gt; 4:       cell_size   1.341799</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness   1.259259</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size   1.024339</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion   1.019048</span></span>
-<span><span class="co">#&gt; 8:         mitoses   1.000000</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli   1.057143</span></span></code></pre></div>
-</div>
-</div>
-<div class="section level2">
-<h2 id="loco">LOCO<a class="anchor" aria-label="anchor" href="#loco"></a>
-</h2>
-<p>Same setup but now using LOCO, which differs in that it internally
-needs to refit the model.<br>
-Notably, the <code>Task</code> object does not need to be modified, as
-it suffices to adjust the <code>.$col_roles$feature</code> property.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">learner</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, predict_type <span class="op">=</span> <span class="st">"prob"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">loco</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
-<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
-<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.bbrier"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">loco</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;            feature importance</span></span>
-<span><span class="co">#&gt;             &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     bare_nuclei  1.0905448</span></span>
-<span><span class="co">#&gt; 2:     bl_cromatin  0.9838583</span></span>
-<span><span class="co">#&gt; 3:      cell_shape  0.9994163</span></span>
-<span><span class="co">#&gt; 4:       cell_size  0.9634430</span></span>
-<span><span class="co">#&gt; 5:    cl_thickness  1.0666010</span></span>
-<span><span class="co">#&gt; 6:    epith_c_size  0.9740075</span></span>
-<span><span class="co">#&gt; 7:   marg_adhesion  0.9867229</span></span>
-<span><span class="co">#&gt; 8:         mitoses  0.9999505</span></span>
-<span><span class="co">#&gt; 9: normal_nucleoli  0.9977767</span></span>
-<span></span>
-<span><span class="va">loco</span><span class="op">$</span><span class="va">scores</span></span>
-<span><span class="co">#&gt; Key: &lt;feature, iter_rsmp&gt;</span></span>
-<span><span class="co">#&gt;             feature iter_rsmp iter_refit classif.bbrier_orig</span></span>
-<span><span class="co">#&gt;              &lt;char&gt;     &lt;int&gt;      &lt;int&gt;               &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:     bare_nuclei         1          1          0.03014357</span></span>
-<span><span class="co">#&gt;  2:     bare_nuclei         2          1          0.02458370</span></span>
-<span><span class="co">#&gt;  3:     bare_nuclei         3          1          0.02599303</span></span>
-<span><span class="co">#&gt;  4:     bl_cromatin         1          1          0.03014357</span></span>
-<span><span class="co">#&gt;  5:     bl_cromatin         2          1          0.02458370</span></span>
-<span><span class="co">#&gt;  6:     bl_cromatin         3          1          0.02599303</span></span>
-<span><span class="co">#&gt;  7:      cell_shape         1          1          0.03014357</span></span>
-<span><span class="co">#&gt;  8:      cell_shape         2          1          0.02458370</span></span>
-<span><span class="co">#&gt;  9:      cell_shape         3          1          0.02599303</span></span>
-<span><span class="co">#&gt; 10:       cell_size         1          1          0.03014357</span></span>
-<span><span class="co">#&gt; 11:       cell_size         2          1          0.02458370</span></span>
-<span><span class="co">#&gt; 12:       cell_size         3          1          0.02599303</span></span>
-<span><span class="co">#&gt; 13:    cl_thickness         1          1          0.03014357</span></span>
-<span><span class="co">#&gt; 14:    cl_thickness         2          1          0.02458370</span></span>
-<span><span class="co">#&gt; 15:    cl_thickness         3          1          0.02599303</span></span>
-<span><span class="co">#&gt; 16:    epith_c_size         1          1          0.03014357</span></span>
-<span><span class="co">#&gt; 17:    epith_c_size         2          1          0.02458370</span></span>
-<span><span class="co">#&gt; 18:    epith_c_size         3          1          0.02599303</span></span>
-<span><span class="co">#&gt; 19:   marg_adhesion         1          1          0.03014357</span></span>
-<span><span class="co">#&gt; 20:   marg_adhesion         2          1          0.02458370</span></span>
-<span><span class="co">#&gt; 21:   marg_adhesion         3          1          0.02599303</span></span>
-<span><span class="co">#&gt; 22:         mitoses         1          1          0.03014357</span></span>
-<span><span class="co">#&gt; 23:         mitoses         2          1          0.02458370</span></span>
-<span><span class="co">#&gt; 24:         mitoses         3          1          0.02599303</span></span>
-<span><span class="co">#&gt; 25: normal_nucleoli         1          1          0.03014357</span></span>
-<span><span class="co">#&gt; 26: normal_nucleoli         2          1          0.02458370</span></span>
-<span><span class="co">#&gt; 27: normal_nucleoli         3          1          0.02599303</span></span>
-<span><span class="co">#&gt;             feature iter_rsmp iter_refit classif.bbrier_orig</span></span>
-<span><span class="co">#&gt;     classif.bbrier_post importance</span></span>
-<span><span class="co">#&gt;                   &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:          0.03379549  1.1211509</span></span>
-<span><span class="co">#&gt;  2:          0.02650079  1.0779822</span></span>
-<span><span class="co">#&gt;  3:          0.02787756  1.0725013</span></span>
-<span><span class="co">#&gt;  4:          0.02771802  0.9195336</span></span>
-<span><span class="co">#&gt;  5:          0.02518596  1.0244983</span></span>
-<span><span class="co">#&gt;  6:          0.02618910  1.0075430</span></span>
-<span><span class="co">#&gt;  7:          0.03003903  0.9965321</span></span>
-<span><span class="co">#&gt;  8:          0.02503626  1.0184089</span></span>
-<span><span class="co">#&gt;  9:          0.02555915  0.9833078</span></span>
-<span><span class="co">#&gt; 10:          0.02948189  0.9780490</span></span>
-<span><span class="co">#&gt; 11:          0.02431988  0.9892686</span></span>
-<span><span class="co">#&gt; 12:          0.02399186  0.9230114</span></span>
-<span><span class="co">#&gt; 13:          0.03258453  1.0809778</span></span>
-<span><span class="co">#&gt; 14:          0.02592081  1.0543901</span></span>
-<span><span class="co">#&gt; 15:          0.02766789  1.0644352</span></span>
-<span><span class="co">#&gt; 16:          0.03046220  1.0105704</span></span>
-<span><span class="co">#&gt; 17:          0.02186273  0.8893181</span></span>
-<span><span class="co">#&gt; 18:          0.02656836  1.0221339</span></span>
-<span><span class="co">#&gt; 19:          0.03014357  0.9999999</span></span>
-<span><span class="co">#&gt; 20:          0.02513951  1.0226088</span></span>
-<span><span class="co">#&gt; 21:          0.02437002  0.9375599</span></span>
-<span><span class="co">#&gt; 22:          0.03025939  1.0038423</span></span>
-<span><span class="co">#&gt; 23:          0.02436608  0.9911478</span></span>
-<span><span class="co">#&gt; 24:          0.02611939  1.0048612</span></span>
-<span><span class="co">#&gt; 25:          0.02924740  0.9702701</span></span>
-<span><span class="co">#&gt; 26:          0.02512095  1.0218541</span></span>
-<span><span class="co">#&gt; 27:          0.02602437  1.0012059</span></span>
-<span><span class="co">#&gt;     classif.bbrier_post importance</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="aggregating-results">Aggregating results<a class="anchor" aria-label="anchor" href="#aggregating-results"></a>
-</h2>
-<p>Not sure if there should be a “blessed” way of combining results like
-this, ideally it should not be possible to lose track of which score
-refers to which measure</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">importance_combined</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span></span>
-<span>  <span class="va">pfi</span><span class="op">$</span><span class="va">importance</span>,</span>
-<span>  <span class="va">loco</span><span class="op">$</span><span class="va">importance</span>,</span>
-<span>  by <span class="op">=</span> <span class="st">"feature"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/setattr.html" class="external-link">setnames</a></span><span class="op">(</span></span>
-<span>  <span class="va">importance_combined</span>,</span>
-<span>  old <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"importance.x"</span>, <span class="st">"importance.y"</span><span class="op">)</span>,</span>
-<span>  new <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pfi"</span>, <span class="st">"loco"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">importance_combined</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"Importance scores (ratio)"</span><span class="op">)</span></span></code></pre></div>
-<table class="table">
-<caption>Importance scores (ratio)</caption>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">pfi</span><span class="op">$</span><span class="va">scores</span>, <span class="fl">10</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"Detailed PFI scores (first 10 rows)"</span><span class="op">)</span></span></code></pre></div>
+<table style="width:100%;" class="table">
+<caption>Detailed PFI scores (first 10 rows)</caption>
+<colgroup>
+<col width="15%">
+<col width="14%">
+<col width="14%">
+<col width="20%">
+<col width="20%">
+<col width="15%">
+</colgroup>
 <thead><tr class="header">
 <th align="left">feature</th>
-<th align="right">pfi</th>
-<th align="right">loco</th>
+<th align="right">iter_rsmp</th>
+<th align="right">iter_perm</th>
+<th align="right">regr.mse_orig</th>
+<th align="right">regr.mse_perm</th>
+<th align="right">importance</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">bare_nuclei</td>
-<td align="right">2.5778</td>
-<td align="right">1.0905</td>
+<td align="left">important1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">4.3358</td>
+<td align="right">8.4459</td>
+<td align="right">4.1102</td>
 </tr>
 <tr class="even">
-<td align="left">bl_cromatin</td>
-<td align="right">1.1143</td>
-<td align="right">0.9839</td>
+<td align="left">important1</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td align="right">7.7130</td>
+<td align="right">12.7265</td>
+<td align="right">5.0135</td>
 </tr>
 <tr class="odd">
-<td align="left">cell_shape</td>
-<td align="right">1.2212</td>
-<td align="right">0.9994</td>
+<td align="left">important1</td>
+<td align="right">3</td>
+<td align="right">1</td>
+<td align="right">6.1924</td>
+<td align="right">11.6449</td>
+<td align="right">5.4525</td>
 </tr>
 <tr class="even">
-<td align="left">cell_size</td>
-<td align="right">1.3418</td>
-<td align="right">0.9634</td>
+<td align="left">important2</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">4.3358</td>
+<td align="right">10.9357</td>
+<td align="right">6.6000</td>
 </tr>
 <tr class="odd">
-<td align="left">cl_thickness</td>
-<td align="right">1.2593</td>
-<td align="right">1.0666</td>
+<td align="left">important2</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td align="right">7.7130</td>
+<td align="right">18.4671</td>
+<td align="right">10.7541</td>
 </tr>
 <tr class="even">
-<td align="left">epith_c_size</td>
-<td align="right">1.0243</td>
-<td align="right">0.9740</td>
+<td align="left">important2</td>
+<td align="right">3</td>
+<td align="right">1</td>
+<td align="right">6.1924</td>
+<td align="right">13.3055</td>
+<td align="right">7.1130</td>
 </tr>
 <tr class="odd">
-<td align="left">marg_adhesion</td>
-<td align="right">1.0190</td>
-<td align="right">0.9867</td>
+<td align="left">important3</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">4.3358</td>
+<td align="right">5.2284</td>
+<td align="right">0.8926</td>
 </tr>
 <tr class="even">
-<td align="left">mitoses</td>
-<td align="right">1.0000</td>
-<td align="right">1.0000</td>
+<td align="left">important3</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td align="right">7.7130</td>
+<td align="right">9.5961</td>
+<td align="right">1.8831</td>
 </tr>
 <tr class="odd">
-<td align="left">normal_nucleoli</td>
-<td align="right">1.0571</td>
-<td align="right">0.9978</td>
+<td align="left">important3</td>
+<td align="right">3</td>
+<td align="right">1</td>
+<td align="right">6.1924</td>
+<td align="right">6.7444</td>
+<td align="right">0.5520</td>
+</tr>
+<tr class="even">
+<td align="left">important4</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">4.3358</td>
+<td align="right">15.4558</td>
+<td align="right">11.1200</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">importance_combined</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/melt.data.table.html" class="external-link">melt</a></span><span class="op">(</span></span>
-<span>    id.vars <span class="op">=</span> <span class="st">"feature"</span>,</span>
-<span>    value.name <span class="op">=</span> <span class="st">"score"</span>,</span>
-<span>    variable.name <span class="op">=</span> <span class="st">"method"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">score</span>, y <span class="op">=</span> <span class="va">feature</span>, color <span class="op">=</span> <span class="va">method</span>, fill <span class="op">=</span> <span class="va">method</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span>position <span class="op">=</span> <span class="st">"dodge"</span>, alpha <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_color_brewer</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Dark2"</span>, aesthetics <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"color"</span>, <span class="st">"fill"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"Feature Importance Scores"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
-<span>      <span class="st">"For task %s and measure %s, using relativ scores"</span>,</span>
-<span>      <span class="va">task</span><span class="op">$</span><span class="va">id</span>,</span>
-<span>      <span class="va">measure</span><span class="op">$</span><span class="va">id</span></span>
-<span>    <span class="op">)</span>,</span>
-<span>    x <span class="op">=</span> <span class="st">"Score"</span>,</span>
-<span>    y <span class="op">=</span> <span class="st">"Feature"</span>,</span>
-<span>    color <span class="op">=</span> <span class="st">"Method"</span>,</span>
-<span>    fill <span class="op">=</span> <span class="st">"Method"</span>,</span>
-<span>    caption <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Using %i-fold %s"</span>, <span class="va">resampling</span><span class="op">$</span><span class="va">iters</span>, <span class="va">resampling</span><span class="op">$</span><span class="va">id</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
-<span>    legend.position <span class="op">=</span> <span class="st">"bottom"</span>,</span>
-<span>    plot.title.position <span class="op">=</span> <span class="st">"plot"</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="xplainfi_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+<p>We can also summarize the scoring structure:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="va">scores</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span></span>
+<span>  features <span class="op">=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/duplicated.html" class="external-link">uniqueN</a></span><span class="op">(</span><span class="va">feature</span><span class="op">)</span>,</span>
+<span>  resampling_folds <span class="op">=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/duplicated.html" class="external-link">uniqueN</a></span><span class="op">(</span><span class="va">iter_rsmp</span><span class="op">)</span>, </span>
+<span>  permutation_iters <span class="op">=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/duplicated.html" class="external-link">uniqueN</a></span><span class="op">(</span><span class="va">iter_perm</span><span class="op">)</span>,</span>
+<span>  total_scores <span class="op">=</span> <span class="va">.N</span></span>
+<span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;    features resampling_folds permutation_iters total_scores</span></span>
+<span><span class="co">#&gt;       &lt;int&gt;            &lt;int&gt;             &lt;int&gt;        &lt;int&gt;</span></span>
+<span><span class="co">#&gt; 1:       10                3                 1           30</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="next-steps">Next Steps<a class="anchor" aria-label="anchor" href="#next-steps"></a>
+</h2>
+<p>This vignette covered the basics of feature importance with xplainfi.
+For more advanced usage:</p>
+<ul>
+<li>
+<strong><code><a href="../articles/perturbation-importance.html">vignette("perturbation-importance")</a></code></strong>:
+Deep dive into PFI, CFI, and RFI methods with conditional sampling</li>
+<li>
+<strong><code><a href="../articles/loco-loci.html">vignette("loco-loci")</a></code></strong>: Detailed
+examples of LOCO and LOCI methods<br>
+</li>
+<li>
+<strong><code><a href="../articles/sage-methods.html">vignette("sage-methods")</a></code></strong>: SAGE-based
+Shapley value methods</li>
+</ul>
+<p>The package documentation (<code><a href="../reference/PFI.html">?PFI</a></code>, <code><a href="../reference/LOCO.html">?LOCO</a></code>,
+<code><a href="../reference/LOCI.html">?LOCI</a></code>) provides complete API references.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
