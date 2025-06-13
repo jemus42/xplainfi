@@ -65,7 +65,7 @@ LeaveOutIn = R6Class(
 
       # Check if already computed with this relation
       # Recompute if different relation chosen
-      if (!is.null(self$importance) & self$param_set$values$relation == relation) {
+      if (!is.null(self$importance) && self$param_set$values$relation == relation) {
         return(self$importance)
       }
       # Store relation
