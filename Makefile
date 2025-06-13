@@ -2,6 +2,7 @@ all: doc README.md
 
 .PHONY: doc
 doc:
+	Rscript -e "usethis::use_tidy_description()"
 	Rscript -e "devtools::document()"
 
 .PHONY: install
