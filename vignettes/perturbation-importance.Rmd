@@ -197,12 +197,13 @@ ggplot(plot_data, aes(x = importance, y = reorder(feature, importance), fill = m
   scale_fill_manual(values = c("PFI" = "steelblue", "CFI" = "darkgreen", "RFI" = "orange")) +
   labs(
     title = "Feature Importance Comparison: PFI vs CFI vs RFI",
-    subtitle = paste("Friedman1 task: 5 important + 5 noise features",
-                     "\nRFI conditioned on:", paste(conditioning_set, collapse = ", ")),
+    subtitle = glue::glue("Friedman1 task: 5 important + 5 noise features
+                          RFI conditioned on: {paste(conditioning_set, collapse = ', ')}"),
     x = "Importance Score (Difference)",
     y = "Feature",
     fill = "Method",
-    caption = paste("Using", resampling$iters, "-fold cross-validation")
+    caption = glue::glue("Using {resampling$iters}-fold cross-validation
+                          and 5 permutation iterations")
   ) +
   theme_minimal() +
   theme(
@@ -266,11 +267,12 @@ p3 <- ggplot(cor_data, aes(x = cfi, y = rfi, color = feature_type)) +
 
 # Combine plots
 library(patchwork)
-(p1 | p2 | p3) + 
+(p1 / p2 / p3) + 
   plot_annotation(
     title = "Method Correlations",
     subtitle = "Each point represents one feature"
-  )
+  ) +
+  theme(legend.position = "bottom")
 ```
 
 ## Understanding the Results
@@ -342,45 +344,49 @@ In our Friedman1 example:
 
 ## Variability Analysis
 
-Let's examine the stability of our importance estimates:
+Let's examine the stability of our importance estimates across resampling- and permutation iterations using the `$scores` tables:
 
 ```{r variability-analysis}
-# Analyze variability across iterations for PFI
-detailed_scores <- pfi$scores
+detailed_scores <- rbindlist(list(
+  pfi$scores[, method := "PFI"],
+  cfi$scores[, method := "CFI"],
+  rfi$scores[, method := "RFI"]
+))
+
 score_summary <- detailed_scores[, .(
   mean_importance = mean(importance),
   sd_importance = sd(importance),
-  cv_importance = sd(importance) / abs(mean(importance)),
   n_iterations = .N
-), by = feature]
+), by = .(feature, method)]
 
 # Add feature type
 score_summary[, feature_type := ifelse(grepl("^important", feature), "Important", "Noise")]
 
 # Plot error bars
 ggplot(score_summary, aes(
-  y = reorder(feature, mean_importance), 
-  x = mean_importance,
-  xmin = mean_importance - sd_importance, 
-  xmax = mean_importance + sd_importance,
-  color = feature_type)
+    y = reorder(feature, mean_importance), 
+    x = mean_importance,
+    xmin = mean_importance - sd_importance, 
+    xmax = mean_importance + sd_importance,
+    color = method)
   ) +
+  facet_wrap(vars(feature_type), ncol = 1, scales = "free_y") +
   geom_point(size = 3) +
   geom_errorbarh(linewidth = 1, height = 0.3) +
-  scale_color_manual(
-    values = c("Important" = "steelblue", "Noise" = "lightcoral"),
-    name = "Feature Type"
-  ) +
+  scale_color_brewer(palette = "Dark2") +
   labs(
-    title = "PFI Variability: Mean ± SD",
-    subtitle = "Error bars show standard deviation across iterations",
-    x = "PFI Score (Difference)",
+    title = "Importance Score Variability: Mean ± SD",
+    subtitle = glue::glue("Error bars show standard deviation across iterations
+                      RFI conditioned on: {paste(conditioning_set, collapse = ', ')}"),
+    x = "Score (Difference)",
     y = "Feature",
+    color = "Method",
     caption = paste("Using", resampling$iters, "-fold CV and", pfi$param_set$values$iters_perm, "permutations each")
   ) +
   theme_minimal() +
   theme(
-    plot.title.position = "plot"
+    plot.title.position = "plot",
+    legend.position = "bottom"
   )
 ```
 
@@ -434,7 +440,7 @@ empty_comparison <- merge(
 correlation_empty <- cor(empty_comparison$pfi, empty_comparison$rfi_empty)
 ```
 
-The correlation between PFI and RFI with empty conditioning set is `r round(correlation_empty, 3)`, confirming that RFI(∅) ≈ PFI as expected.
+The correlation between PFI and RFI with empty conditioning set is `r round(correlation_empty, 3)`, confirming that $\mathrm{RFI}(\emptyset) \approx \mathrm{PFI}$ as expected.
 
 ## Key Takeaways
 
@@ -446,9 +452,3 @@ The correlation between PFI and RFI with empty conditioning set is `r round(corr
    - Use PFI for simple, interpretable marginal importance
    - Use CFI when feature dependencies matter
    - Use RFI to understand incremental value beyond known important features
-
-## Session Info
-
-```{r session-info}
-sessionInfo()
-```

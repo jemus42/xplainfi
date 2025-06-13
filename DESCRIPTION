@@ -27,6 +27,7 @@ Suggests:
     knitr,
     mlr3data,
     mlr3learners,
+    patchwork,
     ranger,
     rmarkdown,
     rpart,
