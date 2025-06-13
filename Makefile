@@ -30,5 +30,6 @@ check-remote:
 site:
 	Rscript -e "pkgdown::build_site()"
 
-README.md:
+README.md: README.Rmd
 	Rscript -e "rmarkdown::render('README.Rmd')"
+	rm README.html
