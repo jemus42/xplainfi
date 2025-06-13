@@ -31,8 +31,9 @@ library(ggplot2)
 
 LOCO measures feature importance by comparing model performance with and without each feature. For each feature, the learner is retrained without that feature and the performance difference indicates the feature's importance.
 
-For feature $j$, LOCO is calculated as:
-$$\text{LOCO}_j = \text{Loss}(\text{model without } j) - \text{Loss}(\text{full model})$$
+For feature $j$, LOCO is calculated as the difference in expected loss of the model fit without the feature and the full model:
+$$\text{LOCO}_j = \mathbb{E}(L(Y, f_{-j}(X_{-j}))) - \mathbb{E}(L(Y, f(X)))$$
+
 
 Higher values indicate more important features (larger performance drop when removed).
 
@@ -55,8 +56,8 @@ loco$compute()
 
 LOCI measures feature importance by training models with only each individual feature and comparing their performance to a featureless (baseline) model. This shows how much predictive power each feature provides on its own, above and beyond the optimal constant prediction.
 
-For feature $j$, LOCI is calculated as:
-$$\text{LOCI}_j = \text{Loss}(\text{featureless model}) - \text{Loss}(\text{model with only } j)$$
+For feature $j$, LOCI is calculated as the difference in expected loss of the featureless learner or constant model and the model including only the feature:
+$$\text{LOCI}_j = \mathbb{E}(L(Y, f_{\emptyset})) - \mathbb{E}(L(Y, f_j(X_{j})))$$
 
 Higher values indicate more important features (better individual performance compared to baseline).
 
