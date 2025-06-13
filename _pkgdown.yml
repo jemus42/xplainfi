@@ -6,3 +6,38 @@ template:
     base_font: {google: "Roboto"}
     heading_font: {google: "Roboto Slab"}
     code_font: {google: "JetBrains Mono"}
+
+reference:
+  - title: Importance Measures
+    desc: Base class
+    contents:
+      - FeatureImportanceMeasure
+      - c.FeatureImportanceMeasure
+  - subtitle: Perturbation-Based Importance Measures
+    desc: Methods which perturb features of interest either marginally (PFI) or conditionally on all (CFI) or a subset of remaining features (RFI)
+  - contents:
+    - PerturbationImportance
+    - PFI
+    - CFI
+    - RFI
+  - subtitle: Model Refitting Measures
+    desc: Methods which refit models with a set of features omitted.
+    contents:
+    - LOCO
+  - subtitle: Shapley-Based Approaches
+    desc: Currently including Shapley Additive Global Importance (SAGE) in marginal and conditional variants
+    contents:
+      - SAGE
+      - MarginalSAGE
+      - ConditionalSAGE
+  - title: Sampling Infrastructure
+  - subtitle: Marginal and conditional sampling
+    contents:
+      - FeatureSampler
+      - MarginalSampler
+      - ConditionalSampler
+      - ARFSampler
+  - title: Utilities
+  - contents:
+    - starts_with("compute")
+    - starts_with("op-")

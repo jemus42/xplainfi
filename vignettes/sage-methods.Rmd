@@ -41,7 +41,7 @@ We'll use the Friedman1 task generator to demonstrate SAGE methods. This synthet
 - **5 important features** (`important1` to `important5`) that actually affect the target
 - **5 unimportant features** (`unimportant1` to `unimportant5`) that are pure noise
 
-The target function is: `y = 10 * sin(π * x1 * x2) + 20 * (x3 - 0.5)² + 10 * x4 + 5 * x5 + ε`
+The target function is: $y = 10 * \operatorname{sin}(\pi * x_1 * x_2) + 20 * (x_3 - 0.5)^2 + 10 * x_4 + 5 * x_5 + \epsilon$
 
 ```{r data-setup}
 set.seed(123)
