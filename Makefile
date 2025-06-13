@@ -16,6 +16,10 @@ doc:
 build:
 	Rscript -e "devtools::build()"
 
+.PHONY:
+vignettes:
+	Rscript -e "devtools::build_vignettes()"
+
 .PHONY: install
 install:
 	Rscript -e "pak::local_install()"

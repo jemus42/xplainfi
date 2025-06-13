@@ -31,6 +31,11 @@ library(ggplot2)
 
 LOCO measures feature importance by comparing model performance with and without each feature. For each feature, the learner is retrained without that feature and the performance difference indicates the feature's importance.
 
+For feature $j$, LOCO is calculated as:
+$$\text{LOCO}_j = \text{Loss}(\text{model without } j) - \text{Loss}(\text{full model})$$
+
+Higher values indicate more important features (larger performance drop when removed).
+
 ```{r loco-example}
 # Use Friedman1 task with known feature importance patterns
 task <- tgen("friedman1")$generate(n = 200)
@@ -48,7 +53,12 @@ loco$compute()
 
 ## Leave-One-Covariate-In (LOCI)
 
-LOCI measures feature importance by training models with only each individual feature and measuring how much predictive power each feature provides on its own.
+LOCI measures feature importance by training models with only each individual feature and comparing their performance to a featureless (baseline) model. This shows how much predictive power each feature provides on its own, above and beyond the optimal constant prediction.
+
+For feature $j$, LOCI is calculated as:
+$$\text{LOCI}_j = \text{Loss}(\text{featureless model}) - \text{Loss}(\text{model with only } j)$$
+
+Higher values indicate more important features (better individual performance compared to baseline).
 
 ```{r loci-example}
 loci <- LOCI$new(
@@ -97,23 +107,25 @@ importance_combined |>
 ```
 
 The Friedman1 task has known feature importance patterns:
+
 - `important1`-`important5`: Important features
 - `unimportant1`-`unimportant5`: Noise features
 
 **Interpreting the results:**
+
 - **LOCO**: Higher values indicate more important features (larger performance drop when removed)
-- **LOCI**: Lower values indicate more important features (better individual performance)
+- **LOCI**: Higher values indicate more important features (better individual performance compared to baseline)
+  - Positive values: feature performs better than featureless baseline
+  - Negative values: feature performs worse than featureless baseline
 
-Note that LOCI values represent the performance difference between using only that feature vs. using all features, so they tend to be larger than LOCO values.
-
-```{r plot, fig.width=7, fig.height=4}
+```{r plot, fig.width=7, fig.height=7}
 importance_combined |>
   data.table::melt(
     id.vars = "feature",
     value.name = "score",
     variable.name = "method"
   ) |>
-  ggplot(aes(x = score, y = reorder(feature, -score), color = method, fill = method)) +
+  ggplot(aes(x = score, y = reorder(feature, score), color = method, fill = method)) +
   facet_wrap(vars(method), ncol = 1, scales = "free") +
   geom_col(position = "dodge", alpha = 0.7) +
   scale_color_brewer(palette = "Set1", aesthetics = c("color", "fill")) +

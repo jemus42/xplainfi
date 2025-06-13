@@ -10,7 +10,8 @@ Despite the name, this implementation can leave out one or more features at a ti
 \details{
 LOCO measures feature importance by comparing model performance with and without
 each feature. For each feature, the model is retrained without that feature and
-the performance difference indicates the feature's importance.
+the performance difference (reduced_model_loss - full_model_loss) indicates the
+feature's importance. Higher values indicate more important features.
 }
 \examples{
 \dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}

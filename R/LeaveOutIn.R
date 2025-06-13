@@ -80,8 +80,29 @@ LeaveOutIn = R6Class(
         store_backends = store_backends
       )
 
-      scores_pre = rr$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
-      setnames(scores_pre, old = self$measure$id, "scores_pre")
+      # For LOCO: use full model as baseline
+      # For LOCI: use featureless model as baseline
+      if (self$direction == "leave-out") {
+        scores_pre = rr$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
+        setnames(scores_pre, old = self$measure$id, "scores_pre")
+      } else {
+        # For LOCI, we need featureless baseline
+        learner_featureless = switch(self$task$task_type,
+          "classif" = mlr3::lrn("classif.featureless"),
+          "regr" = mlr3::lrn("regr.featureless")
+        )
+        
+        rr_featureless = resample(
+          self$task,
+          learner_featureless,
+          self$resampling,
+          store_models = FALSE,
+          store_backends = FALSE
+        )
+        
+        scores_pre = rr_featureless$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
+        setnames(scores_pre, old = self$measure$id, "scores_pre")
+      }
 
       scores = lapply(seq_len(self$resampling$iters), \(iter) {
         private$.compute_loc(
@@ -101,14 +122,27 @@ LeaveOutIn = R6Class(
       setcolorder(scores, c("feature", "iteration", "iter_refit", "scores_pre", "scores_post"))
 
       # Calculate importance depending on relation(-, /), and minimize property
-      scores[,
-        importance := compute_score(
-          scores_pre,
-          scores_post,
-          relation = self$param_set$values$relation,
-          minimize = self$measure$minimize
-        )
-      ]
+      # For LOCI: importance = featureless - single_feature (so swap arguments)
+      # For LOCO: importance = reduced_model - full_model  
+      if (self$direction == "leave-in") {
+        scores[,
+          importance := compute_score(
+            scores_post,  # single feature score (as "pre")
+            scores_pre,   # featureless score (as "post") - this gives featureless - single_feature
+            relation = self$param_set$values$relation,
+            minimize = self$measure$minimize
+          )
+        ]
+      } else {
+        scores[,
+          importance := compute_score(
+            scores_pre,   # full model score
+            scores_post,  # reduced model score
+            relation = self$param_set$values$relation,
+            minimize = self$measure$minimize
+          )
+        ]
+      }
 
       setnames(
         scores,
@@ -189,7 +223,8 @@ LeaveOutIn = R6Class(
 #' @details
 #' LOCO measures feature importance by comparing model performance with and without
 #' each feature. For each feature, the model is retrained without that feature and
-#' the performance difference indicates the feature's importance.
+#' the performance difference (reduced_model_loss - full_model_loss) indicates the 
+#' feature's importance. Higher values indicate more important features.
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
 #' library(mlr3)
@@ -243,8 +278,10 @@ LOCO = R6Class(
 #'
 #' @details
 #' LOCI measures feature importance by training models with only each individual
-#' feature (or feature subset) and measuring how much predictive power each feature
-#' provides on its own.
+#' feature (or feature subset) and comparing their performance to a featureless
+#' baseline model (optimal constant prediction). The importance is calculated as
+#' (featureless_model_loss - single_feature_loss). Positive values indicate the
+#' feature performs better than the baseline, negative values indicate worse performance.
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
 #' library(mlr3)

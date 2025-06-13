@@ -197,9 +197,9 @@ test_that("LOCI with friedman1 produces sensible results", {
   unimportant_scores = result[feature %in% unimportant_features]$importance
 
   # For LOCI with difference relation and minimize=TRUE measure,
-  # negative values mean the feature alone performs better than baseline
-  # So important features should have more negative (or less positive) scores
-  expect_lt(mean(important_scores), mean(unimportant_scores))
+  # positive values mean the feature alone performs better than featureless baseline
+  # So important features should have higher (more positive) scores than unimportant features
+  expect_gt(mean(important_scores), mean(unimportant_scores))
 })
 
 test_that("LOCO/LOCI different relations (difference vs ratio)", {
@@ -394,4 +394,47 @@ test_that("LOCO/LOCI with multiple refits (iters_refit)", {
   # Importance should still be aggregated to one value per feature
   expect_equal(nrow(loco$importance), 2L)
   expect_equal(nrow(loci$importance), 2L)
+})
+
+test_that("LOCI uses featureless baseline", {
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
+  
+  set.seed(123)
+  task = mlr3::tgen("friedman1")$generate(n = 100)
+  
+  # Create a simple feature that's very predictive
+  task$cbind(data.frame(perfect_feature = task$data()[[task$target_names]]))
+  
+  loci = LOCI$new(
+    task = task,
+    learner = mlr3::lrn("regr.ranger", num.trees = 10),
+    measure = mlr3::msr("regr.mse"),
+    features = "perfect_feature"
+  )
+  
+  loci$compute()
+  
+  # A perfect feature should have very positive LOCI value
+  # (much better than featureless baseline)
+  expect_gt(loci$importance$importance, 15)
+  
+  # Now test with a useless feature
+  set.seed(123)
+  task2 = mlr3::tgen("friedman1")$generate(n = 100)
+  task2$cbind(data.frame(random_feature = rnorm(100)))
+  
+  loci2 = LOCI$new(
+    task = task2,
+    learner = mlr3::lrn("regr.ranger", num.trees = 10),
+    measure = mlr3::msr("regr.mse"),
+    features = "random_feature"
+  )
+  
+  loci2$compute()
+  
+  # A random feature should perform similar to or worse than featureless baseline
+  # (LOCI value near 0 or negative)
+  expect_gt(loci2$importance$importance, -15)
+  expect_lt(loci2$importance$importance, 2)
 })
