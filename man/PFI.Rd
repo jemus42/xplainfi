@@ -6,6 +6,18 @@
 \description{
 Implementation of PFI using modular sampling approach
 }
+\examples{
+\dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+library(mlr3)
+task = tgen("2dnormals")$generate(n = 100)
+pfi = PFI$new(
+  task = task,
+  learner = lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
+  measure = msr("classif.ce")
+)
+pfi$compute()
+\dontshow{\}) # examplesIf}
+}
 \section{Super classes}{
 \code{\link[xplainfi:FeatureImportanceMeasure]{xplainfi::FeatureImportanceMeasure}} -> \code{\link[xplainfi:PerturbationImportance]{xplainfi::PerturbationImportance}} -> \code{PFI}
 }

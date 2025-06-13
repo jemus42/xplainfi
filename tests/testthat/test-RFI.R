@@ -48,10 +48,10 @@ test_that("RFI with custom conditioning set", {
 
   set.seed(123)
   task = mlr3::tgen("friedman1")$generate(n = 200)
-  
+
   # Use only the first two important features as conditioning set
   conditioning_set = c("important1", "important2")
-  
+
   rfi = RFI$new(
     task = task,
     learner = mlr3::lrn("regr.ranger", num.trees = 50),
@@ -60,7 +60,7 @@ test_that("RFI with custom conditioning set", {
   )
 
   expect_identical(rfi$conditioning_set, conditioning_set)
-  
+
   result = rfi$compute()
   expect_importance_dt(result, features = rfi$features)
 })
@@ -71,20 +71,66 @@ test_that("RFI with empty conditioning set (equivalent to PFI)", {
   skip_if_not_installed("arf")
 
   set.seed(123)
-  task = mlr3::tgen("2dnormals")$generate(n = 100)
+  task = mlr3::tgen("friedman1")$generate(n = 200) # Use friedman1 with more features for better ranking comparison
+  learner = mlr3::lrn("regr.ranger", num.trees = 50)
+  measure = mlr3::msr("regr.mse")
 
+  # RFI with empty conditioning set
   rfi = RFI$new(
     task = task,
-    learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
-    measure = mlr3::msr("classif.ce"),
-    conditioning_set = character(0) # Empty conditioning set
+    learner = learner,
+    measure = measure,
+    conditioning_set = character(0), # Empty conditioning set
+    iters_perm = 3 # Use multiple iterations for more robust comparison
     # Uses ARFSampler by default
   )
 
   expect_equal(length(rfi$conditioning_set), 0)
   
-  result = rfi$compute()
-  expect_importance_dt(result, features = rfi$features)
+  # PFI for comparison
+  pfi = PFI$new(
+    task = task,
+    learner = learner,
+    measure = measure,
+    iters_perm = 3 # Same number of iterations
+  )
+
+  # Compute results
+  set.seed(456) # Different seed for RFI computation
+  rfi_result = rfi$compute()
+  
+  set.seed(456) # Same seed for PFI computation
+  pfi_result = pfi$compute()
+
+  # Both should be valid importance tables
+  expect_importance_dt(rfi_result, features = rfi$features)
+  expect_importance_dt(pfi_result, features = pfi$features)
+
+  # Results should be similar but not necessarily identical due to different sampling methods
+  # (RFI uses ARF-based conditional sampling, PFI uses marginal permutation)
+  # Check that they have similar patterns for important vs unimportant features
+  
+  # Extract important and unimportant feature scores for both methods
+  important_features = grep("^important", rfi_result$feature, value = TRUE)
+  unimportant_features = grep("^unimportant", rfi_result$feature, value = TRUE)
+  
+  rfi_important_scores = rfi_result[feature %in% important_features]$importance
+  rfi_unimportant_scores = rfi_result[feature %in% unimportant_features]$importance
+  
+  pfi_important_scores = pfi_result[feature %in% important_features]$importance  
+  pfi_unimportant_scores = pfi_result[feature %in% unimportant_features]$importance
+  
+  # Both methods should show that important features have higher scores than unimportant features on average
+  expect_gt(mean(rfi_important_scores), mean(rfi_unimportant_scores))
+  expect_gt(mean(pfi_important_scores), mean(pfi_unimportant_scores))
+  
+  # The ranking patterns should be similar - check that the relative difference patterns are consistent
+  rfi_diff = mean(rfi_important_scores) - mean(rfi_unimportant_scores)
+  pfi_diff = mean(pfi_important_scores) - mean(pfi_unimportant_scores)
+  
+  # Both should show a positive difference (important > unimportant) and be in the same order of magnitude
+  expect_gt(rfi_diff, 0)
+  expect_gt(pfi_diff, 0)
 })
 
 test_that("RFI with single conditioning feature", {
@@ -105,7 +151,7 @@ test_that("RFI with single conditioning feature", {
 
   expect_equal(length(rfi$conditioning_set), 1)
   expect_equal(rfi$conditioning_set, "x1")
-  
+
   result = rfi$compute()
   expect_importance_dt(result, features = rfi$features)
 })
@@ -135,7 +181,7 @@ test_that("RFI with custom ARF sampler", {
 
 test_that("RFI null result for featureless learner", {
   skip_if_not_installed("arf")
-  
+
   set.seed(123)
   task = mlr3::tgen("xor")$generate(n = 200)
 
@@ -273,7 +319,7 @@ test_that("RFI different relations (difference vs ratio)", {
     task = task,
     learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
     measure = mlr3::msr("classif.ce"),
-    conditioning_set = character(0) # Empty conditioning set now works
+    conditioning_set = character(0) # Empty conditioning set (as oppsosed to NULL -> condition on all features)
   )
 
   # Default behavior should be sane

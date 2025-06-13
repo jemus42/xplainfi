@@ -7,6 +7,13 @@
 Implements marginal sampling for PFI, where the feature of interest
 is sampled independently of other features
 }
+\examples{
+library(mlr3)
+task = tgen("2dnormals")$generate(n = 100)
+sampler = MarginalSampler$new(task)
+data = task$data()
+sampled_data = sampler$sample("x1", data)
+}
 \section{Super class}{
 \code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{MarginalSampler}
 }
@@ -40,7 +47,7 @@ Creates a new instance of the MarginalSampler class
 \if{html}{\out{<a id="method-MarginalSampler-sample"></a>}}
 \if{latex}{\out{\hypertarget{method-MarginalSampler-sample}{}}}
 \subsection{Method \code{sample()}}{
-Sample values for a feature by permutation (marginal distribution)
+Sample values for feature(s) by permutation (marginal distribution)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{MarginalSampler$sample(feature, data)}\if{html}{\out{</div>}}
 }
@@ -48,14 +55,14 @@ Sample values for a feature by permutation (marginal distribution)
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\code{character(1)}) Feature name to sample}
+\item{\code{feature}}{(\code{character}) Feature name(s) to sample (can be single or multiple)}
 
-\item{\code{data}}{(\code{\link[data.table:data.table]{data.table}} ) Data to permute the feature in}
+\item{\code{data}}{(\code{\link[data.table:data.table]{data.table}} ) Data to permute the feature(s) in}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Modified copy of the input data with the feature permuted
+Modified copy of the input data with the feature(s) permuted
 }
 }
 \if{html}{\out{<hr>}}

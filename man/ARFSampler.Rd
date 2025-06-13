@@ -13,6 +13,15 @@ The ARFSampler fits an \link[arf:arf-package]{Adversarial Random Forest} model o
 then uses it to generate samples from \eqn{P(X_j | X_{-j})} where \eqn{X_j} is the
 feature of interest and \eqn{X_{-j}} are the conditioning features.
 }
+\examples{
+\dontshow{if (requireNamespace("arf", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+library(mlr3)
+task = tgen("2dnormals")$generate(n = 100)
+sampler = ARFSampler$new(task)
+data = task$data()
+sampled_data = sampler$sample("x1", data, conditioning_features = "x2")
+\dontshow{\}) # examplesIf}
+}
 \references{
 \itemize{
 \item Watson, D.S., Blesch, K., Kapar, J. & Wright, M.N.. (2023). Adversarial Random Forests for Density Estimation and Generative Modeling. Proceedings of The 26th International Conference on Artificial Intelligence and Statistics, in Proceedings of Machine Learning Research 206:5357-5375 Available from \url{https://proceedings.mlr.press/v206/watson23a.html}.
@@ -63,7 +72,7 @@ To fit the ARF in parallel, set \code{arf_args = list(parallel = TRUE)} and regi
 \if{html}{\out{<a id="method-ARFSampler-sample"></a>}}
 \if{latex}{\out{\hypertarget{method-ARFSampler-sample}{}}}
 \subsection{Method \code{sample()}}{
-Sample values for a feature conditionally on other features using ARF
+Sample values for feature(s) conditionally on other features using ARF
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ARFSampler$sample(
   feature,
@@ -78,9 +87,9 @@ Sample values for a feature conditionally on other features using ARF
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\code{character(1)}) Feature of interest to sample}
+\item{\code{feature}}{(\code{character}) Feature(s) of interest to sample (can be single or multiple)}
 
-\item{\code{data}}{(\code{\link[data.table:data.table]{data.table}}) Data containing conditioning features. Defaults to \verb{$task$data()}, but typically a deidcated test set is provided.}
+\item{\code{data}}{(\code{\link[data.table:data.table]{data.table}}) Data containing conditioning features. Defaults to \verb{$task$data()}, but typically a dedicated test set is provided.}
 
 \item{\code{conditioning_features}}{(\code{character(n) | NULL}) Features to condition on (default: all other features)}
 
@@ -93,7 +102,7 @@ Sample values for a feature conditionally on other features using ARF
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Modified copy of the input data with the feature sampled conditionally
+Modified copy of the input data with the feature(s) sampled conditionally
 }
 }
 \if{html}{\out{<hr>}}

@@ -35,6 +35,12 @@ FeatureSampler = R6Class(
 #' @description Implements marginal sampling for PFI, where the feature of interest
 #' is sampled independently of other features
 #'
+#' @examples
+#' library(mlr3)
+#' task = tgen("2dnormals")$generate(n = 100)
+#' sampler = MarginalSampler$new(task)
+#' data = task$data()
+#' sampled_data = sampler$sample("x1", data)
 #' @export
 MarginalSampler = R6Class(
   "MarginalSampler",
@@ -115,6 +121,12 @@ ConditionalSampler = R6Class(
 #' then uses it to generate samples from \eqn{P(X_j | X_{-j})} where \eqn{X_j} is the
 #' feature of interest and \eqn{X_{-j}} are the conditioning features.
 #'
+#' @examplesIf requireNamespace("arf", quietly = TRUE)
+#' library(mlr3)
+#' task = tgen("2dnormals")$generate(n = 100)
+#' sampler = ARFSampler$new(task)
+#' data = task$data()
+#' sampled_data = sampler$sample("x1", data, conditioning_features = "x2")
 #' @references
 #' - Watson, D.S., Blesch, K., Kapar, J. & Wright, M.N.. (2023). Adversarial Random Forests for Density Estimation and Generative Modeling. Proceedings of The 26th International Conference on Artificial Intelligence and Statistics, in Proceedings of Machine Learning Research 206:5357-5375 Available from <https://proceedings.mlr.press/v206/watson23a.html>.
 #' - Blesch, K., Koenen, N., Kapar, J., Golchian, P., Burk, L., Loecher, M. & Wright, M. N. (2025). Conditional feature importance with generative modeling using adversarial random forests. In Proceedings of the 39th AAAI Conference on Artificial Intelligence. Available from <https://arxiv.org/abs/2501.11178>

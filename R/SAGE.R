@@ -457,6 +457,16 @@ SAGE = R6Class(
 #' @description SAGE with marginal sampling (features are marginalized independently).
 #' This is the standard SAGE implementation.
 #'
+#' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
+#' library(mlr3)
+#' task = tgen("friedman1")$generate(n = 100)
+#' sage = MarginalSAGE$new(
+#'   task = task,
+#'   learner = lrn("regr.ranger", num.trees = 50),
+#'   measure = msr("regr.mse"),
+#'   n_permutations = 3L
+#' )
+#' sage$compute()
 #' @export
 MarginalSAGE = R6Class(
   "MarginalSAGE",
@@ -503,6 +513,16 @@ MarginalSAGE = R6Class(
 #' @description SAGE with conditional sampling (features are marginalized conditionally).
 #' Uses ARF by default for conditional marginalization.
 #'
+#' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE) && requireNamespace("arf", quietly = TRUE)
+#' library(mlr3)
+#' task = tgen("friedman1")$generate(n = 100)
+#' sage = ConditionalSAGE$new(
+#'   task = task,
+#'   learner = lrn("regr.ranger", num.trees = 50),
+#'   measure = msr("regr.mse"),
+#'   n_permutations = 3L
+#' )
+#' sage$compute()
 #' @export
 ConditionalSAGE = R6Class(
   "ConditionalSAGE",

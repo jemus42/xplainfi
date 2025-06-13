@@ -2,18 +2,17 @@
 % Please edit documentation in R/SAGE.R
 \name{SAGE}
 \alias{SAGE}
-\title{Shapley Additive Global Importance (SAGE)}
+\title{Shapley Additive Global Importance (SAGE) Base Class}
 \description{
-Implements SAGE (Shapley Additive Global Importance) for
+Base class for SAGE (Shapley Additive Global Importance)
 feature importance based on Shapley values with marginalization.
-SAGE quantifies feature importance by marginalizing out features and
-computing the average loss difference.
+This is an abstract class - use MarginalSAGE or ConditionalSAGE.
 }
 \details{
 SAGE uses Shapley values to fairly distribute the total prediction
 performance among all features. Unlike perturbation-based methods,
-SAGE marginalizes features by integrating over their marginal distribution.
-This is approximated by averaging predictions over a background dataset.
+SAGE marginalizes features by integrating over their distribution.
+This is approximated by averaging predictions over a reference dataset.
 }
 \references{
 Covert, I., Lundberg, S. M., & Lee, S. I. (2020).
@@ -28,7 +27,9 @@ of black-box models. arXiv preprint arXiv:2010.12012.
 \describe{
 \item{\code{n_permutations}}{(integer(1)) Number of permutations to sample.}
 
-\item{\code{background_data}}{(data.table) Background dataset for marginalization.}
+\item{\code{reference_data}}{(data.table) Reference dataset for marginalization.}
+
+\item{\code{sampler}}{(\link{FeatureSampler}) Sampler object for marginalization.}
 }
 \if{html}{\out{</div>}}
 }
@@ -61,7 +62,9 @@ Creates a new instance of the SAGE class.
   resampling = NULL,
   features = NULL,
   n_permutations = 10L,
-  background_data = NULL
+  reference_data = NULL,
+  sampler = NULL,
+  max_reference_size = 100L
 )}\if{html}{\out{</div>}}
 }
 
@@ -72,7 +75,11 @@ Creates a new instance of the SAGE class.
 
 \item{\code{n_permutations}}{(integer(1)) Number of permutations to sample for Shapley value estimation.}
 
-\item{\code{background_data}}{(data.table) Optional background dataset. If NULL, uses training data.}
+\item{\code{reference_data}}{(data.table) Optional reference dataset. If NULL, uses training data.}
+
+\item{\code{sampler}}{(\link{FeatureSampler}) Sampler for marginalization.}
+
+\item{\code{max_reference_size}}{(integer(1)) Maximum size of reference dataset. If reference is larger, it will be subsampled.}
 }
 \if{html}{\out{</div>}}
 }

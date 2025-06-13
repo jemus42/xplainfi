@@ -42,6 +42,50 @@ test_that("ConditionalSAGE can be constructed with simple objects", {
   expect_importance_dt(sage$compute(), features = sage$features)
 })
 
+test_that("MarginalSAGE null result for featureless learner", {
+  set.seed(123)
+  task = mlr3::tgen("xor")$generate(n = 200)
+
+  sage = MarginalSAGE$new(
+    task = task,
+    learner = mlr3::lrn("classif.featureless"),
+    measure = mlr3::msr("classif.ce"),
+    n_permutations = 2L # Keep small for fast testing
+  )
+
+  sage$compute()
+
+  expected = data.table::data.table(
+    feature = sage$features,
+    importance = 0
+  )
+
+  expect_identical(sage$importance, expected)
+})
+
+test_that("ConditionalSAGE null result for featureless learner", {
+  skip_if_not_installed("arf")
+  
+  set.seed(123)
+  task = mlr3::tgen("xor")$generate(n = 200)
+
+  sage = ConditionalSAGE$new(
+    task = task,
+    learner = mlr3::lrn("classif.featureless"),
+    measure = mlr3::msr("classif.ce"),
+    n_permutations = 2L # Keep small for fast testing
+  )
+
+  sage$compute()
+
+  expected = data.table::data.table(
+    feature = sage$features,
+    importance = 0
+  )
+
+  expect_identical(sage$importance, expected)
+})
+
 test_that("MarginalSAGE with friedman1 produces sensible results", {
   skip_if_not_installed("ranger")
   skip_if_not_installed("mlr3learners")

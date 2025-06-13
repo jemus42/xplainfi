@@ -45,7 +45,7 @@ Creates a new instance of the FeatureSampler class
 \if{html}{\out{<a id="method-FeatureSampler-sample"></a>}}
 \if{latex}{\out{\hypertarget{method-FeatureSampler-sample}{}}}
 \subsection{Method \code{sample()}}{
-Sample values for a feature
+Sample values for feature(s)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{FeatureSampler$sample(feature, data)}\if{html}{\out{</div>}}
 }
@@ -53,14 +53,14 @@ Sample values for a feature
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\code{character(1)}) Feature name to sample}
+\item{\code{feature}}{(\code{character}) Feature name(s) to sample (can be single or multiple)}
 
 \item{\code{data}}{(\code{\link[data.table:data.table]{data.table}} ) Data to use for sampling context}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Modified copy of the input data with the feature sampled
+Modified copy of the input data with the feature(s) sampled
 }
 }
 \if{html}{\out{<hr>}}
