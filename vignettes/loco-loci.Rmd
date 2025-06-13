@@ -38,9 +38,8 @@ $$\text{LOCO}_j = \mathbb{E}(L(Y, f_{-j}(X_{-j}))) - \mathbb{E}(L(Y, f(X)))$$
 Higher values indicate more important features (larger performance drop when removed).
 
 ```{r loco-example}
-# Use Friedman1 task with known feature importance patterns
 task <- tgen("friedman1")$generate(n = 200)
-learner <- lrn("regr.ranger", num.trees = 100)
+learner <- lrn("regr.lm")
 measure <- msr("regr.mse")
 
 loco <- LOCO$new(
@@ -106,11 +105,6 @@ importance_combined <- importance_combined |>
 importance_combined |>
   knitr::kable(digits = 4, caption = "LOCO vs LOCI importance scores")
 ```
-
-The Friedman1 task has known feature importance patterns:
-
-- `important1`-`important5`: Important features
-- `unimportant1`-`unimportant5`: Noise features
 
 **Interpreting the results:**
 
