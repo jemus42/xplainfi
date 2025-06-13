@@ -3,6 +3,7 @@
 <url><loc>https://jemus42.github.io/xplainfi/LICENSE-text.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/LICENSE.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/articles/index.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/articles/loco-loci.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/articles/perturbation-importance.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/articles/sage-methods.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/articles/xplainfi.html</loc></url>
@@ -15,7 +16,9 @@
 <url><loc>https://jemus42.github.io/xplainfi/reference/ConditionalSampler.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/FeatureImportanceMeasure.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/FeatureSampler.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/reference/LOCI.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/LOCO.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/reference/LeaveOutIn.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/MarginalSAGE.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/MarginalSampler.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/PFI.html</loc></url>
@@ -23,7 +26,6 @@
 <url><loc>https://jemus42.github.io/xplainfi/reference/RFI.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/SAGE.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/c.FeatureImportanceMeasure.html</loc></url>
-<url><loc>https://jemus42.github.io/xplainfi/reference/compute_loc.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/compute_score.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/index.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/op-null-default.html</loc></url>

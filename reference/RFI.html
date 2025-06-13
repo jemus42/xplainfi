@@ -19,7 +19,8 @@
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-based Feature Importance Methods</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/loco-loci.html">LOCO and LOCI</a></li>
+    <li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-based Feature Importance Methods</a></li>
     <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -160,21 +161,22 @@
 <span class="r-in"><span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  conditioning_set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"important1"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration: 0, Accuracy: 41.41%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration: 0, Accuracy: 53.3%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration: 1, Accuracy: 35.01%</span>
 <span class="r-in"><span><span class="va">rfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  0.00000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  5.08565610</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  2.33119005</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  9.14179674</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  3.91980231</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1  0.29990992</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 -0.26531317</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.09183694</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.71580619</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  0.14433647</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  5.62948468</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.44096938</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  9.11749980</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  3.47544825</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1  0.11891909</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 -0.34134400</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3  0.61999839</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.25918723</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  0.03659511</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

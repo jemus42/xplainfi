@@ -37,7 +37,8 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-based Feature Importance Methods</a></li>
+<li><a class="dropdown-item" href="../articles/loco-loci.html">LOCO and LOCI</a></li>
+    <li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-based Feature Importance Methods</a></li>
     <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
   </ul>
 </li>
@@ -366,66 +367,66 @@ it suffices to adjust the <code>.$col_roles$feature</code> property.</p>
 <span></span>
 <span><span class="va">loco</span><span class="op">$</span><span class="va">scores</span></span>
 <span><span class="co">#&gt; Key: &lt;feature, iter_rsmp&gt;</span></span>
-<span><span class="co">#&gt;             feature iter_rsmp classif.bbrier_orig classif.bbrier_loco</span></span>
-<span><span class="co">#&gt;              &lt;char&gt;     &lt;int&gt;               &lt;num&gt;               &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:     bare_nuclei         1          0.03014357          0.03379549</span></span>
-<span><span class="co">#&gt;  2:     bare_nuclei         2          0.02458370          0.02650079</span></span>
-<span><span class="co">#&gt;  3:     bare_nuclei         3          0.02599303          0.02787756</span></span>
-<span><span class="co">#&gt;  4:     bl_cromatin         1          0.03014357          0.02771802</span></span>
-<span><span class="co">#&gt;  5:     bl_cromatin         2          0.02458370          0.02518596</span></span>
-<span><span class="co">#&gt;  6:     bl_cromatin         3          0.02599303          0.02618910</span></span>
-<span><span class="co">#&gt;  7:      cell_shape         1          0.03014357          0.03003903</span></span>
-<span><span class="co">#&gt;  8:      cell_shape         2          0.02458370          0.02503626</span></span>
-<span><span class="co">#&gt;  9:      cell_shape         3          0.02599303          0.02555915</span></span>
-<span><span class="co">#&gt; 10:       cell_size         1          0.03014357          0.02948189</span></span>
-<span><span class="co">#&gt; 11:       cell_size         2          0.02458370          0.02431988</span></span>
-<span><span class="co">#&gt; 12:       cell_size         3          0.02599303          0.02399186</span></span>
-<span><span class="co">#&gt; 13:    cl_thickness         1          0.03014357          0.03258453</span></span>
-<span><span class="co">#&gt; 14:    cl_thickness         2          0.02458370          0.02592081</span></span>
-<span><span class="co">#&gt; 15:    cl_thickness         3          0.02599303          0.02766789</span></span>
-<span><span class="co">#&gt; 16:    epith_c_size         1          0.03014357          0.03046220</span></span>
-<span><span class="co">#&gt; 17:    epith_c_size         2          0.02458370          0.02186273</span></span>
-<span><span class="co">#&gt; 18:    epith_c_size         3          0.02599303          0.02656836</span></span>
-<span><span class="co">#&gt; 19:   marg_adhesion         1          0.03014357          0.03014357</span></span>
-<span><span class="co">#&gt; 20:   marg_adhesion         2          0.02458370          0.02513951</span></span>
-<span><span class="co">#&gt; 21:   marg_adhesion         3          0.02599303          0.02437002</span></span>
-<span><span class="co">#&gt; 22:         mitoses         1          0.03014357          0.03025939</span></span>
-<span><span class="co">#&gt; 23:         mitoses         2          0.02458370          0.02436608</span></span>
-<span><span class="co">#&gt; 24:         mitoses         3          0.02599303          0.02611939</span></span>
-<span><span class="co">#&gt; 25: normal_nucleoli         1          0.03014357          0.02924740</span></span>
-<span><span class="co">#&gt; 26: normal_nucleoli         2          0.02458370          0.02512095</span></span>
-<span><span class="co">#&gt; 27: normal_nucleoli         3          0.02599303          0.02602437</span></span>
-<span><span class="co">#&gt;             feature iter_rsmp classif.bbrier_orig classif.bbrier_loco</span></span>
-<span><span class="co">#&gt;     importance</span></span>
-<span><span class="co">#&gt;          &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:  1.1211509</span></span>
-<span><span class="co">#&gt;  2:  1.0779822</span></span>
-<span><span class="co">#&gt;  3:  1.0725013</span></span>
-<span><span class="co">#&gt;  4:  0.9195336</span></span>
-<span><span class="co">#&gt;  5:  1.0244983</span></span>
-<span><span class="co">#&gt;  6:  1.0075430</span></span>
-<span><span class="co">#&gt;  7:  0.9965321</span></span>
-<span><span class="co">#&gt;  8:  1.0184089</span></span>
-<span><span class="co">#&gt;  9:  0.9833078</span></span>
-<span><span class="co">#&gt; 10:  0.9780490</span></span>
-<span><span class="co">#&gt; 11:  0.9892686</span></span>
-<span><span class="co">#&gt; 12:  0.9230114</span></span>
-<span><span class="co">#&gt; 13:  1.0809778</span></span>
-<span><span class="co">#&gt; 14:  1.0543901</span></span>
-<span><span class="co">#&gt; 15:  1.0644352</span></span>
-<span><span class="co">#&gt; 16:  1.0105704</span></span>
-<span><span class="co">#&gt; 17:  0.8893181</span></span>
-<span><span class="co">#&gt; 18:  1.0221339</span></span>
-<span><span class="co">#&gt; 19:  0.9999999</span></span>
-<span><span class="co">#&gt; 20:  1.0226088</span></span>
-<span><span class="co">#&gt; 21:  0.9375599</span></span>
-<span><span class="co">#&gt; 22:  1.0038423</span></span>
-<span><span class="co">#&gt; 23:  0.9911478</span></span>
-<span><span class="co">#&gt; 24:  1.0048612</span></span>
-<span><span class="co">#&gt; 25:  0.9702701</span></span>
-<span><span class="co">#&gt; 26:  1.0218541</span></span>
-<span><span class="co">#&gt; 27:  1.0012059</span></span>
-<span><span class="co">#&gt;     importance</span></span></code></pre></div>
+<span><span class="co">#&gt;             feature iter_rsmp iter_refit classif.bbrier_orig</span></span>
+<span><span class="co">#&gt;              &lt;char&gt;     &lt;int&gt;      &lt;int&gt;               &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:     bare_nuclei         1          1          0.03014357</span></span>
+<span><span class="co">#&gt;  2:     bare_nuclei         2          1          0.02458370</span></span>
+<span><span class="co">#&gt;  3:     bare_nuclei         3          1          0.02599303</span></span>
+<span><span class="co">#&gt;  4:     bl_cromatin         1          1          0.03014357</span></span>
+<span><span class="co">#&gt;  5:     bl_cromatin         2          1          0.02458370</span></span>
+<span><span class="co">#&gt;  6:     bl_cromatin         3          1          0.02599303</span></span>
+<span><span class="co">#&gt;  7:      cell_shape         1          1          0.03014357</span></span>
+<span><span class="co">#&gt;  8:      cell_shape         2          1          0.02458370</span></span>
+<span><span class="co">#&gt;  9:      cell_shape         3          1          0.02599303</span></span>
+<span><span class="co">#&gt; 10:       cell_size         1          1          0.03014357</span></span>
+<span><span class="co">#&gt; 11:       cell_size         2          1          0.02458370</span></span>
+<span><span class="co">#&gt; 12:       cell_size         3          1          0.02599303</span></span>
+<span><span class="co">#&gt; 13:    cl_thickness         1          1          0.03014357</span></span>
+<span><span class="co">#&gt; 14:    cl_thickness         2          1          0.02458370</span></span>
+<span><span class="co">#&gt; 15:    cl_thickness         3          1          0.02599303</span></span>
+<span><span class="co">#&gt; 16:    epith_c_size         1          1          0.03014357</span></span>
+<span><span class="co">#&gt; 17:    epith_c_size         2          1          0.02458370</span></span>
+<span><span class="co">#&gt; 18:    epith_c_size         3          1          0.02599303</span></span>
+<span><span class="co">#&gt; 19:   marg_adhesion         1          1          0.03014357</span></span>
+<span><span class="co">#&gt; 20:   marg_adhesion         2          1          0.02458370</span></span>
+<span><span class="co">#&gt; 21:   marg_adhesion         3          1          0.02599303</span></span>
+<span><span class="co">#&gt; 22:         mitoses         1          1          0.03014357</span></span>
+<span><span class="co">#&gt; 23:         mitoses         2          1          0.02458370</span></span>
+<span><span class="co">#&gt; 24:         mitoses         3          1          0.02599303</span></span>
+<span><span class="co">#&gt; 25: normal_nucleoli         1          1          0.03014357</span></span>
+<span><span class="co">#&gt; 26: normal_nucleoli         2          1          0.02458370</span></span>
+<span><span class="co">#&gt; 27: normal_nucleoli         3          1          0.02599303</span></span>
+<span><span class="co">#&gt;             feature iter_rsmp iter_refit classif.bbrier_orig</span></span>
+<span><span class="co">#&gt;     classif.bbrier_post importance</span></span>
+<span><span class="co">#&gt;                   &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:          0.03379549  1.1211509</span></span>
+<span><span class="co">#&gt;  2:          0.02650079  1.0779822</span></span>
+<span><span class="co">#&gt;  3:          0.02787756  1.0725013</span></span>
+<span><span class="co">#&gt;  4:          0.02771802  0.9195336</span></span>
+<span><span class="co">#&gt;  5:          0.02518596  1.0244983</span></span>
+<span><span class="co">#&gt;  6:          0.02618910  1.0075430</span></span>
+<span><span class="co">#&gt;  7:          0.03003903  0.9965321</span></span>
+<span><span class="co">#&gt;  8:          0.02503626  1.0184089</span></span>
+<span><span class="co">#&gt;  9:          0.02555915  0.9833078</span></span>
+<span><span class="co">#&gt; 10:          0.02948189  0.9780490</span></span>
+<span><span class="co">#&gt; 11:          0.02431988  0.9892686</span></span>
+<span><span class="co">#&gt; 12:          0.02399186  0.9230114</span></span>
+<span><span class="co">#&gt; 13:          0.03258453  1.0809778</span></span>
+<span><span class="co">#&gt; 14:          0.02592081  1.0543901</span></span>
+<span><span class="co">#&gt; 15:          0.02766789  1.0644352</span></span>
+<span><span class="co">#&gt; 16:          0.03046220  1.0105704</span></span>
+<span><span class="co">#&gt; 17:          0.02186273  0.8893181</span></span>
+<span><span class="co">#&gt; 18:          0.02656836  1.0221339</span></span>
+<span><span class="co">#&gt; 19:          0.03014357  0.9999999</span></span>
+<span><span class="co">#&gt; 20:          0.02513951  1.0226088</span></span>
+<span><span class="co">#&gt; 21:          0.02437002  0.9375599</span></span>
+<span><span class="co">#&gt; 22:          0.03025939  1.0038423</span></span>
+<span><span class="co">#&gt; 23:          0.02436608  0.9911478</span></span>
+<span><span class="co">#&gt; 24:          0.02611939  1.0048612</span></span>
+<span><span class="co">#&gt; 25:          0.02924740  0.9702701</span></span>
+<span><span class="co">#&gt; 26:          0.02512095  1.0218541</span></span>
+<span><span class="co">#&gt; 27:          0.02602437  1.0012059</span></span>
+<span><span class="co">#&gt;     classif.bbrier_post importance</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="aggregating-results">Aggregating results<a class="anchor" aria-label="anchor" href="#aggregating-results"></a>
@@ -528,7 +529,7 @@ refers to which measure</p>
 <span>    fill <span class="op">=</span> <span class="st">"Method"</span>,</span>
 <span>    caption <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Using %i-fold %s"</span>, <span class="va">resampling</span><span class="op">$</span><span class="va">iters</span>, <span class="va">resampling</span><span class="op">$</span><span class="va">id</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
 <span>    legend.position <span class="op">=</span> <span class="st">"bottom"</span>,</span>
 <span>    plot.title.position <span class="op">=</span> <span class="st">"plot"</span></span>
