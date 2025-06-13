@@ -2,6 +2,8 @@
 #'
 #' @keywords internal
 #' @param ... (`character`) One or more quoted names of `bibentries` to print.
+#' @importFrom tools toRd
+#' @importFrom utils bibentry
 print_bib = function(...) {
   str = sapply(list(...), function(entry) tools::toRd(bibentries[[entry]]))
   paste0(str, collapse = "\n\n")
@@ -12,7 +14,7 @@ bibentries = c(
     "inproceedings",
     title = "A Guide to Feature Importance Methods for Scientific Inference",
     booktitle = "Explainable Artificial Intelligence",
-    author = "Ewald, Fiona Katharina and Bothmann, Ludwig and Wright, Marvin N. and Bischl, Bernd and Casalicchio, Giuseppe and König, Gunnar",
+    author = "Ewald, Fiona Katharina and Bothmann, Ludwig and Wright, Marvin N. and Bischl, Bernd and Casalicchio, Giuseppe and K\u00f6nig, Gunnar",
     editor = "Longo, Luca and Lapuschkin, Sebastian and Seifert, Christin",
     year = "2024",
     pages = "440--464",
@@ -25,7 +27,7 @@ bibentries = c(
   konig_2021 = bibentry(
     "inproceedings",
     title = "Relative Feature Importance",
-    author = "König, Gunnar and Molnar, Christoph and Bischl, Bernd and Grosse-Wentrup, Moritz",
+    author = "K\u00f6nig, Gunnar and Molnar, Christoph and Bischl, Bernd and Grosse-Wentrup, Moritz",
     year = "2021",
     booktitle = "2020 25th International Conference on Pattern Recognition (ICPR)",
     pages = "9318--9325",
