@@ -1,8 +1,8 @@
 ---
-title: "xplainfi"
+title: "Getting Started with xplainfi"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{xplainfi}
+  %\VignetteIndexEntry{Getting Started with xplainfi}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -12,7 +12,9 @@ editor_options:
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 6
 )
 set.seed(123)
 # Quiet down
@@ -21,200 +23,168 @@ lgr::get_logger("mlr3")$set_threshold("warn")
 
 ```{r setup}
 library(xplainfi)
-
-# learners, tasks, etc.
 library(mlr3)
 library(mlr3learners)
+library(data.table)
+library(ggplot2)
 ```
 
-Defining a simple example case:
+The **xplainfi** package provides feature importance methods for machine learning models. It implements several approaches for measuring how much each feature contributes to model predictions, with a focus on model-agnostic methods that work with any learner.
 
-- Breast cancer task
-- Random forests with 100 trees
-- Holdout split (default)
-- Measure: Brier score
+## Core Concepts
+
+Feature importance methods in xplainfi answer different but related questions:
+
+- **How much does each feature contribute to model performance?** (Permutation Feature Importance)
+- **What happens when we remove features and retrain?** (Leave-One-Covariate-Out)  
+- **How much does each feature contribute individually?** (Leave-One-Covariate-In)
+- **How do features depend on each other?** (Conditional and Relative methods)
+
+All methods share a common interface built on [mlr3](https://mlr3.mlr-org.com/), making them easy to use with any task, learner, measure, and resampling strategy.
+
+## Basic Example
+
+Let's use the Friedman1 task, which provides an ideal setup for demonstrating feature importance methods with known ground truth:
 
 ```{r setup-problem}
-task <- tsk("breast_cancer")
-learner <- lrn("classif.ranger", predict_type = "prob")
-measure <- msr("classif.bbrier")
-```
-
-## PFI
-
-### Simple case without resampling
-
-Default behavior will internally construct standard holdout resampling with default ratio
-
-Calculating PFI: 
-
-```{r}
-pfi <- PFI$new(
-  task = task,
-  learner = learner,
-  measure = measure
-)
-
-# Stores parameter set to calculate PFI in different ways
-pfi$param_set
-
-# Default behavior should be sane
-pfi$compute()
-```
-
-Q: Should `$compute()` be run on construction? Between the call to `$new()` and `$compute()` there's nothing that needs to happen technically, as long as the `relation` param could be set directly.
-
-Does not recompute if not needed, as `"difference"` is the default:
-
-```{r}
-pfi$compute(relation = "difference")
-```
-
-Recomputes if param changes, stores new param
-
-```{r}
-pfi$compute(relation = "ratio")
-pfi$param_set
-```
-
-Q: When `$compute()` is called again its default value for `"relation"` (i.e. `"difference"`) is used, which doesn't seem ideal.
-Maybe this default should be the param stored in the object itself rather than feel like a separate function.
-
-```{r}
-pfi$compute()
-```
-
-Retrieve aggregated scores manually:
-
-```{r}
-pfi$importance
-```
-
-### With resampling
-
-```{r}
-learner <- lrn("classif.ranger", predict_type = "prob")
+task <- tgen("friedman1")$generate(n = 300)
+learner <- lrn("regr.ranger", num.trees = 100)
+measure <- msr("regr.mse")
 resampling <- rsmp("cv", folds = 3)
-measure <- msr("classif.bbrier")
+```
 
+The task has `r task$nrow` observations with `r length(task$feature_names)` features. Features `important1` through `important5` truly affect the target, while `unimportant1` through `unimportant5` are pure noise. We'll use a random forest learner with cross-validation for more stable estimates.
+
+The target function is: $y = 10 * \operatorname{sin}(\pi * x_1 * x_2) + 20 * (x_3 - 0.5)^2 + 10 * x_4 + 5 * x_5 + \epsilon$
+
+
+## Permutation Feature Importance (PFI)
+
+PFI is the most straightforward method: for each feature, we permute (shuffle) its values and measure how much model performance deteriorates. More important features cause larger performance drops when shuffled.
+
+```{r pfi-basic}
 pfi <- PFI$new(
   task = task,
   learner = learner,
-  resampling = resampling,
-  measure = measure
+  measure = measure,
+  resampling = resampling
 )
 
-pfi$resampling
-pfi$resample_result
-
-pfi$compute()
-
-pfi$resample_result
-
-pfi$importance
+pfi_results <- pfi$compute()
+pfi_results
 ```
 
-Different measure:  
+The `importance` column shows the performance difference when each feature is permuted. Higher values indicate more important features.
 
-Q: Maybe it would be worth allowing to change measure post-hoc?
+For more stable estimates, we can use multiple permutation iterations per resampling fold:
 
-```{r}
-pfi <- PFI$new(
+```{r pfi-parameters}
+pfi_stable <- PFI$new(
   task = task,
   learner = learner,
+  measure = measure,
   resampling = resampling,
-  measure = msr("classif.auc")
+  iters_perm = 5
 )
 
-pfi$compute(relation = "ratio")
-pfi$compute(relation = "difference")
+pfi_stable$compute()
 ```
 
-### With multiple permutation iterations
+We can also use ratio instead of difference for the importance calculation:
 
-```{r}
-pfi <- PFI$new(
-  task = task,
-  learner = learner,
-  resampling = resampling,
-  measure = msr("classif.ce"),
-  iters_perm = 5 # permute each feature 5 times in each resampling iteration
-)
-
-pfi$compute(relation = "ratio")
+```{r pfi-ratio}
+pfi_stable$compute(relation = "ratio")
 ```
 
 
-## LOCO
+## Feature Samplers
 
-Same setup but now using LOCO, which differs in that it internally needs to refit the model.  
-Notably, the `Task` object does not need to be modified, as it suffices to adjust the `.$col_roles$feature` property.
+For advanced methods that account for feature dependencies, xplainfi provides different sampling strategies. While PFI uses simple permutation (marginal sampling), conditional samplers can preserve feature relationships.
 
-```{r}
-learner <- lrn("classif.ranger", predict_type = "prob")
+Let's demonstrate conditional sampling using Adversarial Random Forests, which preserves relationships between features when sampling:
 
-loco <- LOCO$new(
-  task = task,
-  learner = learner,
-  resampling = resampling,
-  measure = msr("classif.bbrier")
-)
+```{r samplers-demo}
+arf_sampler <- ARFSampler$new(task)
 
-loco$compute(relation = "ratio")
-
-loco$scores
+sample_data <- task$data(rows = 1:5)
+sample_data$important1
 ```
 
-## Aggregating results
+Now we'll conditionally sample the `important1` feature given the values of `important2` and `important3`:
 
-Not sure if there should be a "blessed" way of combining results like this, ideally it should not be possible to lose track of which score refers to which measure
-
-```{r}
-importance_combined <- merge(
-  pfi$importance,
-  loco$importance,
-  by = "feature"
+```{r conditional-sampling}
+sampled_conditional <- arf_sampler$sample(
+  feature = "important1", 
+  data = sample_data,
+  conditioning_features = c("important2", "important3")
 )
 
-data.table::setnames(
-  importance_combined,
-  old = c("importance.x", "importance.y"),
-  new = c("pfi", "loco")
-)
-
-importance_combined |>
-  knitr::kable(digits = 4, caption = "Importance scores (ratio)")
+sampled_conditional$important1
 ```
 
+Original values: `r paste(round(sample_data$important1, 3), collapse = ", ")`
 
-```{r}
-library(ggplot2)
+Conditionally sampled values: `r paste(round(sampled_conditional$important1, 3), collapse = ", ")`
 
-importance_combined |>
-  data.table::melt(
-    id.vars = "feature",
-    value.name = "score",
-    variable.name = "method"
-  ) |>
-  ggplot(aes(x = score, y = feature, color = method, fill = method)) +
-  geom_col(position = "dodge", alpha = .5) +
-  scale_color_brewer(palette = "Dark2", aesthetics = c("color", "fill")) +
-  labs(
-    title = "Feature Importance Scores",
-    subtitle = sprintf(
-      "For task %s and measure %s, using relativ scores",
-      task$id,
-      measure$id
-    ),
-    x = "Score",
-    y = "Feature",
-    color = "Method",
-    fill = "Method",
-    caption = sprintf("Using %i-fold %s", resampling$iters, resampling$id)
-  ) +
-  theme_minimal(base_size = 14) +
-  theme(
-    legend.position = "bottom",
-    plot.title.position = "plot"
-  )
+Note how the sampled values respect the conditional distribution given the values of important2 and important3.
+
+This conditional sampling is essential for methods like CFI and RFI that need to preserve feature dependencies. See `vignette("perturbation-importance")` for detailed comparisons.
+
+## When to Use Each Method
+
+**Choose PFI when:**
+- You want fast, simple importance estimates
+- Features are relatively independent  
+- You need a quick baseline assessment
+
+**Choose LOCO when:**
+- You want the most accurate importance estimates
+- Computational cost is not a major concern
+- Features may be correlated
+- You want to understand the impact of completely removing features
+
+**Choose LOCI when:**
+- You want to understand individual feature contributions
+- You're interested in feature selection (negative LOCI scores suggest features to remove)
+- You want to compare features to a meaningful baseline
+
+## Advanced Features
+
+xplainfi supports many advanced features for robust importance estimation:
+
+- **Multiple resampling strategies**: Cross-validation, bootstrap, custom splits
+- **Multiple permutation/refit iterations**: For more stable estimates
+- **Feature grouping**: Compute importance for groups of related features
+- **Different relation types**: Difference vs. ratio scoring
+- **Conditional sampling**: Account for feature dependencies (see `vignette("perturbation-importance")`)
+- **SAGE methods**: Shapley-based approaches (see `vignette("sage-methods")`)
+
+## Detailed Scoring Information
+
+All methods store detailed scoring information for further analysis. Let's examine the structure of PFI's detailed scores:
+
+```{r detailed-scores}
+head(pfi$scores, 10) |>
+  knitr::kable(digits = 4, caption = "Detailed PFI scores (first 10 rows)")
 ```
+
+We can also summarize the scoring structure:
+
+```{r scoring-summary}
+pfi$scores[, .(
+  features = uniqueN(feature),
+  resampling_folds = uniqueN(iter_rsmp), 
+  permutation_iters = uniqueN(iter_perm),
+  total_scores = .N
+)]
+```
+
+## Next Steps
+
+This vignette covered the basics of feature importance with xplainfi. For more advanced usage:
+
+- **`vignette("perturbation-importance")`**: Deep dive into PFI, CFI, and RFI methods with conditional sampling
+- **`vignette("loco-loci")`**: Detailed examples of LOCO and LOCI methods  
+- **`vignette("sage-methods")`**: SAGE-based Shapley value methods
+
+The package documentation (`?PFI`, `?LOCO`, `?LOCI`) provides complete API references.

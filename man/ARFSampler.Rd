@@ -23,10 +23,15 @@ sampled_data = sampler$sample("x1", data, conditioning_features = "x2")
 \dontshow{\}) # examplesIf}
 }
 \references{
-\itemize{
-\item Watson, D.S., Blesch, K., Kapar, J. & Wright, M.N.. (2023). Adversarial Random Forests for Density Estimation and Generative Modeling. Proceedings of The 26th International Conference on Artificial Intelligence and Statistics, in Proceedings of Machine Learning Research 206:5357-5375 Available from \url{https://proceedings.mlr.press/v206/watson23a.html}.
-\item Blesch, K., Koenen, N., Kapar, J., Golchian, P., Burk, L., Loecher, M. & Wright, M. N. (2025). Conditional feature importance with generative modeling using adversarial random forests. In Proceedings of the 39th AAAI Conference on Artificial Intelligence. Available from \url{https://arxiv.org/abs/2501.11178}
-}
+Watson, S. D, Blesch, Kristin, Kapar, Jan, Wright, N. M (2023).
+\dQuote{Adversarial Random Forests for Density Estimation and Generative Modeling.}
+In \emph{Proceedings of The 26th International Conference on Artificial Intelligence and Statistics}, 5357--5375.
+\url{https://proceedings.mlr.press/v206/watson23a.html}.
+
+Blesch, Kristin, Koenen, Niklas, Kapar, Jan, Golchian, Pegah, Burk, Lukas, Loecher, Markus, Wright, N. M (2025).
+\dQuote{Conditional Feature Importance with Generative Modeling Using Adversarial Random Forests.}
+\emph{Proceedings of the AAAI Conference on Artificial Intelligence}, \bold{39}(15), 15596--15604.
+\doi{10.1609/aaai.v39i15.33712}.
 }
 \section{Super classes}{
 \code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{\link[xplainfi:ConditionalSampler]{xplainfi::ConditionalSampler}} -> \code{ARFSampler}

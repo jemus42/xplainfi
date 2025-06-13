@@ -127,9 +127,7 @@ ConditionalSampler = R6Class(
 #' sampler = ARFSampler$new(task)
 #' data = task$data()
 #' sampled_data = sampler$sample("x1", data, conditioning_features = "x2")
-#' @references
-#' - Watson, D.S., Blesch, K., Kapar, J. & Wright, M.N.. (2023). Adversarial Random Forests for Density Estimation and Generative Modeling. Proceedings of The 26th International Conference on Artificial Intelligence and Statistics, in Proceedings of Machine Learning Research 206:5357-5375 Available from <https://proceedings.mlr.press/v206/watson23a.html>.
-#' - Blesch, K., Koenen, N., Kapar, J., Golchian, P., Burk, L., Loecher, M. & Wright, M. N. (2025). Conditional feature importance with generative modeling using adversarial random forests. In Proceedings of the 39th AAAI Conference on Artificial Intelligence. Available from <https://arxiv.org/abs/2501.11178>
+#' @references `r print_bib("watson_2023", "blesch_2025")`
 #'
 #' @export
 ARFSampler = R6Class(

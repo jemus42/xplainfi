@@ -199,6 +199,8 @@ PFI = R6Class(
 #'
 #' @description Implementation of CFI using modular sampling approach
 #'
+#' @references `r print_bib("blesch_2025")`
+#'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE) && requireNamespace("arf", quietly = TRUE)
 #' library(mlr3)
 #' task = tgen("2dnormals")$generate(n = 100)
@@ -364,6 +366,8 @@ CFI = R6Class(
 #' @title Relative Feature Importance
 #'
 #' @description Implementation of RFI using modular sampling approach
+#'
+#' @references `r print_bib("konig_2021")`
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE) && requireNamespace("arf", quietly = TRUE)
 #' library(mlr3)
