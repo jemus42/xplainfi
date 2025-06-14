@@ -96,6 +96,41 @@ We can also use ratio instead of difference for the importance calculation:
 pfi_stable$compute(relation = "ratio")
 ```
 
+## Leave-One-Covariate-Out (LOCO)
+
+LOCO measures importance by retraining the model without each feature and comparing performance to the full model. This shows the contribution of each feature when all other features are present.
+
+```{r loco-basic}
+loco <- LOCO$new(
+  task = task,
+  learner = learner,
+  measure = measure,
+  resampling = resampling
+)
+
+loco_results <- loco$compute()
+loco_results
+```
+
+LOCO is computationally expensive (requires retraining for each feature) but provides clear interpretation: higher values mean larger performance drop when the feature is removed. **Important limitation**: LOCO cannot distinguish between direct effects and indirect effects through correlated features.
+
+## Leave-One-Covariate-In (LOCI)
+
+LOCI takes the opposite approach: it trains models with only single features and compares to a naive baseline (featureless learner that predicts the optimal constant).
+
+```{r loci-basic}
+loci <- LOCI$new(
+  task = task,
+  learner = learner,
+  measure = measure,
+  resampling = resampling
+)
+
+loci_results <- loci$compute()
+loci_results
+```
+
+LOCI measures the intrinsic predictive power of each feature in isolation. Positive values indicate the feature alone performs better than constant prediction; negative values suggest the feature is harmful when used alone. **Key insight**: LOCI ignores all feature interactions and synergies.
 
 ## Feature Samplers
 
@@ -107,7 +142,7 @@ Let's demonstrate conditional sampling using Adversarial Random Forests, which p
 arf_sampler <- ARFSampler$new(task)
 
 sample_data <- task$data(rows = 1:5)
-sample_data$important1
+sample_data[, .(y, important1, important2)]
 ```
 
 Now we'll conditionally sample the `important1` feature given the values of `important2` and `important3`:
@@ -119,34 +154,36 @@ sampled_conditional <- arf_sampler$sample(
   conditioning_features = c("important2", "important3")
 )
 
-sampled_conditional$important1
+sample_data[, .(y, important1, important2, important3)]
+sampled_conditional[, .(y, important1, important2, important3)]
 ```
-
-Original values: `r paste(round(sample_data$important1, 3), collapse = ", ")`
-
-Conditionally sampled values: `r paste(round(sampled_conditional$important1, 3), collapse = ", ")`
-
-Note how the sampled values respect the conditional distribution given the values of important2 and important3.
 
 This conditional sampling is essential for methods like CFI and RFI that need to preserve feature dependencies. See `vignette("perturbation-importance")` for detailed comparisons.
 
 ## When to Use Each Method
 
 **Choose PFI when:**
+
 - You want fast, simple importance estimates
 - Features are relatively independent  
 - You need a quick baseline assessment
+- You accept that feature correlations are ignored
 
 **Choose LOCO when:**
-- You want the most accurate importance estimates
-- Computational cost is not a major concern
-- Features may be correlated
+
 - You want to understand the impact of completely removing features
+- Computational cost is not a major concern
+- You need interpretable importance relative to the full model
+- Note: LOCO cannot account for feature correlations/dependencies
 
 **Choose LOCI when:**
-- You want to understand individual feature contributions
-- You're interested in feature selection (negative LOCI scores suggest features to remove)
-- You want to compare features to a meaningful baseline
+
+- You want to understand individual feature contributions in isolation
+- You're interested in feature selection (negative LOCI scores suggest harmful features)
+- You want to compare features to a naive baseline (optimal constant prediction)
+- Note: LOCI measures intrinsic predictive power, not interactions with other features
+
+**Important distinction**: Neither LOCO nor LOCI can account for conditional dependencies between features. For that, you need methods like CFI (Conditional Feature Importance) or RFI (Relative Feature Importance) that use conditional sampling. See `vignette("perturbation-importance")` for these advanced methods.
 
 ## Advanced Features
 
