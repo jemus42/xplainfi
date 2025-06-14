@@ -8,7 +8,7 @@ format:
 	air format .
 
 .PHONY: doc
-doc:
+doc: README.md
 	Rscript -e "usethis::use_tidy_description()"
 	Rscript -e "devtools::document()"
 

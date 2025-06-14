@@ -15,9 +15,12 @@ coverage](https://codecov.io/gh/jemus42/xplainfi/graph/badge.svg)](https://app.c
 The goal of `xplainfi` is to collect common feature importance methods
 under a unified and extensible interface.
 
-For now, it is built specifically around [mlr3](https://mlr-org.com/),
-as available abstractions for learners, tasks, measures, etc. greatly
-simplify the implementation of importance measures.
+It is built around [mlr3](https://mlr-org.com/) as available
+abstractions for learners, tasks, measures, etc. greatly simplify the
+implementation of importance measures.
+
+> \[!WARNING\] `xplainfi` is in its very early stages and does not yet
+> validate results against reference implementations!
 
 ## Installation
 

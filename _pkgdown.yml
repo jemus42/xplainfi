@@ -1,11 +1,20 @@
 url: https://jemus42.github.io/xplainfi/
+
+authors:
+  Lukas Burk:
+    href: https://lukasburk.de
+
 template:
   bootstrap: 5
+  math-rendering: mathjax
   light-switch: true
   bslib:
     base_font: {google: "Roboto"}
     heading_font: {google: "Roboto Slab"}
     code_font: {google: "JetBrains Mono"}
+
+development:
+  mode: auto
 
 reference:
   - title: Importance Measures
@@ -42,3 +51,13 @@ reference:
   - contents:
     - starts_with("compute")
     - starts_with("op-")
+
+articles:
+- title: Main verbs
+  contents:
+  - perturbation-importance
+  - loco-loci
+  - sage-methods
+- title: Testing and Validation
+  contents:
+  - contains("fippy")

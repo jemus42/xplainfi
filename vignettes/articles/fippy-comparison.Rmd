@@ -1,0 +1,295 @@
+---
+title: "Comparison with fippy (Python Implementation)"
+subtitle: "Cross-language validation of feature importance methods"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, message=FALSE}
+library(data.table)
+library(ggplot2)
+library(jsonlite)
+library(knitr)
+library(glue)
+library(here)
+
+# Set seed for reproducibility
+set.seed(123)
+```
+
+## Overview
+
+This article compares xplainfi's feature importance implementations with those from [fippy](https://github.com/gcskoenig/fippy), a Python package implementing similar methods. This comparison serves as a regression test to ensure methodological consistency across language implementations.
+
+The comparison includes:
+- **PFI** (Permutation Feature Importance)
+- **CFI** (Conditional Feature Importance) 
+- **RFI** (Relative Feature Importance)
+- **SAGE** (Shapley Additive Global Importance) - both marginal and conditional variants
+
+## Methodology
+
+Both implementations use:
+- **Dataset**: Friedman1 task with 500 observations
+- **Model**: Random Forest with 100 trees
+- **Evaluation**: Same train/test split (70/30) with identical random seeds
+- **Metrics**: Mean Squared Error for importance calculations
+
+## Setup and Execution
+
+The comparison uses separate calculation scripts to avoid environment conflicts:
+
+```{bash, eval=FALSE}
+# 1. Calculate xplainfi results
+cd vignettes/articles/fippy-comparison
+Rscript calculate_xplainfi.R
+
+# 2. Calculate fippy results (portable with uv - automatically installs dependencies)
+./calculate_fippy.py
+```
+
+Both scripts generate JSON files with results that are loaded below for comparison.
+
+## Load Results
+
+```{r load-results}
+# Check that both result files exist
+# Look in the fippy-comparison subdirectory
+base_dir <- here::here("vignettes", "articles", "fippy-comparison")
+xplainfi_results_path <- file.path(base_dir, "xplainfi_results.json")
+fippy_results_path <- file.path(base_dir, "fippy_results.json")
+
+if (!file.exists(xplainfi_results_path)) {
+  stop("xplainfi_results.json not found. Please run calculate_xplainfi.R first.")
+}
+
+if (!file.exists(fippy_results_path)) {
+  stop("fippy_results.json not found. Please run calculate_fippy.py first.")
+}
+
+# Load results from both implementations
+xplainfi_results <- fromJSON(xplainfi_results_path)
+fippy_results <- fromJSON(fippy_results_path)
+```
+
+## Model Performance Comparison
+
+```{r model-performance}
+performance_comparison <- data.table(
+  Implementation = c("xplainfi (R)", "fippy (Python)"),
+  R_squared = c(
+    round(xplainfi_results$model_performance$r_squared, 4),
+    round(fippy_results$model_performance$r_squared, 4)
+  )
+)
+
+kable(performance_comparison, caption = "Model Performance Comparison")
+```
+
+## Method Comparisons
+
+```{r comparison-function}
+compare_method <- function(method_name, xplainfi_result, fippy_result) {
+  if (!is.null(xplainfi_result) && !is.null(fippy_result)) {
+    # Both implementations available
+    method_dt <- data.table(
+      feature = xplainfi_result$feature,
+      xplainfi = xplainfi_result$importance,
+      fippy = fippy_result$importance
+    )
+    
+    # Return table and correlation for display
+    correlation <- cor(method_dt$xplainfi, method_dt$fippy)
+    
+    list(
+      table = kable(method_dt[order(-xplainfi)], 
+                   caption = glue("{method_name} Results Comparison"), 
+                   digits = 4),
+      correlation = correlation
+    )
+    
+  } else {
+    list(
+      table = glue("{method_name} results not available (one or both implementations failed)"),
+      correlation = NULL
+    )
+  }
+}
+```
+
+### PFI (Permutation Feature Importance)
+
+```{r pfi-comparison}
+pfi_result <- compare_method("PFI", xplainfi_results$PFI, fippy_results$PFI)
+pfi_result$table
+
+if (!is.null(pfi_result$correlation)) {
+  glue("PFI Correlation: {round(pfi_result$correlation, 3)}")
+}
+
+pfi_correlation <- pfi_result$correlation
+```
+
+### CFI (Conditional Feature Importance)
+
+```{r cfi-comparison}
+cfi_result <- compare_method("CFI", xplainfi_results$CFI, fippy_results$CFI)
+cfi_result$table
+
+if (!is.null(cfi_result$correlation)) {
+  glue("CFI Correlation: {round(cfi_result$correlation, 3)}")
+}
+
+cfi_correlation <- cfi_result$correlation
+```
+
+### RFI (Relative Feature Importance)
+
+```{r rfi-comparison}
+rfi_result <- compare_method("RFI", xplainfi_results$RFI, fippy_results$RFI)
+rfi_result$table
+
+if (!is.null(rfi_result$correlation)) {
+  glue("RFI Correlation: {round(rfi_result$correlation, 3)}")
+}
+
+rfi_correlation <- rfi_result$correlation
+
+# Show conditioning sets using inline R
+conditioning_info <- character()
+if (!is.null(xplainfi_results$RFI) && !is.null(xplainfi_results$RFI$conditioning_set)) {
+  conditioning_info <- c(conditioning_info, 
+    glue("xplainfi conditioning set: {paste(xplainfi_results$RFI$conditioning_set, collapse = ', ')}"))
+}
+if (!is.null(fippy_results$RFI) && !is.null(fippy_results$RFI$conditioning_set)) {
+  conditioning_info <- c(conditioning_info, 
+    glue("fippy conditioning set: {paste(fippy_results$RFI$conditioning_set, collapse = ', ')}"))
+}
+
+if (length(conditioning_info) > 0) {
+  conditioning_info
+}
+```
+
+### SAGE Methods
+
+#### Marginal SAGE
+
+```{r sage-marginal-comparison}
+sage_marginal_result <- compare_method("Marginal SAGE", xplainfi_results$SAGE_Marginal, fippy_results$SAGE_Marginal)
+sage_marginal_result$table
+
+if (!is.null(sage_marginal_result$correlation)) {
+  glue("Marginal SAGE Correlation: {round(sage_marginal_result$correlation, 3)}")
+}
+
+sage_marginal_correlation <- sage_marginal_result$correlation
+```
+
+#### Conditional SAGE
+
+```{r sage-conditional-comparison}
+sage_conditional_result <- compare_method("Conditional SAGE", xplainfi_results$SAGE_Conditional, fippy_results$SAGE_Conditional)
+sage_conditional_result$table
+
+if (!is.null(sage_conditional_result$correlation)) {
+  glue("Conditional SAGE Correlation: {round(sage_conditional_result$correlation, 3)}")
+}
+
+sage_conditional_correlation <- sage_conditional_result$correlation
+```
+
+## Correlation Summary
+
+```{r correlation-summary}
+correlations <- data.table(
+  Method = character(),
+  Correlation = numeric()
+)
+
+correlation_list <- list(
+  "PFI" = pfi_correlation,
+  "CFI" = cfi_correlation, 
+  "RFI" = rfi_correlation,
+  "Marginal SAGE" = sage_marginal_correlation,
+  "Conditional SAGE" = sage_conditional_correlation
+)
+
+for (method in names(correlation_list)) {
+  if (!is.null(correlation_list[[method]])) {
+    correlations <- rbind(correlations, 
+                         data.table(Method = method, Correlation = round(correlation_list[[method]], 4)))
+  }
+}
+
+if (nrow(correlations) > 0) {
+  kable(correlations, caption = "Pearson Correlations between xplainfi and fippy")
+  
+  # Visualization
+  if (nrow(correlations) > 1) {
+    p_corr <- ggplot(correlations, aes(x = reorder(Method, Correlation), y = Correlation)) +
+      geom_col(fill = "steelblue", alpha = 0.7) +
+      geom_hline(yintercept = 1, linetype = "dashed", color = "red", alpha = 0.7) +
+      coord_flip() +
+      labs(
+        title = "Implementation Correlations",
+        subtitle = "xplainfi (R) vs fippy (Python)",
+        x = "Method",
+        y = "Pearson Correlation",
+        caption = "Dashed line at r = 1"
+      ) +
+      theme_minimal() +
+      ylim(0, 1)
+    
+    p_corr
+  }
+}
+```
+
+## Technical Notes
+
+### fippy Installation and Bug Fix
+
+This comparison uses uv's script dependency feature for portable execution. The Python script automatically installs fippy from GitHub with a fix for RFI calculations:
+
+```python
+# /// script
+# requires-python = ">=3.8"  
+# dependencies = [
+#     "fippy @ git+https://github.com/jemus42/fippy.git@fix-rfi-to-numpy-bug",
+# ]
+# ///
+```
+
+The fix addresses an `AttributeError: 'float' object has no attribute 'to_numpy'` that occurred when loss functions returned scalar values. No manual environment setup is required - uv handles all dependencies automatically.
+
+### API Differences
+
+Key differences between implementations:
+
+1. **RFI Conditioning**: fippy uses `explainer.rfi(conditioning_set, X, y)` with conditioning set as first parameter
+2. **SAGE Parameters**: fippy uses `n_permutations` rather than `n_coalitions`
+3. **Sampler Setup**: fippy requires explicit `GaussianSampler(X_train)` initialization
+
+### Methodological Validation
+
+High correlations (r > 0.9) between implementations indicate:
+- Consistent algorithmic implementations across languages
+- Proper handling of random seeds and data splits
+- Valid cross-language validation of methods
+
+Lower correlations may indicate:
+- Different sampling strategies or implementation details
+- Stochastic variation in methods like SAGE
+- Numerical precision differences between R and Python
+
+## Conclusion
+
+This comparison provides automated regression testing for xplainfi's feature importance methods against an independent Python implementation. Regular execution of this comparison helps ensure:
+
+1. **Methodological consistency** across language implementations
+2. **Regression detection** when changes are made to xplainfi
+3. **Cross-validation** of algorithmic correctness
+4. **Documentation** of expected behavior and performance
+
+The comparison framework can be extended to include additional methods as they are implemented in both packages.
