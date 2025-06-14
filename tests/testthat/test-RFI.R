@@ -349,7 +349,7 @@ test_that("RFI with resampling", {
   skip_if_not_installed("arf")
 
   set.seed(123)
-  task = mlr3::tgen("xor")$generate(n = 200)
+  task = mlr3::tgen("xor", d = 4)$generate(n = 200)
   learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob")
   resampling = mlr3::rsmp("cv", folds = 3)
   measure = mlr3::msr("classif.ce")
@@ -359,7 +359,7 @@ test_that("RFI with resampling", {
     learner = learner,
     resampling = resampling,
     measure = measure,
-    conditioning_set = character(0), # Empty conditioning set now works
+    conditioning_set = "x2",
     iters_perm = 2
   )
 
