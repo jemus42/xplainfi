@@ -9,11 +9,13 @@ Implementation of PFI using modular sampling approach
 \examples{
 \dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 library(mlr3)
-task = tgen("2dnormals")$generate(n = 100)
+task = tgen("xor", d = 5)$generate(n = 100)
 pfi = PFI$new(
   task = task,
   learner = lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
-  measure = msr("classif.ce")
+  measure = msr("classif.ce"),
+  resampling = rsmp("cv", folds = 3),
+  iters_perm = 3
 )
 pfi$compute()
 \dontshow{\}) # examplesIf}
