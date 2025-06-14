@@ -44,11 +44,13 @@ PerturbationImportance = R6Class(
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
 #' library(mlr3)
-#' task = tgen("2dnormals")$generate(n = 100)
+#' task = tgen("xor", d = 5)$generate(n = 100)
 #' pfi = PFI$new(
 #'   task = task,
 #'   learner = lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
-#'   measure = msr("classif.ce")
+#'   measure = msr("classif.ce"),
+#'   resampling = rsmp("cv", folds = 3),
+#'   iters_perm = 3
 #' )
 #' pfi$compute()
 #' @export
@@ -154,14 +156,14 @@ PFI = R6Class(
       setkeyv(scores, c("feature", "iter_rsmp"))
 
       # Aggregate by feature
-      scores_agg = scores[, list(importance = mean(importance)), by = feature]
+      scores_agg = private$.aggregate_importances(scores)
 
       # Store results
       self$resample_result = rr
       self$scores = scores
       self$importance = scores_agg
 
-      return(self$importance)
+      copy(self$importance)
     }
   ),
 
@@ -317,14 +319,14 @@ CFI = R6Class(
       setkeyv(scores, c("feature", "iter_rsmp"))
 
       # Aggregate by feature
-      scores_agg = scores[, list(importance = mean(importance)), by = feature]
+      scores_agg = private$.aggregate_importances(scores)
 
       # Store results
       self$resample_result = rr
       self$scores = scores
       self$importance = scores_agg
 
-      return(self$importance)
+      copy(self$importance)
     }
   ),
 
@@ -498,14 +500,14 @@ RFI = R6Class(
       setkeyv(scores, c("feature", "iter_rsmp"))
 
       # Aggregate by feature
-      scores_agg = scores[, list(importance = mean(importance)), by = feature]
+      scores_agg = private$.aggregate_importances(scores)
 
       # Store results
       self$resample_result = rr
       self$scores = scores
       self$importance = scores_agg
 
-      return(self$importance)
+      copy(self$importance)
     }
   ),
 

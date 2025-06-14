@@ -124,5 +124,26 @@ FeatureImportanceMeasure = R6Class(
       cli::cli_h2(self$label)
       if (!is.null(self$importance)) print(self$importance, ...)
     }
+  ),
+  private = list(
+    .aggregate_importances = function(xdf, include_sd = TRUE) {
+      checkmate::assert_data_table(xdf)
+      checkmate::assert_subset(c("feature", "importance"), choices = colnames(xdf))
+
+      # Skip aggregation if only one row per feature anyway
+      if (nrow(xdf) == length(unique(xdf$feature))) {
+        return(xdf[, list(feature, importance)])
+      }
+
+      res = xdf[, list(importance = mean(importance)), by = feature]
+
+      if (include_sd) {
+        sd = xdf[, list(sd = sd(importance)), by = feature]
+
+        res = res[sd, on = "feature"]
+      }
+
+      res
+    }
   )
 )

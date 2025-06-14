@@ -19,12 +19,14 @@ expect_importance_dt = function(x, features) {
     x,
     types = c("character", "numeric"),
     nrows = length(features),
-    ncols = 2,
+    min.cols = 2,
     any.missing = FALSE
   )
 
   checkmate::expect_character(x$feature, any.missing = FALSE)
   checkmate::expect_numeric(x$importance, any.missing = FALSE)
+
+  if ("sd" %in% colnames(x)) checkmate::expect_numeric(x$sd, any.missing = FALSE)
 }
 
 #' Expectation for individual importance score tables

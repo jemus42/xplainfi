@@ -112,14 +112,14 @@ SAGE = R6Class(
       scores = rbindlist(sage_scores, idcol = "iter_rsmp")
 
       # Aggregate by feature
-      scores_agg = scores[, list(importance = mean(sage_value)), by = feature]
+      scores_agg = private$.aggregate_importances(scores)
 
       # Store results
       self$resample_result = rr
       self$scores = scores
       self$importance = scores_agg
 
-      return(self$importance)
+      copy(self$importance)
     }
   ),
 
@@ -186,7 +186,7 @@ SAGE = R6Class(
       # Return as data.table
       data.table(
         feature = names(sage_values),
-        sage_value = unname(sage_values)
+        importance = unname(sage_values)
       )
     },
 

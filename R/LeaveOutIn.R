@@ -82,7 +82,10 @@ LeaveOutIn = R6Class(
           store_models = FALSE,
           store_backends = FALSE
         )
-        scores_pre = rr_baseline$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
+        scores_pre = rr_baseline$score(self$measure)[,
+          .SD,
+          .SDcols = c("iteration", self$measure$id)
+        ]
         setnames(scores_pre, old = self$measure$id, "scores_pre")
       } else {
         # For LOCI, get baseline scores using featureless learner
@@ -91,7 +94,7 @@ LeaveOutIn = R6Class(
           "classif" = mlr3::lrn("classif.featureless"),
           "regr" = mlr3::lrn("regr.featureless")
         )
-        
+
         rr_featureless = resample(
           self$task,
           learner_featureless,
@@ -99,8 +102,11 @@ LeaveOutIn = R6Class(
           store_models = FALSE,
           store_backends = FALSE
         )
-        
-        scores_pre = rr_featureless$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
+
+        scores_pre = rr_featureless$score(self$measure)[,
+          .SD,
+          .SDcols = c("iteration", self$measure$id)
+        ]
         setnames(scores_pre, old = self$measure$id, "scores_pre")
       }
 
@@ -153,19 +159,20 @@ LeaveOutIn = R6Class(
 
       setkeyv(scores, c("feature", "iter_rsmp"))
 
-      # Aggregate by feature over resamplings and refits
-      scores_agg = scores[, list(importance = mean(importance)), by = "feature"]
+      # Aggregate by feature
+      scores_agg = private$.aggregate_importances(scores)
 
-      self$scores = scores
-      self$importance = scores_agg
+      # Store results
       # Store the baseline resample result (either full model or featureless)
       if (self$direction == "leave-out") {
         self$resample_result = rr_baseline
       } else {
         self$resample_result = rr_featureless
       }
+      self$scores = scores
+      self$importance = scores_agg
 
-      self$importance
+      copy(self$importance)
     }
   ),
 
