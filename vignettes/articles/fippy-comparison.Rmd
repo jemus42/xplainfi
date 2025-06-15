@@ -39,7 +39,7 @@ Both implementations use:
 
 The comparison uses separate calculation scripts to avoid environment conflicts:
 
-```{bash, eval=FALSE}
+```{bash}
 # 1. Calculate xplainfi results
 cd vignettes/articles/fippy-comparison
 Rscript calculate_xplainfi.R
