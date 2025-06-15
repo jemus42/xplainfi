@@ -8,8 +8,7 @@
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![R-CMD-check](https://github.com/jemus42/xplainfi/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jemus42/xplainfi/actions/workflows/R-CMD-check.yaml)
-[![Codecov test
-coverage](https://codecov.io/gh/jemus42/xplainfi/graph/badge.svg)](https://app.codecov.io/gh/jemus42/xplainfi)
+[![codecov](https://codecov.io/gh/jemus42/xplainfi/graph/badge.svg?token=QIQDMP3AM7)](https://codecov.io/gh/jemus42/xplainfi)
 <!-- badges: end -->
 
 The goal of `xplainfi` is to collect common feature importance methods

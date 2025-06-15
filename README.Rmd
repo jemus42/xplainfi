@@ -24,7 +24,7 @@ set.seed(123)
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![R-CMD-check](https://github.com/jemus42/xplainfi/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jemus42/xplainfi/actions/workflows/R-CMD-check.yaml)
-[![Codecov test coverage](https://codecov.io/gh/jemus42/xplainfi/graph/badge.svg)](https://app.codecov.io/gh/jemus42/xplainfi)
+[![codecov](https://codecov.io/gh/jemus42/xplainfi/graph/badge.svg?token=QIQDMP3AM7)](https://codecov.io/gh/jemus42/xplainfi)
 <!-- badges: end -->
 
 The goal of `xplainfi` is to collect common feature importance methods under a unified and extensible interface.  
@@ -44,7 +44,7 @@ pak::pak("jemus42/xplainfi")
 
 Here is a basic example on how to calculate PFI for a given learner and task, using repeated cross-validation as resampling strategy and computing PFI within each resampling 5 times:
 
-```{r}
+```{r setup}
 library(xplainfi)
 library(mlr3)
 library(mlr3learners)
@@ -64,7 +64,7 @@ pfi = PFI$new(
 
 Compute and print PFI scores:
 
-```{r}
+```{r pfi-compute}
 pfi$compute()
 ```
 
@@ -72,7 +72,7 @@ Retrieve scores later in `pfi$importance`.
 
 When PFI is computed based on resampling with multiple iterations, and / or multiple permutation iterations, the individual scores can be retrieved as a `data.table`:
 
-```{r}
+```{r pfi-scores}
 str(pfi$scores)
 ```
 
@@ -82,7 +82,7 @@ While `pfi$importance` contains the means and standard deviations across all ite
 
 In the simplest case, you run PFI with a single resampling iteration (holdout) and a single permutation iteration, and `pfi$importance` will contain the same importance values as `pfi$scores`.
 
-```{r}
+```{r pfi-single}
 pfi_single = PFI$new(
   task = task,
   learner = learner,
