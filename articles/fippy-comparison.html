@@ -30,7 +30,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -326,61 +326,61 @@ for comparison.</p>
 <tr class="odd">
 <td align="left">important4</td>
 <td align="right">13.5899</td>
-<td align="right">12.1596</td>
+<td align="right">15.4565</td>
 </tr>
 <tr class="even">
 <td align="left">important2</td>
 <td align="right">7.5630</td>
-<td align="right">9.9567</td>
+<td align="right">9.0749</td>
 </tr>
 <tr class="odd">
 <td align="left">important1</td>
 <td align="right">6.9349</td>
-<td align="right">9.2888</td>
+<td align="right">8.6663</td>
 </tr>
 <tr class="even">
 <td align="left">important5</td>
 <td align="right">2.6788</td>
-<td align="right">1.3233</td>
+<td align="right">1.2321</td>
 </tr>
 <tr class="odd">
 <td align="left">important3</td>
 <td align="right">1.8542</td>
-<td align="right">0.7348</td>
+<td align="right">0.8223</td>
 </tr>
 <tr class="even">
 <td align="left">unimportant4</td>
 <td align="right">0.0522</td>
-<td align="right">0.0890</td>
+<td align="right">0.0537</td>
 </tr>
 <tr class="odd">
 <td align="left">unimportant2</td>
 <td align="right">0.0468</td>
-<td align="right">-0.0756</td>
+<td align="right">-0.0924</td>
 </tr>
 <tr class="even">
 <td align="left">unimportant5</td>
 <td align="right">0.0459</td>
-<td align="right">-0.0291</td>
+<td align="right">-0.0474</td>
 </tr>
 <tr class="odd">
 <td align="left">unimportant1</td>
 <td align="right">0.0293</td>
-<td align="right">-0.0715</td>
+<td align="right">-0.0911</td>
 </tr>
 <tr class="even">
 <td align="left">unimportant3</td>
 <td align="right">-0.0250</td>
-<td align="right">0.1337</td>
+<td align="right">0.1169</td>
 </tr>
 </tbody>
 </table>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"CFI Correlation: {round(cfi_result$correlation, 3)}"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## CFI Correlation: 0.963</span></span></code></pre>
+<pre><code><span><span class="co">## CFI Correlation: 0.991</span></span></code></pre>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cfi_result</span><span class="op">$</span><span class="va">correlation</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 0.9631222</span></span></code></pre>
+<pre><code><span><span class="co">## [1] 0.9907893</span></span></code></pre>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cfi_result</span><span class="op">$</span><span class="va">correlation_spearman</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 0.8424242</span></span></code></pre>
@@ -402,37 +402,37 @@ for comparison.</p>
 <tr class="odd">
 <td align="left">important4</td>
 <td align="right">13.8626</td>
-<td align="right">12.4209</td>
+<td align="right">16.0371</td>
 </tr>
 <tr class="even">
 <td align="left">important5</td>
 <td align="right">2.4340</td>
-<td align="right">1.3626</td>
+<td align="right">1.2175</td>
 </tr>
 <tr class="odd">
 <td align="left">important3</td>
 <td align="right">1.6793</td>
-<td align="right">1.1734</td>
+<td align="right">0.8638</td>
 </tr>
 <tr class="even">
 <td align="left">unimportant2</td>
 <td align="right">0.0974</td>
-<td align="right">-0.0950</td>
+<td align="right">-0.0826</td>
 </tr>
 <tr class="odd">
 <td align="left">unimportant4</td>
 <td align="right">0.0720</td>
-<td align="right">0.0438</td>
+<td align="right">-0.0126</td>
 </tr>
 <tr class="even">
 <td align="left">unimportant5</td>
 <td align="right">0.0718</td>
-<td align="right">-0.0186</td>
+<td align="right">-0.0324</td>
 </tr>
 <tr class="odd">
 <td align="left">unimportant1</td>
 <td align="right">0.0431</td>
-<td align="right">-0.0178</td>
+<td align="right">-0.0096</td>
 </tr>
 <tr class="even">
 <td align="left">important1</td>
@@ -447,19 +447,19 @@ for comparison.</p>
 <tr class="even">
 <td align="left">unimportant3</td>
 <td align="right">-0.0150</td>
-<td align="right">0.0568</td>
+<td align="right">0.0487</td>
 </tr>
 </tbody>
 </table>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"RFI Correlation: {round(rfi_result$correlation, 3)}"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## RFI Correlation: 0.991</span></span></code></pre>
+<pre><code><span><span class="co">## RFI Correlation: 0.992</span></span></code></pre>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rfi_result</span><span class="op">$</span><span class="va">correlation</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 0.991177</span></span></code></pre>
+<pre><code><span><span class="co">## [1] 0.9915639</span></span></code></pre>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rfi_result</span><span class="op">$</span><span class="va">correlation_spearman</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 0.656538</span></span></code></pre>
+<pre><code><span><span class="co">## [1] 0.6322218</span></span></code></pre>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"xplainfi conditioning set: {paste(xplainfi_results$RFI$conditioning_set, collapse = ', ')}"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## xplainfi conditioning set: important1, important2</span></span></code></pre>
@@ -563,64 +563,64 @@ for comparison.</p>
 <tr class="odd">
 <td align="left">important4</td>
 <td align="right">8.5453</td>
-<td align="right">10.2303</td>
+<td align="right">10.4928</td>
 </tr>
 <tr class="even">
 <td align="left">important2</td>
 <td align="right">4.2665</td>
-<td align="right">5.7623</td>
+<td align="right">6.5617</td>
 </tr>
 <tr class="odd">
 <td align="left">important1</td>
 <td align="right">4.1952</td>
-<td align="right">6.3889</td>
+<td align="right">6.0221</td>
 </tr>
 <tr class="even">
 <td align="left">important5</td>
 <td align="right">1.7850</td>
-<td align="right">1.5037</td>
+<td align="right">1.4940</td>
 </tr>
 <tr class="odd">
 <td align="left">important3</td>
 <td align="right">1.2772</td>
-<td align="right">0.1471</td>
+<td align="right">0.8515</td>
 </tr>
 <tr class="even">
 <td align="left">unimportant4</td>
 <td align="right">0.0513</td>
-<td align="right">0.4910</td>
+<td align="right">0.3124</td>
 </tr>
 <tr class="odd">
 <td align="left">unimportant5</td>
 <td align="right">0.0256</td>
-<td align="right">-0.3502</td>
+<td align="right">0.7927</td>
 </tr>
 <tr class="even">
 <td align="left">unimportant1</td>
 <td align="right">0.0217</td>
-<td align="right">-0.8850</td>
+<td align="right">0.1852</td>
 </tr>
 <tr class="odd">
 <td align="left">unimportant3</td>
 <td align="right">0.0096</td>
-<td align="right">0.8510</td>
+<td align="right">0.9100</td>
 </tr>
 <tr class="even">
 <td align="left">unimportant2</td>
 <td align="right">-0.0009</td>
-<td align="right">-0.3757</td>
+<td align="right">0.5696</td>
 </tr>
 </tbody>
 </table>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"Conditional SAGE Correlation: {round(sage_conditional_result$correlation, 3)}"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Conditional SAGE Correlation: 0.976</span></span></code></pre>
+<pre><code><span><span class="co">## Conditional SAGE Correlation: 0.982</span></span></code></pre>
 <div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sage_conditional_result</span><span class="op">$</span><span class="va">correlation</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 0.975873</span></span></code></pre>
+<pre><code><span><span class="co">## [1] 0.9818071</span></span></code></pre>
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sage_conditional_result</span><span class="op">$</span><span class="va">correlation_spearman</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 0.830303</span></span></code></pre>
+<pre><code><span><span class="co">## [1] 0.7939394</span></span></code></pre>
 </div>
 </div>
 </div>
@@ -657,13 +657,13 @@ fippy</caption>
 </tr>
 <tr class="even">
 <td align="left">CFI</td>
-<td align="right">0.9631222</td>
+<td align="right">0.9907893</td>
 <td align="right">0.8424242</td>
 </tr>
 <tr class="odd">
 <td align="left">RFI</td>
-<td align="right">0.9911770</td>
-<td align="right">0.6565380</td>
+<td align="right">0.9915639</td>
+<td align="right">0.6322218</td>
 </tr>
 <tr class="even">
 <td align="left">Marginal SAGE</td>
@@ -672,8 +672,8 @@ fippy</caption>
 </tr>
 <tr class="odd">
 <td align="left">Conditional SAGE</td>
-<td align="right">0.9758730</td>
-<td align="right">0.8303030</td>
+<td align="right">0.9818071</td>
+<td align="right">0.7939394</td>
 </tr>
 </tbody>
 </table>
