@@ -85,9 +85,6 @@
 
 <p>The goal of <code>xplainfi</code> is to collect common feature importance methods under a unified and extensible interface.</p>
 <p>It is built around <a href="https://mlr-org.com/" class="external-link">mlr3</a> as available abstractions for learners, tasks, measures, etc. greatly simplify the implementation of importance measures.</p>
-<blockquote>
-<p>[!WARNING] <code>xplainfi</code> is in its very early stages and does not yet validate results against reference implementations!</p>
-</blockquote>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -120,49 +117,44 @@
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;                     feature    importance</span></span>
-<span><span class="co">#&gt;                      &lt;char&gt;         &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:                     age  9.929091e-04</span></span>
-<span><span class="co">#&gt;  2:                  amount  1.288294e-02</span></span>
-<span><span class="co">#&gt;  3:          credit_history  1.218554e-02</span></span>
-<span><span class="co">#&gt;  4:                duration  1.598605e-02</span></span>
-<span><span class="co">#&gt;  5:     employment_duration  3.890717e-03</span></span>
-<span><span class="co">#&gt;  6:          foreign_worker -1.202700e-03</span></span>
-<span><span class="co">#&gt;  7:                 housing -8.016999e-04</span></span>
-<span><span class="co">#&gt;  8:        installment_rate  3.599408e-03</span></span>
-<span><span class="co">#&gt;  9:                     job -1.002799e-03</span></span>
-<span><span class="co">#&gt; 10:          number_credits -2.402103e-03</span></span>
-<span><span class="co">#&gt; 11:           other_debtors  5.898713e-03</span></span>
-<span><span class="co">#&gt; 12: other_installment_plans -9.095922e-04</span></span>
-<span><span class="co">#&gt; 13:           people_liable  5.994018e-07</span></span>
-<span><span class="co">#&gt; 14:     personal_status_sex -1.807496e-03</span></span>
-<span><span class="co">#&gt; 15:       present_residence  6.944070e-04</span></span>
-<span><span class="co">#&gt; 16:                property  1.291111e-03</span></span>
-<span><span class="co">#&gt; 17:                 purpose  2.486918e-03</span></span>
-<span><span class="co">#&gt; 18:                 savings  1.819694e-02</span></span>
-<span><span class="co">#&gt; 19:                  status  3.978829e-02</span></span>
-<span><span class="co">#&gt; 20:               telephone  1.293209e-03</span></span>
-<span><span class="co">#&gt;                     feature    importance</span></span></code></pre></div>
+<span><span class="co">#&gt;                     feature    importance          sd</span></span>
+<span><span class="co">#&gt;                      &lt;char&gt;         &lt;num&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:                     age  9.929091e-04 0.010690982</span></span>
+<span><span class="co">#&gt;  2:                  amount  1.288294e-02 0.017911433</span></span>
+<span><span class="co">#&gt;  3:          credit_history  1.218554e-02 0.015895416</span></span>
+<span><span class="co">#&gt;  4:                duration  1.598605e-02 0.019922101</span></span>
+<span><span class="co">#&gt;  5:     employment_duration  3.890717e-03 0.009580233</span></span>
+<span><span class="co">#&gt;  6:          foreign_worker -1.202700e-03 0.003576501</span></span>
+<span><span class="co">#&gt;  7:                 housing -8.016999e-04 0.009771957</span></span>
+<span><span class="co">#&gt;  8:        installment_rate  3.599408e-03 0.006323238</span></span>
+<span><span class="co">#&gt;  9:                     job -1.002799e-03 0.008086486</span></span>
+<span><span class="co">#&gt; 10:          number_credits -2.402103e-03 0.005482047</span></span>
+<span><span class="co">#&gt; 11:           other_debtors  5.898713e-03 0.005011316</span></span>
+<span><span class="co">#&gt; 12: other_installment_plans -9.095922e-04 0.010947167</span></span>
+<span><span class="co">#&gt; 13:           people_liable  5.994018e-07 0.005945255</span></span>
+<span><span class="co">#&gt; 14:     personal_status_sex -1.807496e-03 0.009310394</span></span>
+<span><span class="co">#&gt; 15:       present_residence  6.944070e-04 0.012069722</span></span>
+<span><span class="co">#&gt; 16:                property  1.291111e-03 0.012186182</span></span>
+<span><span class="co">#&gt; 17:                 purpose  2.486918e-03 0.014410343</span></span>
+<span><span class="co">#&gt; 18:                 savings  1.819694e-02 0.013125963</span></span>
+<span><span class="co">#&gt; 19:                  status  3.978829e-02 0.015578736</span></span>
+<span><span class="co">#&gt; 20:               telephone  1.293209e-03 0.008761937</span></span>
+<span><span class="co">#&gt;                     feature    importance          sd</span></span></code></pre></div>
 <p>Retrieve scores later in <code>pfi$importance</code>.</p>
 <p>When PFI is computed based on resampling with multiple iterations, and / or multiple permutation iterations, the individual scores can be retrieved as a <code>data.table</code>:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="va">scores</span></span>
-<span><span class="co">#&gt; Key: &lt;feature, iter_rsmp&gt;</span></span>
-<span><span class="co">#&gt;        feature iter_rsmp iter_perm classif.ce_orig classif.ce_perm   importance</span></span>
-<span><span class="co">#&gt;         &lt;char&gt;     &lt;int&gt;     &lt;int&gt;           &lt;num&gt;           &lt;num&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt;   1:       age         1         1       0.2095808       0.2305389  0.020958084</span></span>
-<span><span class="co">#&gt;   2:       age         1         2       0.2095808       0.2335329  0.023952096</span></span>
-<span><span class="co">#&gt;   3:       age         1         3       0.2095808       0.2275449  0.017964072</span></span>
-<span><span class="co">#&gt;   4:       age         1         4       0.2095808       0.2215569  0.011976048</span></span>
-<span><span class="co">#&gt;   5:       age         1         5       0.2095808       0.2155689  0.005988024</span></span>
-<span><span class="co">#&gt;  ---                                                                           </span></span>
-<span><span class="co">#&gt; 596: telephone         6         1       0.2612613       0.2432432 -0.018018018</span></span>
-<span><span class="co">#&gt; 597: telephone         6         2       0.2612613       0.2552553 -0.006006006</span></span>
-<span><span class="co">#&gt; 598: telephone         6         3       0.2612613       0.2612613  0.000000000</span></span>
-<span><span class="co">#&gt; 599: telephone         6         4       0.2612613       0.2522523 -0.009009009</span></span>
-<span><span class="co">#&gt; 600: telephone         6         5       0.2612613       0.2402402 -0.021021021</span></span></code></pre></div>
-<p>Where <code>iter_rsmp</code> corresponds to the resampling iteration, i.e., 3 * 2 = 6 for 2 repeats of 3-fold cross-validation, and <code>iter_perm</code> corresponds to the permutation iteration, 5 in this case. While <code>pfi$importance</code> contains the means across all iterations, <code>pfi$scores</code> allows you to manually aggregate them in any way you see fit.</p>
-<p>In the simplest case, you run PFI with a single resampling iteration (holdout) and a single permutation iteration, and <code>pfi$importance</code> will contain the same values as <code>pfi$scores</code>.</p>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">pfi</span><span class="op">$</span><span class="va">scores</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Classes 'data.table' and 'data.frame':   600 obs. of  6 variables:</span></span>
+<span><span class="co">#&gt;  $ feature        : chr  "age" "age" "age" "age" ...</span></span>
+<span><span class="co">#&gt;  $ iter_rsmp      : int  1 1 1 1 1 2 2 2 2 2 ...</span></span>
+<span><span class="co">#&gt;  $ iter_perm      : int  1 2 3 4 5 1 2 3 4 5 ...</span></span>
+<span><span class="co">#&gt;  $ classif.ce_orig: num  0.21 0.21 0.21 0.21 0.21 ...</span></span>
+<span><span class="co">#&gt;  $ classif.ce_perm: num  0.231 0.234 0.228 0.222 0.216 ...</span></span>
+<span><span class="co">#&gt;  $ importance     : num  0.02096 0.02395 0.01796 0.01198 0.00599 ...</span></span>
+<span><span class="co">#&gt;  - attr(*, ".internal.selfref")=&lt;externalptr&gt; </span></span>
+<span><span class="co">#&gt;  - attr(*, "sorted")= chr [1:2] "feature" "iter_rsmp"</span></span></code></pre></div>
+<p>Where <code>iter_rsmp</code> corresponds to the resampling iteration, i.e., 3 * 2 = 6 for 2 repeats of 3-fold cross-validation, and <code>iter_perm</code> corresponds to the permutation iteration within each resampling iteration, 5 in this case. While <code>pfi$importance</code> contains the means and standard deviations across all iterations, <code>pfi$scores</code> allows you to manually aggregate them in any way you see fit.</p>
+<p>In the simplest case, you run PFI with a single resampling iteration (holdout) and a single permutation iteration, and <code>pfi$importance</code> will contain the same importance values as <code>pfi$scores</code>.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi_single</span> <span class="op">=</span> <span class="va"><a href="reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task</span>,</span>
@@ -195,54 +187,16 @@
 <span><span class="co">#&gt; 19:                  status  0.054054054</span></span>
 <span><span class="co">#&gt; 20:               telephone -0.003003003</span></span>
 <span><span class="co">#&gt;                     feature   importance</span></span>
-<span><span class="va">pfi_single</span><span class="op">$</span><span class="va">scores</span></span>
-<span><span class="co">#&gt; Key: &lt;feature, iter_rsmp&gt;</span></span>
-<span><span class="co">#&gt;                     feature iter_rsmp iter_perm classif.ce_orig classif.ce_perm</span></span>
-<span><span class="co">#&gt;                      &lt;char&gt;     &lt;int&gt;     &lt;int&gt;           &lt;num&gt;           &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:                     age         1         1       0.2732733       0.2762763</span></span>
-<span><span class="co">#&gt;  2:                  amount         1         1       0.2732733       0.2852853</span></span>
-<span><span class="co">#&gt;  3:          credit_history         1         1       0.2732733       0.2972973</span></span>
-<span><span class="co">#&gt;  4:                duration         1         1       0.2732733       0.2852853</span></span>
-<span><span class="co">#&gt;  5:     employment_duration         1         1       0.2732733       0.2792793</span></span>
-<span><span class="co">#&gt;  6:          foreign_worker         1         1       0.2732733       0.2732733</span></span>
-<span><span class="co">#&gt;  7:                 housing         1         1       0.2732733       0.2792793</span></span>
-<span><span class="co">#&gt;  8:        installment_rate         1         1       0.2732733       0.2972973</span></span>
-<span><span class="co">#&gt;  9:                     job         1         1       0.2732733       0.2702703</span></span>
-<span><span class="co">#&gt; 10:          number_credits         1         1       0.2732733       0.2702703</span></span>
-<span><span class="co">#&gt; 11:           other_debtors         1         1       0.2732733       0.2852853</span></span>
-<span><span class="co">#&gt; 12: other_installment_plans         1         1       0.2732733       0.2792793</span></span>
-<span><span class="co">#&gt; 13:           people_liable         1         1       0.2732733       0.2822823</span></span>
-<span><span class="co">#&gt; 14:     personal_status_sex         1         1       0.2732733       0.2762763</span></span>
-<span><span class="co">#&gt; 15:       present_residence         1         1       0.2732733       0.2792793</span></span>
-<span><span class="co">#&gt; 16:                property         1         1       0.2732733       0.2762763</span></span>
-<span><span class="co">#&gt; 17:                 purpose         1         1       0.2732733       0.2882883</span></span>
-<span><span class="co">#&gt; 18:                 savings         1         1       0.2732733       0.2762763</span></span>
-<span><span class="co">#&gt; 19:                  status         1         1       0.2732733       0.3273273</span></span>
-<span><span class="co">#&gt; 20:               telephone         1         1       0.2732733       0.2702703</span></span>
-<span><span class="co">#&gt;                     feature iter_rsmp iter_perm classif.ce_orig classif.ce_perm</span></span>
-<span><span class="co">#&gt;       importance</span></span>
-<span><span class="co">#&gt;            &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:  0.003003003</span></span>
-<span><span class="co">#&gt;  2:  0.012012012</span></span>
-<span><span class="co">#&gt;  3:  0.024024024</span></span>
-<span><span class="co">#&gt;  4:  0.012012012</span></span>
-<span><span class="co">#&gt;  5:  0.006006006</span></span>
-<span><span class="co">#&gt;  6:  0.000000000</span></span>
-<span><span class="co">#&gt;  7:  0.006006006</span></span>
-<span><span class="co">#&gt;  8:  0.024024024</span></span>
-<span><span class="co">#&gt;  9: -0.003003003</span></span>
-<span><span class="co">#&gt; 10: -0.003003003</span></span>
-<span><span class="co">#&gt; 11:  0.012012012</span></span>
-<span><span class="co">#&gt; 12:  0.006006006</span></span>
-<span><span class="co">#&gt; 13:  0.009009009</span></span>
-<span><span class="co">#&gt; 14:  0.003003003</span></span>
-<span><span class="co">#&gt; 15:  0.006006006</span></span>
-<span><span class="co">#&gt; 16:  0.003003003</span></span>
-<span><span class="co">#&gt; 17:  0.015015015</span></span>
-<span><span class="co">#&gt; 18:  0.003003003</span></span>
-<span><span class="co">#&gt; 19:  0.054054054</span></span>
-<span><span class="co">#&gt; 20: -0.003003003</span></span>
-<span><span class="co">#&gt;       importance</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">pfi_single</span><span class="op">$</span><span class="va">scores</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Classes 'data.table' and 'data.frame':   20 obs. of  6 variables:</span></span>
+<span><span class="co">#&gt;  $ feature        : chr  "age" "amount" "credit_history" "duration" ...</span></span>
+<span><span class="co">#&gt;  $ iter_rsmp      : int  1 1 1 1 1 1 1 1 1 1 ...</span></span>
+<span><span class="co">#&gt;  $ iter_perm      : int  1 1 1 1 1 1 1 1 1 1 ...</span></span>
+<span><span class="co">#&gt;  $ classif.ce_orig: num  0.273 0.273 0.273 0.273 0.273 ...</span></span>
+<span><span class="co">#&gt;  $ classif.ce_perm: num  0.276 0.285 0.297 0.285 0.279 ...</span></span>
+<span><span class="co">#&gt;  $ importance     : num  0.003 0.01201 0.02402 0.01201 0.00601 ...</span></span>
+<span><span class="co">#&gt;  - attr(*, ".internal.selfref")=&lt;externalptr&gt; </span></span>
+<span><span class="co">#&gt;  - attr(*, "sorted")= chr [1:2] "feature" "iter_rsmp"</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
