@@ -21,10 +21,12 @@ import numpy as np
 import json
 import os
 import random
+import torch
 
 # Set seeds for reproducibility
 random.seed(123)
 np.random.seed(123)
+torch.manual_seed(0)
 
 def extract_fippy_results(ex_result, feature_names):
     """Extract results from fippy explanation objects"""
