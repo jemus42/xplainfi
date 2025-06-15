@@ -40,7 +40,16 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../articles/xplainfi.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="active nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-based Feature Importance Methods</a></li>
+    <li><a class="dropdown-item" href="../articles/loco-loci.html">LOCO and LOCI</a></li>
+    <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -116,8 +125,7 @@ for importance calculations</p>
 <div class="section level2">
 <h2 id="setup-and-execution">Setup and Execution<a class="anchor" aria-label="anchor" href="#setup-and-execution"></a>
 </h2>
-<p>The comparison uses separate calculation scripts to avoid environment
-conflicts:</p>
+<p>The comparison uses separate calculation scripts:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># 1. Calculate xplainfi results</span></span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="bu">cd</span> vignettes/articles/fippy-comparison</span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="ex">Rscript</span> calculate_xplainfi.R</span>
@@ -171,11 +179,11 @@ for comparison.</p>
 <tbody>
 <tr class="odd">
 <td align="left">xplainfi (R)</td>
-<td align="right">0.7231</td>
+<td align="right">0.7998</td>
 </tr>
 <tr class="even">
 <td align="left">fippy (Python)</td>
-<td align="right">0.8016</td>
+<td align="right">0.7840</td>
 </tr>
 </tbody>
 </table>
@@ -185,30 +193,25 @@ for comparison.</p>
 </h2>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">compare_method</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">method_name</span>, <span class="va">xplainfi_result</span>, <span class="va">fippy_result</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">xplainfi_result</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">fippy_result</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="co"># Both implementations available</span></span>
-<span>    <span class="va">method_dt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span></span>
-<span>      feature <span class="op">=</span> <span class="va">xplainfi_result</span><span class="op">$</span><span class="va">feature</span>,</span>
-<span>      xplainfi <span class="op">=</span> <span class="va">xplainfi_result</span><span class="op">$</span><span class="va">importance</span>,</span>
-<span>      fippy <span class="op">=</span> <span class="va">fippy_result</span><span class="op">$</span><span class="va">importance</span></span>
-<span>    <span class="op">)</span></span>
-<span>    </span>
-<span>    <span class="co"># Return table and correlation for display</span></span>
-<span>    <span class="va">correlation</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">method_dt</span><span class="op">$</span><span class="va">xplainfi</span>, <span class="va">method_dt</span><span class="op">$</span><span class="va">fippy</span><span class="op">)</span></span>
-<span>    </span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>      table <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">method_dt</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="va">xplainfi</span><span class="op">)</span><span class="op">]</span>, </span>
-<span>                   caption <span class="op">=</span> <span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"{method_name} Results Comparison"</span><span class="op">)</span>, </span>
-<span>                   digits <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>,</span>
-<span>      correlation <span class="op">=</span> <span class="va">correlation</span></span>
-<span>    <span class="op">)</span></span>
-<span>    </span>
-<span>  <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>      table <span class="op">=</span> <span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"{method_name} results not available (one or both implementations failed)"</span><span class="op">)</span>,</span>
-<span>      correlation <span class="op">=</span> <span class="cn">NULL</span></span>
-<span>    <span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
+<span>  <span class="co"># Both implementations available</span></span>
+<span>  <span class="va">method_dt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span></span>
+<span>    feature <span class="op">=</span> <span class="va">xplainfi_result</span><span class="op">$</span><span class="va">feature</span>,</span>
+<span>    xplainfi <span class="op">=</span> <span class="va">xplainfi_result</span><span class="op">$</span><span class="va">importance</span>,</span>
+<span>    fippy <span class="op">=</span> <span class="va">fippy_result</span><span class="op">$</span><span class="va">importance</span></span>
+<span>  <span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="co"># Return table and correlation for display</span></span>
+<span>  <span class="va">correlation</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">method_dt</span><span class="op">$</span><span class="va">xplainfi</span>, <span class="va">method_dt</span><span class="op">$</span><span class="va">fippy</span><span class="op">)</span></span>
+<span>  <span class="va">correlation_spearman</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">method_dt</span><span class="op">$</span><span class="va">xplainfi</span>, <span class="va">method_dt</span><span class="op">$</span><span class="va">fippy</span>, method <span class="op">=</span> <span class="st">"spearman"</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    method <span class="op">=</span> <span class="va">method_name</span>, </span>
+<span>    table <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">method_dt</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="va">xplainfi</span><span class="op">)</span><span class="op">]</span>, </span>
+<span>                  caption <span class="op">=</span> <span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"{method_name} Results Comparison"</span><span class="op">)</span>, </span>
+<span>                  digits <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>,</span>
+<span>    correlation <span class="op">=</span> <span class="va">correlation</span>,</span>
+<span>    correlation_spearman <span class="op">=</span> <span class="va">correlation_spearman</span></span>
+<span>  <span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="pfi-permutation-feature-importance">PFI (Permutation Feature Importance)<a class="anchor" aria-label="anchor" href="#pfi-permutation-feature-importance"></a>
@@ -226,68 +229,70 @@ for comparison.</p>
 <tbody>
 <tr class="odd">
 <td align="left">important4</td>
-<td align="right">7.8986</td>
-<td align="right">18.7278</td>
+<td align="right">13.1946</td>
+<td align="right">13.6282</td>
 </tr>
 <tr class="even">
 <td align="left">important2</td>
-<td align="right">7.1842</td>
-<td align="right">14.2209</td>
+<td align="right">8.0929</td>
+<td align="right">7.4817</td>
 </tr>
 <tr class="odd">
 <td align="left">important1</td>
-<td align="right">4.4819</td>
-<td align="right">4.3796</td>
+<td align="right">7.2574</td>
+<td align="right">11.8194</td>
 </tr>
 <tr class="even">
 <td align="left">important5</td>
-<td align="right">2.4219</td>
-<td align="right">4.3160</td>
+<td align="right">2.2180</td>
+<td align="right">2.6153</td>
 </tr>
 <tr class="odd">
 <td align="left">important3</td>
-<td align="right">0.6774</td>
-<td align="right">0.9123</td>
+<td align="right">1.8597</td>
+<td align="right">0.4184</td>
 </tr>
 <tr class="even">
 <td align="left">unimportant4</td>
-<td align="right">0.2334</td>
-<td align="right">-0.1919</td>
-</tr>
-<tr class="odd">
-<td align="left">unimportant5</td>
-<td align="right">0.1275</td>
-<td align="right">0.0268</td>
-</tr>
-<tr class="even">
-<td align="left">unimportant2</td>
-<td align="right">0.1203</td>
-<td align="right">-0.0088</td>
+<td align="right">0.1043</td>
+<td align="right">0.0688</td>
 </tr>
 <tr class="odd">
 <td align="left">unimportant1</td>
-<td align="right">0.1055</td>
-<td align="right">0.0079</td>
+<td align="right">0.0271</td>
+<td align="right">0.0150</td>
 </tr>
 <tr class="even">
 <td align="left">unimportant3</td>
-<td align="right">-0.2125</td>
-<td align="right">0.0927</td>
+<td align="right">-0.0104</td>
+<td align="right">0.0495</td>
+</tr>
+<tr class="odd">
+<td align="left">unimportant2</td>
+<td align="right">-0.0257</td>
+<td align="right">0.0175</td>
+</tr>
+<tr class="even">
+<td align="left">unimportant5</td>
+<td align="right">-0.0277</td>
+<td align="right">0.0307</td>
 </tr>
 </tbody>
 </table>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">pfi_result</span><span class="op">$</span><span class="va">correlation</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"PFI Correlation: {round(pfi_result$correlation, 3)}"</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<pre><code><span><span class="co">## PFI Correlation: 0.964</span></span></code></pre>
+<code class="sourceCode R"><span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"PFI Correlation: {round(pfi_result$correlation, 3)}"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## PFI Correlation: 0.96</span></span></code></pre>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pfi_correlation</span> <span class="op">&lt;-</span> <span class="va">pfi_result</span><span class="op">$</span><span class="va">correlation</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">pfi_result</span><span class="op">$</span><span class="va">correlation</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 0.9600275</span></span></code></pre>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pfi_result</span><span class="op">$</span><span class="va">correlation_spearman</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 0.9030303</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="cfi-conditional-feature-importance">CFI (Conditional Feature Importance)<a class="anchor" aria-label="anchor" href="#cfi-conditional-feature-importance"></a>
 </h3>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cfi_result</span> <span class="op">&lt;-</span> <span class="fu">compare_method</span><span class="op">(</span><span class="st">"CFI"</span>, <span class="va">xplainfi_results</span><span class="op">$</span><span class="va">CFI</span>, <span class="va">fippy_results</span><span class="op">$</span><span class="va">CFI</span><span class="op">)</span></span>
 <span><span class="va">cfi_result</span><span class="op">$</span><span class="va">table</span></span></code></pre></div>
 <table class="table">
@@ -300,68 +305,70 @@ for comparison.</p>
 <tbody>
 <tr class="odd">
 <td align="left">important4</td>
-<td align="right">4.0180</td>
-<td align="right">12.7100</td>
+<td align="right">12.6299</td>
+<td align="right">16.1744</td>
 </tr>
 <tr class="even">
-<td align="left">important1</td>
-<td align="right">2.2344</td>
-<td align="right">7.1131</td>
-</tr>
-<tr class="odd">
-<td align="left">important5</td>
-<td align="right">1.3381</td>
-<td align="right">3.8643</td>
-</tr>
-<tr class="even">
-<td align="left">important3</td>
-<td align="right">0.9479</td>
-<td align="right">1.2683</td>
-</tr>
-<tr class="odd">
 <td align="left">important2</td>
-<td align="right">0.8090</td>
-<td align="right">9.9290</td>
+<td align="right">8.3973</td>
+<td align="right">5.7260</td>
+</tr>
+<tr class="odd">
+<td align="left">important1</td>
+<td align="right">7.1543</td>
+<td align="right">7.3363</td>
+</tr>
+<tr class="even">
+<td align="left">important5</td>
+<td align="right">2.2496</td>
+<td align="right">3.1382</td>
+</tr>
+<tr class="odd">
+<td align="left">important3</td>
+<td align="right">1.7764</td>
+<td align="right">0.6409</td>
 </tr>
 <tr class="even">
 <td align="left">unimportant4</td>
-<td align="right">0.3585</td>
-<td align="right">-0.0687</td>
+<td align="right">0.1018</td>
+<td align="right">0.1083</td>
 </tr>
 <tr class="odd">
-<td align="left">unimportant3</td>
-<td align="right">0.2023</td>
-<td align="right">-0.2150</td>
-</tr>
-<tr class="even">
-<td align="left">unimportant2</td>
-<td align="right">0.1291</td>
-<td align="right">0.0566</td>
-</tr>
-<tr class="odd">
-<td align="left">unimportant5</td>
-<td align="right">0.0916</td>
-<td align="right">-0.1252</td>
-</tr>
-<tr class="even">
 <td align="left">unimportant1</td>
-<td align="right">-0.0336</td>
-<td align="right">0.1696</td>
+<td align="right">0.0278</td>
+<td align="right">0.0655</td>
+</tr>
+<tr class="even">
+<td align="left">unimportant3</td>
+<td align="right">0.0266</td>
+<td align="right">0.0208</td>
+</tr>
+<tr class="odd">
+<td align="left">unimportant2</td>
+<td align="right">0.0100</td>
+<td align="right">0.0837</td>
+</tr>
+<tr class="even">
+<td align="left">unimportant5</td>
+<td align="right">-0.0047</td>
+<td align="right">-0.0996</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">cfi_result</span><span class="op">$</span><span class="va">correlation</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"CFI Correlation: {round(cfi_result$correlation, 3)}"</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<pre><code><span><span class="co">## CFI Correlation: 0.845</span></span></code></pre>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cfi_correlation</span> <span class="op">&lt;-</span> <span class="va">cfi_result</span><span class="op">$</span><span class="va">correlation</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"CFI Correlation: {round(cfi_result$correlation, 3)}"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## CFI Correlation: 0.96</span></span></code></pre>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cfi_result</span><span class="op">$</span><span class="va">correlation</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 0.9601796</span></span></code></pre>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cfi_result</span><span class="op">$</span><span class="va">correlation_spearman</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 0.9515152</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="rfi-relative-feature-importance">RFI (Relative Feature Importance)<a class="anchor" aria-label="anchor" href="#rfi-relative-feature-importance"></a>
 </h3>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rfi_result</span> <span class="op">&lt;-</span> <span class="fu">compare_method</span><span class="op">(</span><span class="st">"RFI"</span>, <span class="va">xplainfi_results</span><span class="op">$</span><span class="va">RFI</span>, <span class="va">fippy_results</span><span class="op">$</span><span class="va">RFI</span><span class="op">)</span></span>
 <span><span class="va">rfi_result</span><span class="op">$</span><span class="va">table</span></span></code></pre></div>
 <table class="table">
@@ -374,80 +381,71 @@ for comparison.</p>
 <tbody>
 <tr class="odd">
 <td align="left">important4</td>
-<td align="right">7.7490</td>
-<td align="right">9.8497</td>
+<td align="right">12.6370</td>
+<td align="right">6.7530</td>
 </tr>
 <tr class="even">
 <td align="left">important5</td>
-<td align="right">2.2360</td>
-<td align="right">4.1865</td>
+<td align="right">2.4073</td>
+<td align="right">4.4817</td>
 </tr>
 <tr class="odd">
 <td align="left">important3</td>
-<td align="right">1.1585</td>
-<td align="right">1.5855</td>
+<td align="right">1.7434</td>
+<td align="right">0.8366</td>
 </tr>
 <tr class="even">
-<td align="left">unimportant5</td>
-<td align="right">0.1035</td>
-<td align="right">-0.0238</td>
+<td align="left">unimportant4</td>
+<td align="right">0.0753</td>
+<td align="right">-0.2422</td>
+</tr>
+<tr class="odd">
+<td align="left">unimportant3</td>
+<td align="right">0.0432</td>
+<td align="right">-0.0883</td>
+</tr>
+<tr class="even">
+<td align="left">unimportant2</td>
+<td align="right">0.0409</td>
+<td align="right">-0.1742</td>
 </tr>
 <tr class="odd">
 <td align="left">unimportant1</td>
-<td align="right">0.0954</td>
-<td align="right">0.2955</td>
+<td align="right">0.0328</td>
+<td align="right">0.2106</td>
 </tr>
 <tr class="even">
 <td align="left">important1</td>
 <td align="right">0.0000</td>
-<td align="right">-1.9053</td>
+<td align="right">0.2241</td>
 </tr>
 <tr class="odd">
 <td align="left">important2</td>
 <td align="right">0.0000</td>
-<td align="right">5.1183</td>
+<td align="right">-0.1252</td>
 </tr>
 <tr class="even">
-<td align="left">unimportant2</td>
-<td align="right">-0.0246</td>
-<td align="right">0.0357</td>
-</tr>
-<tr class="odd">
-<td align="left">unimportant4</td>
-<td align="right">-0.0918</td>
-<td align="right">-0.0454</td>
-</tr>
-<tr class="even">
-<td align="left">unimportant3</td>
-<td align="right">-0.1374</td>
-<td align="right">-0.2218</td>
+<td align="left">unimportant5</td>
+<td align="right">-0.0632</td>
+<td align="right">-0.0769</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">rfi_result</span><span class="op">$</span><span class="va">correlation</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"RFI Correlation: {round(rfi_result$correlation, 3)}"</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<pre><code><span><span class="co">## RFI Correlation: 0.858</span></span></code></pre>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rfi_correlation</span> <span class="op">&lt;-</span> <span class="va">rfi_result</span><span class="op">$</span><span class="va">correlation</span></span>
-<span></span>
-<span><span class="co"># Show conditioning sets using inline R</span></span>
-<span><span class="va">conditioning_info</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">xplainfi_results</span><span class="op">$</span><span class="va">RFI</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">xplainfi_results</span><span class="op">$</span><span class="va">RFI</span><span class="op">$</span><span class="va">conditioning_set</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">conditioning_info</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">conditioning_info</span>, </span>
-<span>    <span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"xplainfi conditioning set: {paste(xplainfi_results$RFI$conditioning_set, collapse = ', ')}"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">fippy_results</span><span class="op">$</span><span class="va">RFI</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">fippy_results</span><span class="op">$</span><span class="va">RFI</span><span class="op">$</span><span class="va">conditioning_set</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">conditioning_info</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">conditioning_info</span>, </span>
-<span>    <span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"fippy conditioning set: {paste(fippy_results$RFI$conditioning_set, collapse = ', ')}"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">conditioning_info</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">conditioning_info</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] "xplainfi conditioning set: important1, important2"</span></span>
-<span><span class="co">## [2] "fippy conditioning set: important1, important2"</span></span></code></pre>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"RFI Correlation: {round(rfi_result$correlation, 3)}"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## RFI Correlation: 0.904</span></span></code></pre>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rfi_result</span><span class="op">$</span><span class="va">correlation</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 0.9039289</span></span></code></pre>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rfi_result</span><span class="op">$</span><span class="va">correlation_spearman</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 0.4559292</span></span></code></pre>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"xplainfi conditioning set: {paste(xplainfi_results$RFI$conditioning_set, collapse = ', ')}"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## xplainfi conditioning set: important1, important2</span></span></code></pre>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"fippy conditioning set: {paste(fippy_results$RFI$conditioning_set, collapse = ', ')}"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## fippy conditioning set: important1, important2</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="sage-methods">SAGE Methods<a class="anchor" aria-label="anchor" href="#sage-methods"></a>
@@ -455,7 +453,7 @@ for comparison.</p>
 <div class="section level4">
 <h4 id="marginal-sage">Marginal SAGE<a class="anchor" aria-label="anchor" href="#marginal-sage"></a>
 </h4>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sage_marginal_result</span> <span class="op">&lt;-</span> <span class="fu">compare_method</span><span class="op">(</span><span class="st">"Marginal SAGE"</span>, <span class="va">xplainfi_results</span><span class="op">$</span><span class="va">SAGE_Marginal</span>, <span class="va">fippy_results</span><span class="op">$</span><span class="va">SAGE_Marginal</span><span class="op">)</span></span>
 <span><span class="va">sage_marginal_result</span><span class="op">$</span><span class="va">table</span></span></code></pre></div>
 <table class="table">
@@ -468,68 +466,70 @@ for comparison.</p>
 <tbody>
 <tr class="odd">
 <td align="left">important4</td>
-<td align="right">5.4647</td>
-<td align="right">7.4808</td>
+<td align="right">7.6519</td>
+<td align="right">5.7581</td>
 </tr>
 <tr class="even">
 <td align="left">important2</td>
-<td align="right">4.9823</td>
-<td align="right">7.1869</td>
+<td align="right">3.9467</td>
+<td align="right">5.3063</td>
 </tr>
 <tr class="odd">
 <td align="left">important1</td>
-<td align="right">3.0845</td>
-<td align="right">3.5076</td>
+<td align="right">3.5608</td>
+<td align="right">3.3791</td>
 </tr>
 <tr class="even">
 <td align="left">important5</td>
-<td align="right">1.8675</td>
-<td align="right">3.6745</td>
+<td align="right">1.7490</td>
+<td align="right">3.0392</td>
 </tr>
 <tr class="odd">
 <td align="left">important3</td>
-<td align="right">1.1523</td>
-<td align="right">1.2539</td>
+<td align="right">0.9704</td>
+<td align="right">0.1057</td>
 </tr>
 <tr class="even">
-<td align="left">unimportant2</td>
-<td align="right">0.1345</td>
-<td align="right">-0.0396</td>
+<td align="left">unimportant4</td>
+<td align="right">0.0772</td>
+<td align="right">0.0360</td>
 </tr>
 <tr class="odd">
-<td align="left">unimportant5</td>
-<td align="right">0.1245</td>
-<td align="right">0.1377</td>
+<td align="left">unimportant3</td>
+<td align="right">0.0184</td>
+<td align="right">-0.0933</td>
 </tr>
 <tr class="even">
 <td align="left">unimportant1</td>
-<td align="right">0.0291</td>
-<td align="right">0.1450</td>
+<td align="right">0.0032</td>
+<td align="right">-0.0463</td>
 </tr>
 <tr class="odd">
-<td align="left">unimportant4</td>
-<td align="right">0.0018</td>
-<td align="right">-0.4163</td>
+<td align="left">unimportant5</td>
+<td align="right">-0.0102</td>
+<td align="right">0.0436</td>
 </tr>
 <tr class="even">
-<td align="left">unimportant3</td>
-<td align="right">-0.2071</td>
-<td align="right">0.0548</td>
+<td align="left">unimportant2</td>
+<td align="right">-0.0335</td>
+<td align="right">-0.1836</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">sage_marginal_result</span><span class="op">$</span><span class="va">correlation</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"Marginal SAGE Correlation: {round(sage_marginal_result$correlation, 3)}"</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<pre><code><span><span class="co">## Marginal SAGE Correlation: 0.986</span></span></code></pre>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sage_marginal_correlation</span> <span class="op">&lt;-</span> <span class="va">sage_marginal_result</span><span class="op">$</span><span class="va">correlation</span></span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"Marginal SAGE Correlation: {round(sage_marginal_result$correlation, 3)}"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Marginal SAGE Correlation: 0.93</span></span></code></pre>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sage_marginal_result</span><span class="op">$</span><span class="va">correlation</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 0.9303942</span></span></code></pre>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sage_marginal_result</span><span class="op">$</span><span class="va">correlation_spearman</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 0.9151515</span></span></code></pre>
 </div>
 <div class="section level4">
 <h4 id="conditional-sage">Conditional SAGE<a class="anchor" aria-label="anchor" href="#conditional-sage"></a>
 </h4>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sage_conditional_result</span> <span class="op">&lt;-</span> <span class="fu">compare_method</span><span class="op">(</span><span class="st">"Conditional SAGE"</span>, <span class="va">xplainfi_results</span><span class="op">$</span><span class="va">SAGE_Conditional</span>, <span class="va">fippy_results</span><span class="op">$</span><span class="va">SAGE_Conditional</span><span class="op">)</span></span>
 <span><span class="va">sage_conditional_result</span><span class="op">$</span><span class="va">table</span></span></code></pre></div>
 <table class="table">
@@ -542,112 +542,137 @@ for comparison.</p>
 <tbody>
 <tr class="odd">
 <td align="left">important4</td>
-<td align="right">6.6128</td>
-<td align="right">8.0353</td>
+<td align="right">7.6295</td>
+<td align="right">5.4665</td>
 </tr>
 <tr class="even">
-<td align="left">important1</td>
-<td align="right">3.7985</td>
-<td align="right">3.3825</td>
+<td align="left">important2</td>
+<td align="right">3.9900</td>
+<td align="right">5.0936</td>
 </tr>
 <tr class="odd">
-<td align="left">important2</td>
-<td align="right">3.2657</td>
-<td align="right">7.1064</td>
+<td align="left">important1</td>
+<td align="right">3.5997</td>
+<td align="right">4.1092</td>
 </tr>
 <tr class="even">
 <td align="left">important5</td>
-<td align="right">1.9510</td>
-<td align="right">3.4691</td>
+<td align="right">1.7436</td>
+<td align="right">2.6238</td>
 </tr>
 <tr class="odd">
 <td align="left">important3</td>
-<td align="right">0.5880</td>
-<td align="right">1.3770</td>
+<td align="right">0.9507</td>
+<td align="right">-0.3395</td>
 </tr>
 <tr class="even">
-<td align="left">unimportant5</td>
-<td align="right">0.0548</td>
-<td align="right">-0.1096</td>
-</tr>
-<tr class="odd">
-<td align="left">unimportant1</td>
-<td align="right">0.0318</td>
-<td align="right">0.7348</td>
-</tr>
-<tr class="even">
-<td align="left">unimportant3</td>
-<td align="right">-0.1396</td>
-<td align="right">0.5029</td>
-</tr>
-<tr class="odd">
 <td align="left">unimportant4</td>
-<td align="right">-0.2281</td>
-<td align="right">-0.8512</td>
+<td align="right">0.0794</td>
+<td align="right">-0.4944</td>
+</tr>
+<tr class="odd">
+<td align="left">unimportant3</td>
+<td align="right">0.0110</td>
+<td align="right">-0.2853</td>
+</tr>
+<tr class="even">
+<td align="left">unimportant1</td>
+<td align="right">-0.0034</td>
+<td align="right">-0.2933</td>
+</tr>
+<tr class="odd">
+<td align="left">unimportant5</td>
+<td align="right">-0.0051</td>
+<td align="right">0.3990</td>
 </tr>
 <tr class="even">
 <td align="left">unimportant2</td>
-<td align="right">-0.4003</td>
-<td align="right">0.0043</td>
+<td align="right">-0.0417</td>
+<td align="right">0.1692</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">sage_conditional_result</span><span class="op">$</span><span class="va">correlation</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"Conditional SAGE Correlation: {round(sage_conditional_result$correlation, 3)}"</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<pre><code><span><span class="co">## Conditional SAGE Correlation: 0.926</span></span></code></pre>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sage_conditional_correlation</span> <span class="op">&lt;-</span> <span class="va">sage_conditional_result</span><span class="op">$</span><span class="va">correlation</span></span></code></pre></div>
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"Conditional SAGE Correlation: {round(sage_conditional_result$correlation, 3)}"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Conditional SAGE Correlation: 0.92</span></span></code></pre>
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sage_conditional_result</span><span class="op">$</span><span class="va">correlation</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 0.9201239</span></span></code></pre>
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sage_conditional_result</span><span class="op">$</span><span class="va">correlation_spearman</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 0.6121212</span></span></code></pre>
 </div>
 </div>
 </div>
 <div class="section level2">
 <h2 id="correlation-summary">Correlation Summary<a class="anchor" aria-label="anchor" href="#correlation-summary"></a>
 </h2>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">correlations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span></span>
-<span>  Method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  Correlation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">correlations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/rbindlist.html" class="external-link">rbindlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  <span class="va">pfi_result</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"method"</span>, <span class="st">"correlation"</span>, <span class="st">"correlation_spearman"</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>  <span class="va">cfi_result</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"method"</span>, <span class="st">"correlation"</span>, <span class="st">"correlation_spearman"</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>  <span class="va">rfi_result</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"method"</span>, <span class="st">"correlation"</span>, <span class="st">"correlation_spearman"</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>  <span class="va">sage_marginal_result</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"method"</span>, <span class="st">"correlation"</span>, <span class="st">"correlation_spearman"</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>  <span class="va">sage_conditional_result</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"method"</span>, <span class="st">"correlation"</span>, <span class="st">"correlation_spearman"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">correlation_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  <span class="st">"PFI"</span> <span class="op">=</span> <span class="va">pfi_correlation</span>,</span>
-<span>  <span class="st">"CFI"</span> <span class="op">=</span> <span class="va">cfi_correlation</span>, </span>
-<span>  <span class="st">"RFI"</span> <span class="op">=</span> <span class="va">rfi_correlation</span>,</span>
-<span>  <span class="st">"Marginal SAGE"</span> <span class="op">=</span> <span class="va">sage_marginal_correlation</span>,</span>
-<span>  <span class="st">"Conditional SAGE"</span> <span class="op">=</span> <span class="va">sage_conditional_correlation</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="kw">for</span> <span class="op">(</span><span class="va">method</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">correlation_list</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">correlation_list</span><span class="op">[[</span><span class="va">method</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">correlations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">correlations</span>, </span>
-<span>                         <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>Method <span class="op">=</span> <span class="va">method</span>, Correlation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">correlation_list</span><span class="op">[[</span><span class="va">method</span><span class="op">]</span><span class="op">]</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">correlations</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">correlations</span>, caption <span class="op">=</span> <span class="st">"Pearson Correlations between xplainfi and fippy"</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="co"># Visualization</span></span>
-<span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">correlations</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">p_corr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">correlations</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">Method</span>, <span class="va">Correlation</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">Correlation</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"steelblue"</span>, alpha <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
-<span>      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">1</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span>, color <span class="op">=</span> <span class="st">"red"</span>, alpha <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
-<span>      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_flip.html" class="external-link">coord_flip</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>        title <span class="op">=</span> <span class="st">"Implementation Correlations"</span>,</span>
-<span>        subtitle <span class="op">=</span> <span class="st">"xplainfi (R) vs fippy (Python)"</span>,</span>
-<span>        x <span class="op">=</span> <span class="st">"Method"</span>,</span>
-<span>        y <span class="op">=</span> <span class="st">"Pearson Correlation"</span>,</span>
-<span>        caption <span class="op">=</span> <span class="st">"Dashed line at r = 1"</span></span>
-<span>      <span class="op">)</span> <span class="op">+</span></span>
-<span>      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span>
-<span>    </span>
-<span>    <span class="va">p_corr</span></span>
-<span>  <span class="op">}</span></span>
-<span><span class="op">}</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
+<span>  <span class="va">correlations</span>, </span>
+<span>  caption <span class="op">=</span> <span class="st">"Pearson and Spearman Correlations between xplainfi and fippy"</span>, </span>
+<span>  col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Method"</span>, <span class="st">"Pearson Corr."</span>, <span class="st">"Spearman Corr."</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Pearson and Spearman Correlations between xplainfi and
+fippy</caption>
+<thead><tr class="header">
+<th align="left">Method</th>
+<th align="right">Pearson Corr.</th>
+<th align="right">Spearman Corr.</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">PFI</td>
+<td align="right">0.9600275</td>
+<td align="right">0.9030303</td>
+</tr>
+<tr class="even">
+<td align="left">CFI</td>
+<td align="right">0.9601796</td>
+<td align="right">0.9515152</td>
+</tr>
+<tr class="odd">
+<td align="left">RFI</td>
+<td align="right">0.9039289</td>
+<td align="right">0.4559292</td>
+</tr>
+<tr class="even">
+<td align="left">Marginal SAGE</td>
+<td align="right">0.9303942</td>
+<td align="right">0.9151515</td>
+</tr>
+<tr class="odd">
+<td align="left">Conditional SAGE</td>
+<td align="right">0.9201239</td>
+<td align="right">0.6121212</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/melt.data.table.html" class="external-link">melt</a></span><span class="op">(</span><span class="va">correlations</span>, id.vars <span class="op">=</span> <span class="st">"method"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">method</span>, <span class="va">value</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">variable</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"steelblue"</span>, alpha <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">1</span><span class="op">)</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span>, color <span class="op">=</span> <span class="st">"red"</span>, alpha <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_flip.html" class="external-link">coord_flip</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
+<span>      title <span class="op">=</span> <span class="st">"Implementation Correlations"</span>,</span>
+<span>      subtitle <span class="op">=</span> <span class="st">"xplainfi (R) vs fippy (Python)"</span>,</span>
+<span>      x <span class="op">=</span> <span class="st">"Method"</span>,</span>
+<span>      y <span class="op">=</span> <span class="st">"Pearson Correlation"</span>,</span>
+<span>      caption <span class="op">=</span> <span class="st">"Dashed line at r = 1"</span></span>
+<span>    <span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p><img src="fippy-comparison_files/figure-html/correlation-summary-1.png" width="700"></p>
 </div>
 <div class="section level2">
@@ -659,12 +684,12 @@ for comparison.</p>
 <p>This comparison uses uv’s script dependency feature for portable
 execution. The Python script automatically installs fippy from GitHub
 with a fix for RFI calculations:</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a><span class="co"># /// script</span></span>
-<span id="cb28-2"><a href="#cb28-2" tabindex="-1"></a><span class="co"># requires-python = "&gt;=3.8"  </span></span>
-<span id="cb28-3"><a href="#cb28-3" tabindex="-1"></a><span class="co"># dependencies = [</span></span>
-<span id="cb28-4"><a href="#cb28-4" tabindex="-1"></a><span class="co">#     "fippy @ git+https://github.com/jemus42/fippy.git@fix-rfi-to-numpy-bug",</span></span>
-<span id="cb28-5"><a href="#cb28-5" tabindex="-1"></a><span class="co"># ]</span></span>
-<span id="cb28-6"><a href="#cb28-6" tabindex="-1"></a><span class="co"># ///</span></span></code></pre></div>
+<div class="sourceCode" id="cb47"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" tabindex="-1"></a><span class="co"># /// script</span></span>
+<span id="cb47-2"><a href="#cb47-2" tabindex="-1"></a><span class="co"># requires-python = "&gt;=3.8"  </span></span>
+<span id="cb47-3"><a href="#cb47-3" tabindex="-1"></a><span class="co"># dependencies = [</span></span>
+<span id="cb47-4"><a href="#cb47-4" tabindex="-1"></a><span class="co">#     "fippy @ git+https://github.com/jemus42/fippy.git@fix-rfi-to-numpy-bug",</span></span>
+<span id="cb47-5"><a href="#cb47-5" tabindex="-1"></a><span class="co"># ]</span></span>
+<span id="cb47-6"><a href="#cb47-6" tabindex="-1"></a><span class="co"># ///</span></span></code></pre></div>
 <p>The fix addresses an
 <code>AttributeError: 'float' object has no attribute 'to_numpy'</code>
 that occurred when loss functions returned scalar values. No manual
