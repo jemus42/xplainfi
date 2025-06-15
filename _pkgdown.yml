@@ -4,7 +4,15 @@ authors:
   Lukas Burk:
     href: https://lukasburk.de
 
+home:
+  title: xplainfi: Feature importance methods
+  description: >
+    Common feature importance methods implemented in R and built around the mlr3 ecosystem.
+
 template:
+  includes:
+    in_header: |
+      <script defer src="https://umami.jemu.name/script.js" data-website-id="248c8668-4908-4c63-86f7-db0a1b19758a"></script>
   bootstrap: 5
   math-rendering: mathjax
   light-switch: true
