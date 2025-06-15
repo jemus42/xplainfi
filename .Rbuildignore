@@ -17,3 +17,5 @@
 ^Makefile$
 ^codecov\.yml$
 ^vignettes/articles$
+^coverage\.html$
+^lib$

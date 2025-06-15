@@ -49,3 +49,5 @@ inst/doc
 /Meta/
 docs
 **.venv
+coverage.html
+lib

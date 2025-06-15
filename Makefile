@@ -37,6 +37,9 @@ check:
 test:
 	Rscript -e "devtools::test()"
 
+coverage:
+	Rscript -e "covr::report(covr::package_coverage(\".\"), file = \"coverage.html\")"
+
 .PHONY: check-remote
 check-remote:
 	Rscript -e "devtools::check(remote = TRUE)"
@@ -60,3 +63,5 @@ README.md: README.Rmd
 clean:
 	rm vignettes/*html
 	rm -r docs
+	rm -rf lib
+	rm coverage.html
