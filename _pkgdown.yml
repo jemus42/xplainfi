@@ -53,11 +53,12 @@ reference:
     - starts_with("op-")
 
 articles:
-- title: Main verbs
-  contents:
-  - perturbation-importance
-  - loco-loci
-  - sage-methods
-- title: Testing and Validation
-  contents:
-  - contains("fippy")
+  - title: Feature Importance Methods
+    navbar: ~
+    contents:
+    - perturbation-importance
+    - loco-loci
+    - sage-methods
+  - title: Testing and Validation
+    contents:
+    - contains("fippy")
