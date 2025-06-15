@@ -6,7 +6,13 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Getting Started with xplainfi • xplainfi</title>
-<script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- mathjax math --><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script><script>
+  window.MathJax = {
+    chtml: {
+      fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
+    }
+  };
+</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet">
 <link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet">
@@ -23,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,14 +40,7 @@
       <ul class="navbar-nav me-auto">
 <li class="active nav-item"><a class="nav-link" href="../articles/xplainfi.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/loco-loci.html">LOCO and LOCI</a></li>
-    <li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-based Feature Importance Methods</a></li>
-    <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
-  </ul>
-</li>
+<li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -127,8 +126,9 @@ demonstrating feature importance methods with known ground truth:</p>
 target, while <code>unimportant1</code> through
 <code>unimportant5</code> are pure noise. We’ll use a random forest
 learner with cross-validation for more stable estimates.</p>
-<p>The target function is:
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>=</mo><mn>10</mn><mo>*</mo><mo>sin</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>π</mi><mo>*</mo><msub><mi>x</mi><mn>1</mn></msub><mo>*</mo><msub><mi>x</mi><mn>2</mn></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mn>20</mn><mo>*</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>x</mi><mn>3</mn></msub><mo>−</mo><mn>0.5</mn><mo stretchy="true" form="postfix">)</mo></mrow><mn>2</mn></msup><mo>+</mo><mn>10</mn><mo>*</mo><msub><mi>x</mi><mn>4</mn></msub><mo>+</mo><mn>5</mn><mo>*</mo><msub><mi>x</mi><mn>5</mn></msub><mo>+</mo><mi>ϵ</mi></mrow><annotation encoding="application/x-tex">y = 10 * \operatorname{sin}(\pi * x_1 * x_2) + 20 * (x_3 - 0.5)^2 + 10 * x_4 + 5 * x_5 + \epsilon</annotation></semantics></math></p>
+<p>The target function is: <span class="math inline">\(y = 10 *
+\operatorname{sin}(\pi * x_1 * x_2) + 20 * (x_3 - 0.5)^2 + 10 * x_4 + 5
+* x_5 + \epsilon\)</span></p>
 </div>
 <div class="section level2">
 <h2 id="permutation-feature-importance-pfi">Permutation Feature Importance (PFI)<a class="anchor" aria-label="anchor" href="#permutation-feature-importance-pfi"></a>
@@ -148,18 +148,18 @@ when shuffled.</p>
 <span><span class="va">pfi_results</span> <span class="op">&lt;-</span> <span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">pfi_results</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature   importance</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  4.858724892</span></span>
-<span><span class="co">#&gt;  2:   important2  8.155693005</span></span>
-<span><span class="co">#&gt;  3:   important3  1.109254345</span></span>
-<span><span class="co">#&gt;  4:   important4 10.784727349</span></span>
-<span><span class="co">#&gt;  5:   important5  2.395793708</span></span>
-<span><span class="co">#&gt;  6: unimportant1  0.009618005</span></span>
-<span><span class="co">#&gt;  7: unimportant2  0.080903445</span></span>
-<span><span class="co">#&gt;  8: unimportant3  0.044057887</span></span>
-<span><span class="co">#&gt;  9: unimportant4 -0.082032243</span></span>
-<span><span class="co">#&gt; 10: unimportant5 -0.137666350</span></span></code></pre></div>
+<span><span class="co">#&gt;          feature   importance         sd</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;        &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:   important1  4.858724892 0.68442453</span></span>
+<span><span class="co">#&gt;  2:   important2  8.155693005 2.26484810</span></span>
+<span><span class="co">#&gt;  3:   important3  1.109254345 0.69151561</span></span>
+<span><span class="co">#&gt;  4:   important4 10.784727349 1.29361802</span></span>
+<span><span class="co">#&gt;  5:   important5  2.395793708 0.87273890</span></span>
+<span><span class="co">#&gt;  6: unimportant1  0.009618005 0.11138825</span></span>
+<span><span class="co">#&gt;  7: unimportant2  0.080903445 0.08050202</span></span>
+<span><span class="co">#&gt;  8: unimportant3  0.044057887 0.04528352</span></span>
+<span><span class="co">#&gt;  9: unimportant4 -0.082032243 0.10855146</span></span>
+<span><span class="co">#&gt; 10: unimportant5 -0.137666350 0.08268950</span></span></code></pre></div>
 <p>The <code>importance</code> column shows the performance difference
 when each feature is permuted. Higher values indicate more important
 features.</p>
@@ -176,35 +176,105 @@ per resampling fold:</p>
 <span></span>
 <span><span class="va">pfi_stable</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature   importance</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  5.625322621</span></span>
-<span><span class="co">#&gt;  2:   important2  9.609986341</span></span>
-<span><span class="co">#&gt;  3:   important3  1.196388744</span></span>
-<span><span class="co">#&gt;  4:   important4 12.648328883</span></span>
-<span><span class="co">#&gt;  5:   important5  1.705056896</span></span>
-<span><span class="co">#&gt;  6: unimportant1 -0.002597636</span></span>
-<span><span class="co">#&gt;  7: unimportant2  0.108962283</span></span>
-<span><span class="co">#&gt;  8: unimportant3  0.039131183</span></span>
-<span><span class="co">#&gt;  9: unimportant4 -0.058408934</span></span>
-<span><span class="co">#&gt; 10: unimportant5 -0.041202334</span></span></code></pre></div>
+<span><span class="co">#&gt;          feature   importance         sd</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;        &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:   important1  5.625322621 0.84130375</span></span>
+<span><span class="co">#&gt;  2:   important2  9.609986341 1.77518863</span></span>
+<span><span class="co">#&gt;  3:   important3  1.196388744 0.44992082</span></span>
+<span><span class="co">#&gt;  4:   important4 12.648328883 2.92740759</span></span>
+<span><span class="co">#&gt;  5:   important5  1.705056896 0.54745713</span></span>
+<span><span class="co">#&gt;  6: unimportant1 -0.002597636 0.09029340</span></span>
+<span><span class="co">#&gt;  7: unimportant2  0.108962283 0.17123736</span></span>
+<span><span class="co">#&gt;  8: unimportant3  0.039131183 0.08291645</span></span>
+<span><span class="co">#&gt;  9: unimportant4 -0.058408934 0.08647166</span></span>
+<span><span class="co">#&gt; 10: unimportant5 -0.041202334 0.10787124</span></span></code></pre></div>
 <p>We can also use ratio instead of difference for the importance
 calculation:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi_stable</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature importance</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  1.9484469</span></span>
-<span><span class="co">#&gt;  2:   important2  2.4425122</span></span>
-<span><span class="co">#&gt;  3:   important3  1.2212920</span></span>
-<span><span class="co">#&gt;  4:   important4  2.9619275</span></span>
-<span><span class="co">#&gt;  5:   important5  1.3790643</span></span>
-<span><span class="co">#&gt;  6: unimportant1  0.9862282</span></span>
-<span><span class="co">#&gt;  7: unimportant2  1.0098376</span></span>
-<span><span class="co">#&gt;  8: unimportant3  1.0227458</span></span>
-<span><span class="co">#&gt;  9: unimportant4  1.0090616</span></span>
-<span><span class="co">#&gt; 10: unimportant5  0.9909342</span></span></code></pre></div>
+<span><span class="co">#&gt;          feature importance         sd</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:   important1  1.9484469 0.29293110</span></span>
+<span><span class="co">#&gt;  2:   important2  2.4425122 0.27894990</span></span>
+<span><span class="co">#&gt;  3:   important3  1.2212920 0.07502941</span></span>
+<span><span class="co">#&gt;  4:   important4  2.9619275 0.45741386</span></span>
+<span><span class="co">#&gt;  5:   important5  1.3790643 0.13580065</span></span>
+<span><span class="co">#&gt;  6: unimportant1  0.9862282 0.01836363</span></span>
+<span><span class="co">#&gt;  7: unimportant2  1.0098376 0.01946505</span></span>
+<span><span class="co">#&gt;  8: unimportant3  1.0227458 0.01668362</span></span>
+<span><span class="co">#&gt;  9: unimportant4  1.0090616 0.01819052</span></span>
+<span><span class="co">#&gt; 10: unimportant5  0.9909342 0.01275179</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="leave-one-covariate-out-loco">Leave-One-Covariate-Out (LOCO)<a class="anchor" aria-label="anchor" href="#leave-one-covariate-out-loco"></a>
+</h2>
+<p>LOCO measures importance by retraining the model without each feature
+and comparing performance to the full model. This shows the contribution
+of each feature when all other features are present.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">loco</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">loco_results</span> <span class="op">&lt;-</span> <span class="va">loco</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">loco_results</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;          feature importance        sd</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;      &lt;num&gt;     &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:   important1  3.5341950 0.4799813</span></span>
+<span><span class="co">#&gt;  2:   important2  5.5076635 0.8946863</span></span>
+<span><span class="co">#&gt;  3:   important3  0.8231575 0.4514476</span></span>
+<span><span class="co">#&gt;  4:   important4  7.5628028 1.7412825</span></span>
+<span><span class="co">#&gt;  5:   important5  0.7647955 0.7375444</span></span>
+<span><span class="co">#&gt;  6: unimportant1 -0.3884817 0.4774518</span></span>
+<span><span class="co">#&gt;  7: unimportant2 -0.3159022 0.1183964</span></span>
+<span><span class="co">#&gt;  8: unimportant3 -0.1991742 0.4288578</span></span>
+<span><span class="co">#&gt;  9: unimportant4 -0.3039987 0.3220437</span></span>
+<span><span class="co">#&gt; 10: unimportant5 -0.3435275 0.5206174</span></span></code></pre></div>
+<p>LOCO is computationally expensive (requires retraining for each
+feature) but provides clear interpretation: higher values mean larger
+performance drop when the feature is removed. <strong>Important
+limitation</strong>: LOCO cannot distinguish between direct effects and
+indirect effects through correlated features.</p>
+</div>
+<div class="section level2">
+<h2 id="leave-one-covariate-in-loci">Leave-One-Covariate-In (LOCI)<a class="anchor" aria-label="anchor" href="#leave-one-covariate-in-loci"></a>
+</h2>
+<p>LOCI takes the opposite approach: it trains models with only single
+features and compares to a naive baseline (featureless learner that
+predicts the optimal constant).</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">loci</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/LOCI.html">LOCI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">loci_results</span> <span class="op">&lt;-</span> <span class="va">loci</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">loci_results</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;          feature importance        sd</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;      &lt;num&gt;     &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:   important1  -2.075522 2.7101488</span></span>
+<span><span class="co">#&gt;  2:   important2   1.228444 3.2119676</span></span>
+<span><span class="co">#&gt;  3:   important3  -6.279861 5.0870729</span></span>
+<span><span class="co">#&gt;  4:   important4   2.905521 2.4191025</span></span>
+<span><span class="co">#&gt;  5:   important5  -7.599927 0.8401867</span></span>
+<span><span class="co">#&gt;  6: unimportant1  -8.880704 6.5371259</span></span>
+<span><span class="co">#&gt;  7: unimportant2  -9.162649 4.7366787</span></span>
+<span><span class="co">#&gt;  8: unimportant3  -7.666793 3.1583156</span></span>
+<span><span class="co">#&gt;  9: unimportant4  -6.165845 3.1254441</span></span>
+<span><span class="co">#&gt; 10: unimportant5 -12.301351 2.5671764</span></span></code></pre></div>
+<p>LOCI measures the intrinsic predictive power of each feature in
+isolation. Positive values indicate the feature alone performs better
+than constant prediction; negative values suggest the feature is harmful
+when used alone. <strong>Key insight</strong>: LOCI ignores all feature
+interactions and synergies.</p>
 </div>
 <div class="section level2">
 <h2 id="feature-samplers">Feature Samplers<a class="anchor" aria-label="anchor" href="#feature-samplers"></a>
@@ -216,30 +286,45 @@ feature relationships.</p>
 <p>Let’s demonstrate conditional sampling using Adversarial Random
 Forests, which preserves relationships between features when
 sampling:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">arf_sampler</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">task</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Iteration: 0, Accuracy: 47.13%</span></span>
-<span><span class="co">#&gt; Warning: executing %dopar% sequentially: no parallel backend registered</span></span>
+<span><span class="co">#&gt; Iteration: 0, Accuracy: 44.75%</span></span>
 <span></span>
 <span><span class="va">sample_data</span> <span class="op">&lt;-</span> <span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span>rows <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span></span>
-<span><span class="va">sample_data</span><span class="op">$</span><span class="va">important1</span></span>
-<span><span class="co">#&gt; [1] 0.2875775 0.7883051 0.4089769 0.8830174 0.9404673</span></span></code></pre></div>
+<span><span class="va">sample_data</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">y</span>, <span class="va">important1</span>, <span class="va">important2</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;           y important1  important2</span></span>
+<span><span class="co">#&gt;       &lt;num&gt;      &lt;num&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: 20.59935  0.2875775 0.784575267</span></span>
+<span><span class="co">#&gt; 2: 10.48474  0.7883051 0.009429905</span></span>
+<span><span class="co">#&gt; 3: 19.99049  0.4089769 0.779065883</span></span>
+<span><span class="co">#&gt; 4: 19.70521  0.8830174 0.729390652</span></span>
+<span><span class="co">#&gt; 5: 21.94251  0.9404673 0.630131853</span></span></code></pre></div>
 <p>Now we’ll conditionally sample the <code>important1</code> feature
 given the values of <code>important2</code> and
 <code>important3</code>:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sampled_conditional</span> <span class="op">&lt;-</span> <span class="va">arf_sampler</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span></span>
 <span>  feature <span class="op">=</span> <span class="st">"important1"</span>, </span>
 <span>  data <span class="op">=</span> <span class="va">sample_data</span>,</span>
 <span>  conditioning_features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"important2"</span>, <span class="st">"important3"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">sampled_conditional</span><span class="op">$</span><span class="va">important1</span></span>
-<span><span class="co">#&gt; [1] 0.4796056 0.3169238 0.4274408 0.3023370 0.6075926</span></span></code></pre></div>
-<p>Original values: 0.288, 0.788, 0.409, 0.883, 0.94</p>
-<p>Conditionally sampled values: 0.48, 0.317, 0.427, 0.302, 0.608</p>
-<p>Note how the sampled values respect the conditional distribution
-given the values of important2 and important3.</p>
+<span><span class="va">sample_data</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">y</span>, <span class="va">important1</span>, <span class="va">important2</span>, <span class="va">important3</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;           y important1  important2 important3</span></span>
+<span><span class="co">#&gt;       &lt;num&gt;      &lt;num&gt;       &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: 20.59935  0.2875775 0.784575267  0.2372297</span></span>
+<span><span class="co">#&gt; 2: 10.48474  0.7883051 0.009429905  0.6864904</span></span>
+<span><span class="co">#&gt; 3: 19.99049  0.4089769 0.779065883  0.2258184</span></span>
+<span><span class="co">#&gt; 4: 19.70521  0.8830174 0.729390652  0.3184946</span></span>
+<span><span class="co">#&gt; 5: 21.94251  0.9404673 0.630131853  0.1739838</span></span>
+<span><span class="va">sampled_conditional</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">y</span>, <span class="va">important1</span>, <span class="va">important2</span>, <span class="va">important3</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;           y important1  important2 important3</span></span>
+<span><span class="co">#&gt;       &lt;num&gt;      &lt;num&gt;       &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: 20.59935  0.7034949 0.784575267  0.2372297</span></span>
+<span><span class="co">#&gt; 2: 10.48474  0.6442387 0.009429905  0.6864904</span></span>
+<span><span class="co">#&gt; 3: 19.99049  0.6861356 0.779065883  0.2258184</span></span>
+<span><span class="co">#&gt; 4: 19.70521  0.4621089 0.729390652  0.3184946</span></span>
+<span><span class="co">#&gt; 5: 21.94251  0.5159056 0.630131853  0.1739838</span></span></code></pre></div>
 <p>This conditional sampling is essential for methods like CFI and RFI
 that need to preserve feature dependencies. See
 <code><a href="../articles/perturbation-importance.html">vignette("perturbation-importance")</a></code> for detailed
@@ -248,17 +333,39 @@ comparisons.</p>
 <div class="section level2">
 <h2 id="when-to-use-each-method">When to Use Each Method<a class="anchor" aria-label="anchor" href="#when-to-use-each-method"></a>
 </h2>
-<p><strong>Choose PFI when:</strong> - You want fast, simple importance
-estimates - Features are relatively independent<br>
-- You need a quick baseline assessment</p>
-<p><strong>Choose LOCO when:</strong> - You want the most accurate
-importance estimates - Computational cost is not a major concern -
-Features may be correlated - You want to understand the impact of
-completely removing features</p>
-<p><strong>Choose LOCI when:</strong> - You want to understand
-individual feature contributions - You’re interested in feature
-selection (negative LOCI scores suggest features to remove) - You want
-to compare features to a meaningful baseline</p>
+<p><strong>Choose PFI when:</strong></p>
+<ul>
+<li>You want fast, simple importance estimates</li>
+<li>Features are relatively independent<br>
+</li>
+<li>You need a quick baseline assessment</li>
+<li>You accept that feature correlations are ignored</li>
+</ul>
+<p><strong>Choose LOCO when:</strong></p>
+<ul>
+<li>You want to understand the impact of completely removing
+features</li>
+<li>Computational cost is not a major concern</li>
+<li>You need interpretable importance relative to the full model</li>
+<li>Note: LOCO cannot account for feature correlations/dependencies</li>
+</ul>
+<p><strong>Choose LOCI when:</strong></p>
+<ul>
+<li>You want to understand individual feature contributions in
+isolation</li>
+<li>You’re interested in feature selection (negative LOCI scores suggest
+harmful features)</li>
+<li>You want to compare features to a naive baseline (optimal constant
+prediction)</li>
+<li>Note: LOCI measures intrinsic predictive power, not interactions
+with other features</li>
+</ul>
+<p><strong>Important distinction</strong>: Neither LOCO nor LOCI can
+account for conditional dependencies between features. For that, you
+need methods like CFI (Conditional Feature Importance) or RFI (Relative
+Feature Importance) that use conditional sampling. See
+<code><a href="../articles/perturbation-importance.html">vignette("perturbation-importance")</a></code> for these advanced
+methods.</p>
 </div>
 <div class="section level2">
 <h2 id="advanced-features">Advanced Features<a class="anchor" aria-label="anchor" href="#advanced-features"></a>
@@ -291,7 +398,7 @@ dependencies (see <code><a href="../articles/perturbation-importance.html">vigne
 </h2>
 <p>All methods store detailed scoring information for further analysis.
 Let’s examine the structure of PFI’s detailed scores:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">pfi</span><span class="op">$</span><span class="va">scores</span>, <span class="fl">10</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"Detailed PFI scores (first 10 rows)"</span><span class="op">)</span></span></code></pre></div>
 <table style="width:100%;" class="table">
@@ -396,7 +503,7 @@ Let’s examine the structure of PFI’s detailed scores:</p>
 </tbody>
 </table>
 <p>We can also summarize the scoring structure:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="va">scores</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span></span>
 <span>  features <span class="op">=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/duplicated.html" class="external-link">uniqueN</a></span><span class="op">(</span><span class="va">feature</span><span class="op">)</span>,</span>
 <span>  resampling_folds <span class="op">=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/duplicated.html" class="external-link">uniqueN</a></span><span class="op">(</span><span class="va">iter_rsmp</span><span class="op">)</span>, </span>
@@ -434,7 +541,7 @@ Shapley value methods</li>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Lukas Burk.</p>
+  <p>Developed by <a href="https://lukasburk.de" class="external-link">Lukas Burk</a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">

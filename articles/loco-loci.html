@@ -6,7 +6,13 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>LOCO and LOCI • xplainfi</title>
-<script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- mathjax math --><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script><script>
+  window.MathJax = {
+    chtml: {
+      fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
+    }
+  };
+</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet">
 <link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet">
@@ -23,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.0.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,14 +40,7 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../articles/xplainfi.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/loco-loci.html">LOCO and LOCI</a></li>
-    <li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-based Feature Importance Methods</a></li>
-    <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
-  </ul>
-</li>
+<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -92,11 +91,10 @@
 and without each feature. For each feature, the learner is retrained
 without that feature and the performance difference indicates the
 feature’s importance.</p>
-<p>For feature
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>,
-LOCO is calculated as the difference in expected loss of the model fit
-without the feature and the full model:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="normal">LOCO</mtext><mi>j</mi></msub><mo>=</mo><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>L</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>Y</mi><mo>,</mo><msub><mi>f</mi><mrow><mo>−</mo><mi>j</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>X</mi><mrow><mo>−</mo><mi>j</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>L</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>Y</mi><mo>,</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>X</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\text{LOCO}_j = \mathbb{E}(L(Y, f_{-j}(X_{-j}))) - \mathbb{E}(L(Y, f(X)))</annotation></semantics></math></p>
+<p>For feature <span class="math inline">\(j\)</span>, LOCO is
+calculated as the difference in expected loss of the model fit without
+the feature and the full model: <span class="math display">\[\text{LOCO}_j = \mathbb{E}(L(Y, f_{-j}(X_{-j})))
+- \mathbb{E}(L(Y, f(X)))\]</span></p>
 <p>Higher values indicate more important features (larger performance
 drop when removed).</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
@@ -133,11 +131,10 @@ individual feature and comparing their performance to a featureless
 (baseline) model. This shows how much predictive power each feature
 provides on its own, above and beyond the optimal constant
 prediction.</p>
-<p>For feature
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>,
-LOCI is calculated as the difference in expected loss of the featureless
-learner or constant model and the model including only the feature:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="normal">LOCI</mtext><mi>j</mi></msub><mo>=</mo><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>L</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>Y</mi><mo>,</mo><msub><mi>f</mi><mi>∅</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>L</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>Y</mi><mo>,</mo><msub><mi>f</mi><mi>j</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>X</mi><mi>j</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\text{LOCI}_j = \mathbb{E}(L(Y, f_{\emptyset})) - \mathbb{E}(L(Y, f_j(X_{j})))</annotation></semantics></math></p>
+<p>For feature <span class="math inline">\(j\)</span>, LOCI is
+calculated as the difference in expected loss of the featureless learner
+or constant model and the model including only the feature: <span class="math display">\[\text{LOCI}_j = \mathbb{E}(L(Y, f_{\emptyset})) -
+\mathbb{E}(L(Y, f_j(X_{j})))\]</span></p>
 <p>Higher values indicate more important features (better individual
 performance compared to baseline).</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -179,18 +176,18 @@ refit iterations per resampling iteration:</p>
 <span></span>
 <span><span class="va">loco_multi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature  importance</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;       &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  2.63847146</span></span>
-<span><span class="co">#&gt;  2:   important2  6.32614881</span></span>
-<span><span class="co">#&gt;  3:   important3 -0.02421940</span></span>
-<span><span class="co">#&gt;  4:   important4  8.23092916</span></span>
-<span><span class="co">#&gt;  5:   important5  1.87820513</span></span>
-<span><span class="co">#&gt;  6: unimportant1  0.04498329</span></span>
-<span><span class="co">#&gt;  7: unimportant2 -0.08772072</span></span>
-<span><span class="co">#&gt;  8: unimportant3  0.04221687</span></span>
-<span><span class="co">#&gt;  9: unimportant4 -0.26932117</span></span>
-<span><span class="co">#&gt; 10: unimportant5 -0.07450104</span></span>
+<span><span class="co">#&gt;          feature  importance         sd</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;       &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:   important1  2.63847146 0.39257971</span></span>
+<span><span class="co">#&gt;  2:   important2  6.32614881 1.47504818</span></span>
+<span><span class="co">#&gt;  3:   important3 -0.02421940 0.01792924</span></span>
+<span><span class="co">#&gt;  4:   important4  8.23092916 1.34622213</span></span>
+<span><span class="co">#&gt;  5:   important5  1.87820513 0.60919188</span></span>
+<span><span class="co">#&gt;  6: unimportant1  0.04498329 0.13238800</span></span>
+<span><span class="co">#&gt;  7: unimportant2 -0.08772072 0.10411558</span></span>
+<span><span class="co">#&gt;  8: unimportant3  0.04221687 0.06461107</span></span>
+<span><span class="co">#&gt;  9: unimportant4 -0.26932117 0.09922318</span></span>
+<span><span class="co">#&gt; 10: unimportant5 -0.07450104 0.07841415</span></span>
 <span></span>
 <span><span class="co"># Check individual scores with multiple refits</span></span>
 <span><span class="va">loco_multi</span><span class="op">$</span><span class="va">scores</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="op">]</span> <span class="op">|&gt;</span></span>
@@ -420,7 +417,7 @@ baseline</li>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Lukas Burk.</p>
+  <p>Developed by <a href="https://lukasburk.de" class="external-link">Lukas Burk</a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">
