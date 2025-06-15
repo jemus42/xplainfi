@@ -31,10 +31,6 @@ The goal of `xplainfi` is to collect common feature importance methods under a u
 
 It is built around [mlr3](https://mlr-org.com/) as available abstractions for learners, tasks, measures, etc. greatly simplify the implementation of importance measures.
 
-> [!WARNING]
-> `xplainfi` is in its very early stages and does not yet validate results against reference implementations!
-
-
 ## Installation
 
 You can install the development version of `xplainfi` like so:
@@ -77,14 +73,14 @@ Retrieve scores later in `pfi$importance`.
 When PFI is computed based on resampling with multiple iterations, and / or multiple permutation iterations, the individual scores can be retrieved as a `data.table`:
 
 ```{r}
-pfi$scores
+str(pfi$scores)
 ```
 
 
-Where `iter_rsmp` corresponds to the resampling iteration, i.e., 3 * 2 = 6 for 2 repeats of 3-fold cross-validation, and `iter_perm` corresponds to the permutation iteration, 5 in this case.
-While `pfi$importance` contains the means across all iterations, `pfi$scores` allows you to manually aggregate them in any way you see fit.
+Where `iter_rsmp` corresponds to the resampling iteration, i.e., 3 * 2 = 6 for 2 repeats of 3-fold cross-validation, and `iter_perm` corresponds to the permutation iteration within each resampling iteration, 5 in this case.
+While `pfi$importance` contains the means and standard deviations across all iterations, `pfi$scores` allows you to manually aggregate them in any way you see fit.
 
-In the simplest case, you run PFI with a single resampling iteration (holdout) and a single permutation iteration, and `pfi$importance` will contain the same values as `pfi$scores`.
+In the simplest case, you run PFI with a single resampling iteration (holdout) and a single permutation iteration, and `pfi$importance` will contain the same importance values as `pfi$scores`.
 
 ```{r}
 pfi_single = PFI$new(
@@ -94,5 +90,5 @@ pfi_single = PFI$new(
 )
 
 pfi_single$compute()
-pfi_single$scores
+str(pfi_single$scores)
 ```
