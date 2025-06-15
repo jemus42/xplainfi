@@ -112,7 +112,7 @@ def main():
     # 1. PFI
     print("\nComputing PFI...")
     try:
-        ex_pfi = explainer.pfi(X_test_small, y_test_small)
+        ex_pfi = explainer.pfi(X_test_small, y_test_small, nr_runs=5)
         pfi_results = extract_fippy_results(ex_pfi, list(X_train.columns))
         results["PFI"] = pfi_results
         print("✓ PFI completed")
@@ -123,7 +123,7 @@ def main():
     # 2. CFI  
     print("\nComputing CFI...")
     try:
-        ex_cfi = explainer.cfi(X_test_small, y_test_small)
+        ex_cfi = explainer.cfi(X_test_small, y_test_small, nr_runs=5)
         cfi_results = extract_fippy_results(ex_cfi, list(X_train.columns))
         results["CFI"] = cfi_results
         print("✓ CFI completed")
@@ -137,7 +137,7 @@ def main():
         # RFI expects: rfi(G, X_eval, y_eval, ...)
         # G is the conditioning set
         conditioning_set = ["important1", "important2"]
-        ex_rfi = explainer.rfi(conditioning_set, X_test_small, y_test_small)
+        ex_rfi = explainer.rfi(conditioning_set, X_test_small, y_test_small, nr_runs=5)
         rfi_results = extract_fippy_results(ex_rfi, list(X_train.columns))
         if rfi_results:
             rfi_results["conditioning_set"] = conditioning_set
