@@ -37,7 +37,7 @@ Both implementations use:
 
 ## Setup and Execution
 
-The comparison uses separate calculation scripts to avoid environment conflicts:
+The comparison uses separate calculation scripts:
 
 ```{bash}
 #| eval: false
@@ -92,30 +92,25 @@ kable(performance_comparison, caption = "Model Performance Comparison")
 
 ```{r comparison-function}
 compare_method <- function(method_name, xplainfi_result, fippy_result) {
-  if (!is.null(xplainfi_result) && !is.null(fippy_result)) {
-    # Both implementations available
-    method_dt <- data.table(
-      feature = xplainfi_result$feature,
-      xplainfi = xplainfi_result$importance,
-      fippy = fippy_result$importance
-    )
-    
-    # Return table and correlation for display
-    correlation <- cor(method_dt$xplainfi, method_dt$fippy)
-    
-    list(
-      table = kable(method_dt[order(-xplainfi)], 
-                   caption = glue("{method_name} Results Comparison"), 
-                   digits = 4),
-      correlation = correlation
-    )
-    
-  } else {
-    list(
-      table = glue("{method_name} results not available (one or both implementations failed)"),
-      correlation = NULL
-    )
-  }
+  # Both implementations available
+  method_dt <- data.table(
+    feature = xplainfi_result$feature,
+    xplainfi = xplainfi_result$importance,
+    fippy = fippy_result$importance
+  )
+  
+  # Return table and correlation for display
+  correlation <- cor(method_dt$xplainfi, method_dt$fippy)
+  correlation_spearman = cor(method_dt$xplainfi, method_dt$fippy, method = "spearman")
+  
+  list(
+    method = method_name, 
+    table = kable(method_dt[order(-xplainfi)], 
+                  caption = glue("{method_name} Results Comparison"), 
+                  digits = 4),
+    correlation = correlation,
+    correlation_spearman = correlation_spearman
+  )
 }
 ```
 
@@ -125,11 +120,10 @@ compare_method <- function(method_name, xplainfi_result, fippy_result) {
 pfi_result <- compare_method("PFI", xplainfi_results$PFI, fippy_results$PFI)
 pfi_result$table
 
-if (!is.null(pfi_result$correlation)) {
-  glue("PFI Correlation: {round(pfi_result$correlation, 3)}")
-}
+glue("PFI Correlation: {round(pfi_result$correlation, 3)}")
 
-pfi_correlation <- pfi_result$correlation
+pfi_result$correlation
+pfi_result$correlation_spearman
 ```
 
 ### CFI (Conditional Feature Importance)
@@ -138,11 +132,10 @@ pfi_correlation <- pfi_result$correlation
 cfi_result <- compare_method("CFI", xplainfi_results$CFI, fippy_results$CFI)
 cfi_result$table
 
-if (!is.null(cfi_result$correlation)) {
-  glue("CFI Correlation: {round(cfi_result$correlation, 3)}")
-}
+glue("CFI Correlation: {round(cfi_result$correlation, 3)}")
 
-cfi_correlation <- cfi_result$correlation
+cfi_result$correlation
+cfi_result$correlation_spearman
 ```
 
 ### RFI (Relative Feature Importance)
@@ -151,26 +144,13 @@ cfi_correlation <- cfi_result$correlation
 rfi_result <- compare_method("RFI", xplainfi_results$RFI, fippy_results$RFI)
 rfi_result$table
 
-if (!is.null(rfi_result$correlation)) {
-  glue("RFI Correlation: {round(rfi_result$correlation, 3)}")
-}
+glue("RFI Correlation: {round(rfi_result$correlation, 3)}")
 
-rfi_correlation <- rfi_result$correlation
+rfi_result$correlation
+rfi_result$correlation_spearman
 
-# Show conditioning sets using inline R
-conditioning_info <- character()
-if (!is.null(xplainfi_results$RFI) && !is.null(xplainfi_results$RFI$conditioning_set)) {
-  conditioning_info <- c(conditioning_info, 
-    glue("xplainfi conditioning set: {paste(xplainfi_results$RFI$conditioning_set, collapse = ', ')}"))
-}
-if (!is.null(fippy_results$RFI) && !is.null(fippy_results$RFI$conditioning_set)) {
-  conditioning_info <- c(conditioning_info, 
-    glue("fippy conditioning set: {paste(fippy_results$RFI$conditioning_set, collapse = ', ')}"))
-}
-
-if (length(conditioning_info) > 0) {
-  conditioning_info
-}
+glue("xplainfi conditioning set: {paste(xplainfi_results$RFI$conditioning_set, collapse = ', ')}")
+glue("fippy conditioning set: {paste(fippy_results$RFI$conditioning_set, collapse = ', ')}")
 ```
 
 ### SAGE Methods
@@ -181,11 +161,10 @@ if (length(conditioning_info) > 0) {
 sage_marginal_result <- compare_method("Marginal SAGE", xplainfi_results$SAGE_Marginal, fippy_results$SAGE_Marginal)
 sage_marginal_result$table
 
-if (!is.null(sage_marginal_result$correlation)) {
-  glue("Marginal SAGE Correlation: {round(sage_marginal_result$correlation, 3)}")
-}
+glue("Marginal SAGE Correlation: {round(sage_marginal_result$correlation, 3)}")
 
-sage_marginal_correlation <- sage_marginal_result$correlation
+sage_marginal_result$correlation
+sage_marginal_result$correlation_spearman
 ```
 
 #### Conditional SAGE
@@ -194,58 +173,46 @@ sage_marginal_correlation <- sage_marginal_result$correlation
 sage_conditional_result <- compare_method("Conditional SAGE", xplainfi_results$SAGE_Conditional, fippy_results$SAGE_Conditional)
 sage_conditional_result$table
 
-if (!is.null(sage_conditional_result$correlation)) {
-  glue("Conditional SAGE Correlation: {round(sage_conditional_result$correlation, 3)}")
-}
+glue("Conditional SAGE Correlation: {round(sage_conditional_result$correlation, 3)}")
 
-sage_conditional_correlation <- sage_conditional_result$correlation
+sage_conditional_result$correlation
+sage_conditional_result$correlation_spearman
 ```
 
 ## Correlation Summary
 
 ```{r correlation-summary}
-correlations <- data.table(
-  Method = character(),
-  Correlation = numeric()
+correlations <- rbindlist(list(
+  pfi_result[c("method", "correlation", "correlation_spearman")],
+  cfi_result[c("method", "correlation", "correlation_spearman")],
+  rfi_result[c("method", "correlation", "correlation_spearman")],
+  sage_marginal_result[c("method", "correlation", "correlation_spearman")],
+  sage_conditional_result[c("method", "correlation", "correlation_spearman")]
+))
+
+kable(
+  correlations, 
+  caption = "Pearson and Spearman Correlations between xplainfi and fippy", 
+  col.names = c("Method", "Pearson Corr.", "Spearman Corr.")
 )
 
-correlation_list <- list(
-  "PFI" = pfi_correlation,
-  "CFI" = cfi_correlation, 
-  "RFI" = rfi_correlation,
-  "Marginal SAGE" = sage_marginal_correlation,
-  "Conditional SAGE" = sage_conditional_correlation
-)
+melt(correlations, id.vars = "method") |>
+  ggplot(aes(x = reorder(method, value), y = value)) +
+    facet_wrap(vars(variable), ncol = 1) +
+    geom_col(fill = "steelblue", alpha = 0.7) +
+    geom_hline(yintercept = c(0.5, 1), linetype = "dashed", color = "red", alpha = 0.7) +
+    coord_flip() +
+    labs(
+      title = "Implementation Correlations",
+      subtitle = "xplainfi (R) vs fippy (Python)",
+      x = "Method",
+      y = "Pearson Correlation",
+      caption = "Dashed line at r = 1"
+    ) +
+    theme_minimal() +
+    ylim(0, 1)
 
-for (method in names(correlation_list)) {
-  if (!is.null(correlation_list[[method]])) {
-    correlations <- rbind(correlations, 
-                         data.table(Method = method, Correlation = round(correlation_list[[method]], 4)))
-  }
-}
 
-if (nrow(correlations) > 0) {
-  kable(correlations, caption = "Pearson Correlations between xplainfi and fippy")
-  
-  # Visualization
-  if (nrow(correlations) > 1) {
-    p_corr <- ggplot(correlations, aes(x = reorder(Method, Correlation), y = Correlation)) +
-      geom_col(fill = "steelblue", alpha = 0.7) +
-      geom_hline(yintercept = 1, linetype = "dashed", color = "red", alpha = 0.7) +
-      coord_flip() +
-      labs(
-        title = "Implementation Correlations",
-        subtitle = "xplainfi (R) vs fippy (Python)",
-        x = "Method",
-        y = "Pearson Correlation",
-        caption = "Dashed line at r = 1"
-      ) +
-      theme_minimal() +
-      ylim(0, 1)
-    
-    p_corr
-  }
-}
 ```
 
 ## Technical Notes

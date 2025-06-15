@@ -65,7 +65,6 @@ def main():
         from fippy.explainers import Explainer
         from fippy.samplers import GaussianSampler
         from sklearn.ensemble import RandomForestRegressor
-        from sklearn.model_selection import train_test_split
         from sklearn.metrics import mean_squared_error
         print("fippy loaded successfully")
     except Exception as e:
@@ -73,22 +72,24 @@ def main():
         return
 
     print("Loading data...")
-    # Check if friedman1.csv exists, if not run the R script first
-    if not os.path.exists("friedman1.csv"):
-        print("friedman1.csv not found. Please run calculate_xplainfi.R first.")
+    # Check if pre-split data files exist
+    if not os.path.exists("friedman1_train.csv") or not os.path.exists("friedman1_test.csv"):
+        print("Pre-split data files not found. Please run calculate_xplainfi.R first.")
         return
         
-    data = pd.read_csv("friedman1.csv")
-    X = data.drop("y", axis=1)
-    y = data["y"]
-
-    # Use same train/test split as R script
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123)
+    # Load pre-split data to ensure identical train/test sets
+    train_data = pd.read_csv("friedman1_train.csv")
+    test_data = pd.read_csv("friedman1_test.csv")
+    
+    X_train = train_data.drop("y", axis=1)
+    y_train = train_data["y"]
+    X_test = test_data.drop("y", axis=1)
+    y_test = test_data["y"]
     
     # Use smaller test set for SAGE to speed up computation
     X_test_small = X_test.head(30)  # Small test set for speed
     y_test_small = y_test.head(30)
-    print(f"Train: {len(X_train)}, Test: {len(X_test_small)} (reduced for speed)")
+    print(f"Train: {len(X_train)}, Test: {len(X_test)}, Test (for SAGE): {len(X_test_small)} (reduced for speed)")
 
     print("Training model...")
     model = RandomForestRegressor(n_estimators=100, random_state=123)
@@ -100,7 +101,7 @@ def main():
     # Initialize results
     results = {
         "model_performance": {"r_squared": r2_score},
-        "feature_names": list(X.columns)
+        "feature_names": list(X_train.columns)
     }
 
     print("Setting up fippy explainer...")
@@ -112,7 +113,7 @@ def main():
     print("\nComputing PFI...")
     try:
         ex_pfi = explainer.pfi(X_test_small, y_test_small)
-        pfi_results = extract_fippy_results(ex_pfi, list(X.columns))
+        pfi_results = extract_fippy_results(ex_pfi, list(X_train.columns))
         results["PFI"] = pfi_results
         print("✓ PFI completed")
     except Exception as e:
@@ -123,7 +124,7 @@ def main():
     print("\nComputing CFI...")
     try:
         ex_cfi = explainer.cfi(X_test_small, y_test_small)
-        cfi_results = extract_fippy_results(ex_cfi, list(X.columns))
+        cfi_results = extract_fippy_results(ex_cfi, list(X_train.columns))
         results["CFI"] = cfi_results
         print("✓ CFI completed")
     except Exception as e:
@@ -137,7 +138,7 @@ def main():
         # G is the conditioning set
         conditioning_set = ["important1", "important2"]
         ex_rfi = explainer.rfi(conditioning_set, X_test_small, y_test_small)
-        rfi_results = extract_fippy_results(ex_rfi, list(X.columns))
+        rfi_results = extract_fippy_results(ex_rfi, list(X_train.columns))
         if rfi_results:
             rfi_results["conditioning_set"] = conditioning_set
         results["RFI"] = rfi_results
@@ -157,7 +158,7 @@ def main():
             nr_runs=2,  # Reduced from 3
             detect_convergence=True
         )
-        msage_results = extract_fippy_results(ex_msage, list(X.columns))
+        msage_results = extract_fippy_results(ex_msage, list(X_train.columns))
         results["SAGE_Marginal"] = msage_results
         print("✓ Marginal SAGE completed")
     except Exception as e:
@@ -173,7 +174,7 @@ def main():
             nr_orderings=10,  # Reduced from 20
             nr_runs=2         # Reduced from 3
         )
-        csage_results = extract_fippy_results(ex_csage, list(X.columns))
+        csage_results = extract_fippy_results(ex_csage, list(X_train.columns))
         results["SAGE_Conditional"] = csage_results
         print("✓ Conditional SAGE completed")
     except Exception as e:
