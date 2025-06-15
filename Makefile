@@ -45,6 +45,14 @@ check-remote:
 site:
 	Rscript -e "pkgdown::build_site()"
 
+.PHONY: fippy-comparison
+fippy-comparison:
+	@echo "Running fippy comparison scripts..."
+	cd vignettes/articles/fippy-comparison && \
+	Rscript calculate_xplainfi.R && \
+	./calculate_fippy.py
+	@echo "Fippy comparison completed. Results in vignettes/articles/fippy-comparison/"
+
 README.md: README.Rmd
 	Rscript -e "rmarkdown::render('README.Rmd')"
 	rm README.html
