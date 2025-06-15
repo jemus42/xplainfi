@@ -20,8 +20,10 @@ import pandas as pd
 import numpy as np
 import json
 import os
+import random
 
-# Set seed for reproducibility
+# Set seeds for reproducibility
+random.seed(123)
 np.random.seed(123)
 
 def extract_fippy_results(ex_result, feature_names):
@@ -92,6 +94,9 @@ def main():
     print(f"Train: {len(X_train)}, Test: {len(X_test)}, Test (for SAGE): {len(X_test_small)} (reduced for speed)")
 
     print("Training model...")
+    # Reset seeds before training
+    random.seed(123)
+    np.random.seed(123)
     model = RandomForestRegressor(n_estimators=100, random_state=123)
     model.fit(X_train, y_train)
 
@@ -112,6 +117,9 @@ def main():
     # 1. PFI
     print("\nComputing PFI...")
     try:
+        # Reset seeds before each method
+        random.seed(123)
+        np.random.seed(123)
         ex_pfi = explainer.pfi(X_test_small, y_test_small, nr_runs=5)
         pfi_results = extract_fippy_results(ex_pfi, list(X_train.columns))
         results["PFI"] = pfi_results
@@ -123,6 +131,9 @@ def main():
     # 2. CFI  
     print("\nComputing CFI...")
     try:
+        # Reset seeds before each method
+        random.seed(123)
+        np.random.seed(123)
         ex_cfi = explainer.cfi(X_test_small, y_test_small, nr_runs=5)
         cfi_results = extract_fippy_results(ex_cfi, list(X_train.columns))
         results["CFI"] = cfi_results
@@ -134,6 +145,9 @@ def main():
     # 3. RFI - Fixed API
     print("\nComputing RFI...")
     try:
+        # Reset seeds before each method
+        random.seed(123)
+        np.random.seed(123)
         # RFI expects: rfi(G, X_eval, y_eval, ...)
         # G is the conditioning set
         conditioning_set = ["important1", "important2"]
@@ -152,6 +166,9 @@ def main():
     # 4. Marginal SAGE
     print("\nComputing Marginal SAGE...")
     try:
+        # Reset seeds before each method
+        random.seed(123)
+        np.random.seed(123)
         # Use smaller parameters to speed up computation
         ex_msage, sage_orderings = explainer.msage(
             X_test_small, y_test_small, 
@@ -168,6 +185,9 @@ def main():
     # 5. Conditional SAGE
     print("\nComputing Conditional SAGE...")
     try:
+        # Reset seeds before each method
+        random.seed(123)
+        np.random.seed(123)
         # Use smaller parameters to speed up computation
         ex_csage, sage_orderings = explainer.csage(
             X_test_small, y_test_small, 
