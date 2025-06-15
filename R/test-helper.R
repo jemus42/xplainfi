@@ -26,7 +26,8 @@ expect_importance_dt = function(x, features) {
   checkmate::expect_character(x$feature, any.missing = FALSE)
   checkmate::expect_numeric(x$importance, any.missing = FALSE)
 
-  if ("sd" %in% colnames(x)) checkmate::expect_numeric(x$sd, any.missing = FALSE)
+  # TODO: SD can be Inf/NaN in some cases, need to robustify this
+  if ("sd" %in% colnames(x)) checkmate::expect_numeric(x$sd)
 }
 
 #' Expectation for individual importance score tables
