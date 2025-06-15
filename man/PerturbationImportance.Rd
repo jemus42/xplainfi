@@ -7,7 +7,7 @@
 Abstract base class for feature importance methods
 }
 \section{Super class}{
-\code{\link[xplainfi:FeatureImportanceMeasure]{xplainfi::FeatureImportanceMeasure}} -> \code{PerturbationImportance}
+\code{\link[xplainfi:FeatureImportanceMethod]{xplainfi::FeatureImportanceMethod}} -> \code{PerturbationImportance}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -26,9 +26,9 @@ Abstract base class for feature importance methods
 \if{html}{\out{
 <details open><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMeasure" data-id="combine"><a href='../../xplainfi/html/FeatureImportanceMeasure.html#method-FeatureImportanceMeasure-combine'><code>xplainfi::FeatureImportanceMeasure$combine()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMeasure" data-id="compute"><a href='../../xplainfi/html/FeatureImportanceMeasure.html#method-FeatureImportanceMeasure-compute'><code>xplainfi::FeatureImportanceMeasure$compute()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMeasure" data-id="print"><a href='../../xplainfi/html/FeatureImportanceMeasure.html#method-FeatureImportanceMeasure-print'><code>xplainfi::FeatureImportanceMeasure$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="combine"><a href='../../xplainfi/html/FeatureImportanceMethod.html#method-FeatureImportanceMethod-combine'><code>xplainfi::FeatureImportanceMethod$combine()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="compute"><a href='../../xplainfi/html/FeatureImportanceMethod.html#method-FeatureImportanceMethod-compute'><code>xplainfi::FeatureImportanceMethod$compute()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="print"><a href='../../xplainfi/html/FeatureImportanceMethod.html#method-FeatureImportanceMethod-print'><code>xplainfi::FeatureImportanceMethod$print()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -51,7 +51,7 @@ Creates a new instance of the PerturbationImportance class
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task, learner, measure, resampling, features}}{Passed to FeatureImportanceMeasure}
+\item{\code{task, learner, measure, resampling, features}}{Passed to FeatureImportanceMethod}
 
 \item{\code{sampler}}{(\link{FeatureSampler}) Sampler to use for feature perturbation}
 }

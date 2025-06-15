@@ -28,8 +28,8 @@ reference:
   - title: Importance Measures
     desc: Base class
     contents:
-      - FeatureImportanceMeasure
-      - c.FeatureImportanceMeasure
+      - FeatureImportanceMethod
+      - c.FeatureImportanceMethod
   - subtitle: Perturbation-Based Importance Measures
     desc: Methods which perturb features of interest either marginally (PFI) or conditionally on all (CFI) or a subset of remaining features (RFI)
   - contents:

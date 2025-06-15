@@ -1,6 +1,6 @@
-#' Combine two FeatureImportanceMeasure objects
+#' Combine two FeatureImportanceMethod objects
 #'
-#' @param x,y `([FeatureImportanceMeasure])` Objects to combine. Must have computed scores.
+#' @param x,y `([FeatureImportanceMethod])` Objects to combine. Must have computed scores.
 #' @param ... (any) Ignored.
 #' @return New object of the same subclass as `x` and `y`.
 #' @export
@@ -26,6 +26,6 @@
 #' pfi2$compute()
 #'
 #' combined = c(pfi1, pfi2)
-c.FeatureImportanceMeasure = function(x, y, ...) {
+c.FeatureImportanceMethod = function(x, y, ...) {
   x$combine(y)
 }

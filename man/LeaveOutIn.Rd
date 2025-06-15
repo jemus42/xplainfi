@@ -9,7 +9,7 @@ This is an abstract class - use LOCO or LOCI.
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[xplainfi:FeatureImportanceMeasure]{xplainfi::FeatureImportanceMeasure}} -> \code{LeaveOutIn}
+\code{\link[xplainfi:FeatureImportanceMethod]{xplainfi::FeatureImportanceMethod}} -> \code{LeaveOutIn}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -29,8 +29,8 @@ This is an abstract class - use LOCO or LOCI.
 \if{html}{\out{
 <details open><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMeasure" data-id="combine"><a href='../../xplainfi/html/FeatureImportanceMeasure.html#method-FeatureImportanceMeasure-combine'><code>xplainfi::FeatureImportanceMeasure$combine()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMeasure" data-id="print"><a href='../../xplainfi/html/FeatureImportanceMeasure.html#method-FeatureImportanceMeasure-print'><code>xplainfi::FeatureImportanceMeasure$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="combine"><a href='../../xplainfi/html/FeatureImportanceMethod.html#method-FeatureImportanceMethod-combine'><code>xplainfi::FeatureImportanceMethod$combine()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="print"><a href='../../xplainfi/html/FeatureImportanceMethod.html#method-FeatureImportanceMethod-print'><code>xplainfi::FeatureImportanceMethod$print()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -55,7 +55,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task, learner, measure, resampling, features}}{Passed to \code{FeatureImportanceMeasure} for construction.}
+\item{\code{task, learner, measure, resampling, features}}{Passed to \code{FeatureImportanceMethod} for construction.}
 
 \item{\code{direction}}{(\code{character(1)}) Either "leave-out" or "leave-in".}
 

@@ -16,7 +16,7 @@ test_that("ConditionalSAGE can be constructed with simple objects", {
     measure = mlr3::msr("classif.ce"),
     n_permutations = 2L
   )
-  checkmate::expect_r6(sage_binary, c("FeatureImportanceMeasure", "SAGE", "ConditionalSAGE"))
+  checkmate::expect_r6(sage_binary, c("FeatureImportanceMethod", "SAGE", "ConditionalSAGE"))
   expect_importance_dt(sage_binary$compute(), features = sage_binary$features)
 
   # Test with multiclass classification
@@ -28,7 +28,7 @@ test_that("ConditionalSAGE can be constructed with simple objects", {
     measure = mlr3::msr("classif.ce"),
     n_permutations = 2L
   )
-  checkmate::expect_r6(sage_multi, c("FeatureImportanceMeasure", "SAGE", "ConditionalSAGE"))
+  checkmate::expect_r6(sage_multi, c("FeatureImportanceMethod", "SAGE", "ConditionalSAGE"))
   expect_importance_dt(sage_multi$compute(), features = sage_multi$features)
 
   # Test with regression
@@ -40,7 +40,7 @@ test_that("ConditionalSAGE can be constructed with simple objects", {
     measure = mlr3::msr("regr.mse"),
     n_permutations = 2L
   )
-  checkmate::expect_r6(sage_regr, c("FeatureImportanceMeasure", "SAGE", "ConditionalSAGE"))
+  checkmate::expect_r6(sage_regr, c("FeatureImportanceMethod", "SAGE", "ConditionalSAGE"))
   expect_importance_dt(sage_regr$compute(), features = sage_regr$features)
 })
 
@@ -48,7 +48,7 @@ test_that("ConditionalSAGE null result for featureless learner", {
   skip_if_not_installed("arf")
 
   set.seed(123)
-  
+
   # Test with binary classification
   task_binary = mlr3::tgen("xor")$generate(n = 200)
   sage_binary = ConditionalSAGE$new(
@@ -218,7 +218,7 @@ test_that("ConditionalSAGE works with multiclass classification", {
   # Check that scores are finite and not all zero
   expect_true(all(is.finite(result$importance)))
   expect_gt(max(abs(result$importance)), 0)
-  
+
   # Verify task has 4 classes
   expect_equal(length(task$class_names), 4L)
 })

@@ -15,7 +15,7 @@ test_that("MarginalSAGE can be constructed with simple objects", {
     measure = mlr3::msr("classif.ce"),
     n_permutations = 2L
   )
-  checkmate::expect_r6(sage_binary, c("FeatureImportanceMeasure", "SAGE", "MarginalSAGE"))
+  checkmate::expect_r6(sage_binary, c("FeatureImportanceMethod", "SAGE", "MarginalSAGE"))
   expect_importance_dt(sage_binary$compute(), features = sage_binary$features)
 
   # Test with multiclass classification
@@ -27,7 +27,7 @@ test_that("MarginalSAGE can be constructed with simple objects", {
     measure = mlr3::msr("classif.ce"),
     n_permutations = 2L
   )
-  checkmate::expect_r6(sage_multi, c("FeatureImportanceMeasure", "SAGE", "MarginalSAGE"))
+  checkmate::expect_r6(sage_multi, c("FeatureImportanceMethod", "SAGE", "MarginalSAGE"))
   expect_importance_dt(sage_multi$compute(), features = sage_multi$features)
 
   # Test with regression
@@ -39,13 +39,13 @@ test_that("MarginalSAGE can be constructed with simple objects", {
     measure = mlr3::msr("regr.mse"),
     n_permutations = 2L
   )
-  checkmate::expect_r6(sage_regr, c("FeatureImportanceMeasure", "SAGE", "MarginalSAGE"))
+  checkmate::expect_r6(sage_regr, c("FeatureImportanceMethod", "SAGE", "MarginalSAGE"))
   expect_importance_dt(sage_regr$compute(), features = sage_regr$features)
 })
 
 test_that("MarginalSAGE null result for featureless learner", {
   set.seed(123)
-  
+
   # Test with binary classification
   task_binary = mlr3::tgen("xor")$generate(n = 200)
   sage_binary = MarginalSAGE$new(
@@ -133,7 +133,7 @@ test_that("MarginalSAGE with multiple resampling iterations", {
   skip_if_not_installed("mlr3learners")
 
   set.seed(123)
-  
+
   # Test with binary classification
   task_binary = mlr3::tgen("xor")$generate(n = 200)
   sage_binary = MarginalSAGE$new(
@@ -357,7 +357,7 @@ test_that("MarginalSAGE requires predict_type='prob' for classification", {
   # Should work fine for regression
   task_regr = mlr3::tgen("friedman1")$generate(n = 50)
   learner_regr = mlr3::lrn("regr.ranger", num.trees = 10)
-  
+
   expect_silent(
     MarginalSAGE$new(
       task = task_regr,
@@ -390,7 +390,7 @@ test_that("MarginalSAGE works with multiclass classification", {
   # Check that scores are finite and not all zero
   expect_true(all(is.finite(result$importance)))
   expect_gt(max(abs(result$importance)), 0)
-  
+
   # Verify task has 3 classes
   expect_equal(length(task$class_names), 3L)
 })

@@ -7,14 +7,14 @@
 #' @keywords internal
 LeaveOutIn = R6Class(
   "LeaveOutIn",
-  inherit = FeatureImportanceMeasure,
+  inherit = FeatureImportanceMethod,
   public = list(
     #' @field direction (`character(1)`) Either "leave-out" or "leave-in".
     direction = NULL,
 
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
-    #' @param task,learner,measure,resampling,features Passed to `FeatureImportanceMeasure` for construction.
+    #' @param task,learner,measure,resampling,features Passed to `FeatureImportanceMethod` for construction.
     #' @param direction (`character(1)`) Either "leave-out" or "leave-in".
     #' @param label (`character(1)`) Method label.
     #' @param iters_refit (`integer(1)`) Number of refit iterations per resampling iteration.

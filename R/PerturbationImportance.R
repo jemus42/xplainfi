@@ -5,14 +5,14 @@
 #' @export
 PerturbationImportance = R6Class(
   "PerturbationImportance",
-  inherit = FeatureImportanceMeasure, # Inherit from existing base class
+  inherit = FeatureImportanceMethod, # Inherit from existing base class
   public = list(
     #' @field sampler ([FeatureSampler]) Sampler object for feature perturbation
     sampler = NULL,
 
     #' @description
     #' Creates a new instance of the PerturbationImportance class
-    #' @param task,learner,measure,resampling,features Passed to FeatureImportanceMeasure
+    #' @param task,learner,measure,resampling,features Passed to FeatureImportanceMethod
     #' @param sampler ([FeatureSampler]) Sampler to use for feature perturbation
     initialize = function(
       task,

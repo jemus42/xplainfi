@@ -1,8 +1,8 @@
-#' Feature Importance Learner Class
+#' Feature Importance Method Class
 #'
 #' @export
-FeatureImportanceMeasure = R6Class(
-  "FeatureImportanceMeasure",
+FeatureImportanceMethod = R6Class(
+  "FeatureImportanceMethod",
   public = list(
     #' @field label (`character(1)`) Method label.
     label = NA_character_,
@@ -63,19 +63,19 @@ FeatureImportanceMeasure = R6Class(
     },
 
     #' @description
-    #' Combine two `FeatureImportanceMeasure` objects with computed scores.
+    #' Combine two `FeatureImportanceMethod` objects with computed scores.
     #'
-    #' @param y ([FeatureImportanceMeasure]) Object to combine. Must have computed scores.
+    #' @param y ([FeatureImportanceMethod]) Object to combine. Must have computed scores.
     #' @param ... (any) Unused.
-    #' @return A new [FeatureImportanceMeasure] of the same subclass as `x` and `y`.
+    #' @return A new [FeatureImportanceMethod] of the same subclass as `x` and `y`.
     #' Currently this method merges the following:
     #' - `$scores` is combined, with `iter_rsmp` increased for `y`.
     #' - `$importance` is re-computed from the combined `$scores`.
     #' - `$resample_result` is combined to a [mlr3::BenchmarkResult]
     #' - `$resampling` is combined into a [mlr3::ResamplingCustom], again continuing te `iteration` count from `x` with that of `y`.
     combine = function(y, ...) {
-      checkmate::assert_class(self, classes = "FeatureImportanceMeasure")
-      checkmate::assert_class(y, classes = "FeatureImportanceMeasure")
+      checkmate::assert_class(self, classes = "FeatureImportanceMethod")
+      checkmate::assert_class(y, classes = "FeatureImportanceMethod")
       checkmate::assert_true(class(self)[[1]] == class(y)[[1]], .var.name = "Identical subclasses")
       checkmate::assert_data_table(self$importance, key = "feature")
       checkmate::assert_data_table(y$importance, key = "feature")

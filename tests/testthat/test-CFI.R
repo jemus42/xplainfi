@@ -16,7 +16,7 @@ test_that("CFI can be constructed with simple objects", {
     measure = mlr3::msr("classif.ce")
   )
 
-  checkmate::expect_r6(cfi, c("FeatureImportanceMeasure", "PerturbationImportance", "CFI"))
+  checkmate::expect_r6(cfi, c("FeatureImportanceMethod", "PerturbationImportance", "CFI"))
 
   expect_importance_dt(cfi$compute(), features = cfi$features)
   expect_importance_dt(cfi$compute(relation = "difference"), features = cfi$features)

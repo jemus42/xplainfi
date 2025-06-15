@@ -13,7 +13,7 @@ test_that("LeaveOutIn base class works correctly", {
     label = "test"
   )
 
-  checkmate::expect_r6(loi, c("FeatureImportanceMeasure", "LeaveOutIn"))
+  checkmate::expect_r6(loi, c("FeatureImportanceMethod", "LeaveOutIn"))
   expect_equal(loi$direction, "leave-out")
 
   # Should be able to compute
@@ -37,7 +37,7 @@ test_that("LOCO can be constructed with simple objects", {
     measure = mlr3::msr("classif.ce")
   )
 
-  checkmate::expect_r6(loco, c("FeatureImportanceMeasure", "LeaveOutIn", "LOCO"))
+  checkmate::expect_r6(loco, c("FeatureImportanceMethod", "LeaveOutIn", "LOCO"))
   expect_equal(loco$direction, "leave-out")
   expect_equal(loco$label, "Leave-One-Covariate-Out (LOCO)")
 
@@ -61,7 +61,7 @@ test_that("LOCI can be constructed with simple objects", {
     measure = mlr3::msr("classif.ce")
   )
 
-  checkmate::expect_r6(loci, c("FeatureImportanceMeasure", "LeaveOutIn", "LOCI"))
+  checkmate::expect_r6(loci, c("FeatureImportanceMethod", "LeaveOutIn", "LOCI"))
   expect_equal(loci$direction, "leave-in")
   expect_equal(loci$label, "Leave-One-Covariate-In (LOCI)")
 
@@ -399,40 +399,40 @@ test_that("LOCO/LOCI with multiple refits (iters_refit)", {
 test_that("LOCI uses featureless baseline", {
   skip_if_not_installed("ranger")
   skip_if_not_installed("mlr3learners")
-  
+
   set.seed(123)
   task = mlr3::tgen("friedman1")$generate(n = 100)
-  
+
   # Create a simple feature that's very predictive
   task$cbind(data.frame(perfect_feature = task$data()[[task$target_names]]))
-  
+
   loci = LOCI$new(
     task = task,
     learner = mlr3::lrn("regr.ranger", num.trees = 10),
     measure = mlr3::msr("regr.mse"),
     features = "perfect_feature"
   )
-  
+
   loci$compute()
-  
+
   # A perfect feature should have very positive LOCI value
   # (much better than featureless baseline)
   expect_gt(loci$importance$importance, 15)
-  
+
   # Now test with a useless feature
   set.seed(123)
   task2 = mlr3::tgen("friedman1")$generate(n = 100)
   task2$cbind(data.frame(random_feature = rnorm(100)))
-  
+
   loci2 = LOCI$new(
     task = task2,
     learner = mlr3::lrn("regr.ranger", num.trees = 10),
     measure = mlr3::msr("regr.mse"),
     features = "random_feature"
   )
-  
+
   loci2$compute()
-  
+
   # A random feature should perform similar to or worse than featureless baseline
   # (LOCI value near 0 or negative)
   expect_gt(loci2$importance$importance, -20)

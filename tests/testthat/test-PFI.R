@@ -15,7 +15,7 @@ test_that("can be constructed with simple objects", {
     measure = mlr3::msr("classif.ce")
   )
 
-  checkmate::expect_r6(pfi, c("FeatureImportanceMeasure", "PFI"))
+  checkmate::expect_r6(pfi, c("FeatureImportanceMethod", "PFI"))
 
   expect_importance_dt(pfi$compute(), features = pfi$features)
   expect_importance_dt(pfi$compute(relation = "difference"), features = pfi$features)

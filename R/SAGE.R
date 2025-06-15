@@ -18,7 +18,7 @@
 #' @export
 SAGE = R6Class(
   "SAGE",
-  inherit = FeatureImportanceMeasure,
+  inherit = FeatureImportanceMethod,
   public = list(
     #' @field n_permutations (integer(1)) Number of permutations to sample.
     n_permutations = NULL,
@@ -29,7 +29,7 @@ SAGE = R6Class(
 
     #' @description
     #' Creates a new instance of the SAGE class.
-    #' @param task,learner,measure,resampling,features Passed to FeatureImportanceMeasure.
+    #' @param task,learner,measure,resampling,features Passed to FeatureImportanceMethod.
     #' @param n_permutations (integer(1)) Number of permutations to sample for Shapley value estimation.
     #' @param reference_data (data.table) Optional reference dataset. If NULL, uses training data.
     #' @param sampler ([FeatureSampler]) Sampler for marginalization.
@@ -266,11 +266,11 @@ SAGE = R6Class(
         # Add each class probability as a separate column
         n_classes = ncol(all_predictions)
         class_names = colnames(all_predictions)
-        
+
         for (j in seq_len(n_classes)) {
           combined_data[, paste0(".pred_class_", j) := all_predictions[, j]]
         }
-        
+
         # Aggregate: mean probability per class per test instance per coalition
         agg_cols = paste0(".pred_class_", seq_len(n_classes))
         avg_preds_by_coalition = combined_data[,
@@ -278,13 +278,13 @@ SAGE = R6Class(
           .SDcols = agg_cols,
           by = .(.coalition_id, .test_instance_id)
         ]
-        
+
         # Rename columns to class names
         setnames(avg_preds_by_coalition, agg_cols, class_names)
       } else {
         # For regression, keep the simple approach
         combined_data[, .prediction := all_predictions]
-        
+
         # Aggregate: mean prediction per test instance per coalition
         avg_preds_by_coalition = combined_data[,
           .(
@@ -304,7 +304,7 @@ SAGE = R6Class(
           # For classification, extract the probability matrix
           class_names = self$task$class_names
           prob_matrix = as.matrix(coalition_data[, .SD, .SDcols = class_names])
-          
+
           pred_obj = PredictionClassif$new(
             row_ids = seq_len(n_test),
             truth = test_dt[[self$task$target_names]],
