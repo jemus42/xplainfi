@@ -5,7 +5,7 @@ authors:
     href: https://lukasburk.de
 
 home:
-  title: xplainfi: Feature importance methods
+  title: "xplainfi: Feature importance methods"
   description: >
     Common feature importance methods implemented in R and built around the mlr3 ecosystem.
 
