@@ -15,7 +15,7 @@
 <url><loc>https://jemus42.github.io/xplainfi/reference/CFI.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/ConditionalSAGE.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/ConditionalSampler.html</loc></url>
-<url><loc>https://jemus42.github.io/xplainfi/reference/FeatureImportanceMeasure.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/reference/FeatureImportanceMethod.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/FeatureSampler.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/LOCI.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/LOCO.html</loc></url>
@@ -26,7 +26,7 @@
 <url><loc>https://jemus42.github.io/xplainfi/reference/PerturbationImportance.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/RFI.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/SAGE.html</loc></url>
-<url><loc>https://jemus42.github.io/xplainfi/reference/c.FeatureImportanceMeasure.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/reference/c.FeatureImportanceMethod.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/compute_score.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/index.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/op-null-default.html</loc></url>
