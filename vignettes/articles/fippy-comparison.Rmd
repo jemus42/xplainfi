@@ -198,7 +198,7 @@ kable(
 
 melt(correlations, id.vars = "method") |>
   ggplot(aes(x = reorder(method, value), y = value)) +
-    facet_wrap(vars(variable), ncol = 1) +
+    facet_wrap(vars(variable), ncol = 1, labeller = as_labeller(c(correlation = "Pearson's", correlation_spearman = "Spearman's"))) +
     geom_col(fill = "steelblue", alpha = 0.7) +
     geom_hline(yintercept = c(0.5, 1), linetype = "dashed", color = "red", alpha = 0.7) +
     coord_flip() +
@@ -206,59 +206,11 @@ melt(correlations, id.vars = "method") |>
       title = "Implementation Correlations",
       subtitle = "xplainfi (R) vs fippy (Python)",
       x = "Method",
-      y = "Pearson Correlation",
-      caption = "Dashed line at r = 1"
+      y = "Correlation"
     ) +
-    theme_minimal() +
-    ylim(0, 1)
-
+    theme_minimal(base_size = 14) +
+    theme(
+      plot.title.position = "plot"
+    )
 
 ```
-
-## Technical Notes
-
-### fippy Installation and Bug Fix
-
-This comparison uses uv's script dependency feature for portable execution. The Python script automatically installs fippy from GitHub with a fix for RFI calculations:
-
-```python
-# /// script
-# requires-python = ">=3.8"  
-# dependencies = [
-#     "fippy @ git+https://github.com/jemus42/fippy.git@fix-rfi-to-numpy-bug",
-# ]
-# ///
-```
-
-The fix addresses an `AttributeError: 'float' object has no attribute 'to_numpy'` that occurred when loss functions returned scalar values. No manual environment setup is required - uv handles all dependencies automatically.
-
-### API Differences
-
-Key differences between implementations:
-
-1. **RFI Conditioning**: fippy uses `explainer.rfi(conditioning_set, X, y)` with conditioning set as first parameter
-2. **SAGE Parameters**: fippy uses `n_permutations` rather than `n_coalitions`
-3. **Sampler Setup**: fippy requires explicit `GaussianSampler(X_train)` initialization
-
-### Methodological Validation
-
-High correlations (r > 0.9) between implementations indicate:
-- Consistent algorithmic implementations across languages
-- Proper handling of random seeds and data splits
-- Valid cross-language validation of methods
-
-Lower correlations may indicate:
-- Different sampling strategies or implementation details
-- Stochastic variation in methods like SAGE
-- Numerical precision differences between R and Python
-
-## Conclusion
-
-This comparison provides automated regression testing for xplainfi's feature importance methods against an independent Python implementation. Regular execution of this comparison helps ensure:
-
-1. **Methodological consistency** across language implementations
-2. **Regression detection** when changes are made to xplainfi
-3. **Cross-validation** of algorithmic correctness
-4. **Documentation** of expected behavior and performance
-
-The comparison framework can be extended to include additional methods as they are implemented in both packages.
