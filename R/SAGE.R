@@ -56,6 +56,16 @@ SAGE = R6Class(
 
       self$n_permutations = checkmate::assert_int(n_permutations, lower = 1L)
 
+      # For classification tasks, require predict_type = "prob"
+      if (self$task$task_type == "classif") {
+        if (learner$predict_type != "prob") {
+          cli::cli_abort(c(
+            "Classification learners must use predict_type = 'prob' for SAGE.",
+            "i" = "Please set learner$predict_type = 'prob' before using SAGE."
+          ))
+        }
+      }
+
       # Store sampler
       if (!is.null(sampler)) {
         self$sampler = sampler
@@ -232,26 +242,15 @@ SAGE = R6Class(
 
       # Extract predictions
       if (self$task$task_type == "classif") {
-        if (learner$predict_type == "prob") {
-          if (ncol(pred_result$prob) == 2) {
-            all_predictions = pred_result$prob[, self$task$positive]
-            # Handle any NAs in probability predictions
-            all_predictions[is.na(all_predictions)] = 0.5
-          } else {
-            stop("Multiclass classification not yet fully supported in SAGE")
-          }
-        } else {
-          # For classification with response predictions
-          if (length(self$task$class_names) == 2) {
-            # Binary classification - convert to 0/1
-            all_predictions = as.numeric(pred_result$response == self$task$positive)
-            # Replace NAs with 0.5 (neutral probability for classification)
-            all_predictions[is.na(all_predictions)] = 0.5
-          } else {
-            # Multiclass classification - not yet fully supported, use neutral score
-            stop(
-              "Multiclass classification with response predictions not yet supported in SAGE. Use predict_type = 'prob' instead."
-            )
+        # We now enforce predict_type = "prob" for classification
+        # For classification, we need to store the full probability matrix
+        all_predictions = pred_result$prob
+        # Handle any NAs in probability predictions by replacing with uniform probabilities
+        if (any(is.na(all_predictions))) {
+          n_classes = ncol(all_predictions)
+          uniform_prob = 1 / n_classes
+          for (j in seq_len(n_classes)) {
+            all_predictions[is.na(all_predictions[, j]), j] = uniform_prob
           }
         }
       } else {
@@ -262,65 +261,60 @@ SAGE = R6Class(
       }
 
       # Add predictions and aggregate by coalition and test instance
-      combined_data[, .prediction := all_predictions]
-
-      # Aggregate: mean prediction per test instance per coalition
-      # Now all predictions are numeric (probabilities or 0/1 for classification, values for regression)
-      # Use na.rm = TRUE to handle any remaining NAs in the aggregation
-      avg_preds_by_coalition = combined_data[,
-        .(
-          avg_pred = mean(.prediction, na.rm = TRUE)
-        ),
-        by = .(.coalition_id, .test_instance_id)
-      ]
+      if (self$task$task_type == "classif") {
+        # For classification, we need to handle matrix predictions differently
+        # Add each class probability as a separate column
+        n_classes = ncol(all_predictions)
+        class_names = colnames(all_predictions)
+        
+        for (j in seq_len(n_classes)) {
+          combined_data[, paste0(".pred_class_", j) := all_predictions[, j]]
+        }
+        
+        # Aggregate: mean probability per class per test instance per coalition
+        agg_cols = paste0(".pred_class_", seq_len(n_classes))
+        avg_preds_by_coalition = combined_data[,
+          lapply(.SD, function(x) mean(x, na.rm = TRUE)),
+          .SDcols = agg_cols,
+          by = .(.coalition_id, .test_instance_id)
+        ]
+        
+        # Rename columns to class names
+        setnames(avg_preds_by_coalition, agg_cols, class_names)
+      } else {
+        # For regression, keep the simple approach
+        combined_data[, .prediction := all_predictions]
+        
+        # Aggregate: mean prediction per test instance per coalition
+        avg_preds_by_coalition = combined_data[,
+          .(
+            avg_pred = mean(.prediction, na.rm = TRUE)
+          ),
+          by = .(.coalition_id, .test_instance_id)
+        ]
+      }
 
       # Calculate loss for each coalition
       coalition_losses = numeric(n_coalitions)
       for (i in seq_len(n_coalitions)) {
-        coalition_preds = avg_preds_by_coalition[.coalition_id == i]$avg_pred
+        coalition_data = avg_preds_by_coalition[.coalition_id == i]
 
         # Create prediction object and calculate loss
         if (self$task$task_type == "classif") {
-          if (learner$predict_type == "prob") {
-            # coalition_preds contains probabilities for positive class
-            pred_obj = PredictionClassif$new(
-              row_ids = seq_len(n_test),
-              truth = test_dt[[self$task$target_names]],
-              prob = matrix(
-                c(1 - coalition_preds, coalition_preds),
-                ncol = 2,
-                dimnames = list(NULL, self$task$class_names)
-              )
-            )
-          } else {
-            # This should only happen for binary classification with response predictions
-            if (length(self$task$class_names) == 2) {
-              # coalition_preds contains averaged 0/1 values, convert back to factor responses
-              # Handle NAs by replacing them with 0.5 (neutral probability)
-              coalition_preds[is.na(coalition_preds)] = 0.5
-
-              # Additional safeguard: ensure coalition_preds is finite
-              coalition_preds[!is.finite(coalition_preds)] = 0.5
-
-              pred_responses = factor(
-                ifelse(coalition_preds >= 0.5, self$task$positive, self$task$negative),
-                levels = self$task$class_names
-              )
-
-              pred_obj = PredictionClassif$new(
-                row_ids = seq_len(n_test),
-                truth = test_dt[[self$task$target_names]],
-                response = pred_responses
-              )
-            } else {
-              stop("Multiclass classification with response predictions not supported")
-            }
-          }
+          # For classification, extract the probability matrix
+          class_names = self$task$class_names
+          prob_matrix = as.matrix(coalition_data[, .SD, .SDcols = class_names])
+          
+          pred_obj = PredictionClassif$new(
+            row_ids = seq_len(n_test),
+            truth = test_dt[[self$task$target_names]],
+            prob = prob_matrix
+          )
         } else {
           pred_obj = PredictionRegr$new(
             row_ids = seq_len(n_test),
             truth = test_dt[[self$task$target_names]],
-            response = coalition_preds
+            response = coalition_data$avg_pred
           )
         }
 
