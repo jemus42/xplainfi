@@ -154,6 +154,11 @@ ARFSampler = R6Class(
         )
       }
 
+      # Register sequential backend in an attempt to silence foreach warning
+      if (!foreach::getDoParRegistered()) {
+        foreach::registerDoSEQ()
+      }
+
       # Fit ARF model on the task data, features only
       task_data = self$task$data(cols = self$task$feature_names)
 
