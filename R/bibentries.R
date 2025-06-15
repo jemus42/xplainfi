@@ -55,5 +55,28 @@ bibentries = c(
     pages = "5357--5375",
     publisher = "PMLR",
     url = "https://proceedings.mlr.press/v206/watson23a.html"
+  ),
+
+  breiman_2001 = bibentry(
+    "article",
+    title = "Random Forests",
+    author = "Breiman, Leo",
+    year = "2001",
+    journal = "Machine Learning",
+    volume = "45",
+    number = "1",
+    pages = "5--32",
+    doi = "10.1023/A:1010933404324"
+  ),
+
+  fisher_2019 = bibentry(
+    "article",
+    title = "All Models Are Wrong, but Many Are Useful: Learning a Variable's Importance by Studying an Entire Class of Prediction Models Simultaneously",
+    author = "Fisher, Aaron and Rudin, Cynthia and Dominici, Francesca",
+    year = "2019",
+    journal = "Journal of Machine Learning Research",
+    volume = "20",
+    pages = "177",
+    url = "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8323609/"
   )
 )

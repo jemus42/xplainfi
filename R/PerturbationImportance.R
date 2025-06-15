@@ -40,7 +40,23 @@ PerturbationImportance = R6Class(
 
 #' @title Permutation Feature Importance
 #'
-#' @description Implementation of PFI using modular sampling approach
+#' @description
+#' Implementation of Permutation Feature Importance (PFI) using modular sampling approach.
+#' PFI measures the importance of a feature by calculating the increase in model error
+#' when the feature's values are randomly permuted, breaking the relationship between
+#' the feature and the target variable.
+#'
+#' @details
+#' Permutation Feature Importance was originally introduced by Breiman (2001) as part of
+#' the Random Forest algorithm. The method works by:
+#' 1. Computing baseline model performance on the original dataset
+#' 2. For each feature, randomly permuting its values while keeping other features unchanged
+#' 3. Computing model performance on the permuted dataset
+#' 4. Calculating importance as the difference (or ratio) between permuted and original performance
+#'
+#' @references
+#' `r print_bib("breiman_2001")`
+#' `r print_bib("fisher_2019")`
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
 #' library(mlr3)

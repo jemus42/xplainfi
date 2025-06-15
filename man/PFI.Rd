@@ -4,7 +4,20 @@
 \alias{PFI}
 \title{Permutation Feature Importance}
 \description{
-Implementation of PFI using modular sampling approach
+Implementation of Permutation Feature Importance (PFI) using modular sampling approach.
+PFI measures the importance of a feature by calculating the increase in model error
+when the feature's values are randomly permuted, breaking the relationship between
+the feature and the target variable.
+}
+\details{
+Permutation Feature Importance was originally introduced by Breiman (2001) as part of
+the Random Forest algorithm. The method works by:
+\enumerate{
+\item Computing baseline model performance on the original dataset
+\item For each feature, randomly permuting its values while keeping other features unchanged
+\item Computing model performance on the permuted dataset
+\item Calculating importance as the difference (or ratio) between permuted and original performance
+}
 }
 \examples{
 \dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
@@ -19,6 +32,16 @@ pfi = PFI$new(
 )
 pfi$compute()
 \dontshow{\}) # examplesIf}
+}
+\references{
+Breiman, Leo (2001).
+\dQuote{Random Forests.}
+\emph{Machine Learning}, \bold{45}(1), 5--32.
+\doi{10.1023/A:1010933404324}.
+Fisher, Aaron, Rudin, Cynthia, Dominici, Francesca (2019).
+\dQuote{All Models Are Wrong, but Many Are Useful: Learning a Variable's Importance by Studying an Entire Class of Prediction Models Simultaneously.}
+\emph{Journal of Machine Learning Research}, \bold{20}, 177.
+\url{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8323609/}.
 }
 \section{Super classes}{
 \code{\link[xplainfi:FeatureImportanceMeasure]{xplainfi::FeatureImportanceMeasure}} -> \code{\link[xplainfi:PerturbationImportance]{xplainfi::PerturbationImportance}} -> \code{PFI}
