@@ -14,13 +14,17 @@ PerturbationImportance = R6Class(
     #' Creates a new instance of the PerturbationImportance class
     #' @param task,learner,measure,resampling,features Passed to FeatureImportanceMethod
     #' @param sampler ([FeatureSampler]) Sampler to use for feature perturbation
+    #' @param relation (character(1)) How to relate perturbed scores to originals. Can be overridden in `$compute()`.
+    #' @param iters_perm (integer(1)) Number of permutation iterations. Can be overridden in `$compute()`.
     initialize = function(
       task,
       learner,
       measure,
       resampling = NULL,
       features = NULL,
-      sampler = NULL
+      sampler = NULL,
+      relation = "difference",
+      iters_perm = 1L
     ) {
       super$initialize(
         task = task,
@@ -33,12 +37,36 @@ PerturbationImportance = R6Class(
 
       # If no sampler is provided, create a default one (implementation dependent)
       self$sampler = sampler
+
+      # Set up common parameters for all perturbation-based methods
+      ps = paradox::ps(
+        relation = paradox::p_fct(c("difference", "ratio"), default = "difference"),
+        iters_perm = paradox::p_int(lower = 1, default = 1)
+      )
+
+      ps$values$relation = relation
+      ps$values$iters_perm = iters_perm
+
+      self$param_set = ps
     }
   ),
 
   private = list(
     # Common computation method for all perturbation-based methods
-    .compute_perturbation_importance = function(relation = "difference", store_backends = TRUE) {
+    .compute_perturbation_importance = function(
+      relation = NULL,
+      iters_perm = NULL,
+      store_backends = TRUE,
+      sampler = NULL,
+      cfi_mode = FALSE
+    ) {
+      # Use provided sampler or default to self$sampler
+      sampler = sampler %||% self$sampler
+
+      # Use hierarchical parameter resolution
+      relation = resolve_param(relation, self$param_set$values$relation, "difference")
+      iters_perm = resolve_param(iters_perm, self$param_set$values$iters_perm, 1L)
+
       relation = match.arg(relation, c("difference", "ratio"))
 
       # Check if already computed with this relation
@@ -63,10 +91,43 @@ PerturbationImportance = R6Class(
 
       # Compute permuted scores
       scores = lapply(seq_len(self$resampling$iters), \(iter) {
-        private$.compute_permuted_score(
-          learner = rr$learners[[iter]],
-          test_dt = self$task$data(rows = rr$resampling$test_set(iter)),
-          iters_perm = self$param_set$values$iters_perm
+        test_dt = self$task$data(rows = rr$resampling$test_set(iter))
+
+        rbindlist(
+          lapply(seq_len(iters_perm), \(iter_perm) {
+            scores_post = vapply(
+              self$features,
+              \(feature) {
+                # For CFI, set conditioning to all other features; for others, use sampler as-is
+                if (cfi_mode && inherits(sampler, "ConditionalSampler")) {
+                  conditioning_set = setdiff(self$task$feature_names, feature)
+                  perturbed_data = sampler$sample(
+                    feature,
+                    test_dt,
+                    conditioning_set = conditioning_set
+                  )
+                } else {
+                  perturbed_data = sampler$sample(feature, test_dt)
+                }
+
+                # Predict and score
+                pred = rr$learners[[iter]]$predict_newdata(
+                  newdata = perturbed_data,
+                  task = self$task
+                )
+                score = pred$score(self$measure)
+                names(score) = feature
+                score
+              },
+              FUN.VALUE = numeric(1)
+            )
+
+            data.table(
+              feature = names(scores_post),
+              iter_perm = iter_perm,
+              scores_post = unname(scores_post)
+            )
+          })
         )
       })
 
@@ -103,33 +164,6 @@ PerturbationImportance = R6Class(
       self$importance = scores_agg
 
       copy(self$importance)
-    },
-
-    .compute_permuted_score = function(learner, test_dt, iters_perm = 1) {
-      rbindlist(
-        lapply(seq_len(iters_perm), \(iter) {
-          scores_post = vapply(
-            self$features,
-            \(feature) {
-              # Use the sampler to permute the feature
-              perturbed_data = self$sampler$sample(feature, test_dt)
-
-              # Predict and score
-              pred = learner$predict_newdata(newdata = perturbed_data, task = self$task)
-              score = pred$score(self$measure)
-              names(score) = feature
-              score
-            },
-            FUN.VALUE = numeric(1)
-          )
-
-          data.table(
-            feature = names(scores_post),
-            iter_perm = iter,
-            scores_post = unname(scores_post)
-          )
-        })
-      )
     }
   )
 )
@@ -174,13 +208,15 @@ PFI = R6Class(
     #' @description
     #' Creates a new instance of the PFI class
     #' @param task,learner,measure,resampling,features Passed to PerturbationImportance
-    #' @param iters_perm (integer(1)) Number of permutation iterations
+    #' @param relation (character(1)) How to relate perturbed scores to originals. Can be overridden in `$compute()`.
+    #' @param iters_perm (integer(1)) Number of permutation iterations. Can be overridden in `$compute()`.
     initialize = function(
       task,
       learner,
       measure,
       resampling = NULL,
       features = NULL,
+      relation = "difference",
       iters_perm = 1L
     ) {
       # Create a marginal sampler for PFI
@@ -192,56 +228,26 @@ PFI = R6Class(
         measure = measure,
         resampling = resampling,
         features = features,
-        sampler = sampler
+        sampler = sampler,
+        relation = relation,
+        iters_perm = iters_perm
       )
 
-      # Set parameters
-      ps = ps(
-        relation = paradox::p_fct(c("difference", "ratio"), default = "difference"),
-        iters_perm = paradox::p_int(lower = 1, default = 1)
-      )
-
-      ps$values$relation = "difference"
-      ps$values$iters_perm = iters_perm
-
-      self$param_set = ps
       self$label = "Permutation Feature Importance"
     },
 
     #' @description
     #' Compute PFI scores
-    #' @param relation (character(1)) How to relate perturbed scores to originals
+    #' @param relation (character(1)) How to relate perturbed scores to originals. If `NULL`, uses stored value.
+    #' @param iters_perm (integer(1)) Number of permutation iterations. If `NULL`, uses stored value.
     #' @param store_backends (logical(1)) Whether to store backends
-    compute = function(relation = c("difference", "ratio"), store_backends = TRUE) {
-      private$.compute_perturbation_importance(relation = relation, store_backends = store_backends)
-    }
-  ),
-
-  private = list(
-    .compute_permuted_score = function(learner, test_dt, iters_perm = 1) {
-      rbindlist(
-        lapply(seq_len(iters_perm), \(iter) {
-          scores_post = vapply(
-            self$features,
-            \(feature) {
-              # Use the sampler to permute the feature
-              perturbed_data = self$sampler$sample(feature, test_dt)
-
-              # Predict and score
-              pred = learner$predict_newdata(newdata = perturbed_data, task = self$task)
-              score = pred$score(self$measure)
-              names(score) = feature
-              score
-            },
-            FUN.VALUE = numeric(1)
-          )
-
-          data.table(
-            feature = names(scores_post),
-            iter_perm = iter,
-            scores_post = scores_post
-          )
-        })
+    compute = function(relation = NULL, iters_perm = NULL, store_backends = TRUE) {
+      # PFI uses the MarginalSampler directly
+      private$.compute_perturbation_importance(
+        relation = relation,
+        iters_perm = iters_perm,
+        store_backends = store_backends,
+        sampler = self$sampler
       )
     }
   )
@@ -270,7 +276,8 @@ CFI = R6Class(
     #' @description
     #' Creates a new instance of the CFI class
     #' @param task,learner,measure,resampling,features Passed to `PerturbationImportance`.
-    #' @param iters_perm (integer(1)) Number of sampling iterations.
+    #' @param relation (character(1)) How to relate perturbed scores to originals. Can be overridden in `$compute()`.
+    #' @param iters_perm (integer(1)) Number of sampling iterations. Can be overridden in `$compute()`.
     #' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to instantiationg `ARFSampler` internally with default parameters.
     initialize = function(
       task,
@@ -278,6 +285,7 @@ CFI = R6Class(
       measure,
       resampling = NULL,
       features = NULL,
+      relation = "difference",
       iters_perm = 1L,
       sampler = NULL
     ) {
@@ -292,62 +300,27 @@ CFI = R6Class(
         measure = measure,
         resampling = resampling,
         features = features,
-        sampler = sampler
+        sampler = sampler,
+        relation = relation,
+        iters_perm = iters_perm
       )
 
-      # Set parameters
-      ps = ps(
-        relation = paradox::p_fct(c("difference", "ratio"), default = "difference"),
-        iters_perm = paradox::p_int(lower = 1, default = 1)
-      )
-
-      ps$values$relation = "difference"
-      ps$values$iters_perm = iters_perm
-
-      self$param_set = ps
       self$label = "Conditional Feature Importance"
     },
 
     #' @description
     #' Compute CFI scores
-    #' @param relation (character(1)) How to relate perturbed scores to originals
+    #' @param relation (character(1)) How to relate perturbed scores to originals. If `NULL`, uses stored value.
+    #' @param iters_perm (integer(1)) Number of permutation iterations. If `NULL`, uses stored value.
     #' @param store_backends (logical(1)) Whether to store backends
-    compute = function(relation = c("difference", "ratio"), store_backends = TRUE) {
-      # Uses conditional sampling via the supplied sampler
-      private$.compute_perturbation_importance(relation = relation, store_backends = store_backends)
-    }
-  ),
-
-  private = list(
-    .compute_permuted_score = function(learner, test_dt, iters_perm = 1) {
-      rbindlist(
-        lapply(seq_len(iters_perm), \(iter) {
-          scores_post = vapply(
-            self$features,
-            \(feature) {
-              # Use the conditional sampler to perturb the feature
-              perturbed_data = self$sampler$sample(
-                feature,
-                test_dt,
-                # For CFI, we condition on all other features
-                conditioning_features = setdiff(self$task$feature_names, feature)
-              )
-
-              # Predict and score
-              pred = learner$predict_newdata(newdata = perturbed_data, task = self$task)
-              score = pred$score(self$measure)
-              names(score) = feature
-              score
-            },
-            FUN.VALUE = numeric(1)
-          )
-
-          data.table(
-            feature = names(scores_post),
-            iter_perm = iter,
-            scores_post = scores_post
-          )
-        })
+    compute = function(relation = NULL, iters_perm = NULL, store_backends = TRUE) {
+      # CFI explicitly conditions on all other features for each feature being sampled
+      private$.compute_perturbation_importance(
+        relation = relation,
+        iters_perm = iters_perm,
+        store_backends = store_backends,
+        sampler = self$sampler,
+        cfi_mode = TRUE
       )
     }
   )
@@ -374,14 +347,13 @@ RFI = R6Class(
   "RFI",
   inherit = PerturbationImportance,
   public = list(
-    #' @field conditioning_set ([character()]) Features to condition on
-    conditioning_set = NULL,
-
     #' @description
     #' Creates a new instance of the RFI class
     #' @param task,learner,measure,resampling,features Passed to PerturbationImportance
-    #' @param conditioning_set ([character()]) Set of features to condition on
-    #' @param iters_perm (integer(1)) Number of permutation iterations
+    #' @param conditioning_set ([character()]) Set of features to condition on. Can be overridden in `$compute()`.
+    #'   Default (`character(0)`) is equivalent to `PFI`. In `CFI`, this would be set to all features except tat of interest.
+    #' @param relation (character(1)) How to relate perturbed scores to originals. Can be overridden in `$compute()`.
+    #' @param iters_perm (integer(1)) Number of permutation iterations. Can be overridden in `$compute()`.
     #' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to ARFSampler
     initialize = function(
       task,
@@ -390,10 +362,11 @@ RFI = R6Class(
       resampling = NULL,
       features = NULL,
       conditioning_set = NULL,
+      relation = "difference",
       iters_perm = 1L,
       sampler = NULL
     ) {
-      # Use ARFSampler by default for RFI (RelativeSampler inherits from ConditionalSampler)
+      # Use ARFSampler by default for RFI
       if (is.null(sampler)) {
         sampler = ARFSampler$new(task)
       }
@@ -404,69 +377,70 @@ RFI = R6Class(
         measure = measure,
         resampling = resampling,
         features = features,
-        sampler = sampler
+        sampler = sampler,
+        relation = relation,
+        iters_perm = iters_perm
       )
 
-      # Validate and store conditioning set
+      # Validate and set up conditioning set after task is available
       if (!is.null(conditioning_set)) {
-        self$conditioning_set = checkmate::assert_subset(conditioning_set, self$task$feature_names)
+        conditioning_set = checkmate::assert_subset(conditioning_set, self$task$feature_names)
       } else {
         # Default to empty set (equivalent to PFI)
-        self$conditioning_set = character(0)
+        conditioning_set = character(0)
       }
 
-      # Set parameters
-      ps = ps(
+      # Configure the sampler with the conditioning_set
+      self$sampler$param_set$values$conditioning_set = conditioning_set
+
+      # Create extended param_set for RFI with conditioning_set parameter
+      rfi_ps = paradox::ps(
         relation = paradox::p_fct(c("difference", "ratio"), default = "difference"),
-        iters_perm = paradox::p_int(lower = 1, default = 1)
+        iters_perm = paradox::p_int(lower = 1, default = 1),
+        conditioning_set = paradox::p_uty(default = character(0))
       )
 
-      ps$values$relation = "difference"
-      ps$values$iters_perm = iters_perm
+      # Set values from base param_set and add conditioning_set
+      rfi_ps$values$relation = self$param_set$values$relation
+      rfi_ps$values$iters_perm = self$param_set$values$iters_perm
+      rfi_ps$values$conditioning_set = conditioning_set
 
-      self$param_set = ps
+      self$param_set = rfi_ps
+
       self$label = "Relative Feature Importance"
     },
 
     #' @description
     #' Compute RFI scores
-    #' @param relation (character(1)) How to relate perturbed scores to originals
+    #' @param relation (character(1)) How to relate perturbed scores to originals. If `NULL`, uses stored value.
+    #' @param conditioning_set ([character()]) Set of features to condition on. If `NULL`, uses the stored parameter value.
+    #' @param iters_perm (integer(1)) Number of permutation iterations. If `NULL`, uses stored value.
     #' @param store_backends (logical(1)) Whether to store backends
-    compute = function(relation = c("difference", "ratio"), store_backends = TRUE) {
-      # Uses conditional sampling with specified conditioning set
-      private$.compute_perturbation_importance(relation = relation, store_backends = store_backends)
-    }
-  ),
+    compute = function(
+      relation = NULL,
+      conditioning_set = NULL,
+      iters_perm = NULL,
+      store_backends = TRUE
+    ) {
+      # Handle conditioning_set parameter override
+      if (!is.null(conditioning_set)) {
+        # Validate the provided conditioning_set
+        conditioning_set = checkmate::assert_subset(conditioning_set, self$task$feature_names)
 
-  private = list(
-    .compute_permuted_score = function(learner, test_dt, iters_perm = 1) {
-      rbindlist(
-        lapply(seq_len(iters_perm), \(iter) {
-          scores_post = vapply(
-            self$features,
-            \(feature) {
-              # Use the sampler with the specific conditioning set for RFI
-              perturbed_data = self$sampler$sample(
-                feature,
-                test_dt,
-                conditioning_features = self$conditioning_set
-              )
+        # Clear cache and temporarily modify sampler's conditioning_set
+        self$importance = NULL
+        self$scores = NULL
+        old_conditioning_set = self$sampler$param_set$values$conditioning_set
+        self$sampler$param_set$values$conditioning_set = conditioning_set
+        on.exit(self$sampler$param_set$values$conditioning_set <- old_conditioning_set)
+      }
 
-              # Predict and score
-              pred = learner$predict_newdata(newdata = perturbed_data, task = self$task)
-              score = pred$score(self$measure)
-              names(score) = feature
-              score
-            },
-            FUN.VALUE = numeric(1)
-          )
-
-          data.table(
-            feature = names(scores_post),
-            iter_perm = iter,
-            scores_post = scores_post
-          )
-        })
+      # Use the (potentially modified) sampler
+      private$.compute_perturbation_importance(
+        relation = relation,
+        iters_perm = iters_perm,
+        store_backends = store_backends,
+        sampler = self$sampler
       )
     }
   )

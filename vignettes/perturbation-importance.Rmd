@@ -27,6 +27,7 @@ library(mlr3)
 library(mlr3learners)
 library(data.table)
 library(ggplot2)
+library(patchwork)
 ```
 
 This vignette demonstrates the three perturbation-based feature importance methods implemented in xplainfi:
@@ -102,7 +103,7 @@ sample_data <- task$data(rows = sample(task$nrow, size = 5))
 sampled_result <- sampler$sample(
   feature = "important1", 
   data = sample_data, 
-  conditioning_features = "important2"
+  conditioning_set = "important2"
 )
 ```
 
@@ -217,6 +218,7 @@ ggplot(plot_data, aes(x = importance, y = reorder(feature, importance), fill = m
 Let's also create a correlation plot to see how similar the methods are:
 
 ```{r correlation-analysis}
+#| fig-height: 10
 # Calculate correlations between methods
 pfi_cfi_cor <- cor(comparison$pfi, comparison$cfi)
 pfi_rfi_cor <- cor(comparison$pfi, comparison$rfi)
@@ -228,7 +230,7 @@ cor_data <- comparison[, .(feature, pfi, cfi, rfi, feature_type)]
 # PFI vs CFI
 p1 <- ggplot(cor_data, aes(x = pfi, y = cfi, color = feature_type)) +
   geom_point(size = 3, alpha = 0.8) +
-  geom_smooth(method = "lm", se = FALSE, color = "gray50", linetype = "dashed") +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "gray50", linetype = "dashed") +
   scale_color_manual(values = c("Important" = "steelblue", "Noise" = "lightcoral")) +
   labs(
     title = "PFI vs CFI",
@@ -241,7 +243,7 @@ p1 <- ggplot(cor_data, aes(x = pfi, y = cfi, color = feature_type)) +
 # PFI vs RFI  
 p2 <- ggplot(cor_data, aes(x = pfi, y = rfi, color = feature_type)) +
   geom_point(size = 3, alpha = 0.8) +
-  geom_smooth(method = "lm", se = FALSE, color = "gray50", linetype = "dashed") +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "gray50", linetype = "dashed") +
   scale_color_manual(values = c("Important" = "steelblue", "Noise" = "lightcoral")) +
   labs(
     title = "PFI vs RFI",
@@ -254,7 +256,7 @@ p2 <- ggplot(cor_data, aes(x = pfi, y = rfi, color = feature_type)) +
 # CFI vs RFI
 p3 <- ggplot(cor_data, aes(x = cfi, y = rfi, color = feature_type)) +
   geom_point(size = 3, alpha = 0.8) +
-  geom_smooth(method = "lm", se = FALSE, color = "gray50", linetype = "dashed") +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "gray50", linetype = "dashed") +
   scale_color_manual(
     values = c("Important" = "steelblue", "Noise" = "lightcoral"),
     name = "Feature Type"
@@ -267,7 +269,6 @@ p3 <- ggplot(cor_data, aes(x = cfi, y = rfi, color = feature_type)) +
   theme_minimal(base_size = 14)
 
 # Combine plots
-library(patchwork)
 (p1 / p2 / p3) + 
   plot_annotation(
     title = "Method Correlations",
@@ -349,6 +350,7 @@ In our Friedman1 example:
 Let's examine the stability of our importance estimates across resampling- and permutation iterations using the `$scores` tables:
 
 ```{r variability-analysis}
+#| fig-height: 9
 detailed_scores <- rbindlist(list(
   pfi$scores[, method := "PFI"],
   cfi$scores[, method := "CFI"],

@@ -28,13 +28,6 @@ In \emph{2020 25th International Conference on Pattern Recognition (ICPR)}, 9318
 \section{Super classes}{
 \code{\link[xplainfi:FeatureImportanceMethod]{xplainfi::FeatureImportanceMethod}} -> \code{\link[xplainfi:PerturbationImportance]{xplainfi::PerturbationImportance}} -> \code{RFI}
 }
-\section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{conditioning_set}}{(\code{\link[=character]{character()}}) Features to condition on}
-}
-\if{html}{\out{</div>}}
-}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -64,6 +57,7 @@ Creates a new instance of the RFI class
   resampling = NULL,
   features = NULL,
   conditioning_set = NULL,
+  relation = "difference",
   iters_perm = 1L,
   sampler = NULL
 )}\if{html}{\out{</div>}}
@@ -74,9 +68,12 @@ Creates a new instance of the RFI class
 \describe{
 \item{\code{task, learner, measure, resampling, features}}{Passed to PerturbationImportance}
 
-\item{\code{conditioning_set}}{(\code{\link[=character]{character()}}) Set of features to condition on}
+\item{\code{conditioning_set}}{(\code{\link[=character]{character()}}) Set of features to condition on. Can be overridden in \verb{$compute()}.
+Default (\code{character(0)}) is equivalent to \code{PFI}. In \code{CFI}, this would be set to all features except tat of interest.}
 
-\item{\code{iters_perm}}{(integer(1)) Number of permutation iterations}
+\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. Can be overridden in \verb{$compute()}.}
+
+\item{\code{iters_perm}}{(integer(1)) Number of permutation iterations. Can be overridden in \verb{$compute()}.}
 
 \item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to ARFSampler}
 }
@@ -89,13 +86,22 @@ Creates a new instance of the RFI class
 \subsection{Method \code{compute()}}{
 Compute RFI scores
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RFI$compute(relation = c("difference", "ratio"), store_backends = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RFI$compute(
+  relation = NULL,
+  conditioning_set = NULL,
+  iters_perm = NULL,
+  store_backends = TRUE
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals}
+\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. If \code{NULL}, uses stored value.}
+
+\item{\code{conditioning_set}}{(\code{\link[=character]{character()}}) Set of features to condition on. If \code{NULL}, uses the stored parameter value.}
+
+\item{\code{iters_perm}}{(integer(1)) Number of permutation iterations. If \code{NULL}, uses stored value.}
 
 \item{\code{store_backends}}{(logical(1)) Whether to store backends}
 }

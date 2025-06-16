@@ -21,7 +21,7 @@ the Random Forest algorithm. The method works by:
 }
 \examples{
 \dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-library(mlr3)
+library(mlr3learners)
 task = tgen("xor", d = 5)$generate(n = 100)
 pfi = PFI$new(
   task = task,
@@ -74,6 +74,7 @@ Creates a new instance of the PFI class
   measure,
   resampling = NULL,
   features = NULL,
+  relation = "difference",
   iters_perm = 1L
 )}\if{html}{\out{</div>}}
 }
@@ -83,7 +84,9 @@ Creates a new instance of the PFI class
 \describe{
 \item{\code{task, learner, measure, resampling, features}}{Passed to PerturbationImportance}
 
-\item{\code{iters_perm}}{(integer(1)) Number of permutation iterations}
+\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. Can be overridden in \verb{$compute()}.}
+
+\item{\code{iters_perm}}{(integer(1)) Number of permutation iterations. Can be overridden in \verb{$compute()}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -94,13 +97,15 @@ Creates a new instance of the PFI class
 \subsection{Method \code{compute()}}{
 Compute PFI scores
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PFI$compute(relation = c("difference", "ratio"), store_backends = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PFI$compute(relation = NULL, iters_perm = NULL, store_backends = TRUE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals}
+\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. If \code{NULL}, uses stored value.}
+
+\item{\code{iters_perm}}{(integer(1)) Number of permutation iterations. If \code{NULL}, uses stored value.}
 
 \item{\code{store_backends}}{(logical(1)) Whether to store backends}
 }

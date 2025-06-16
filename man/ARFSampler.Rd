@@ -17,9 +17,15 @@ feature of interest and \eqn{X_{-j}} are the conditioning features.
 \dontshow{if (requireNamespace("arf", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 library(mlr3)
 task = tgen("2dnormals")$generate(n = 100)
-sampler = ARFSampler$new(task)
+# Create sampler with default parameters
+sampler = ARFSampler$new(task, conditioning_set = "x2", verbose = FALSE)
 data = task$data()
-sampled_data = sampler$sample("x1", data, conditioning_features = "x2")
+# Will use the stored parameters
+sampled_data = sampler$sample("x1", data)
+
+# Example with "or" mode and custom parameters
+sampler_or = ARFSampler$new(task, evidence_row_mode = "or", round = FALSE)
+sampled_or = sampler_or$sample("x1", data)
 \dontshow{\}) # examplesIf}
 }
 \references{
@@ -60,13 +66,41 @@ Blesch, Kristin, Koenen, Niklas, Kapar, Jan, Golchian, Pegah, Burk, Lukas, Loech
 Creates a new instance of the ARFSampler class.
 To fit the ARF in parallel, set \code{arf_args = list(parallel = TRUE)} and register a parallel backend (see \link[arf:arf-package]{arf::arf}).
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ARFSampler$new(task, arf_args = NULL, forde_args = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ARFSampler$new(
+  task,
+  conditioning_set = NULL,
+  evidence_row_mode = "separate",
+  round = TRUE,
+  sample_NAs = FALSE,
+  nomatch = "force",
+  stepsize = 0,
+  verbose = TRUE,
+  parallel = TRUE,
+  arf_args = NULL,
+  forde_args = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Task to sample from}
+
+\item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Default conditioning set to use in \verb{$sample()}. This parameter only affects the sampling behavior, not the ARF model fitting.}
+
+\item{\code{evidence_row_mode}}{(\code{character(1)}) Evidence row mode for \code{arf::forge()}. Default is "separate".}
+
+\item{\code{round}}{(\code{logical(1)}) Whether to round continuous variables. Default is \code{TRUE}.}
+
+\item{\code{sample_NAs}}{(\code{logical(1)}) Whether to sample missing values. Default is \code{FALSE}.}
+
+\item{\code{nomatch}}{(\code{character(1)}) How to handle factor levels not seen in training. Default is "force".}
+
+\item{\code{stepsize}}{(\code{numeric(1)}) Step size for variance adjustment. Default is 0.}
+
+\item{\code{verbose}}{(\code{logical(1)}) Whether to print progress messages. Default is \code{TRUE}.}
+
+\item{\code{parallel}}{(\code{logical(1)}) Whether to use parallel processing. Default is \code{TRUE}.}
 
 \item{\code{arf_args, forde_args}}{(\link{list}) Arguments passed to \code{arf::adversarial_rf} or \code{arf::forde} respectively.}
 }
@@ -82,9 +116,14 @@ Sample values for feature(s) conditionally on other features using ARF
 \if{html}{\out{<div class="r">}}\preformatted{ARFSampler$sample(
   feature,
   data = self$task$data(),
-  conditioning_features = NULL,
-  n_synth = 1,
-  evidence_row_mode = "separate",
+  conditioning_set = NULL,
+  evidence_row_mode = NULL,
+  round = NULL,
+  sample_NAs = NULL,
+  nomatch = NULL,
+  stepsize = NULL,
+  verbose = NULL,
+  parallel = NULL,
   ...
 )}\if{html}{\out{</div>}}
 }
@@ -96,11 +135,21 @@ Sample values for feature(s) conditionally on other features using ARF
 
 \item{\code{data}}{(\code{\link[data.table:data.table]{data.table}}) Data containing conditioning features. Defaults to \verb{$task$data()}, but typically a dedicated test set is provided.}
 
-\item{\code{conditioning_features}}{(\code{character(n) | NULL}) Features to condition on (default: all other features)}
+\item{\code{conditioning_set}}{(\code{character(n) | NULL}) Features to condition on. If \code{NULL}, uses the stored parameter if available, otherwise defaults to all other features.}
 
-\item{\code{n_synth}}{(\code{1}) Number of samples to generate (per row of evidence, when \code{evidence_row_mode = "separate"}). See \code{arf::forge()}.}
+\item{\code{evidence_row_mode}}{(\code{character(1) | NULL}) Evidence row mode for \code{arf::forge()}. If \code{NULL}, uses the stored parameter value. Must be \code{"separate"} or \code{"or"}.}
 
-\item{\code{evidence_row_mode}}{(\code{"separate"}) Produce \code{n_synth} sample per row of evidence. See \code{arf::forge()}}
+\item{\code{round}}{(\code{logical(1) | NULL}) Whether to round continuous variables. If \code{NULL}, uses the stored parameter value.}
+
+\item{\code{sample_NAs}}{(\code{logical(1) | NULL}) Whether to sample missing values. If \code{NULL}, uses the stored parameter value.}
+
+\item{\code{nomatch}}{(\code{character(1) | NULL}) How to handle factor levels not seen in training. If \code{NULL}, uses the stored parameter value.}
+
+\item{\code{stepsize}}{(\code{numeric(1) | NULL}) Step size for variance adjustment. If \code{NULL}, uses the stored parameter value.}
+
+\item{\code{verbose}}{(\code{logical(1) | NULL}) Whether to print progress messages. If \code{NULL}, uses the stored parameter value.}
+
+\item{\code{parallel}}{(\code{logical(1) | NULL}) Whether to use parallel processing. If \code{NULL}, uses the stored parameter value.}
 
 \item{\code{...}}{Further arguments passed to \code{arf::forge()}.}
 }
