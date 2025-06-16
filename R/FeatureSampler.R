@@ -142,9 +142,6 @@ ConditionalSampler = R6Class(
 #' # Example with "or" mode and custom parameters
 #' sampler_or = ARFSampler$new(task, evidence_row_mode = "or", round = FALSE)
 #' sampled_or = sampler_or$sample("x1", data)
-#'
-#' # Override parameters per call
-#' sampled_custom = sampler$sample("x1", data, stepsize = 0.1, nomatch = "na")
 #' @references `r print_bib("watson_2023", "blesch_2025")`
 #'
 #' @export
@@ -186,6 +183,12 @@ ARFSampler = R6Class(
       super$initialize(task)
       self$label = "Adversarial Random Forest sampler"
 
+      if (!requireNamespace("arf", quietly = TRUE)) {
+        stop(
+          "Package 'arf' is required for ARFSampler. Please install it with: install.packages('arf')"
+        )
+      }
+
       # Override param_set to include ARF-specific parameters
       self$param_set = paradox::ps(
         conditioning_set = paradox::p_uty(default = NULL),
@@ -212,12 +215,6 @@ ARFSampler = R6Class(
       values_to_set$parallel = parallel
 
       self$param_set$set_values(.values = values_to_set)
-
-      if (!requireNamespace("arf", quietly = TRUE)) {
-        stop(
-          "Package 'arf' is required for ARFSampler. Please install it with: install.packages('arf')"
-        )
-      }
 
       # Register sequential backend in an attempt to silence foreach warning
       if (!foreach::getDoParRegistered()) {
@@ -268,19 +265,20 @@ ARFSampler = R6Class(
       # Create a copy to avoid modifying the original data
       data_copy = data.table::copy(data)
 
-      # Hierarchical parameter resolution helper
-      resolve_param = function(arg, stored, default) arg %||% stored %||% default
-      
       # Determine conditioning set
       # Priority: 1) function argument, 2) stored param_set value, 3) default (all other features)
       conditioning_set = resolve_param(
-        conditioning_set, 
+        conditioning_set,
         self$param_set$values$conditioning_set,
         setdiff(self$task$feature_names, feature)
       )
-      
+
       # Determine evidence_row_mode
-      evidence_row_mode = resolve_param(evidence_row_mode, self$param_set$values$evidence_row_mode, "separate")
+      evidence_row_mode = resolve_param(
+        evidence_row_mode,
+        self$param_set$values$evidence_row_mode,
+        "separate"
+      )
 
       # Determine arf::forge parameters using hierarchical resolution
       round = resolve_param(round, self$param_set$values$round, TRUE)
@@ -323,7 +321,7 @@ ARFSampler = R6Class(
         ...
       )
 
-      # Replace the feature(s) with sampled values using .SDcols pattern  
+      # Replace the feature(s) with sampled values using .SDcols pattern
       # Both "separate" and "or" modes now return exactly nrow(data) samples
       data_copy[, (feature) := synthetic[, .SD, .SDcols = feature]]
 
