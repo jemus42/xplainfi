@@ -102,7 +102,7 @@ sample_data <- task$data(rows = sample(task$nrow, size = 5))
 sampled_result <- sampler$sample(
   feature = "important1", 
   data = sample_data, 
-  conditioning_features = "important2"
+  conditioning_set = "important2"
 )
 ```
 
