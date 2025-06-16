@@ -37,30 +37,36 @@ PerturbationImportance = R6Class(
 
       # If no sampler is provided, create a default one (implementation dependent)
       self$sampler = sampler
-      
+
       # Set up common parameters for all perturbation-based methods
       ps = paradox::ps(
         relation = paradox::p_fct(c("difference", "ratio"), default = "difference"),
         iters_perm = paradox::p_int(lower = 1, default = 1)
       )
-      
+
       ps$values$relation = relation
       ps$values$iters_perm = iters_perm
-      
+
       self$param_set = ps
     }
   ),
 
   private = list(
     # Common computation method for all perturbation-based methods
-    .compute_perturbation_importance = function(relation = NULL, iters_perm = NULL, store_backends = TRUE, sampler = NULL, cfi_mode = FALSE) {
+    .compute_perturbation_importance = function(
+      relation = NULL,
+      iters_perm = NULL,
+      store_backends = TRUE,
+      sampler = NULL,
+      cfi_mode = FALSE
+    ) {
       # Use provided sampler or default to self$sampler
       sampler = sampler %||% self$sampler
-      
+
       # Use hierarchical parameter resolution
       relation = resolve_param(relation, self$param_set$values$relation, "difference")
       iters_perm = resolve_param(iters_perm, self$param_set$values$iters_perm, 1L)
-      
+
       relation = match.arg(relation, c("difference", "ratio"))
 
       # Check if already computed with this relation
@@ -86,7 +92,7 @@ PerturbationImportance = R6Class(
       # Compute permuted scores
       scores = lapply(seq_len(self$resampling$iters), \(iter) {
         test_dt = self$task$data(rows = rr$resampling$test_set(iter))
-        
+
         rbindlist(
           lapply(seq_len(iters_perm), \(iter_perm) {
             scores_post = vapply(
@@ -95,13 +101,20 @@ PerturbationImportance = R6Class(
                 # For CFI, set conditioning to all other features; for others, use sampler as-is
                 if (cfi_mode && inherits(sampler, "ConditionalSampler")) {
                   conditioning_set = setdiff(self$task$feature_names, feature)
-                  perturbed_data = sampler$sample(feature, test_dt, conditioning_set = conditioning_set)
+                  perturbed_data = sampler$sample(
+                    feature,
+                    test_dt,
+                    conditioning_set = conditioning_set
+                  )
                 } else {
                   perturbed_data = sampler$sample(feature, test_dt)
                 }
 
                 # Predict and score
-                pred = rr$learners[[iter]]$predict_newdata(newdata = perturbed_data, task = self$task)
+                pred = rr$learners[[iter]]$predict_newdata(
+                  newdata = perturbed_data,
+                  task = self$task
+                )
                 score = pred$score(self$measure)
                 names(score) = feature
                 score
@@ -230,7 +243,12 @@ PFI = R6Class(
     #' @param store_backends (logical(1)) Whether to store backends
     compute = function(relation = NULL, iters_perm = NULL, store_backends = TRUE) {
       # PFI uses the MarginalSampler directly
-      private$.compute_perturbation_importance(relation = relation, iters_perm = iters_perm, store_backends = store_backends, sampler = self$sampler)
+      private$.compute_perturbation_importance(
+        relation = relation,
+        iters_perm = iters_perm,
+        store_backends = store_backends,
+        sampler = self$sampler
+      )
     }
   )
 )
@@ -297,7 +315,13 @@ CFI = R6Class(
     #' @param store_backends (logical(1)) Whether to store backends
     compute = function(relation = NULL, iters_perm = NULL, store_backends = TRUE) {
       # CFI explicitly conditions on all other features for each feature being sampled
-      private$.compute_perturbation_importance(relation = relation, iters_perm = iters_perm, store_backends = store_backends, sampler = self$sampler, cfi_mode = TRUE)
+      private$.compute_perturbation_importance(
+        relation = relation,
+        iters_perm = iters_perm,
+        store_backends = store_backends,
+        sampler = self$sampler,
+        cfi_mode = TRUE
+      )
     }
   )
 )
@@ -323,11 +347,11 @@ RFI = R6Class(
   "RFI",
   inherit = PerturbationImportance,
   public = list(
-    
     #' @description
     #' Creates a new instance of the RFI class
     #' @param task,learner,measure,resampling,features Passed to PerturbationImportance
     #' @param conditioning_set ([character()]) Set of features to condition on. Can be overridden in `$compute()`.
+    #'   Default (`character(0)`) is equivalent to `PFI`. In `CFI`, this would be set to all features except tat of interest.
     #' @param relation (character(1)) How to relate perturbed scores to originals. Can be overridden in `$compute()`.
     #' @param iters_perm (integer(1)) Number of permutation iterations. Can be overridden in `$compute()`.
     #' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to ARFSampler
@@ -357,7 +381,7 @@ RFI = R6Class(
         relation = relation,
         iters_perm = iters_perm
       )
-      
+
       # Validate and set up conditioning set after task is available
       if (!is.null(conditioning_set)) {
         conditioning_set = checkmate::assert_subset(conditioning_set, self$task$feature_names)
@@ -365,7 +389,7 @@ RFI = R6Class(
         # Default to empty set (equivalent to PFI)
         conditioning_set = character(0)
       }
-      
+
       # Configure the sampler with the conditioning_set
       self$sampler$param_set$values$conditioning_set = conditioning_set
 
@@ -375,12 +399,12 @@ RFI = R6Class(
         iters_perm = paradox::p_int(lower = 1, default = 1),
         conditioning_set = paradox::p_uty(default = character(0))
       )
-      
+
       # Set values from base param_set and add conditioning_set
       rfi_ps$values$relation = self$param_set$values$relation
       rfi_ps$values$iters_perm = self$param_set$values$iters_perm
       rfi_ps$values$conditioning_set = conditioning_set
-      
+
       self$param_set = rfi_ps
 
       self$label = "Relative Feature Importance"
@@ -401,7 +425,7 @@ RFI = R6Class(
       if (!is.null(conditioning_set)) {
         # Validate the provided conditioning_set
         conditioning_set = checkmate::assert_subset(conditioning_set, self$task$feature_names)
-        
+
         # Clear cache and temporarily modify sampler's conditioning_set
         self$importance = NULL
         self$scores = NULL
@@ -411,7 +435,12 @@ RFI = R6Class(
       }
 
       # Use the (potentially modified) sampler
-      private$.compute_perturbation_importance(relation = relation, iters_perm = iters_perm, store_backends = store_backends, sampler = self$sampler)
+      private$.compute_perturbation_importance(
+        relation = relation,
+        iters_perm = iters_perm,
+        store_backends = store_backends,
+        sampler = self$sampler
+      )
     }
   )
 )

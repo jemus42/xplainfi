@@ -57,6 +57,7 @@ Creates a new instance of the RFI class
   resampling = NULL,
   features = NULL,
   conditioning_set = NULL,
+  relation = "difference",
   iters_perm = 1L,
   sampler = NULL
 )}\if{html}{\out{</div>}}
@@ -67,9 +68,12 @@ Creates a new instance of the RFI class
 \describe{
 \item{\code{task, learner, measure, resampling, features}}{Passed to PerturbationImportance}
 
-\item{\code{conditioning_set}}{(\code{\link[=character]{character()}}) Set of features to condition on. Can be overridden in \verb{$compute()}.}
+\item{\code{conditioning_set}}{(\code{\link[=character]{character()}}) Set of features to condition on. Can be overridden in \verb{$compute()}.
+Default (\code{character(0)}) is equivalent to \code{PFI}. In \code{CFI}, this would be set to all features except tat of interest.}
 
-\item{\code{iters_perm}}{(integer(1)) Number of permutation iterations}
+\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. Can be overridden in \verb{$compute()}.}
+
+\item{\code{iters_perm}}{(integer(1)) Number of permutation iterations. Can be overridden in \verb{$compute()}.}
 
 \item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to ARFSampler}
 }
@@ -83,8 +87,9 @@ Creates a new instance of the RFI class
 Compute RFI scores
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{RFI$compute(
-  relation = c("difference", "ratio"),
+  relation = NULL,
   conditioning_set = NULL,
+  iters_perm = NULL,
   store_backends = TRUE
 )}\if{html}{\out{</div>}}
 }

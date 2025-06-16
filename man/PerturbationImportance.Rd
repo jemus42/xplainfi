@@ -44,7 +44,9 @@ Creates a new instance of the PerturbationImportance class
   measure,
   resampling = NULL,
   features = NULL,
-  sampler = NULL
+  sampler = NULL,
+  relation = "difference",
+  iters_perm = 1L
 )}\if{html}{\out{</div>}}
 }
 
@@ -54,6 +56,10 @@ Creates a new instance of the PerturbationImportance class
 \item{\code{task, learner, measure, resampling, features}}{Passed to FeatureImportanceMethod}
 
 \item{\code{sampler}}{(\link{FeatureSampler}) Sampler to use for feature perturbation}
+
+\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. Can be overridden in \verb{$compute()}.}
+
+\item{\code{iters_perm}}{(integer(1)) Number of permutation iterations. Can be overridden in \verb{$compute()}.}
 }
 \if{html}{\out{</div>}}
 }

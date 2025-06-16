@@ -8,6 +8,7 @@
 #'
 #' @return First non-`NULL` parameter
 #' @keywords internal
+#' @noRd
 #' @examples
 #' resolve_param(arg = "foo", stored = "bar", default = "baz")
 #' resolve_param(arg = NULL, stored = "bar", default = "baz")
