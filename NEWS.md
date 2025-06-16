@@ -1,4 +1,4 @@
-# xplainfi 0.1.0.9000
+# xplainfi 0.1.1
 
 - Extend `ARFSampler` to store more arguments on construction, making it easier to "preconfigure" the sampler via arguments used in `$sample()`.
 - Standardize on `conditioning_set` as the name for the character vector defining features to condition on in `ConditionalSampler` and `RFI`.
