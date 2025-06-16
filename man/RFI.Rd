@@ -97,9 +97,11 @@ Compute RFI scores
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals}
+\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. If \code{NULL}, uses stored value.}
 
 \item{\code{conditioning_set}}{(\code{\link[=character]{character()}}) Set of features to condition on. If \code{NULL}, uses the stored parameter value.}
+
+\item{\code{iters_perm}}{(integer(1)) Number of permutation iterations. If \code{NULL}, uses stored value.}
 
 \item{\code{store_backends}}{(logical(1)) Whether to store backends}
 }

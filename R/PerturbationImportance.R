@@ -412,8 +412,9 @@ RFI = R6Class(
 
     #' @description
     #' Compute RFI scores
-    #' @param relation (character(1)) How to relate perturbed scores to originals
+    #' @param relation (character(1)) How to relate perturbed scores to originals. If `NULL`, uses stored value.
     #' @param conditioning_set ([character()]) Set of features to condition on. If `NULL`, uses the stored parameter value.
+    #' @param iters_perm (integer(1)) Number of permutation iterations. If `NULL`, uses stored value.
     #' @param store_backends (logical(1)) Whether to store backends
     compute = function(
       relation = NULL,
