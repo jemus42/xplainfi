@@ -92,6 +92,7 @@
 <span>  <span class="va">measure</span>,</span>
 <span>  resampling <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  features <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  relation <span class="op">=</span> <span class="st">"difference"</span>,</span>
 <span>  iters_perm <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  sampler <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
@@ -103,8 +104,12 @@
 <dd><p>Passed to <code>PerturbationImportance</code>.</p></dd>
 
 
+<dt><code>relation</code></dt>
+<dd><p>(character(1)) How to relate perturbed scores to originals. Can be overridden in <code>$compute()</code>.</p></dd>
+
+
 <dt><code>iters_perm</code></dt>
-<dd><p>(integer(1)) Number of sampling iterations.</p></dd>
+<dd><p>(integer(1)) Number of sampling iterations. Can be overridden in <code>$compute()</code>.</p></dd>
 
 
 <dt><code>sampler</code></dt>
@@ -118,13 +123,17 @@
 <h3 id="method-compute-">Method <code>compute()</code><a class="anchor" aria-label="anchor" href="#method-compute-"></a></h3>
 <p>Compute CFI scores</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CFI</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"difference"</span>, <span class="st">"ratio"</span><span class="op">)</span>, store_backends <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">CFI</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="cn">NULL</span>, iters_perm <span class="op">=</span> <span class="cn">NULL</span>, store_backends <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>relation</code></dt>
-<dd><p>(character(1)) How to relate perturbed scores to originals</p></dd>
+<dd><p>(character(1)) How to relate perturbed scores to originals. If <code>NULL</code>, uses stored value.</p></dd>
+
+
+<dt><code>iters_perm</code></dt>
+<dd><p>(integer(1)) Number of permutation iterations. If <code>NULL</code>, uses stored value.</p></dd>
 
 
 <dt><code>store_backends</code></dt>
@@ -163,14 +172,13 @@
 <span class="r-in"><span>  learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">50</span>, predict_type <span class="op">=</span> <span class="st">"prob"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.ce"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration: 0, Accuracy: 51.01%</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration: 1, Accuracy: 35.68%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration: 0, Accuracy: 48.48%</span>
 <span class="r-in"><span><span class="va">cfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    feature importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;char&gt;      &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1:      x1 0.09090909</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2:      x2 0.18181818</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1:      x1  0.1515152</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2:      x2  0.1212121</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

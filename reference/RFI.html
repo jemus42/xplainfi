@@ -72,14 +72,6 @@ In <em>2020 25th International Conference on Pattern Recognition (ICPR)</em>, 93
     <p><code><a href="FeatureImportanceMethod.html">xplainfi::FeatureImportanceMethod</a></code> -&gt; <code><a href="PerturbationImportance.html">xplainfi::PerturbationImportance</a></code> -&gt; <code>RFI</code></p>
     </div>
     <div class="section level2">
-    <h2 id="public-fields">Public fields<a class="anchor" aria-label="anchor" href="#public-fields"></a></h2>
-    <p></p><div class="r6-fields"><dl><dt><code>conditioning_set</code></dt>
-<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>) Features to condition on</p></dd>
-
-
-</dl><p></p></div>
-    </div>
-    <div class="section level2">
     <h2 id="methods">Methods<a class="anchor" aria-label="anchor" href="#methods"></a></h2>
 
 <div class="section">
@@ -101,6 +93,7 @@ In <em>2020 25th International Conference on Pattern Recognition (ICPR)</em>, 93
 <span>  resampling <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  features <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  conditioning_set <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  relation <span class="op">=</span> <span class="st">"difference"</span>,</span>
 <span>  iters_perm <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  sampler <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
@@ -113,11 +106,16 @@ In <em>2020 25th International Conference on Pattern Recognition (ICPR)</em>, 93
 
 
 <dt><code>conditioning_set</code></dt>
-<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>) Set of features to condition on</p></dd>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>) Set of features to condition on. Can be overridden in <code>$compute()</code>.
+Default (<code>character(0)</code>) is equivalent to <code>PFI</code>. In <code>CFI</code>, this would be set to all features except tat of interest.</p></dd>
+
+
+<dt><code>relation</code></dt>
+<dd><p>(character(1)) How to relate perturbed scores to originals. Can be overridden in <code>$compute()</code>.</p></dd>
 
 
 <dt><code>iters_perm</code></dt>
-<dd><p>(integer(1)) Number of permutation iterations</p></dd>
+<dd><p>(integer(1)) Number of permutation iterations. Can be overridden in <code>$compute()</code>.</p></dd>
 
 
 <dt><code>sampler</code></dt>
@@ -131,13 +129,26 @@ In <em>2020 25th International Conference on Pattern Recognition (ICPR)</em>, 93
 <h3 id="method-compute-">Method <code>compute()</code><a class="anchor" aria-label="anchor" href="#method-compute-"></a></h3>
 <p>Compute RFI scores</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">RFI</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"difference"</span>, <span class="st">"ratio"</span><span class="op">)</span>, store_backends <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">RFI</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span></span>
+<span>  relation <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  conditioning_set <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  iters_perm <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  store_backends <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>relation</code></dt>
-<dd><p>(character(1)) How to relate perturbed scores to originals</p></dd>
+<dd><p>(character(1)) How to relate perturbed scores to originals. If <code>NULL</code>, uses stored value.</p></dd>
+
+
+<dt><code>conditioning_set</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/character.html" class="external-link">character()</a></code>) Set of features to condition on. If <code>NULL</code>, uses the stored parameter value.</p></dd>
+
+
+<dt><code>iters_perm</code></dt>
+<dd><p>(integer(1)) Number of permutation iterations. If <code>NULL</code>, uses stored value.</p></dd>
 
 
 <dt><code>store_backends</code></dt>
@@ -177,21 +188,21 @@ In <em>2020 25th International Conference on Pattern Recognition (ICPR)</em>, 93
 <span class="r-in"><span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  conditioning_set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"important1"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration: 0, Accuracy: 44.08%</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration: 0, Accuracy: 48.24%</span>
 <span class="r-in"><span><span class="va">rfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  0.00000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  6.09673789</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  1.09937334</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  5.83164179</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  2.59409369</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.01241498</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  0.31598841</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3  0.67949588</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.27274802</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.23853958</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  6.51976885</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  1.51725013</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4 10.98446902</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  2.00069572</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.18625470</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  0.01093123</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3  0.02684055</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.30343325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  0.32443804</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
