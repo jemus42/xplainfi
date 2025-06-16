@@ -59,7 +59,7 @@ test_that("RFI with custom conditioning set", {
     conditioning_set = conditioning_set
   )
 
-  expect_identical(rfi$conditioning_set, conditioning_set)
+  expect_identical(rfi$param_set$values$conditioning_set, conditioning_set)
 
   result = rfi$compute()
   expect_importance_dt(result, features = rfi$features)
@@ -85,7 +85,7 @@ test_that("RFI with empty conditioning set (equivalent to PFI)", {
     # Uses ARFSampler by default
   )
 
-  expect_equal(length(rfi$conditioning_set), 0)
+  expect_equal(length(rfi$param_set$values$conditioning_set), 0)
 
   # PFI for comparison
   pfi = PFI$new(
@@ -149,8 +149,8 @@ test_that("RFI with single conditioning feature", {
     # Uses ARFSampler by default
   )
 
-  expect_equal(length(rfi$conditioning_set), 1)
-  expect_equal(rfi$conditioning_set, "x1")
+  expect_equal(length(rfi$param_set$values$conditioning_set), 1)
+  expect_equal(rfi$param_set$values$conditioning_set, "x1")
 
   result = rfi$compute()
   expect_importance_dt(result, features = rfi$features)

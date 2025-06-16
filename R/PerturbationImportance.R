@@ -330,7 +330,7 @@ CFI = R6Class(
                 feature,
                 test_dt,
                 # For CFI, we condition on all other features
-                conditioning_features = setdiff(self$task$feature_names, feature)
+                conditioning_set = setdiff(self$task$feature_names, feature)
               )
 
               # Predict and score
@@ -374,13 +374,10 @@ RFI = R6Class(
   "RFI",
   inherit = PerturbationImportance,
   public = list(
-    #' @field conditioning_set ([character()]) Features to condition on
-    conditioning_set = NULL,
-
     #' @description
     #' Creates a new instance of the RFI class
     #' @param task,learner,measure,resampling,features Passed to PerturbationImportance
-    #' @param conditioning_set ([character()]) Set of features to condition on
+    #' @param conditioning_set ([character()]) Set of features to condition on. Can be overridden in `$compute()`.
     #' @param iters_perm (integer(1)) Number of permutation iterations
     #' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to ARFSampler
     initialize = function(
@@ -407,22 +404,24 @@ RFI = R6Class(
         sampler = sampler
       )
 
-      # Validate and store conditioning set
-      if (!is.null(conditioning_set)) {
-        self$conditioning_set = checkmate::assert_subset(conditioning_set, self$task$feature_names)
-      } else {
-        # Default to empty set (equivalent to PFI)
-        self$conditioning_set = character(0)
-      }
-
-      # Set parameters
+      # Set parameters including conditioning_set
       ps = ps(
         relation = paradox::p_fct(c("difference", "ratio"), default = "difference"),
-        iters_perm = paradox::p_int(lower = 1, default = 1)
+        iters_perm = paradox::p_int(lower = 1, default = 1),
+        conditioning_set = paradox::p_uty(default = character(0))
       )
 
       ps$values$relation = "difference"
       ps$values$iters_perm = iters_perm
+      
+      # Validate and store conditioning set
+      if (!is.null(conditioning_set)) {
+        conditioning_set = checkmate::assert_subset(conditioning_set, self$task$feature_names)
+      } else {
+        # Default to empty set (equivalent to PFI)
+        conditioning_set = character(0)
+      }
+      ps$values$conditioning_set = conditioning_set
 
       self$param_set = ps
       self$label = "Relative Feature Importance"
@@ -431,8 +430,19 @@ RFI = R6Class(
     #' @description
     #' Compute RFI scores
     #' @param relation (character(1)) How to relate perturbed scores to originals
+    #' @param conditioning_set ([character()]) Set of features to condition on. If `NULL`, uses the stored parameter value.
     #' @param store_backends (logical(1)) Whether to store backends
-    compute = function(relation = c("difference", "ratio"), store_backends = TRUE) {
+    compute = function(relation = c("difference", "ratio"), conditioning_set = NULL, store_backends = TRUE) {
+      # Store the conditioning_set parameter for this computation
+      if (!is.null(conditioning_set)) {
+        # Validate the provided conditioning_set
+        conditioning_set = checkmate::assert_subset(conditioning_set, self$task$feature_names)
+        # Temporarily store for this computation
+        old_conditioning_set = self$param_set$values$conditioning_set
+        self$param_set$values$conditioning_set = conditioning_set
+        on.exit(self$param_set$values$conditioning_set <- old_conditioning_set)
+      }
+      
       # Uses conditional sampling with specified conditioning set
       private$.compute_perturbation_importance(relation = relation, store_backends = store_backends)
     }
@@ -449,7 +459,7 @@ RFI = R6Class(
               perturbed_data = self$sampler$sample(
                 feature,
                 test_dt,
-                conditioning_features = self$conditioning_set
+                conditioning_set = self$param_set$values$conditioning_set
               )
 
               # Predict and score
