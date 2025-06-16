@@ -145,8 +145,7 @@ test_that("RFI with single conditioning feature", {
     task = task,
     learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
     measure = mlr3::msr("classif.ce"),
-    conditioning_set = c("x1") # Single conditioning feature
-    # Uses ARFSampler by default
+    conditioning_set = "x1" # Single conditioning feature
   )
 
   expect_equal(length(rfi$param_set$values$conditioning_set), 1)
@@ -189,8 +188,7 @@ test_that("RFI null result for featureless learner", {
     task = task,
     learner = mlr3::lrn("classif.featureless"),
     measure = mlr3::msr("classif.ce"),
-    conditioning_set = character(0) # Empty conditioning set now works
-    # Uses ARFSampler by default
+    conditioning_set = "x1"
   )
 
   rfi$compute()
@@ -217,7 +215,7 @@ test_that("RFI multiple perms", {
     learner = mlr3::lrn("regr.ranger", num.trees = 50),
     measure = mlr3::msr("regr.mse"),
     resampling = mlr3::rsmp("cv", folds = 3),
-    conditioning_set = c("important1"),
+    conditioning_set = "important1",
     iters_perm = 2
   )
 
