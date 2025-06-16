@@ -142,9 +142,11 @@ SAGE = R6Class(
       # Pre-generate all permutations for efficiency
       all_permutations = replicate(self$n_permutations, sample(self$features), simplify = FALSE)
 
-      # Collect ALL coalitions that need to be evaluated across all permutations
-      all_coalitions = list()
-      coalition_map = list() # Maps coalition index to (perm_idx, step)
+      # Pre-allocate lists for coalitions
+      # Total coalitions = 1 (empty) + n_permutations * n_features
+      n_total_coalitions = 1 + self$n_permutations * length(self$features)
+      all_coalitions = vector("list", n_total_coalitions)
+      coalition_map = vector("list", n_total_coalitions)
 
       # Add empty coalition
       all_coalitions[[1]] = character(0)
@@ -206,10 +208,13 @@ SAGE = R6Class(
       n_test = nrow(test_dt)
       n_reference = nrow(self$reference_data)
 
-      # Create expanded data for all coalitions at once
-      # Each coalition gets test_dt replicated n_reference times
-      all_expanded_data = list()
-      coalition_ids = numeric()
+      # Pre-allocate list for expanded data
+      all_expanded_data = vector("list", n_coalitions)
+      
+      # Pre-calculate total rows for coalition_ids
+      total_rows = n_coalitions * n_test * n_reference
+      coalition_ids = numeric(total_rows)
+      row_offset = 0
 
       for (i in seq_along(all_coalitions)) {
         coalition = all_coalitions[[i]]
@@ -231,7 +236,11 @@ SAGE = R6Class(
         }
 
         all_expanded_data[[i]] = test_expanded
-        coalition_ids = c(coalition_ids, rep(i, nrow(test_expanded)))
+        
+        # Fill pre-allocated coalition_ids
+        n_rows = nrow(test_expanded)
+        coalition_ids[(row_offset + 1):(row_offset + n_rows)] = i
+        row_offset = row_offset + n_rows
       }
 
       # Combine ALL data into one big dataset
