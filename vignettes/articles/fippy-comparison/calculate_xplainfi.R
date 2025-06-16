@@ -10,18 +10,17 @@ library(mlr3learners)
 library(data.table)
 library(jsonlite)
 library(cli)
+lgr::get_logger("mlr3")$set_threshold("warn")
 
 # Set seed for reproducibility
 set.seed(123)
 
 # Generate Friedman1 data
 cli_progress_step("Generating Friedman1 dataset")
-task <- tgen("friedman1")$generate(n = 1000)
+task <- tgen("friedman1")$generate(n = 500)
 data <- task$data()
 
 # Create holdout resampling for consistent train/test split
-# Reset seed to ensure consistent train/test split
-set.seed(123)
 resampling <- rsmp("holdout", ratio = 0.7)
 resampling$instantiate(task)
 
@@ -41,7 +40,6 @@ cli_progress_step("Setting up feature importance methods")
 
 # Train model
 cli_progress_step("Training model")
-set.seed(123)
 learner <- lrn("regr.ranger", num.trees = 100, seed = 123)
 learner$train(task, row_ids = resampling$train_set(1))
 
@@ -76,7 +74,7 @@ results$PFI <- list(
   importance = pfi_results$importance
 )
 
-# 2. CFI (if arf available)
+# 2. CFI
 cli_progress_step("Computing CFI")
 if (requireNamespace("arf", quietly = TRUE)) {
   cfi_r <- CFI$new(
@@ -94,12 +92,9 @@ if (requireNamespace("arf", quietly = TRUE)) {
     importance = cfi_results$importance
   )
   cli_alert_success("CFI completed")
-} else {
-  cli_alert_warning("arf package not available - skipping CFI")
-  results$CFI <- NULL
 }
 
-# 3. RFI (if arf available)
+# 3. RFI
 cli_progress_step("Computing RFI")
 rfi_r <- RFI$new(
   task = task,
@@ -118,7 +113,6 @@ results$RFI <- list(
   conditioning_set = c("important1", "important2")
 )
 cli_alert_success("RFI completed")
-
 
 # 4. Marginal SAGE
 cli_progress_step("Computing Marginal SAGE")
