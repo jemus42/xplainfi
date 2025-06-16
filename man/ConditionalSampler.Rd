@@ -42,7 +42,7 @@ Creates a new instance of the ConditionalSampler class
 \subsection{Method \code{sample()}}{
 Sample values for feature(s) conditionally on other features
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConditionalSampler$sample(feature, data, conditioning_features = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ConditionalSampler$sample(feature, data, conditioning_set = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -52,7 +52,7 @@ Sample values for feature(s) conditionally on other features
 
 \item{\code{data}}{(\code{\link[data.table:data.table]{data.table}} ) Data containing conditioning features}
 
-\item{\code{conditioning_features}}{(\link{character}) Features to condition on (default: all other features)}
+\item{\code{conditioning_set}}{(\link{character}) Features to condition on (default: all other features)}
 }
 \if{html}{\out{</div>}}
 }

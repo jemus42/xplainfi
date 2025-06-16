@@ -28,13 +28,6 @@ In \emph{2020 25th International Conference on Pattern Recognition (ICPR)}, 9318
 \section{Super classes}{
 \code{\link[xplainfi:FeatureImportanceMethod]{xplainfi::FeatureImportanceMethod}} -> \code{\link[xplainfi:PerturbationImportance]{xplainfi::PerturbationImportance}} -> \code{RFI}
 }
-\section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{conditioning_set}}{(\code{\link[=character]{character()}}) Features to condition on}
-}
-\if{html}{\out{</div>}}
-}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -74,7 +67,7 @@ Creates a new instance of the RFI class
 \describe{
 \item{\code{task, learner, measure, resampling, features}}{Passed to PerturbationImportance}
 
-\item{\code{conditioning_set}}{(\code{\link[=character]{character()}}) Set of features to condition on}
+\item{\code{conditioning_set}}{(\code{\link[=character]{character()}}) Set of features to condition on. Can be overridden in \verb{$compute()}.}
 
 \item{\code{iters_perm}}{(integer(1)) Number of permutation iterations}
 
@@ -89,13 +82,19 @@ Creates a new instance of the RFI class
 \subsection{Method \code{compute()}}{
 Compute RFI scores
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RFI$compute(relation = c("difference", "ratio"), store_backends = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RFI$compute(
+  relation = c("difference", "ratio"),
+  conditioning_set = NULL,
+  store_backends = TRUE
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{relation}}{(character(1)) How to relate perturbed scores to originals}
+
+\item{\code{conditioning_set}}{(\code{\link[=character]{character()}}) Set of features to condition on. If \code{NULL}, uses the stored parameter value.}
 
 \item{\code{store_backends}}{(logical(1)) Whether to store backends}
 }

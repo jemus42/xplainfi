@@ -13,6 +13,8 @@ for feature importance methods like PFI and CFI
 \item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Original task.}
 
 \item{\code{label}}{(\code{character(1)}) Name of the sampler.}
+
+\item{\code{param_set}}{(\link[paradox:ParamSet]{paradox::ParamSet}) Parameter set for the sampler.}
 }
 \if{html}{\out{</div>}}
 }
