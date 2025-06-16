@@ -157,6 +157,8 @@ ARFSampler = R6Class(
     #' @description
     #' Creates a new instance of the ARFSampler class.
     #' To fit the ARF in parallel, set `arf_args = list(parallel = TRUE)` and register a parallel backend (see [arf::arf]).
+    #' `arf_args` and `forde_args` are used on initialization to fit the ARF and estimate parameters, while other arguments
+    #' are stored to be later passed to `arf::forge()` when `$sample()` is called
     #' @param task ([mlr3::Task]) Task to sample from
     #' @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`. This parameter only affects the sampling behavior, not the ARF model fitting.
     #' @param evidence_row_mode (`character(1)`) Evidence row mode for `arf::forge()`. Default is "separate".
@@ -226,7 +228,7 @@ ARFSampler = R6Class(
 
       # Train ARF and estimate distribution parameters
       # Default to verbose = FALSE if not provided
-      arf_args$verbose %||% FALSE
+      arf_args$verbose = arf_args$verbose %||% FALSE
 
       self$arf_model = do.call(arf::adversarial_rf, args = c(x = list(task_data), arf_args))
       self$psi = do.call(
