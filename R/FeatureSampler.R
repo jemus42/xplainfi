@@ -226,7 +226,7 @@ ARFSampler = R6Class(
 
       # Train ARF and estimate distribution parameters
       # Default to verbose = FALSE if not provided
-      arf_args$verbose %||% FALSE
+      arf_args$verbose = arf_args$verbose %||% FALSE
 
       self$arf_model = do.call(arf::adversarial_rf, args = c(x = list(task_data), arf_args))
       self$psi = do.call(
