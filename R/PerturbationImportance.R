@@ -1,6 +1,6 @@
-#' @title Feature Importance Base Class
+#' @title Permutation Feature Importance Base Class
 #'
-#' @description Abstract base class for feature importance methods
+#' @description Abstract base class for perturbation-based importance methods PFI, CFI, and RFI
 #'
 #' @export
 PerturbationImportance = R6Class(
@@ -34,89 +34,12 @@ PerturbationImportance = R6Class(
       # If no sampler is provided, create a default one (implementation dependent)
       self$sampler = sampler
     }
-  )
-)
+  ),
 
-
-#' @title Permutation Feature Importance
-#'
-#' @description
-#' Implementation of Permutation Feature Importance (PFI) using modular sampling approach.
-#' PFI measures the importance of a feature by calculating the increase in model error
-#' when the feature's values are randomly permuted, breaking the relationship between
-#' the feature and the target variable.
-#'
-#' @details
-#' Permutation Feature Importance was originally introduced by Breiman (2001) as part of
-#' the Random Forest algorithm. The method works by:
-#' 1. Computing baseline model performance on the original dataset
-#' 2. For each feature, randomly permuting its values while keeping other features unchanged
-#' 3. Computing model performance on the permuted dataset
-#' 4. Calculating importance as the difference (or ratio) between permuted and original performance
-#'
-#' @references
-#' `r print_bib("breiman_2001")`
-#' `r print_bib("fisher_2019")`
-#'
-#' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
-#' library(mlr3)
-#' task = tgen("xor", d = 5)$generate(n = 100)
-#' pfi = PFI$new(
-#'   task = task,
-#'   learner = lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
-#'   measure = msr("classif.ce"),
-#'   resampling = rsmp("cv", folds = 3),
-#'   iters_perm = 3
-#' )
-#' pfi$compute()
-#' @export
-PFI = R6Class(
-  "PFI",
-  inherit = PerturbationImportance,
-  public = list(
-    #' @description
-    #' Creates a new instance of the PFI class
-    #' @param task,learner,measure,resampling,features Passed to PerturbationImportance
-    #' @param iters_perm (integer(1)) Number of permutation iterations
-    initialize = function(
-      task,
-      learner,
-      measure,
-      resampling = NULL,
-      features = NULL,
-      iters_perm = 1L
-    ) {
-      # Create a marginal sampler for PFI
-      sampler = MarginalSampler$new(task)
-
-      super$initialize(
-        task = task,
-        learner = learner,
-        measure = measure,
-        resampling = resampling,
-        features = features,
-        sampler = sampler
-      )
-
-      # Set parameters
-      ps = ps(
-        relation = paradox::p_fct(c("difference", "ratio"), default = "difference"),
-        iters_perm = paradox::p_int(lower = 1, default = 1)
-      )
-
-      ps$values$relation = "difference"
-      ps$values$iters_perm = iters_perm
-
-      self$param_set = ps
-      self$label = "Permutation Feature Importance"
-    },
-
-    #' @description
-    #' Compute PFI scores
-    #' @param relation (character(1)) How to relate perturbed scores to originals
-    #' @param store_backends (logical(1)) Whether to store backends
-    compute = function(relation = c("difference", "ratio"), store_backends = TRUE) {
-      relation = match.arg(relation)
+  private = list(
+    # Common computation method for all perturbation-based methods
+    .compute_perturbation_importance = function(relation = "difference", store_backends = TRUE) {
+      relation = match.arg(relation, c("difference", "ratio"))
 
       # Check if already computed with this relation
       if (!is.null(self$importance) & self$param_set$values$relation == relation) {
@@ -180,6 +103,117 @@ PFI = R6Class(
       self$importance = scores_agg
 
       copy(self$importance)
+    },
+
+    .compute_permuted_score = function(learner, test_dt, iters_perm = 1) {
+      rbindlist(
+        lapply(seq_len(iters_perm), \(iter) {
+          scores_post = vapply(
+            self$features,
+            \(feature) {
+              # Use the sampler to permute the feature
+              perturbed_data = self$sampler$sample(feature, test_dt)
+
+              # Predict and score
+              pred = learner$predict_newdata(newdata = perturbed_data, task = self$task)
+              score = pred$score(self$measure)
+              names(score) = feature
+              score
+            },
+            FUN.VALUE = numeric(1)
+          )
+
+          data.table(
+            feature = names(scores_post),
+            iter_perm = iter,
+            scores_post = unname(scores_post)
+          )
+        })
+      )
+    }
+  )
+)
+
+
+#' @title Permutation Feature Importance
+#'
+#' @description
+#' Implementation of Permutation Feature Importance (PFI) using modular sampling approach.
+#' PFI measures the importance of a feature by calculating the increase in model error
+#' when the feature's values are randomly permuted, breaking the relationship between
+#' the feature and the target variable.
+#'
+#' @details
+#' Permutation Feature Importance was originally introduced by Breiman (2001) as part of
+#' the Random Forest algorithm. The method works by:
+#' 1. Computing baseline model performance on the original dataset
+#' 2. For each feature, randomly permuting its values while keeping other features unchanged
+#' 3. Computing model performance on the permuted dataset
+#' 4. Calculating importance as the difference (or ratio) between permuted and original performance
+#'
+#' @references
+#' `r print_bib("breiman_2001")`
+#' `r print_bib("fisher_2019")`
+#'
+#' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
+#' library(mlr3learners)
+#' task = tgen("xor", d = 5)$generate(n = 100)
+#' pfi = PFI$new(
+#'   task = task,
+#'   learner = lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
+#'   measure = msr("classif.ce"),
+#'   resampling = rsmp("cv", folds = 3),
+#'   iters_perm = 3
+#' )
+#' pfi$compute()
+#' @export
+PFI = R6Class(
+  "PFI",
+  inherit = PerturbationImportance,
+  public = list(
+    #' @description
+    #' Creates a new instance of the PFI class
+    #' @param task,learner,measure,resampling,features Passed to PerturbationImportance
+    #' @param iters_perm (integer(1)) Number of permutation iterations
+    initialize = function(
+      task,
+      learner,
+      measure,
+      resampling = NULL,
+      features = NULL,
+      iters_perm = 1L
+    ) {
+      # Create a marginal sampler for PFI
+      sampler = MarginalSampler$new(task)
+
+      super$initialize(
+        task = task,
+        learner = learner,
+        measure = measure,
+        resampling = resampling,
+        features = features,
+        sampler = sampler
+      )
+
+      # Set parameters
+      ps = ps(
+        relation = paradox::p_fct(c("difference", "ratio"), default = "difference"),
+        iters_perm = paradox::p_int(lower = 1, default = 1)
+      )
+
+      ps$values$relation = "difference"
+      ps$values$iters_perm = iters_perm
+
+      self$param_set = ps
+      self$label = "Permutation Feature Importance"
+    },
+
+    #' @description
+    #' Compute PFI scores
+    #' @param relation (character(1)) How to relate perturbed scores to originals
+    #' @param store_backends (logical(1)) Whether to store backends
+    compute = function(relation = c("difference", "ratio"), store_backends = TRUE) {
+      private$.compute_perturbation_importance(relation = relation, store_backends = store_backends)
     }
   ),
 
@@ -190,7 +224,7 @@ PFI = R6Class(
           scores_post = vapply(
             self$features,
             \(feature) {
-              # Use the sampler to permute the feature (marginal sampling for PFI)
+              # Use the sampler to permute the feature
               perturbed_data = self$sampler$sample(feature, test_dt)
 
               # Predict and score
@@ -279,70 +313,8 @@ CFI = R6Class(
     #' @param relation (character(1)) How to relate perturbed scores to originals
     #' @param store_backends (logical(1)) Whether to store backends
     compute = function(relation = c("difference", "ratio"), store_backends = TRUE) {
-      # Implementation largely identical to PFI
-      # The key difference is in the sampler used (conditional vs marginal)
-      relation = match.arg(relation)
-
-      # Check if already computed with this relation
-      if (!is.null(self$importance) & self$param_set$values$relation == relation) {
-        return(self$importance)
-      }
-
-      # Store relation
-      self$param_set$values$relation = relation
-
-      # Initial resampling
-      rr = resample(
-        self$task,
-        self$learner,
-        self$resampling,
-        store_models = TRUE,
-        store_backends = store_backends
-      )
-
-      scores_orig = rr$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
-      setnames(scores_orig, old = self$measure$id, "scores_pre")
-
-      # Compute permuted scores
-      scores = lapply(seq_len(self$resampling$iters), \(iter) {
-        private$.compute_permuted_score(
-          learner = rr$learners[[iter]],
-          test_dt = self$task$data(rows = rr$resampling$test_set(iter)),
-          iters_perm = self$param_set$values$iters_perm
-        )
-      })
-
-      # Same post-processing as PFI
-      scores = rbindlist(scores, idcol = "iteration")
-      scores = scores[scores_orig, on = "iteration"]
-      setcolorder(scores, c("feature", "iteration", "iter_perm", "scores_pre", "scores_post"))
-
-      scores[,
-        importance := compute_score(
-          scores_pre,
-          scores_post,
-          relation = self$param_set$values$relation,
-          minimize = self$measure$minimize
-        )
-      ]
-
-      setnames(
-        scores,
-        old = c("iteration", "scores_pre", "scores_post"),
-        new = c("iter_rsmp", paste0(self$measure$id, c("_orig", "_perm")))
-      )
-
-      setkeyv(scores, c("feature", "iter_rsmp"))
-
-      # Aggregate by feature
-      scores_agg = private$.aggregate_importances(scores)
-
-      # Store results
-      self$resample_result = rr
-      self$scores = scores
-      self$importance = scores_agg
-
-      copy(self$importance)
+      # Uses conditional sampling via the supplied sampler
+      private$.compute_perturbation_importance(relation = relation, store_backends = store_backends)
     }
   ),
 
@@ -461,69 +433,8 @@ RFI = R6Class(
     #' @param relation (character(1)) How to relate perturbed scores to originals
     #' @param store_backends (logical(1)) Whether to store backends
     compute = function(relation = c("difference", "ratio"), store_backends = TRUE) {
-      # Implementation identical to CFI - the key difference is in the conditioning set
-      relation = match.arg(relation)
-
-      # Check if already computed with this relation
-      if (!is.null(self$importance) & self$param_set$values$relation == relation) {
-        return(self$importance)
-      }
-
-      # Store relation
-      self$param_set$values$relation = relation
-
-      # Initial resampling
-      rr = resample(
-        self$task,
-        self$learner,
-        self$resampling,
-        store_models = TRUE,
-        store_backends = store_backends
-      )
-
-      scores_orig = rr$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
-      setnames(scores_orig, old = self$measure$id, "scores_pre")
-
-      # Compute permuted scores
-      scores = lapply(seq_len(self$resampling$iters), \(iter) {
-        private$.compute_permuted_score(
-          learner = rr$learners[[iter]],
-          test_dt = self$task$data(rows = rr$resampling$test_set(iter)),
-          iters_perm = self$param_set$values$iters_perm
-        )
-      })
-
-      # Same post-processing as PFI/CFI
-      scores = rbindlist(scores, idcol = "iteration")
-      scores = scores[scores_orig, on = "iteration"]
-      setcolorder(scores, c("feature", "iteration", "iter_perm", "scores_pre", "scores_post"))
-
-      scores[,
-        importance := compute_score(
-          scores_pre,
-          scores_post,
-          relation = self$param_set$values$relation,
-          minimize = self$measure$minimize
-        )
-      ]
-
-      setnames(
-        scores,
-        old = c("iteration", "scores_pre", "scores_post"),
-        new = c("iter_rsmp", paste0(self$measure$id, c("_orig", "_perm")))
-      )
-
-      setkeyv(scores, c("feature", "iter_rsmp"))
-
-      # Aggregate by feature
-      scores_agg = private$.aggregate_importances(scores)
-
-      # Store results
-      self$resample_result = rr
-      self$scores = scores
-      self$importance = scores_agg
-
-      copy(self$importance)
+      # Uses conditional sampling with specified conditioning set
+      private$.compute_perturbation_importance(relation = relation, store_backends = store_backends)
     }
   ),
 
