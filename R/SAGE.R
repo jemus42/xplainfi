@@ -11,9 +11,7 @@
 #' This is approximated by averaging predictions over a reference dataset.
 #'
 #' @references
-#' Covert, I., Lundberg, S. M., & Lee, S. I. (2020).
-#' Understanding global feature contributions through game-theoretic interpretations
-#' of black-box models. arXiv preprint arXiv:2010.12012.
+#' `r print_bib("lundberg_2020")`
 #'
 #' @export
 SAGE = R6Class(
@@ -244,16 +242,16 @@ SAGE = R6Class(
         # Split into batches
         n_batches = ceiling(total_rows / batch_size)
         all_predictions = vector("list", n_batches)
-        
+
         for (batch_idx in seq_len(n_batches)) {
           start_row = (batch_idx - 1) * batch_size + 1
           end_row = min(batch_idx * batch_size, total_rows)
-          
+
           batch_data = combined_data[start_row:end_row]
-          
+
           # Predict for this batch
           pred_result = learner$predict_newdata(newdata = batch_data, task = self$task)
-          
+
           # Store predictions
           if (self$task$task_type == "classif") {
             all_predictions[[batch_idx]] = pred_result$prob
@@ -261,7 +259,7 @@ SAGE = R6Class(
             all_predictions[[batch_idx]] = pred_result$response
           }
         }
-        
+
         # Combine predictions from all batches
         if (self$task$task_type == "classif") {
           combined_predictions = do.call(rbind, all_predictions)
@@ -271,7 +269,7 @@ SAGE = R6Class(
       } else {
         # Process all at once (original behavior)
         pred_result = learner$predict_newdata(newdata = combined_data, task = self$task)
-        
+
         if (self$task$task_type == "classif") {
           combined_predictions = pred_result$prob
         } else {
@@ -375,7 +373,7 @@ SAGE = R6Class(
 #'   n_permutations = 3L
 #' )
 #' sage$compute()
-#' 
+#'
 #' # Use batching for memory efficiency with large datasets
 #' sage$compute(batch_size = 1000)
 #' @export
@@ -434,7 +432,7 @@ MarginalSAGE = R6Class(
 #'   n_permutations = 3L
 #' )
 #' sage$compute()
-#' 
+#'
 #' # Use batching for memory efficiency with large datasets
 #' sage$compute(batch_size = 1000)
 #' @export

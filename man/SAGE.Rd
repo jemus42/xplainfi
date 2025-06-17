@@ -15,9 +15,10 @@ SAGE marginalizes features by integrating over their distribution.
 This is approximated by averaging predictions over a reference dataset.
 }
 \references{
-Covert, I., Lundberg, S. M., & Lee, S. I. (2020).
-Understanding global feature contributions through game-theoretic interpretations
-of black-box models. arXiv preprint arXiv:2010.12012.
+Covert, Ian, Lundberg, M S, Lee, Su-In (2020).
+\dQuote{Understanding Global Feature Contributions With Additive Importance Measures.}
+In \emph{Advances in Neural Information Processing Systems}, volume 33, 17212--17223.
+\url{https://proceedings.neurips.cc/paper/2020/hash/c7bf0b7c1a86d5eb3be2c722cf2cf746-Abstract.html}.
 }
 \section{Super class}{
 \code{\link[xplainfi:FeatureImportanceMethod]{xplainfi::FeatureImportanceMethod}} -> \code{SAGE}
