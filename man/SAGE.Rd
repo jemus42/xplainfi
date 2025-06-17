@@ -46,6 +46,7 @@ of black-box models. arXiv preprint arXiv:2010.12012.
 <ul>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="combine"><a href='../../xplainfi/html/FeatureImportanceMethod.html#method-FeatureImportanceMethod-combine'><code>xplainfi::FeatureImportanceMethod$combine()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="print"><a href='../../xplainfi/html/FeatureImportanceMethod.html#method-FeatureImportanceMethod-print'><code>xplainfi::FeatureImportanceMethod$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="reset"><a href='../../xplainfi/html/FeatureImportanceMethod.html#method-FeatureImportanceMethod-reset'><code>xplainfi::FeatureImportanceMethod$reset()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -90,13 +91,15 @@ Creates a new instance of the SAGE class.
 \subsection{Method \code{compute()}}{
 Compute SAGE values.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SAGE$compute(store_backends = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{SAGE$compute(store_backends = TRUE, batch_size = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{store_backends}}{(logical(1)) Whether to store backends.}
+
+\item{\code{batch_size}}{(integer(1)) Maximum number of observations to process in a single prediction call. If NULL, processes all at once.}
 }
 \if{html}{\out{</div>}}
 }

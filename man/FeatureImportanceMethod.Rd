@@ -39,6 +39,7 @@ Feature Importance Method Class
 \item \href{#method-FeatureImportanceMethod-new}{\code{FeatureImportanceMethod$new()}}
 \item \href{#method-FeatureImportanceMethod-compute}{\code{FeatureImportanceMethod$compute()}}
 \item \href{#method-FeatureImportanceMethod-combine}{\code{FeatureImportanceMethod$combine()}}
+\item \href{#method-FeatureImportanceMethod-reset}{\code{FeatureImportanceMethod$reset()}}
 \item \href{#method-FeatureImportanceMethod-print}{\code{FeatureImportanceMethod$print()}}
 \item \href{#method-FeatureImportanceMethod-clone}{\code{FeatureImportanceMethod$clone()}}
 }
@@ -119,6 +120,16 @@ Currently this method merges the following:
 \item \verb{$resampling} is combined into a \link[mlr3:mlr_resamplings_custom]{mlr3::ResamplingCustom}, again continuing te \code{iteration} count from \code{x} with that of \code{y}.
 }
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-FeatureImportanceMethod-reset"></a>}}
+\if{latex}{\out{\hypertarget{method-FeatureImportanceMethod-reset}{}}}
+\subsection{Method \code{reset()}}{
+Resets all stored fields populated by \verb{$compute}: \verb{$resample_result}, \verb{$importance} and \verb{$scores}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$reset()}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-FeatureImportanceMethod-print"></a>}}
