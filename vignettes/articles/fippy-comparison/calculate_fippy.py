@@ -26,7 +26,7 @@ import torch
 # Set seeds for reproducibility
 random.seed(123)
 np.random.seed(123)
-torch.manual_seed(0)
+torch.manual_seed(123)
 
 def extract_fippy_results(ex_result, feature_names):
     """Extract results from fippy explanation objects"""
@@ -77,13 +77,13 @@ def main():
 
     print("Loading data...")
     # Check if pre-split data files exist
-    if not os.path.exists("friedman1_train.csv") or not os.path.exists("friedman1_test.csv"):
+    if not os.path.exists("ewald_train.csv") or not os.path.exists("ewald_test.csv"):
         print("Pre-split data files not found. Please run calculate_xplainfi.R first.")
         return
         
     # Load pre-split data to ensure identical train/test sets
-    train_data = pd.read_csv("friedman1_train.csv")
-    test_data = pd.read_csv("friedman1_test.csv")
+    train_data = pd.read_csv("ewald_train.csv")
+    test_data = pd.read_csv("ewald_test.csv")
     
     X_train = train_data.drop("y", axis=1)
     y_train = train_data["y"]
@@ -99,7 +99,7 @@ def main():
     # Reset seeds before training
     random.seed(123)
     np.random.seed(123)
-    model = RandomForestRegressor(n_estimators=100, random_state=123)
+    model = RandomForestRegressor(n_estimators=500, random_state=123)
     model.fit(X_train, y_train)
 
     r2_score = model.score(X_test, y_test)
@@ -152,7 +152,7 @@ def main():
         np.random.seed(123)
         # RFI expects: rfi(G, X_eval, y_eval, ...)
         # G is the conditioning set
-        conditioning_set = ["important1", "important2"]
+        conditioning_set = ["x1", "x2"]
         ex_rfi = explainer.rfi(conditioning_set, X_test_small, y_test_small, nr_runs=5)
         rfi_results = extract_fippy_results(ex_rfi, list(X_train.columns))
         if rfi_results:

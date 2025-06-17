@@ -15,9 +15,9 @@ lgr::get_logger("mlr3")$set_threshold("warn")
 # Set seed for reproducibility
 set.seed(123)
 
-# Generate Friedman1 data
-cli_progress_step("Generating Friedman1 dataset")
-task <- tgen("friedman1")$generate(n = 500)
+# Generate Ewald simulation data
+cli_progress_step("Generating Ewald simulation dataset")
+task <- sim_dgp_ewald(n = 5000)
 data <- task$data()
 
 # Create holdout resampling for consistent train/test split
@@ -30,17 +30,18 @@ test_data <- data[resampling$test_set(1), ]
 
 base_dir <- here::here("vignettes", "articles", "fippy-comparison")
 
-fwrite(train_data, file.path(base_dir, "friedman1_train.csv"))
-fwrite(test_data, file.path(base_dir, "friedman1_test.csv"))
+fwrite(train_data, file.path(base_dir, "ewald_train.csv"))
+fwrite(test_data, file.path(base_dir, "ewald_test.csv"))
 
 cli_alert_info("Generated {nrow(train_data)} training and {nrow(test_data)} test observations")
+cli_alert_info("Features: {paste(task$feature_names, collapse = ', ')}")
 
 # Setup for feature importance methods
 cli_progress_step("Setting up feature importance methods")
 
 # Train model
 cli_progress_step("Training model")
-learner <- lrn("regr.ranger", num.trees = 100, seed = 123)
+learner <- lrn("regr.ranger", num.trees = 500)
 learner$train(task, row_ids = resampling$train_set(1))
 
 # Evaluate model
@@ -101,7 +102,7 @@ rfi_r <- RFI$new(
   learner = learner,
   measure = msr("regr.mse"),
   resampling = resampling,
-  conditioning_set = c("important1", "important2"),
+  conditioning_set = c("x1", "x2"),
   iters_perm = 5,
   sampler = sampler
 )
@@ -110,21 +111,26 @@ rfi_results <- rfi_r$compute()
 results$RFI <- list(
   feature = rfi_results$feature,
   importance = rfi_results$importance,
-  conditioning_set = c("important1", "important2")
+  conditioning_set = c("x1", "x2")
 )
 cli_alert_success("RFI completed")
 
 # 4. Marginal SAGE
+n_perm_sage = 30L
+max_ref_size_sage = 200L
+batch_size_sage = 1000L
+
 cli_progress_step("Computing Marginal SAGE")
 sage_marginal_r <- MarginalSAGE$new(
   task = task,
   learner = learner,
   measure = msr("regr.mse"),
   resampling = resampling,
-  n_permutations = 50L
+  n_permutations = n_perm_sage,
+  max_reference_size = max_ref_size_sage
 )
 
-sage_marginal_results <- sage_marginal_r$compute()
+sage_marginal_results <- sage_marginal_r$compute(batch_size = batch_size_sage)
 results$SAGE_Marginal <- list(
   feature = sage_marginal_results$feature,
   importance = sage_marginal_results$importance
@@ -137,11 +143,12 @@ sage_conditional_r <- ConditionalSAGE$new(
   learner = learner,
   measure = msr("regr.mse"),
   resampling = resampling,
-  n_permutations = 50L,
-  sampler = sampler
+  sampler = sampler,
+  n_permutations = n_perm_sage,
+  max_reference_size = max_ref_size_sage
 )
 
-sage_conditional_results <- sage_conditional_r$compute()
+sage_conditional_results <- sage_conditional_r$compute(batch_size = batch_size_sage)
 results$SAGE_Conditional <- list(
   feature = sage_conditional_results$feature,
   importance = sage_conditional_results$importance
