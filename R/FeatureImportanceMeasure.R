@@ -117,6 +117,14 @@ FeatureImportanceMethod = R6Class(
     },
 
     #' @description
+    #' Resets all stored fields populated by `$compute`: `$resample_result`, `$importance` and `$scores`.
+    reset = function() {
+      self$resample_result = NULL
+      self$importance = NULL
+      self$scores = NULL
+    },
+
+    #' @description
     #' Print importance scores
     #'
     #' @param ... Passed to `print()`
