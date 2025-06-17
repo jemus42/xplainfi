@@ -78,5 +78,17 @@ bibentries = c(
     volume = "20",
     pages = "177",
     url = "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8323609/"
+  ),
+
+  lundberg_2020 = bibentry(
+    "inproceedings",
+    title = "Understanding Global Feature Contributions With Additive Importance Measures",
+    booktitle = "Advances in Neural Information Processing Systems",
+    author = "Covert, Ian and Lundberg, Scott M and Lee, Su-In",
+    year = "2020",
+    volume = "33",
+    pages = "17212--17223",
+    publisher = "Curran Associates, Inc.",
+    url = "https://proceedings.neurips.cc/paper/2020/hash/c7bf0b7c1a86d5eb3be2c722cf2cf746-Abstract.html",
   )
 )

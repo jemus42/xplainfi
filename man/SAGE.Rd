@@ -15,9 +15,10 @@ SAGE marginalizes features by integrating over their distribution.
 This is approximated by averaging predictions over a reference dataset.
 }
 \references{
-Covert, I., Lundberg, S. M., & Lee, S. I. (2020).
-Understanding global feature contributions through game-theoretic interpretations
-of black-box models. arXiv preprint arXiv:2010.12012.
+Covert, Ian, Lundberg, M S, Lee, Su-In (2020).
+\dQuote{Understanding Global Feature Contributions With Additive Importance Measures.}
+In \emph{Advances in Neural Information Processing Systems}, volume 33, 17212--17223.
+\url{https://proceedings.neurips.cc/paper/2020/hash/c7bf0b7c1a86d5eb3be2c722cf2cf746-Abstract.html}.
 }
 \section{Super class}{
 \code{\link[xplainfi:FeatureImportanceMethod]{xplainfi::FeatureImportanceMethod}} -> \code{SAGE}
@@ -46,6 +47,7 @@ of black-box models. arXiv preprint arXiv:2010.12012.
 <ul>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="combine"><a href='../../xplainfi/html/FeatureImportanceMethod.html#method-FeatureImportanceMethod-combine'><code>xplainfi::FeatureImportanceMethod$combine()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="print"><a href='../../xplainfi/html/FeatureImportanceMethod.html#method-FeatureImportanceMethod-print'><code>xplainfi::FeatureImportanceMethod$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="reset"><a href='../../xplainfi/html/FeatureImportanceMethod.html#method-FeatureImportanceMethod-reset'><code>xplainfi::FeatureImportanceMethod$reset()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -90,13 +92,15 @@ Creates a new instance of the SAGE class.
 \subsection{Method \code{compute()}}{
 Compute SAGE values.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SAGE$compute(store_backends = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{SAGE$compute(store_backends = TRUE, batch_size = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{store_backends}}{(logical(1)) Whether to store backends.}
+
+\item{\code{batch_size}}{(integer(1)) Maximum number of observations to process in a single prediction call. If NULL, processes all at once.}
 }
 \if{html}{\out{</div>}}
 }

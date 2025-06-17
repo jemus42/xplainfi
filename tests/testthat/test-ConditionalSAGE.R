@@ -222,3 +222,198 @@ test_that("ConditionalSAGE works with multiclass classification", {
   # Verify task has 4 classes
   expect_equal(length(task$class_names), 4L)
 })
+
+test_that("ConditionalSAGE batching produces identical results", {
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
+  skip_if_not_installed("arf")
+  skip_if_not_installed("withr")
+
+  # Test with regression
+  task_regr = mlr3::tgen("friedman1")$generate(n = 30)
+  learner_regr = mlr3::lrn("regr.ranger", num.trees = 10)
+  measure_regr = mlr3::msr("regr.mse")
+
+  # Test with binary classification
+  task_binary = mlr3::tgen("2dnormals")$generate(n = 30)
+  learner_binary = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob")
+  measure_binary = mlr3::msr("classif.ce")
+
+  # Test with multiclass classification
+  task_multi = mlr3::tgen("cassini")$generate(n = 30)
+  learner_multi = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob")
+  measure_multi = mlr3::msr("classif.ce")
+
+  # Test each task type
+  test_configs = list(
+    list(task = task_regr, learner = learner_regr, measure = measure_regr, type = "regression"),
+    list(task = task_binary, learner = learner_binary, measure = measure_binary, type = "binary"),
+    list(task = task_multi, learner = learner_multi, measure = measure_multi, type = "multiclass")
+  )
+
+  for (config in test_configs) {
+    # Compute without batching
+    result_no_batch = withr::with_seed(42, {
+      sage = ConditionalSAGE$new(
+        task = config$task,
+        learner = config$learner,
+        measure = config$measure,
+        n_permutations = 3L,
+        max_reference_size = 20L
+      )
+      sage$compute()
+    })
+
+    # Compute with large batch size (should not trigger batching)
+    result_large_batch = withr::with_seed(42, {
+      sage = ConditionalSAGE$new(
+        task = config$task,
+        learner = config$learner,
+        measure = config$measure,
+        n_permutations = 3L,
+        max_reference_size = 20L
+      )
+      sage$compute(batch_size = 10000)
+    })
+
+    # Compute with small batch size (should trigger batching)
+    result_small_batch = withr::with_seed(42, {
+      sage = ConditionalSAGE$new(
+        task = config$task,
+        learner = config$learner,
+        measure = config$measure,
+        n_permutations = 3L,
+        max_reference_size = 20L
+      )
+      sage$compute(batch_size = 50)
+    })
+
+    # Compute with very small batch size (many batches)
+    result_tiny_batch = withr::with_seed(42, {
+      sage = ConditionalSAGE$new(
+        task = config$task,
+        learner = config$learner,
+        measure = config$measure,
+        n_permutations = 3L,
+        max_reference_size = 20L
+      )
+      sage$compute(batch_size = 10)
+    })
+
+    # All results should be identical
+    expect_equal(
+      result_no_batch$importance,
+      result_large_batch$importance,
+      tolerance = 1e-10,
+      info = paste("ConditionalSAGE", config$type, "- no batch vs large batch")
+    )
+    expect_equal(
+      result_large_batch$importance,
+      result_small_batch$importance,
+      tolerance = 1e-10,
+      info = paste("ConditionalSAGE", config$type, "- large batch vs small batch")
+    )
+    expect_equal(
+      result_small_batch$importance,
+      result_tiny_batch$importance,
+      tolerance = 1e-10,
+      info = paste("ConditionalSAGE", config$type, "- small batch vs tiny batch")
+    )
+  }
+})
+
+test_that("ConditionalSAGE batching handles edge cases", {
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
+  skip_if_not_installed("arf")
+  skip_if_not_installed("withr")
+
+  set.seed(123)
+  task = mlr3::tgen("friedman1")$generate(n = 20)
+  learner = mlr3::lrn("regr.ranger", num.trees = 10)
+  measure = mlr3::msr("regr.mse")
+
+  # Test with batch_size = 1 (extreme case)
+  result_batch_1 = withr::with_seed(42, {
+    sage = ConditionalSAGE$new(
+      task = task,
+      learner = learner,
+      measure = measure,
+      n_permutations = 2L,
+      max_reference_size = 10L
+    )
+    sage$compute(batch_size = 1)
+  })
+
+  # Compare with normal result
+  result_normal = withr::with_seed(42, {
+    sage = ConditionalSAGE$new(
+      task = task,
+      learner = learner,
+      measure = measure,
+      n_permutations = 2L,
+      max_reference_size = 10L
+    )
+    sage$compute()
+  })
+
+  expect_equal(
+    result_batch_1$importance,
+    result_normal$importance,
+    tolerance = 1e-10,
+    info = "ConditionalSAGE batch_size=1 should produce identical results"
+  )
+
+  # Note: Resampling tests are omitted here because mlr3's internal random state
+  # management during resampling may interact differently with batching,
+  # making exact reproducibility challenging. The core batching functionality
+  # is thoroughly tested above without resampling.
+})
+
+test_that("ConditionalSAGE batching with custom sampler", {
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
+  skip_if_not_installed("arf")
+  skip_if_not_installed("withr")
+
+  set.seed(123)
+  task = mlr3::tgen("friedman1")$generate(n = 25)
+  learner = mlr3::lrn("regr.ranger", num.trees = 10)
+  measure = mlr3::msr("regr.mse")
+
+  # Create custom ARF sampler
+  custom_sampler = ARFSampler$new(task, verbose = FALSE)
+
+  # Test with custom sampler - no batching
+  result_no_batch = withr::with_seed(42, {
+    sage = ConditionalSAGE$new(
+      task = task,
+      learner = learner,
+      measure = measure,
+      sampler = custom_sampler,
+      n_permutations = 2L,
+      max_reference_size = 15L
+    )
+    sage$compute()
+  })
+
+  # Test with custom sampler - with batching
+  result_batch = withr::with_seed(42, {
+    sage = ConditionalSAGE$new(
+      task = task,
+      learner = learner,
+      measure = measure,
+      sampler = custom_sampler,
+      n_permutations = 2L,
+      max_reference_size = 15L
+    )
+    sage$compute(batch_size = 30)
+  })
+
+  expect_equal(
+    result_no_batch$importance,
+    result_batch$importance,
+    tolerance = 1e-10,
+    info = "ConditionalSAGE with custom sampler should produce identical results with batching"
+  )
+})

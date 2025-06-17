@@ -11,9 +11,7 @@
 #' This is approximated by averaging predictions over a reference dataset.
 #'
 #' @references
-#' Covert, I., Lundberg, S. M., & Lee, S. I. (2020).
-#' Understanding global feature contributions through game-theoretic interpretations
-#' of black-box models. arXiv preprint arXiv:2010.12012.
+#' `r print_bib("lundberg_2020")`
 #'
 #' @export
 SAGE = R6Class(
@@ -95,7 +93,8 @@ SAGE = R6Class(
     #' @description
     #' Compute SAGE values.
     #' @param store_backends (logical(1)) Whether to store backends.
-    compute = function(store_backends = TRUE) {
+    #' @param batch_size (integer(1)) Maximum number of observations to process in a single prediction call. If NULL, processes all at once.
+    compute = function(store_backends = TRUE, batch_size = NULL) {
       # Check if already computed
       if (!is.null(self$importance)) {
         return(self$importance)
@@ -114,7 +113,8 @@ SAGE = R6Class(
       sage_scores = lapply(seq_len(self$resampling$iters), \(iter) {
         private$.compute_sage_scores(
           learner = rr$learners[[iter]],
-          test_dt = self$task$data(rows = rr$resampling$test_set(iter))
+          test_dt = self$task$data(rows = rr$resampling$test_set(iter)),
+          batch_size = batch_size
         )
       })
 
@@ -134,7 +134,7 @@ SAGE = R6Class(
   ),
 
   private = list(
-    .compute_sage_scores = function(learner, test_dt) {
+    .compute_sage_scores = function(learner, test_dt, batch_size = NULL) {
       # Initialize SAGE values for each feature
       sage_values = numeric(length(self$features))
       names(sage_values) = self$features
@@ -165,7 +165,7 @@ SAGE = R6Class(
       }
 
       # Batch evaluate ALL coalitions at once
-      all_losses = private$.evaluate_coalitions_batch(learner, test_dt, all_coalitions)
+      all_losses = private$.evaluate_coalitions_batch(learner, test_dt, all_coalitions, batch_size)
 
       # Extract baseline loss
       baseline_loss = all_losses[1]
@@ -202,19 +202,14 @@ SAGE = R6Class(
       )
     },
 
-    .evaluate_coalitions_batch = function(learner, test_dt, all_coalitions) {
-      # Batch evaluate multiple coalitions by creating one large dataset
+    .evaluate_coalitions_batch = function(learner, test_dt, all_coalitions, batch_size = NULL) {
+      # Batch evaluate multiple coalitions by creating datasets
       n_coalitions = length(all_coalitions)
       n_test = nrow(test_dt)
       n_reference = nrow(self$reference_data)
 
       # Pre-allocate list for expanded data
       all_expanded_data = vector("list", n_coalitions)
-      
-      # Pre-calculate total rows for coalition_ids
-      total_rows = n_coalitions * n_test * n_reference
-      coalition_ids = numeric(total_rows)
-      row_offset = 0
 
       for (i in seq_along(all_coalitions)) {
         coalition = all_coalitions[[i]]
@@ -236,48 +231,76 @@ SAGE = R6Class(
         }
 
         all_expanded_data[[i]] = test_expanded
-        
-        # Fill pre-allocated coalition_ids
-        n_rows = nrow(test_expanded)
-        coalition_ids[(row_offset + 1):(row_offset + n_rows)] = i
-        row_offset = row_offset + n_rows
       }
 
       # Combine ALL data into one big dataset
       combined_data = rbindlist(all_expanded_data)
+      total_rows = nrow(combined_data)
 
-      # SINGLE prediction call for everything!
-      pred_result = learner$predict_newdata(newdata = combined_data, task = self$task)
+      # Process data in batches if batch_size is specified and total rows exceed batch_size
+      if (!is.null(batch_size) && total_rows > batch_size) {
+        # Split into batches
+        n_batches = ceiling(total_rows / batch_size)
+        all_predictions = vector("list", n_batches)
 
-      # Extract predictions
+        for (batch_idx in seq_len(n_batches)) {
+          start_row = (batch_idx - 1) * batch_size + 1
+          end_row = min(batch_idx * batch_size, total_rows)
+
+          batch_data = combined_data[start_row:end_row]
+
+          # Predict for this batch
+          pred_result = learner$predict_newdata(newdata = batch_data, task = self$task)
+
+          # Store predictions
+          if (self$task$task_type == "classif") {
+            all_predictions[[batch_idx]] = pred_result$prob
+          } else {
+            all_predictions[[batch_idx]] = pred_result$response
+          }
+        }
+
+        # Combine predictions from all batches
+        if (self$task$task_type == "classif") {
+          combined_predictions = do.call(rbind, all_predictions)
+        } else {
+          combined_predictions = do.call(c, all_predictions)
+        }
+      } else {
+        # Process all at once (original behavior)
+        pred_result = learner$predict_newdata(newdata = combined_data, task = self$task)
+
+        if (self$task$task_type == "classif") {
+          combined_predictions = pred_result$prob
+        } else {
+          combined_predictions = pred_result$response
+        }
+      }
+
+      # Handle any NAs in predictions by replacing with default values
       if (self$task$task_type == "classif") {
-        # We now enforce predict_type = "prob" for classification
-        # For classification, we need to store the full probability matrix
-        all_predictions = pred_result$prob
         # Handle any NAs in probability predictions by replacing with uniform probabilities
-        if (any(is.na(all_predictions))) {
-          n_classes = ncol(all_predictions)
+        if (any(is.na(combined_predictions))) {
+          n_classes = ncol(combined_predictions)
           uniform_prob = 1 / n_classes
           for (j in seq_len(n_classes)) {
-            all_predictions[is.na(all_predictions[, j]), j] = uniform_prob
+            combined_predictions[is.na(combined_predictions[, j]), j] = uniform_prob
           }
         }
       } else {
-        # For regression
-        all_predictions = pred_result$response
         # Handle NAs in regression predictions
-        all_predictions[is.na(all_predictions)] = 0
+        combined_predictions[is.na(combined_predictions)] = 0
       }
 
       # Add predictions and aggregate by coalition and test instance
       if (self$task$task_type == "classif") {
         # For classification, we need to handle matrix predictions differently
         # Add each class probability as a separate column
-        n_classes = ncol(all_predictions)
-        class_names = colnames(all_predictions)
+        n_classes = ncol(combined_predictions)
+        class_names = colnames(combined_predictions)
 
         for (j in seq_len(n_classes)) {
-          combined_data[, paste0(".pred_class_", j) := all_predictions[, j]]
+          combined_data[, paste0(".pred_class_", j) := combined_predictions[, j]]
         }
 
         # Aggregate: mean probability per class per test instance per coalition
@@ -292,7 +315,7 @@ SAGE = R6Class(
         setnames(avg_preds_by_coalition, agg_cols, class_names)
       } else {
         # For regression, keep the simple approach
-        combined_data[, .prediction := all_predictions]
+        combined_data[, .prediction := combined_predictions]
 
         # Aggregate: mean prediction per test instance per coalition
         avg_preds_by_coalition = combined_data[,
@@ -350,6 +373,9 @@ SAGE = R6Class(
 #'   n_permutations = 3L
 #' )
 #' sage$compute()
+#'
+#' # Use batching for memory efficiency with large datasets
+#' sage$compute(batch_size = 1000)
 #' @export
 MarginalSAGE = R6Class(
   "MarginalSAGE",
@@ -406,6 +432,9 @@ MarginalSAGE = R6Class(
 #'   n_permutations = 3L
 #' )
 #' sage$compute()
+#'
+#' # Use batching for memory efficiency with large datasets
+#' sage$compute(batch_size = 1000)
 #' @export
 ConditionalSAGE = R6Class(
   "ConditionalSAGE",
