@@ -59,6 +59,9 @@ reference:
   - contents:
     - starts_with("compute")
     - starts_with("op-")
+  - title: Data simulation
+  - contents:
+    - starts_with("sim")
 
 articles:
   - title: Feature Importance Methods
