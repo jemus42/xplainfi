@@ -115,6 +115,7 @@ Feature Importance Method Class"><script defer src="https://umami.jemu.name/scri
 <ul><li><p><a href="#method-FeatureImportanceMethod-new"><code>FeatureImportanceMethod$new()</code></a></p></li>
 <li><p><a href="#method-FeatureImportanceMethod-compute"><code>FeatureImportanceMethod$compute()</code></a></p></li>
 <li><p><a href="#method-FeatureImportanceMethod-combine"><code>FeatureImportanceMethod$combine()</code></a></p></li>
+<li><p><a href="#method-FeatureImportanceMethod-reset"><code>FeatureImportanceMethod$reset()</code></a></p></li>
 <li><p><a href="#method-FeatureImportanceMethod-print"><code>FeatureImportanceMethod$print()</code></a></p></li>
 <li><p><a href="#method-FeatureImportanceMethod-clone"><code>FeatureImportanceMethod$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-FeatureImportanceMethod-new"></a><div class="section">
@@ -193,10 +194,18 @@ Currently this method merges the following:</p><ul><li><p><code>$scores</code> i
 <li><p><code>$resampling</code> is combined into a <a href="https://mlr3.mlr-org.com/reference/mlr_resamplings_custom.html" class="external-link">mlr3::ResamplingCustom</a>, again continuing te <code>iteration</code> count from <code>x</code> with that of <code>y</code>.</p></li>
 </ul></div>
 
+</div><p></p><hr><a id="method-FeatureImportanceMethod-reset"></a><div class="section">
+<h3 id="method-reset-">Method <code>reset()</code><a class="anchor" aria-label="anchor" href="#method-reset-"></a></h3>
+<p>Resets all stored fields populated by <code>$compute</code>: <code>$resample_result</code>, <code>$importance</code> and <code>$scores</code>.</p><div class="section">
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceMethod</span><span class="op">$</span><span class="fu">reset</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+
 </div><p></p><hr><a id="method-FeatureImportanceMethod-print"></a><div class="section">
 <h3 id="method-print-">Method <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code><a class="anchor" aria-label="anchor" href="#method-print-"></a></h3>
 <p>Print importance scores</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceMethod</span><span class="op">$</span><span class="fu">print</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -212,7 +221,7 @@ Currently this method merges the following:</p><ul><li><p><code>$scores</code> i
 </div><p></p><hr><a id="method-FeatureImportanceMethod-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceMethod</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 

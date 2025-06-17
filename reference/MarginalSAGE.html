@@ -76,6 +76,7 @@ This is the standard SAGE implementation.</p>
 <li><p><a href="#method-MarginalSAGE-clone"><code>MarginalSAGE$clone()</code></a></p></li>
 </ul></div><p><details open><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="combine"><a href="FeatureImportanceMethod.html#method-combine"><code>xplainfi::FeatureImportanceMethod$combine()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="print"><a href="FeatureImportanceMethod.html#method-print"><code>xplainfi::FeatureImportanceMethod$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="reset"><a href="FeatureImportanceMethod.html#method-reset"><code>xplainfi::FeatureImportanceMethod$reset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="SAGE" data-id="compute"><a href="SAGE.html#method-compute"><code>xplainfi::SAGE$compute()</code></a></span></li>
 </ul></details></p><hr><a id="method-MarginalSAGE-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
@@ -145,6 +146,21 @@ This is the standard SAGE implementation.</p>
 <span class="r-in"><span>  n_permutations <span class="op">=</span> <span class="fl">3L</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sage</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  3.69267356</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  0.12279400</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.13271141</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  4.75213626</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  1.27065117</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1  0.08044271</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 -0.17539124</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.44813329</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.25070707</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.11446254</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Use batching for memory efficiency with large datasets</span></span></span>
+<span class="r-in"><span><span class="va">sage</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>batch_size <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  3.69267356</span>
