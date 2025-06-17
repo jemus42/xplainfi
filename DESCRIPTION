@@ -32,7 +32,8 @@ Suggests:
     ranger,
     rmarkdown,
     rpart,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    withr
 VignetteBuilder: 
     knitr
 Config/Needs/website: rmarkdown, here, jsonlite
