@@ -32,12 +32,14 @@ The comparison includes:
 
 Both implementations use:
 
-- **Dataset**: Friedman1 task with 1000 observations (`mlbench::mlbench.friedman1()` via `mlr3::tgen("friedman1")`)
+- **Dataset**: Ewald et al. simulation with 500 observations (`sim_dgp_ewald()`) - a synthetic regression task with known feature importance structure
 - **Model**: Random Forest with 100 trees
 - **Evaluation**: Same train/test data
 - **Metrics**: Mean Squared Error for importance calculations
 
-Due to the difference in underlying conditional samplers (ARF for xplainfi) we expect conditional methods to be less similar than marginal ones.
+The Ewald simulation provides an interpretable test case where we can better understand expected feature importance patterns, particularly for conditional methods that account for feature dependencies.
+
+Due to the difference in underlying conditional samplers (ARF for xplainfi vs Gaussian samplers in fippy) we expect conditional methods to show more variation than marginal ones.
 
 ## Setup and Execution
 
@@ -55,6 +57,16 @@ Rscript calculate_xplainfi.R
 ```
 
 Both scripts generate JSON files with results that are loaded below for comparison.
+
+### Expected Feature Importance Patterns
+
+The Ewald simulation (`sim_dgp_ewald`) generates a regression task with 5 features (x1-x5) where:
+
+- All features contribute to the target variable, but with different weights
+- Some features may be correlated, making conditional methods particularly interesting
+- The known data generating process allows us to validate whether the methods identify sensible patterns
+
+This provides a better foundation for understanding method differences compared to more complex synthetic tasks.
 
 ## Load Results
 
@@ -216,5 +228,77 @@ melt(correlations, id.vars = "method") |>
     theme(
       plot.title.position = "plot"
     )
+
+```
+
+## Interpretation in Context of Ewald Simulation
+
+The Ewald simulation provides interpretable feature importance patterns that help validate both implementations:
+
+```{r interpretation}
+# Extract feature importance rankings from each method
+create_ranking_summary <- function(results, method_name) {
+  if (is.null(results[[method_name]])) return(NULL)
+  
+  data.table(
+    method = method_name,
+    feature = results[[method_name]]$feature,
+    importance = results[[method_name]]$importance,
+    rank = rank(-results[[method_name]]$importance)
+  )
+}
+
+# Combine rankings from both implementations
+xplainfi_rankings <- rbindlist(lapply(
+  c("PFI", "CFI", "RFI", "SAGE_Marginal", "SAGE_Conditional"),
+  function(m) create_ranking_summary(xplainfi_results, m)
+))
+xplainfi_rankings[, implementation := "xplainfi"]
+
+fippy_rankings <- rbindlist(lapply(
+  c("PFI", "CFI", "RFI", "SAGE_Marginal", "SAGE_Conditional"),
+  function(m) create_ranking_summary(fippy_results, m)
+))
+fippy_rankings[, implementation := "fippy"]
+
+all_rankings <- rbind(xplainfi_rankings, fippy_rankings)
+
+# Create ranking comparison plot
+ggplot(all_rankings, aes(x = feature, y = rank, fill = implementation)) +
+  geom_col(position = "dodge", alpha = 0.7) +
+  facet_wrap(~method, scales = "free_y") +
+  scale_y_reverse(name = "Rank (1 = highest importance)") +
+  scale_fill_manual(values = c("xplainfi" = "steelblue", "fippy" = "orange")) +
+  labs(
+    title = "Feature Importance Rankings Comparison",
+    subtitle = "Ewald Simulation: Lower rank = higher importance",
+    x = "Feature",
+    fill = "Implementation"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5)
+  )
+```
+
+### Method-Specific Insights
+
+**Marginal vs Conditional Methods:**
+- **PFI** and **Marginal SAGE** ignore feature correlations
+- **CFI**, **RFI**, and **Conditional SAGE** account for feature dependencies
+- Differences between marginal and conditional variants reveal the impact of feature correlations
+
+**RFI Conditioning:**
+Both implementations use `{x1, x2}` as the conditioning set, allowing us to see how other features' importance changes when conditioned on these two features.
+
+**Cross-Implementation Consistency:**
+High correlations indicate that both xplainfi and fippy identify similar underlying feature importance patterns despite using different:
+- Programming languages (R vs Python)
+- Conditional sampling approaches (ARF vs Gaussian)
+- Implementation details
+
+This cross-validation strengthens confidence in both implementations and demonstrates the robustness of these feature importance methods across different computational environments.
 
 ```
