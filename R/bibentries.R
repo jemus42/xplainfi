@@ -90,5 +90,36 @@ bibentries = c(
     pages = "17212--17223",
     publisher = "Curran Associates, Inc.",
     url = "https://proceedings.neurips.cc/paper/2020/hash/c7bf0b7c1a86d5eb3be2c722cf2cf746-Abstract.html",
+  ),
+
+  watson_2021 = bibentry(
+    "article",
+    title = "Testing conditional independence in supervised learning algorithms",
+    author = c(
+      person("David S.", "Watson"),
+      person("Marvin N.", "Wright")
+    ),
+    journal = "Machine Learning",
+    volume = "110",
+    number = "8",
+    pages = "2107–2129",
+    year = "2021",
+    doi = "10.1007/s10994-021-06030-6"
+  ),
+
+  blesch_2023 = bibentry(
+    "article",
+    title = "Conditional feature importance for mixed data",
+    author = c(
+      person("Kristin", "Blesch"),
+      person("David S.", "Watson"),
+      person("Marvin N.", "Wright")
+    ),
+    journal = "AStA Advances in Statistical Analysis",
+    volume = "108",
+    number = "2",
+    pages = "259–278",
+    year = "2023",
+    doi = "10.1007/s10182-023-00477-9"
   )
 )
