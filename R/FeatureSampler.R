@@ -183,11 +183,7 @@ ARFSampler = R6Class(
       super$initialize(task)
       self$label = "Adversarial Random Forest sampler"
 
-      if (!requireNamespace("arf", quietly = TRUE)) {
-        stop(
-          "Package 'arf' is required for ARFSampler. Please install it with: install.packages('arf')"
-        )
-      }
+      require_package("arf")
 
       # Override param_set to include ARF-specific parameters
       self$param_set = paradox::ps(
