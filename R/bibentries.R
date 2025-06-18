@@ -9,6 +9,7 @@ print_bib = function(...) {
   paste0(str, collapse = "\n\n")
 }
 
+#' @importFrom utils person
 bibentries = c(
   ewald_2024 = bibentry(
     "inproceedings",
@@ -102,7 +103,7 @@ bibentries = c(
     journal = "Machine Learning",
     volume = "110",
     number = "8",
-    pages = "2107–2129",
+    pages = "2107-2129",
     year = "2021",
     doi = "10.1007/s10994-021-06030-6"
   ),
@@ -118,8 +119,23 @@ bibentries = c(
     journal = "AStA Advances in Statistical Analysis",
     volume = "108",
     number = "2",
-    pages = "259–278",
+    pages = "259-278",
     year = "2023",
     doi = "10.1007/s10182-023-00477-9"
+  ),
+
+  lei_2018 = bibentry(
+    "article",
+    title = "Distribution-Free Predictive Inference for Regression",
+    author = "Lei, Jing and , Max, G'Sell and , Alessandro, Rinaldo and , Ryan J., Tibshirani and Wasserman, Larry",
+    year = "2018",
+    month = "jul",
+    journal = "Journal of the American Statistical Association",
+    volume = "113",
+    number = "523",
+    pages = "1094--1111",
+    publisher = "ASA Website",
+    issn = "0162-1459",
+    doi = "10.1080/01621459.2017.1307116",
   )
 )

@@ -15,7 +15,7 @@ feature's importance. Higher values indicate more important features.
 }
 \examples{
 \dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-library(mlr3)
+library(mlr3learners)
 task = tgen("friedman1")$generate(n = 200)
 loco = LOCO$new(
   task = task,
@@ -24,6 +24,12 @@ loco = LOCO$new(
 )
 loco$compute()
 \dontshow{\}) # examplesIf}
+}
+\references{
+Lei, Jing, Max, G'Sell, Alessandro, Rinaldo, J. R, Tibshirani, Wasserman, Larry (2018).
+\dQuote{Distribution-Free Predictive Inference for Regression.}
+\emph{Journal of the American Statistical Association}, \bold{113}(523), 1094--1111.
+ISSN 0162-1459, \doi{10.1080/01621459.2017.1307116}.
 }
 \section{Super classes}{
 \code{\link[xplainfi:FeatureImportanceMethod]{xplainfi::FeatureImportanceMethod}} -> \code{\link[xplainfi:LeaveOutIn]{xplainfi::LeaveOutIn}} -> \code{LOCO}

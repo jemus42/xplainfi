@@ -75,40 +75,35 @@ LeaveOutIn = R6Class(
       # For LOCI: use featureless model as baseline
       if (self$direction == "leave-out") {
         # For LOCO, get baseline scores by running full model across resampling
-        rr_baseline = resample(
+        rr_reference = resample(
           self$task,
           self$learner,
           self$resampling,
           store_models = FALSE,
           store_backends = FALSE
         )
-        scores_pre = rr_baseline$score(self$measure)[,
-          .SD,
-          .SDcols = c("iteration", self$measure$id)
-        ]
-        setnames(scores_pre, old = self$measure$id, "scores_pre")
       } else {
         # For LOCI, get baseline scores using featureless learner
         learner_featureless = switch(
           self$task$task_type,
-          "classif" = mlr3::lrn("classif.featureless"),
+          "classif" = mlr3::lrn("classif.featureless", rpedict_type = "prob"),
           "regr" = mlr3::lrn("regr.featureless")
         )
 
-        rr_featureless = resample(
+        rr_reference = resample(
           self$task,
           learner_featureless,
           self$resampling,
           store_models = FALSE,
           store_backends = FALSE
         )
-
-        scores_pre = rr_featureless$score(self$measure)[,
-          .SD,
-          .SDcols = c("iteration", self$measure$id)
-        ]
-        setnames(scores_pre, old = self$measure$id, "scores_pre")
       }
+
+      scores_pre = rr_reference$score(self$measure)[,
+        .SD,
+        .SDcols = c("iteration", self$measure$id)
+      ]
+      setnames(scores_pre, old = self$measure$id, "scores_pre")
 
       # Compute feature-specific scores using the instantiated resampling
       scores = lapply(seq_len(self$resampling$iters), \(iter) {
@@ -160,15 +155,11 @@ LeaveOutIn = R6Class(
       setkeyv(scores, c("feature", "iter_rsmp"))
 
       # Aggregate by feature
-      scores_agg = private$.aggregate_importances(scores)
+      scores_agg = private$.aggregate_importances(scores, aggregation_fun = aggregation_fun)
 
       # Store results
       # Store the baseline resample result (either full model or featureless)
-      if (self$direction == "leave-out") {
-        self$resample_result = rr_baseline
-      } else {
-        self$resample_result = rr_featureless
-      }
+      self$resample_result = rr_reference
       self$scores = scores
       self$importance = scores_agg
 
@@ -240,7 +231,7 @@ LeaveOutIn = R6Class(
 #' feature's importance. Higher values indicate more important features.
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
-#' library(mlr3)
+#' library(mlr3learners)
 #' task = tgen("friedman1")$generate(n = 200)
 #' loco = LOCO$new(
 #'   task = task,
@@ -249,6 +240,8 @@ LeaveOutIn = R6Class(
 #' )
 #' loco$compute()
 #' @export
+#'
+#' @references `r print_bib("lei_2018")`
 LOCO = R6Class(
   "LOCO",
   inherit = LeaveOutIn,
