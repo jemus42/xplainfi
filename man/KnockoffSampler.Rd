@@ -14,12 +14,12 @@ The KnockoffSampler samples \link[knockoff:knockoff]{Knockoffs} based on the tas
 library(mlr3)
 task = tgen("2dnormals")$generate(n = 100)
 # Create sampler with default parameters
-sampler = KnockoffSampler$new(task, conditioning_set = "x2")
+sampler = KnockoffSampler$new(task)
 # Will use the stored parameters
 sampled_data = sampler$sample("x1")
-
-# Example with sequential knockoffs
-package available here: https://github.com/kormama1/seqknockoff
+\dontshow{\}) # examplesIf}
+\dontshow{if (requireNamespace("knockoff", quietly = TRUE) & requireNamespace("seqknockoff", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+# Example with sequential knockoffs (https://github.com/kormama1/seqknockoff)
 task = tgen("simplex")$generate(n = 100)
 sampler_seq = KnockoffSampler$new(task, knockoff_fun = seqknockoff::knockoffs_seq)
 sampled_seq = sampler_seq$sample("x1")
@@ -28,12 +28,12 @@ sampled_seq = sampler_seq$sample("x1")
 \references{
 Watson D, Wright M (2021).
 \dQuote{Testing conditional independence in supervised learning algorithms.}
-\emph{Machine Learning}, \bold{110}(8), 2107–2129.
+\emph{Machine Learning}, \bold{110}(8), 2107-2129.
 \doi{10.1007/s10994-021-06030-6}.
 
 Blesch K, Watson D, Wright M (2023).
 \dQuote{Conditional feature importance for mixed data.}
-\emph{AStA Advances in Statistical Analysis}, \bold{108}(2), 259–278.
+\emph{AStA Advances in Statistical Analysis}, \bold{108}(2), 259-278.
 \doi{10.1007/s10182-023-00477-9}.
 }
 \section{Super classes}{
@@ -62,7 +62,6 @@ Creates a new instance of the KnockoffSampler class.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{KnockoffSampler$new(
   task,
-  conditioning_set = NULL,
   knockoff_fun = function(x) knockoff::create.second_order(as.matrix(x))
 )}\if{html}{\out{</div>}}
 }
@@ -71,8 +70,6 @@ Creates a new instance of the KnockoffSampler class.
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Task to sample from}
-
-\item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Default conditioning set to use in \verb{$sample()}. This parameter only affects the sampling behavior, not the ARF model fitting.}
 
 \item{\code{knockoff_fun}}{(\code{function}) Step size for variance adjustment. Default are second-order Gaussian knockoffs.}
 }

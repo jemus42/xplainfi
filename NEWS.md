@@ -5,6 +5,8 @@
 - Streamline `PerturbationImportance` implementation.
 - Add `batch_size` argument for `SAGE` methods to control number of observations used at once per `learner$predict_newdata()` call (could lead to excessive RAM usage). 
 - Add `sim_dgp_ewald()` to simulate data with a simple DGP as used for illustration in Ewald et al. (2024), which should make it easier to interpret the results of various importance methods.
+- Add `KnockoffSampler` (#16 via @mnwright)
+  - Currently does not support `conditioning_set`
 
 # xplainfi 0.1.0
 
@@ -14,7 +16,3 @@
 	- SAGE (marginal and conditional, the latter via `arf`)
 	- LOCO and LOCI
 - Includes comparison to reference implementation in Python via `fippy`
-
-# xplainfi 0.0.0.9000 (development version)
-
-* Initial design phase.

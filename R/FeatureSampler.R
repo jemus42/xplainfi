@@ -336,12 +336,11 @@ ARFSampler = R6Class(
 #' library(mlr3)
 #' task = tgen("2dnormals")$generate(n = 100)
 #' # Create sampler with default parameters
-#' sampler = KnockoffSampler$new(task, conditioning_set = "x2")
+#' sampler = KnockoffSampler$new(task)
 #' # Will use the stored parameters
 #' sampled_data = sampler$sample("x1")
-#'
-#' # Example with sequential knockoffs
-#' package available here: https://github.com/kormama1/seqknockoff
+#' @examplesIf requireNamespace("knockoff", quietly = TRUE) & requireNamespace("seqknockoff", quietly = TRUE)
+#' # Example with sequential knockoffs (https://github.com/kormama1/seqknockoff)
 #' task = tgen("simplex")$generate(n = 100)
 #' sampler_seq = KnockoffSampler$new(task, knockoff_fun = seqknockoff::knockoffs_seq)
 #' sampled_seq = sampler_seq$sample("x1")
@@ -358,39 +357,40 @@ KnockoffSampler = R6Class(
     #' @description
     #' Creates a new instance of the KnockoffSampler class.
     #' @param task ([mlr3::Task]) Task to sample from
-    #' @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`. This parameter only affects the sampling behavior, not the ARF model fitting.
+    # @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`. This parameter only affects the sampling behavior, not the ARF model fitting.
     #' @param knockoff_fun (`function`) Step size for variance adjustment. Default are second-order Gaussian knockoffs.
     initialize = function(
-    task,
-    conditioning_set = NULL,
-    knockoff_fun = function(x) knockoff::create.second_order(as.matrix(x))
+      task,
+      # conditioning_set = NULL,
+      knockoff_fun = function(x) knockoff::create.second_order(as.matrix(x))
     ) {
       super$initialize(task)
       self$label = "Knockoff sampler"
 
-      if (!requireNamespace("knockoff", quietly = TRUE)) {
-        stop(
-          "Package 'knockoff' is required for KnockoffSampler. Please install it with: install.packages('knockoff')"
-        )
-      }
+      require_package("knockoff")
 
       # Override param_set to include Knockoff-specific parameters
       self$param_set = paradox::ps(
-        conditioning_set = paradox::p_uty(default = NULL),
-        knockoff_fun = paradox::p_uty(default = function(x) knockoff::create.second_order(as.matrix(x)),
-                                      custom_check = function(x) if (is.function(x)) TRUE else "knockoff_fun must be a function.")
+        # conditioning_set = paradox::p_uty(default = NULL),
+        knockoff_fun = paradox::p_uty(
+          default = function(x) knockoff::create.second_order(as.matrix(x)),
+          custom_check = function(x) {
+            if (is.function(x)) TRUE else "knockoff_fun must be a function."
+          }
+        )
       )
 
       # Set parameter values
       values_to_set = list()
-      if (!is.null(conditioning_set)) {
-        values_to_set$conditioning_set = conditioning_set
-      }
+      # if (!is.null(conditioning_set)) {
+      #   values_to_set$conditioning_set = conditioning_set
+      # }
       values_to_set$knockoff_fun = knockoff_fun
 
       self$param_set$set_values(.values = values_to_set)
 
       # Create knockoff matrix, features only
+      # TODO: Needs assertion on feature types but depends on knockoff_fun
       self$x_tilde = as.data.table(knockoff_fun(self$task$data(cols = self$task$feature_names)))
     },
 
@@ -400,8 +400,8 @@ KnockoffSampler = R6Class(
     #' @param data ([`data.table`][data.table::data.table]) Data containing conditioning features. Defaults to `$task$data()`, but typically a dedicated test set is provided.
     #' @return Modified copy of the input data with the feature(s) sampled conditionally
     sample = function(
-    feature,
-    data = self$task$data()
+      feature,
+      data = self$task$data()
     ) {
       # Create a copy to avoid modifying the original data
       data_copy = data.table::copy(data)
