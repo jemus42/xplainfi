@@ -57,8 +57,7 @@ PerturbationImportance = R6Class(
       relation = NULL,
       iters_perm = NULL,
       store_backends = TRUE,
-      sampler = NULL,
-      cfi_mode = FALSE
+      sampler = NULL
     ) {
       # Use provided sampler or default to self$sampler
       sampler = sampler %||% self$sampler
@@ -98,17 +97,8 @@ PerturbationImportance = R6Class(
             scores_post = vapply(
               self$features,
               \(feature) {
-                # For CFI, set conditioning to all other features; for others, use sampler as-is
-                if (cfi_mode && inherits(sampler, "ConditionalSampler")) {
-                  conditioning_set = setdiff(self$task$feature_names, feature)
-                  perturbed_data = sampler$sample(
-                    feature,
-                    test_dt,
-                    conditioning_set = conditioning_set
-                  )
-                } else {
-                  perturbed_data = sampler$sample(feature, test_dt)
-                }
+                # Sample feature - sampler handles conditioning appropriately
+                perturbed_data = sampler$sample(feature, test_dt)
 
                 # Predict and score
                 pred = rr$learners[[iter]]$predict_newdata(
@@ -314,13 +304,14 @@ CFI = R6Class(
     #' @param iters_perm (integer(1)) Number of permutation iterations. If `NULL`, uses stored value.
     #' @param store_backends (logical(1)) Whether to store backends
     compute = function(relation = NULL, iters_perm = NULL, store_backends = TRUE) {
-      # CFI explicitly conditions on all other features for each feature being sampled
+      # CFI expects sampler configured to condition on all other features for each feature
+      # Default for ARFSampler
+      # TODO: Needs more rigorous approach
       private$.compute_perturbation_importance(
         relation = relation,
         iters_perm = iters_perm,
         store_backends = store_backends,
-        sampler = self$sampler,
-        cfi_mode = TRUE
+        sampler = self$sampler
       )
     }
   )
