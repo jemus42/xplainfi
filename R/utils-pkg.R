@@ -26,7 +26,7 @@ require_package <- function(pkg, from = "cran") {
   msg <- "Package {.pkg {pkg}} required but not found!"
 
   if (from == "cran") {
-    instruct <- "from CRAN with {.code install.packages(\"{pkg}\")}"
+    instruct <- "Install it from CRAN with {.code install.packages(\"{pkg}\")}"
   } else {
     instruct <- "Install it from {.url {from}}"
   }
