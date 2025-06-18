@@ -9,5 +9,7 @@
 #' @importFrom mlr3 resample
 #' @importFrom paradox ps
 #' @importFrom R6 R6Class
+#' @importFrom stats rnorm
+#' @importFrom stats runif
 ## usethis namespace: end
 NULL
