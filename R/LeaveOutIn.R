@@ -155,7 +155,7 @@ LeaveOutIn = R6Class(
       setkeyv(scores, c("feature", "iter_rsmp"))
 
       # Aggregate by feature
-      scores_agg = private$.aggregate_importances(scores, aggregation_fun = aggregation_fun)
+      scores_agg = private$.aggregate_importances(scores)
 
       # Store results
       # Store the baseline resample result (either full model or featureless)
