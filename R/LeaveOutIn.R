@@ -86,7 +86,7 @@ LeaveOutIn = R6Class(
         # For LOCI, get baseline scores using featureless learner
         learner_featureless = switch(
           self$task$task_type,
-          "classif" = mlr3::lrn("classif.featureless", rpedict_type = "prob"),
+          "classif" = mlr3::lrn("classif.featureless", predict_type = "prob"),
           "regr" = mlr3::lrn("regr.featureless")
         )
 
