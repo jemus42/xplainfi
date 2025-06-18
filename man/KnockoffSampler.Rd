@@ -17,12 +17,12 @@ task = tgen("2dnormals")$generate(n = 100)
 sampler = KnockoffSampler$new(task)
 # Will use the stored parameters
 sampled_data = sampler$sample("x1")
-\dontshow{\}) # examplesIf}
-\dontshow{if (requireNamespace("knockoff", quietly = TRUE) & requireNamespace("seqknockoff", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontrun{
 # Example with sequential knockoffs (https://github.com/kormama1/seqknockoff)
 task = tgen("simplex")$generate(n = 100)
 sampler_seq = KnockoffSampler$new(task, knockoff_fun = seqknockoff::knockoffs_seq)
 sampled_seq = sampler_seq$sample("x1")
+}
 \dontshow{\}) # examplesIf}
 }
 \references{

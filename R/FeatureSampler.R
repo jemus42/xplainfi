@@ -339,11 +339,12 @@ ARFSampler = R6Class(
 #' sampler = KnockoffSampler$new(task)
 #' # Will use the stored parameters
 #' sampled_data = sampler$sample("x1")
-#' @examplesIf requireNamespace("knockoff", quietly = TRUE) & requireNamespace("seqknockoff", quietly = TRUE)
+#' \dontrun{
 #' # Example with sequential knockoffs (https://github.com/kormama1/seqknockoff)
 #' task = tgen("simplex")$generate(n = 100)
 #' sampler_seq = KnockoffSampler$new(task, knockoff_fun = seqknockoff::knockoffs_seq)
 #' sampled_seq = sampler_seq$sample("x1")
+#' }
 #' @references `r print_bib("watson_2021", "blesch_2023")`
 #'
 #' @export
