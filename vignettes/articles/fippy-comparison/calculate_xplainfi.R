@@ -77,23 +77,22 @@ results$PFI <- list(
 
 # 2. CFI
 cli_progress_step("Computing CFI")
-if (requireNamespace("arf", quietly = TRUE)) {
-  cfi_r <- CFI$new(
-    task = task,
-    learner = learner,
-    measure = msr("regr.mse"),
-    resampling = resampling,
-    iters_perm = 5,
-    sampler = sampler
-  )
+cfi_r <- CFI$new(
+  task = task,
+  learner = learner,
+  measure = msr("regr.mse"),
+  resampling = resampling,
+  iters_perm = 5,
+  sampler = sampler
+)
 
-  cfi_results <- cfi_r$compute()
-  results$CFI <- list(
-    feature = cfi_results$feature,
-    importance = cfi_results$importance
-  )
-  cli_alert_success("CFI completed")
-}
+cfi_results <- cfi_r$compute()
+results$CFI <- list(
+  feature = cfi_results$feature,
+  importance = cfi_results$importance
+)
+cli_alert_success("CFI completed")
+
 
 # 3. RFI
 cli_progress_step("Computing RFI")
