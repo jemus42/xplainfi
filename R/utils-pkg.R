@@ -8,7 +8,11 @@
 #' @param from (`character(1)`: `"cran"`) Package source. If not `"cran"`,
 #'   should be the URL to the package remote, e.g. a GitHub URL.
 #'
-#' @examplesIf FALSE
+#' @return If package is available: `TRUE` (invisibly). Error otherwise.
+#' @noRd
+#' @keywords internal
+#' @examples
+#'
 #' require_package("arf")
 #' require_package("seqknockoff", from = "https://github.com/kormama1/seqknockoff")
 #'
