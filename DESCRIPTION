@@ -19,7 +19,8 @@ Imports:
     lgr,
     mlr3 (>= 0.21.0),
     paradox (>= 1.0.0),
-    R6
+    R6,
+    stats
 Suggests: 
     arf,
     foreach,
