@@ -43,7 +43,7 @@ reference:
     - LOCO
     - LOCI
   - subtitle: Shapley-Based Approaches
-    desc: Currently including Shapley Additive Global Importance (SAGE) in marginal and conditional variants
+    desc: Shapley Additive Global Importance (SAGE) in marginal and conditional variants
     contents:
       - SAGE
       - MarginalSAGE
@@ -55,6 +55,7 @@ reference:
       - MarginalSampler
       - ConditionalSampler
       - ARFSampler
+      - contains("Sampler")
   - title: Utilities
   - contents:
     - starts_with("compute")
