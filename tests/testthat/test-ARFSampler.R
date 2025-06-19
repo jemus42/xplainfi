@@ -9,11 +9,8 @@ test_that("ARFSampler basic functionality", {
   expect_equal(sampler$label, "Adversarial Random Forest sampler")
   expect_true(inherits(sampler$param_set, "ParamSet"))
   expect_true("conditioning_set" %in% sampler$param_set$ids())
-  expect_true("evidence_row_mode" %in% sampler$param_set$ids())
-  expect_false("n_synth" %in% sampler$param_set$ids()) # n_synth is no longer user-settable
+  expect_true("finite_bounds" %in% sampler$param_set$ids())
   expect_true("round" %in% sampler$param_set$ids())
-  expect_true("sample_NAs" %in% sampler$param_set$ids())
-  expect_true("nomatch" %in% sampler$param_set$ids())
   expect_true("stepsize" %in% sampler$param_set$ids())
   expect_true("verbose" %in% sampler$param_set$ids())
   expect_true("parallel" %in% sampler$param_set$ids())
@@ -208,29 +205,29 @@ test_that("ARFSampler parameter validation", {
   expect_equal(sampler$param_set$values$conditioning_set, c("nonexistent_feature"))
 })
 
-test_that("ARFSampler evidence_row_mode parameter", {
+test_that("ARFSampler finite_bounds parameter", {
   skip_if_not_installed("arf")
   library(mlr3)
 
   task = tgen("circle", d = 5)$generate(n = 50)
 
-  # Test initialization with separate mode
-  sampler = ARFSampler$new(task, evidence_row_mode = "separate")
-  expect_equal(sampler$param_set$values$evidence_row_mode, "separate")
+  # Test initialization with no bounds (default)
+  sampler = ARFSampler$new(task, finite_bounds = "no")
+  expect_equal(sampler$param_set$values$finite_bounds, "no")
 
-  # Test "or" mode initialization
-  sampler_or = ARFSampler$new(task, evidence_row_mode = "or")
-  expect_equal(sampler_or$param_set$values$evidence_row_mode, "or")
+  # Test "local" bounds initialization  
+  sampler_local = ARFSampler$new(task, finite_bounds = "local")
+  expect_equal(sampler_local$param_set$values$finite_bounds, "local")
 
   data = task$data()
 
-  # Test separate mode (default)
-  sampled_separate = sampler$sample("x1", data)
-  expect_equal(nrow(sampled_separate), 50)
+  # Test no bounds (default)
+  sampled_no = sampler$sample("x1", data)
+  expect_equal(nrow(sampled_no), 50)
 
-  # Test or mode
-  sampled_or = sampler_or$sample("x1", data)
-  expect_equal(nrow(sampled_or), 50)
+  # Test local bounds
+  sampled_local = sampler_local$sample("x1", data)
+  expect_equal(nrow(sampled_local), 50)
 })
 
 
@@ -245,7 +242,8 @@ test_that("ARFSampler parameter priority and storage", {
   sampler = ARFSampler$new(
     task,
     conditioning_set = "x2",
-    evidence_row_mode = "separate"
+    verbose = FALSE,
+    parallel = FALSE
   )
 
   # Test that stored parameters are used when not specified in sample()
@@ -253,15 +251,16 @@ test_that("ARFSampler parameter priority and storage", {
   expect_equal(nrow(sampled1), 50)
 
   # Test that function arguments override stored parameters
-  sampled2 = sampler$sample("x1", data, evidence_row_mode = "separate")
+  sampled2 = sampler$sample("x1", data, verbose = FALSE)
   expect_equal(nrow(sampled2), 50)
 
-  # Test overriding to "or" mode
-  sampled3 = sampler$sample("x1", data, evidence_row_mode = "or")
+  # Test overriding verbose parameter
+  sampled3 = sampler$sample("x1", data, verbose = TRUE)
   expect_equal(nrow(sampled3), 50)
 
   # Stored parameters should remain unchanged
-  expect_equal(sampler$param_set$values$evidence_row_mode, "separate")
+  expect_equal(sampler$param_set$values$verbose, FALSE)
+  expect_equal(sampler$param_set$values$parallel, FALSE)
 })
 
 test_that("ARFSampler param_set structure", {
@@ -269,21 +268,34 @@ test_that("ARFSampler param_set structure", {
   library(mlr3)
 
   task = tgen("circle", d = 5)$generate(n = 50)
-  sampler = ARFSampler$new(task, evidence_row_mode = "separate")
+  sampler = ARFSampler$new(task, finite_bounds = "no")
 
   # Check param_set has the correct parameters
   expect_true("conditioning_set" %in% sampler$param_set$ids())
-  expect_true("evidence_row_mode" %in% sampler$param_set$ids())
-  expect_false("n_synth" %in% sampler$param_set$ids()) # n_synth is no longer user-settable
+  expect_true("finite_bounds" %in% sampler$param_set$ids())
+  expect_true("round" %in% sampler$param_set$ids())
+  expect_true("stepsize" %in% sampler$param_set$ids())
+  expect_true("verbose" %in% sampler$param_set$ids())
+  expect_true("parallel" %in% sampler$param_set$ids())
+  
+  # Check that removed parameters are not in param_set
+  expect_false("evidence_row_mode" %in% sampler$param_set$ids()) # evidence_row_mode is hardcoded
+  expect_false("sample_NAs" %in% sampler$param_set$ids()) # sample_NAs is hardcoded
+  expect_false("nomatch" %in% sampler$param_set$ids()) # nomatch is hardcoded
+  expect_false("n_synth" %in% sampler$param_set$ids()) # n_synth is hardcoded
 
   # Check parameter types
-  expect_equal(sampler$param_set$params[id == "evidence_row_mode"]$cls, "ParamFct")
+  expect_equal(sampler$param_set$params[id == "finite_bounds"]$cls, "ParamFct")
 
   # Check default values
-  expect_equal(sampler$param_set$params[id == "evidence_row_mode"]$default[[1]], "separate")
+  expect_equal(sampler$param_set$params[id == "finite_bounds"]$default[[1]], "no")
+  expect_equal(sampler$param_set$params[id == "round"]$default[[1]], TRUE)
+  expect_equal(sampler$param_set$params[id == "stepsize"]$default[[1]], 0)
+  expect_equal(sampler$param_set$params[id == "verbose"]$default[[1]], FALSE)
+  expect_equal(sampler$param_set$params[id == "parallel"]$default[[1]], FALSE)
 
   # Check stored values
-  expect_equal(sampler$param_set$values$evidence_row_mode, "separate")
+  expect_equal(sampler$param_set$values$finite_bounds, "no")
 })
 
 test_that("ARFSampler additional arf::forge parameters", {
@@ -296,25 +308,21 @@ test_that("ARFSampler additional arf::forge parameters", {
   sampler = ARFSampler$new(
     task,
     round = FALSE,
-    sample_NAs = FALSE, # Keep FALSE to avoid NA-related issues
-    nomatch = "force", # Use default "force" instead of "na"
-    stepsize = 0, # Use default 0 instead of 0.1
+    finite_bounds = "no",
     verbose = FALSE,
     parallel = FALSE
   )
 
   # Check parameter storage
   expect_equal(sampler$param_set$values$round, FALSE)
-  expect_equal(sampler$param_set$values$sample_NAs, FALSE)
-  expect_equal(sampler$param_set$values$nomatch, "force")
   expect_equal(sampler$param_set$values$stepsize, 0)
   expect_equal(sampler$param_set$values$verbose, FALSE)
   expect_equal(sampler$param_set$values$parallel, FALSE)
+  expect_equal(sampler$param_set$values$finite_bounds, "no")
 
-  # Check param_set structure for new parameters
+  # Check param_set structure for parameters
+  expect_true("finite_bounds" %in% sampler$param_set$ids())
   expect_true("round" %in% sampler$param_set$ids())
-  expect_true("sample_NAs" %in% sampler$param_set$ids())
-  expect_true("nomatch" %in% sampler$param_set$ids())
   expect_true("stepsize" %in% sampler$param_set$ids())
   expect_true("verbose" %in% sampler$param_set$ids())
   expect_true("parallel" %in% sampler$param_set$ids())
@@ -341,11 +349,10 @@ test_that("ARFSampler default parameter values match arf::forge", {
   task = tgen("circle")$generate(n = 50)
   sampler = ARFSampler$new(task)
 
-  # Check that defaults match arf::forge defaults
+  # Check that defaults are reasonable for xplainfi usage
+  expect_equal(sampler$param_set$params[id == "finite_bounds"]$default[[1]], "no")
   expect_equal(sampler$param_set$params[id == "round"]$default[[1]], TRUE)
-  expect_equal(sampler$param_set$params[id == "sample_NAs"]$default[[1]], FALSE)
-  expect_equal(sampler$param_set$params[id == "nomatch"]$default[[1]], "force")
   expect_equal(sampler$param_set$params[id == "stepsize"]$default[[1]], 0)
-  expect_equal(sampler$param_set$params[id == "verbose"]$default[[1]], TRUE)
-  expect_equal(sampler$param_set$params[id == "parallel"]$default[[1]], TRUE)
+  expect_equal(sampler$param_set$params[id == "verbose"]$default[[1]], FALSE)
+  expect_equal(sampler$param_set$params[id == "parallel"]$default[[1]], FALSE)
 })

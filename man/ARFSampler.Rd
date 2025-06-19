@@ -69,12 +69,12 @@ To fit the ARF in parallel, set \code{arf_args = list(parallel = TRUE)} and regi
 \if{html}{\out{<div class="r">}}\preformatted{ARFSampler$new(
   task,
   conditioning_set = NULL,
+  finite_bounds = "local",
   round = TRUE,
   stepsize = 0,
   verbose = TRUE,
-  parallel = TRUE,
-  arf_args = NULL,
-  forde_args = NULL
+  parallel = FALSE,
+  arf_args = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -85,6 +85,8 @@ To fit the ARF in parallel, set \code{arf_args = list(parallel = TRUE)} and regi
 
 \item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Default conditioning set to use in \verb{$sample()}. This parameter only affects the sampling behavior, not the ARF model fitting.}
 
+\item{\code{finite_bounds}}{(\code{character(1)}: \code{"local"}) Passed to \code{arf::forde()} to mitigate poor extrapolation behavior of teh udnerlying random forest.}
+
 \item{\code{round}}{(\code{logical(1)}: \code{TRUE}) Whether to round continuous variables back to their original precision.}
 
 \item{\code{stepsize}}{(\code{numeric(1)}: \code{0}) Number of rows of evidence to process at a time wehn \code{parallel} is \code{TRUE}. Default (\code{0}) spreads evidence evenly over registered workers.}
@@ -93,7 +95,7 @@ To fit the ARF in parallel, set \code{arf_args = list(parallel = TRUE)} and regi
 
 \item{\code{parallel}}{(\code{logical(1)}: \code{FALSE}) Whether to use parallel processing via \code{foreach}. See examples in \code{\link[arf:forge]{arf::forge()}}.}
 
-\item{\code{arf_args, forde_args}}{(\link{list}) Arguments passed to \code{arf::adversarial_rf} or \code{arf::forde} respectively.}
+\item{\code{arf_args}}{(\link{list}) Additional passed to \code{arf::adversarial_rf}.}
 }
 \if{html}{\out{</div>}}
 }

@@ -159,20 +159,21 @@ ARFSampler = R6Class(
     #' To fit the ARF in parallel, set `arf_args = list(parallel = TRUE)` and register a parallel backend (see [arf::arf]).
     #' @param task ([mlr3::Task]) Task to sample from
     #' @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`. This parameter only affects the sampling behavior, not the ARF model fitting.
+    #' @param finite_bounds (`character(1)`: `"no"`) Passed to `arf::forde()`. Default is `"no"` for compatibility. `"local"` may improve extrapolation but can cause issues with some data.
     #' @param round (`logical(1)`: `TRUE`) Whether to round continuous variables back to their original precision.
     #' @param stepsize (`numeric(1)`: `0`) Number of rows of evidence to process at a time wehn `parallel` is `TRUE`. Default (`0`) spreads evidence evenly over registered workers.
     #' @param verbose (`logical(1)`: `FALSE`) Whether to print progress messages. Default is `FALSE` but default in `arf` is `TRUE`.
     #' @param parallel (`logical(1)`: `FALSE`) Whether to use parallel processing via `foreach`. See examples in [arf::forge()].
-    #' @param arf_args,forde_args ([list]) Arguments passed to `arf::adversarial_rf` or `arf::forde` respectively.
+    #' @param arf_args ([list]) Additional passed to `arf::adversarial_rf`.
     initialize = function(
       task,
       conditioning_set = NULL,
+      finite_bounds = "no",
       round = TRUE,
       stepsize = 0,
-      verbose = TRUE,
-      parallel = TRUE,
-      arf_args = NULL,
-      forde_args = NULL
+      verbose = FALSE,
+      parallel = FALSE,
+      arf_args = NULL
     ) {
       super$initialize(task)
       self$label = "Adversarial Random Forest sampler"
@@ -182,17 +183,19 @@ ARFSampler = R6Class(
       # Override param_set to include ARF-specific parameters
       self$param_set = paradox::ps(
         conditioning_set = paradox::p_uty(default = NULL),
+        finite_bounds = paradox::p_fct(c("no", "local", "global"), default = "no"),
         round = paradox::p_lgl(default = TRUE),
         stepsize = paradox::p_dbl(lower = 0, default = 0),
-        verbose = paradox::p_lgl(default = TRUE),
-        parallel = paradox::p_lgl(default = TRUE)
+        verbose = paradox::p_lgl(default = FALSE),
+        parallel = paradox::p_lgl(default = FALSE)
       )
 
-      # Set parameter values
+      # Set parameter values for later use in $sample()
       values_to_set = list()
       if (!is.null(conditioning_set)) {
         values_to_set$conditioning_set = conditioning_set
       }
+      values_to_set$finite_bounds = finite_bounds
       values_to_set$round = round
       values_to_set$stepsize = stepsize
       values_to_set$verbose = verbose
@@ -201,7 +204,7 @@ ARFSampler = R6Class(
       self$param_set$set_values(.values = values_to_set)
 
       # Register sequential backend in an attempt to silence foreach warning
-      if (!foreach::getDoParRegistered()) {
+      if (!foreach::getDoParRegistered() & !parallel) {
         foreach::registerDoSEQ()
       }
 
@@ -209,12 +212,14 @@ ARFSampler = R6Class(
       task_data = self$task$data(cols = self$task$feature_names)
 
       # Train ARF and estimate distribution parameters
-      arf_args$verbose = arf_args$verbose %||% verbose
 
-      self$arf_model = do.call(arf::adversarial_rf, args = c(x = list(task_data), arf_args))
-      self$psi = do.call(
-        arf::forde,
-        args = c(arf = list(self$arf_model), x = list(task_data), forde_args)
+      self$arf_model = arf::adversarial_rf(x = task_data, verbose = verbose, parallel = parallel)
+      self$psi = arf::forde(
+        arf = self$arf_model,
+        x = task_data,
+        finite_bounds = finite_bounds,
+        epsilon = 0.1, # Conservative value for finite_bounds = "local"
+        parallel = parallel
       )
     },
 
@@ -253,8 +258,8 @@ ARFSampler = R6Class(
       # Determine arf::forge parameters using hierarchical resolution
       round = resolve_param(round, self$param_set$values$round, TRUE)
       stepsize = resolve_param(stepsize, self$param_set$values$stepsize, 0)
-      verbose = resolve_param(verbose, self$param_set$values$verbose, TRUE)
-      parallel = resolve_param(parallel, self$param_set$values$parallel, TRUE)
+      verbose = resolve_param(verbose, self$param_set$values$verbose, FALSE)
+      parallel = resolve_param(parallel, self$param_set$values$parallel, FALSE)
 
       # Create evidence data frame with conditioning set for all rows
       # Handle empty conditioning set by passing NULL to arf::forge()
