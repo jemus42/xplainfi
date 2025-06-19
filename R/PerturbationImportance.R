@@ -1,4 +1,4 @@
-#' @title Permutation Feature Importance Base Class
+#' @title Perturbation Feature Importance Base Class
 #'
 #' @description Abstract base class for perturbation-based importance methods PFI, CFI, and RFI
 #'
