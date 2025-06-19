@@ -1,7 +1,6 @@
-library(mlr3)
-library(mlr3learners)
-
 test_that("combine two PFIs with same setup", {
+  library(mlr3)
+
   learner = lrn("classif.rpart")
   resampling = rsmp("cv", folds = 3)
   measure = msr("classif.ce")
