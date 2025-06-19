@@ -301,6 +301,13 @@ ARFSampler = R6Class(
         evidence = data[, .SD, .SDcols = conditioning_set]
       }
 
+      if (getOption("xplainfi.debug", default = FALSE)) {
+        cli::cli_inform(c(
+          i = "Feature is {.val {feature}}",
+          i = "Conditioning set is {.val {conditioning_set}}"
+        ))
+      }
+
       # Generate conditional samples
       synthetic = arf::forge(
         params = self$psi,
@@ -408,7 +415,18 @@ KnockoffSampler = R6Class(
       data_copy = data.table::copy(data)
 
       # Replace the feature(s) with knockoffs
-      data_copy[, (feature) := self$x_tilde[, .SD, .SDcols = feature]]
+
+      # TODO: x_tilde and data issue https://github.com/jemus42/xplainfi/issues/18
+      if (nrow(data) != nrow(self$x_tilde)) {
+        cli::cli_warn(
+          "{.val data} has {.val {nrow(data)}} rows but {.val x_tilde} has {.val {nrow(self$x_tilde)}} rows"
+        )
+      }
+
+      # Saubsample knockoff feature to match input?
+      data_copy[,
+        (feature) := self$x_tilde[, .SD, .SDcols = feature]
+      ]
 
       data_copy[]
     }
