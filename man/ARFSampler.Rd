@@ -23,9 +23,9 @@ data = task$data()
 # Will use the stored parameters
 sampled_data = sampler$sample("x1", data)
 
-# Example with "or" mode and custom parameters
-sampler_or = ARFSampler$new(task, evidence_row_mode = "or", round = FALSE)
-sampled_or = sampler_or$sample("x1", data)
+# Example with custom parameters
+sampler_custom = ARFSampler$new(task, round = FALSE)
+sampled_custom = sampler_custom$sample("x1", data)
 \dontshow{\}) # examplesIf}
 }
 \references{
@@ -69,10 +69,7 @@ To fit the ARF in parallel, set \code{arf_args = list(parallel = TRUE)} and regi
 \if{html}{\out{<div class="r">}}\preformatted{ARFSampler$new(
   task,
   conditioning_set = NULL,
-  evidence_row_mode = "separate",
   round = TRUE,
-  sample_NAs = FALSE,
-  nomatch = "force",
   stepsize = 0,
   verbose = TRUE,
   parallel = TRUE,
@@ -88,19 +85,13 @@ To fit the ARF in parallel, set \code{arf_args = list(parallel = TRUE)} and regi
 
 \item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Default conditioning set to use in \verb{$sample()}. This parameter only affects the sampling behavior, not the ARF model fitting.}
 
-\item{\code{evidence_row_mode}}{(\code{character(1)}) Evidence row mode for \code{arf::forge()}. Default is "separate".}
+\item{\code{round}}{(\code{logical(1)}: \code{TRUE}) Whether to round continuous variables back to their original precision.}
 
-\item{\code{round}}{(\code{logical(1)}) Whether to round continuous variables. Default is \code{TRUE}.}
+\item{\code{stepsize}}{(\code{numeric(1)}: \code{0}) Number of rows of evidence to process at a time wehn \code{parallel} is \code{TRUE}. Default (\code{0}) spreads evidence evenly over registered workers.}
 
-\item{\code{sample_NAs}}{(\code{logical(1)}) Whether to sample missing values. Default is \code{FALSE}.}
+\item{\code{verbose}}{(\code{logical(1)}: \code{FALSE}) Whether to print progress messages. Default is \code{FALSE} but default in \code{arf} is \code{TRUE}.}
 
-\item{\code{nomatch}}{(\code{character(1)}) How to handle factor levels not seen in training. Default is "force".}
-
-\item{\code{stepsize}}{(\code{numeric(1)}) Step size for variance adjustment. Default is 0.}
-
-\item{\code{verbose}}{(\code{logical(1)}) Whether to print progress messages. Default is \code{TRUE}.}
-
-\item{\code{parallel}}{(\code{logical(1)}) Whether to use parallel processing. Default is \code{TRUE}.}
+\item{\code{parallel}}{(\code{logical(1)}: \code{FALSE}) Whether to use parallel processing via \code{foreach}. See examples in \code{\link[arf:forge]{arf::forge()}}.}
 
 \item{\code{arf_args, forde_args}}{(\link{list}) Arguments passed to \code{arf::adversarial_rf} or \code{arf::forde} respectively.}
 }
@@ -117,10 +108,7 @@ Sample values for feature(s) conditionally on other features using ARF
   feature,
   data = self$task$data(),
   conditioning_set = NULL,
-  evidence_row_mode = NULL,
   round = NULL,
-  sample_NAs = NULL,
-  nomatch = NULL,
   stepsize = NULL,
   verbose = NULL,
   parallel = NULL,
@@ -137,13 +125,7 @@ Sample values for feature(s) conditionally on other features using ARF
 
 \item{\code{conditioning_set}}{(\code{character(n) | NULL}) Features to condition on. If \code{NULL}, uses the stored parameter if available, otherwise defaults to all other features.}
 
-\item{\code{evidence_row_mode}}{(\code{character(1) | NULL}) Evidence row mode for \code{arf::forge()}. If \code{NULL}, uses the stored parameter value. Must be \code{"separate"} or \code{"or"}.}
-
 \item{\code{round}}{(\code{logical(1) | NULL}) Whether to round continuous variables. If \code{NULL}, uses the stored parameter value.}
-
-\item{\code{sample_NAs}}{(\code{logical(1) | NULL}) Whether to sample missing values. If \code{NULL}, uses the stored parameter value.}
-
-\item{\code{nomatch}}{(\code{character(1) | NULL}) How to handle factor levels not seen in training. If \code{NULL}, uses the stored parameter value.}
 
 \item{\code{stepsize}}{(\code{numeric(1) | NULL}) Step size for variance adjustment. If \code{NULL}, uses the stored parameter value.}
 

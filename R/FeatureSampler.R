@@ -139,9 +139,9 @@ ConditionalSampler = R6Class(
 #' # Will use the stored parameters
 #' sampled_data = sampler$sample("x1", data)
 #'
-#' # Example with "or" mode and custom parameters
-#' sampler_or = ARFSampler$new(task, evidence_row_mode = "or", round = FALSE)
-#' sampled_or = sampler_or$sample("x1", data)
+#' # Example with custom parameters
+#' sampler_custom = ARFSampler$new(task, round = FALSE)
+#' sampled_custom = sampler_custom$sample("x1", data)
 #' @references `r print_bib("watson_2023", "blesch_2025")`
 #'
 #' @export
@@ -159,21 +159,15 @@ ARFSampler = R6Class(
     #' To fit the ARF in parallel, set `arf_args = list(parallel = TRUE)` and register a parallel backend (see [arf::arf]).
     #' @param task ([mlr3::Task]) Task to sample from
     #' @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`. This parameter only affects the sampling behavior, not the ARF model fitting.
-    #' @param evidence_row_mode (`character(1)`) Evidence row mode for `arf::forge()`. Default is "separate".
-    #' @param round (`logical(1)`) Whether to round continuous variables. Default is `TRUE`.
-    #' @param sample_NAs (`logical(1)`) Whether to sample missing values. Default is `FALSE`.
-    #' @param nomatch (`character(1)`) How to handle factor levels not seen in training. Default is "force".
-    #' @param stepsize (`numeric(1)`) Step size for variance adjustment. Default is 0.
-    #' @param verbose (`logical(1)`) Whether to print progress messages. Default is `TRUE`.
-    #' @param parallel (`logical(1)`) Whether to use parallel processing. Default is `TRUE`.
+    #' @param round (`logical(1)`: `TRUE`) Whether to round continuous variables back to their original precision.
+    #' @param stepsize (`numeric(1)`: `0`) Number of rows of evidence to process at a time wehn `parallel` is `TRUE`. Default (`0`) spreads evidence evenly over registered workers.
+    #' @param verbose (`logical(1)`: `FALSE`) Whether to print progress messages. Default is `FALSE` but default in `arf` is `TRUE`.
+    #' @param parallel (`logical(1)`: `FALSE`) Whether to use parallel processing via `foreach`. See examples in [arf::forge()].
     #' @param arf_args,forde_args ([list]) Arguments passed to `arf::adversarial_rf` or `arf::forde` respectively.
     initialize = function(
       task,
       conditioning_set = NULL,
-      evidence_row_mode = "separate",
       round = TRUE,
-      sample_NAs = FALSE,
-      nomatch = "force",
       stepsize = 0,
       verbose = TRUE,
       parallel = TRUE,
@@ -188,10 +182,7 @@ ARFSampler = R6Class(
       # Override param_set to include ARF-specific parameters
       self$param_set = paradox::ps(
         conditioning_set = paradox::p_uty(default = NULL),
-        evidence_row_mode = paradox::p_fct(levels = c("separate", "or"), default = "separate"),
         round = paradox::p_lgl(default = TRUE),
-        sample_NAs = paradox::p_lgl(default = FALSE),
-        nomatch = paradox::p_fct(levels = c("force", "na"), default = "force"),
         stepsize = paradox::p_dbl(lower = 0, default = 0),
         verbose = paradox::p_lgl(default = TRUE),
         parallel = paradox::p_lgl(default = TRUE)
@@ -202,10 +193,7 @@ ARFSampler = R6Class(
       if (!is.null(conditioning_set)) {
         values_to_set$conditioning_set = conditioning_set
       }
-      values_to_set$evidence_row_mode = evidence_row_mode
       values_to_set$round = round
-      values_to_set$sample_NAs = sample_NAs
-      values_to_set$nomatch = nomatch
       values_to_set$stepsize = stepsize
       values_to_set$verbose = verbose
       values_to_set$parallel = parallel
@@ -235,10 +223,7 @@ ARFSampler = R6Class(
     #' @param feature (`character`) Feature(s) of interest to sample (can be single or multiple)
     #' @param data ([`data.table`][data.table::data.table]) Data containing conditioning features. Defaults to `$task$data()`, but typically a dedicated test set is provided.
     #' @param conditioning_set (`character(n) | NULL`) Features to condition on. If `NULL`, uses the stored parameter if available, otherwise defaults to all other features.
-    #' @param evidence_row_mode (`character(1) | NULL`) Evidence row mode for `arf::forge()`. If `NULL`, uses the stored parameter value. Must be `"separate"` or `"or"`.
     #' @param round (`logical(1) | NULL`) Whether to round continuous variables. If `NULL`, uses the stored parameter value.
-    #' @param sample_NAs (`logical(1) | NULL`) Whether to sample missing values. If `NULL`, uses the stored parameter value.
-    #' @param nomatch (`character(1) | NULL`) How to handle factor levels not seen in training. If `NULL`, uses the stored parameter value.
     #' @param stepsize (`numeric(1) | NULL`) Step size for variance adjustment. If `NULL`, uses the stored parameter value.
     #' @param verbose (`logical(1) | NULL`) Whether to print progress messages. If `NULL`, uses the stored parameter value.
     #' @param parallel (`logical(1) | NULL`) Whether to use parallel processing. If `NULL`, uses the stored parameter value.
@@ -248,10 +233,7 @@ ARFSampler = R6Class(
       feature,
       data = self$task$data(),
       conditioning_set = NULL,
-      evidence_row_mode = NULL,
       round = NULL,
-      sample_NAs = NULL,
-      nomatch = NULL,
       stepsize = NULL,
       verbose = NULL,
       parallel = NULL,
@@ -268,34 +250,16 @@ ARFSampler = R6Class(
         setdiff(self$task$feature_names, feature)
       )
 
-      # Determine evidence_row_mode
-      evidence_row_mode = resolve_param(
-        evidence_row_mode,
-        self$param_set$values$evidence_row_mode,
-        "separate"
-      )
-
       # Determine arf::forge parameters using hierarchical resolution
       round = resolve_param(round, self$param_set$values$round, TRUE)
-      sample_NAs = resolve_param(sample_NAs, self$param_set$values$sample_NAs, FALSE)
-      nomatch = resolve_param(nomatch, self$param_set$values$nomatch, "force")
       stepsize = resolve_param(stepsize, self$param_set$values$stepsize, 0)
       verbose = resolve_param(verbose, self$param_set$values$verbose, TRUE)
       parallel = resolve_param(parallel, self$param_set$values$parallel, TRUE)
 
-      # Set n_synth based on evidence_row_mode and data dimensions
-      # This ensures we always get exactly nrow(data) samples
-      if (evidence_row_mode == "separate") {
-        # In separate mode: 1 sample per evidence row = nrow(data) total samples
-        n_synth = 1L
-      } else {
-        # In "or" mode: nrow(data) total samples across all evidence
-        n_synth = nrow(data)
-      }
-
       # Create evidence data frame with conditioning set for all rows
       # Handle empty conditioning set by passing NULL to arf::forge()
       if (length(conditioning_set) == 0) {
+        # Equivalent (ish) to marginal permutation
         evidence = NULL
       } else {
         evidence = data[, .SD, .SDcols = conditioning_set]
@@ -311,12 +275,12 @@ ARFSampler = R6Class(
       # Generate conditional samples
       synthetic = arf::forge(
         params = self$psi,
-        n_synth = n_synth,
+        n_synth = 1L, # would be nrow(data) for evidence_row_mode = "or"
         evidence = evidence,
-        evidence_row_mode = evidence_row_mode,
+        evidence_row_mode = "separate",
         round = round,
-        sample_NAs = sample_NAs,
-        nomatch = nomatch,
+        sample_NAs = FALSE,
+        nomatch = "force",
         verbose = verbose,
         stepsize = stepsize,
         parallel = parallel,
