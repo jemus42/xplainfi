@@ -35,3 +35,68 @@ sim_dgp_ewald <- function(n = 500) {
 
   mlr3::TaskRegr$new(backend = xdf, target = "y", id = paste0("Ewald_", n))
 }
+
+#' Example DGP for illustration
+#'
+#'
+#' - x1: random uniform, direct effect on y
+#' - xm, xme: random uniform, xme is the mediated exposure, xm is the mediator, no direct effect of xme on y
+#' - xi1,2: random uniform, interaction effect only
+#' - z: random uniform, xz is noisy version of z, only z has effect on y
+#' - xc1,2,3: correlated multivariate normal, additive effects on y
+#' - xbin: random bernoulli with prob 1/3
+#' - znoise1,2: random uniform and random normal noise terms, no effect on y
+#'
+#' \eqn{y = x1 + x2 + xi1 * xi2 + z + xc1 + xc2 + xc3 + xbin + \epsilon}
+#'
+#' @param n (`integer(1)`: 100L) Number of samples to create.
+#'
+#' @return A regression task ([mlr3::TaskRegr]) with [data.table][data.table::data.table] backend.
+#' @export
+#'
+#' @examples
+#' sim_dgp_example(100)
+sim_dgp_example <- function(n = 100L) {
+  # x1 is independent uniform predictr
+  x1 <- runif(n)
+  # xm is mediator for "exposure" xme: xme -> xm -> y
+  xme <- runif(n)
+  xm <- xme + rnorm(n, 0, 0.001)
+
+  # xi1,2 are independent interaction effects
+  xi1 <- runif(n)
+  xi2 <- runif(n)
+
+  # z is a confounder affecting xz and y
+  z <- runif(n)
+  xz <- z + rnorm(n, 0, 0.01)
+
+  # 3 correlated features for good measure
+  xc <- mvtnorm::rmvnorm(n = 100, sigma = toeplitz(0.5^(0:(3 - 1))))
+  colnames(xc) <- c("xc1", "xc2", "xc3")
+
+  # a binary
+  xbin <- rbinom(100, 1, 1 / 3)
+
+  znoise1 <- runif(n)
+  znoise2 <- rnorm(n, sd = 0.01)
+
+  y <- x1 + xme + xi1 * xi2 + z + xc[, 1] + xc[, 2] + xc[, 3] + xbin + rnorm(n, 0, 0.1)
+
+  xdf <- data.table::data.table(
+    y,
+    x1,
+    xme,
+    xm,
+    xi1,
+    xi2,
+    z,
+    xz,
+    xc,
+    xbin,
+    znoise1,
+    znoise2
+  )
+
+  mlr3::TaskRegr$new(backend = xdf, target = "y", id = paste0("Example_", n))
+}
