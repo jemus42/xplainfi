@@ -53,10 +53,11 @@ sim_dgp_ewald <- function(n = 500) {
 #'
 #' @return A regression task ([mlr3::TaskRegr]) with [data.table][data.table::data.table] backend.
 #' @export
-#'
+#' @importFrom stats runif rnorm rbinom toeplitz
 #' @examples
 #' sim_dgp_example(100)
 sim_dgp_example <- function(n = 100L) {
+  # Don't want to add mvtnorm to Suggests: for now
   require_package("mvtnorm")
 
   # x1 is independent uniform predictr
@@ -70,11 +71,12 @@ sim_dgp_example <- function(n = 100L) {
   xi2 <- runif(n)
 
   # z is a confounder affecting xz and y
+  # z -> y and z -> xz but xz !-> y
   z <- runif(n)
   xz <- z + rnorm(n, 0, 0.1)
 
   # 3 correlated features for good measure
-  xc <- mvtnorm::rmvnorm(n = 100, sigma = toeplitz(0.5^(0:2)))
+  xc <- mvtnorm::rmvnorm(n = n, sigma = stats::toeplitz(0.5^(0:2)))
   colnames(xc) <- c("xc1", "xc2", "xc3")
 
   # a binary
