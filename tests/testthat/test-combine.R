@@ -1,7 +1,7 @@
 test_that("combine two PFIs with same setup", {
-  library(mlr3)
+  library(mlr3learners)
 
-  learner = lrn("classif.rpart")
+  learner = lrn("classif.ranger", num.trees = 50)
   resampling = rsmp("cv", folds = 3)
   measure = msr("classif.ce")
   task = tsk("breast_cancer")
