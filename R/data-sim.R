@@ -10,7 +10,7 @@
 #'
 #' @return A regression task ([mlr3::TaskRegr]) with [data.table][data.table::data.table] backend.
 #' @export
-#'
+#' @references `r print_bib("ewald_2024")`
 #' @examples
 #' sim_dgp_ewald(100)
 #'
@@ -36,69 +36,244 @@ sim_dgp_ewald <- function(n = 500) {
   mlr3::TaskRegr$new(backend = xdf, target = "y", id = paste0("Ewald_", n))
 }
 
-#' Example DGP for illustration
+#' @title Simulation DGPs for Feature Importance Method Comparison
+#' @name sim_dgp_scenarios
+#' @description
+#' These data generating processes (DGPs) are designed to illustrate specific
+#' strengths and weaknesses of different feature importance methods like PFI, CFI, and RFI.
+#' Each DGP focuses on one primary challenge to make the differences between methods clear.
 #'
+#' @references `r print_bib("ewald_2024")`
+NULL
+
+#' @describeIn sim_dgp_scenarios Correlated features demonstrating PFI's limitations
 #'
-#' - x1: random uniform, direct effect on y
-#' - xm, xme: random uniform, xme is the mediated exposure, xm is the mediator, no direct effect of xme on y
-#' - xi1,2: random uniform, interaction effect only
-#' - z: random uniform, xz is noisy version of z, only z has effect on y
-#' - xc1,2,3: correlated multivariate normal, additive effects on y
-#' - xbin: random bernoulli with prob 1/3
-#' - znoise: random uniform and random normal noise terms, no effect on y
+#' @details
+#' **Correlated Features DGP:**
+#' This DGP creates highly correlated predictors where PFI will show artificially low
+#' importance due to redundancy, while CFI will correctly identify each feature's
+#' conditional contribution.
 #'
-#' \eqn{y = x1 + x2 + xi1 * xi2 + z + xc1 + xc2 + xc3 + xbin + \epsilon}
+#' - `x1`: Standard normal, direct effect on y
+#' - `x2`: Nearly perfect copy of x1 (x1 + small noise)
+#' - `x3`: Independent standard normal, direct effect on y
+#' - `x4`: Independent standard normal, no effect on y
 #'
-#' @param n (`integer(1)`: 100L) Number of samples to create.
+#' Expected behavior:
+#' - **PFI**: Will show low importance for x1 and x2 due to redundancy
+#' - **CFI**: Will show high importance for both x1 and x2 when conditioned properly
+#' - **Ground truth**: Both x1 and x2 have causal effects, x3 has effect, x4 has none
 #'
+#' @param n (`integer(1)`) Number of samples to generate.
 #' @return A regression task ([mlr3::TaskRegr]) with [data.table][data.table::data.table] backend.
 #' @export
-#' @importFrom stats runif rnorm rbinom toeplitz
 #' @examples
-#' sim_dgp_example(100)
-sim_dgp_example <- function(n = 100L) {
-  # Don't want to add mvtnorm to Suggests: for now
-  require_package("mvtnorm")
+#' task = sim_dgp_correlated(200)
+#' task$data()
+sim_dgp_correlated <- function(n = 500L) {
+  # Two highly correlated features with causal effects
+  x1 <- rnorm(n)
+  x2 <- x1 + rnorm(n, 0, 0.05) # Nearly perfect copy with small noise
 
-  # x1 is independent uniform predictr
-  x1 <- runif(n)
-  # xm is mediator for "exposure" xme: xme -> xm -> y
-  xme <- runif(n)
-  xm <- xme + rnorm(n, 0, 0.1)
+  # Independent features
+  x3 <- rnorm(n) # Has causal effect
+  x4 <- rnorm(n) # No causal effect (noise)
 
-  # xi1,2 are independent interaction effects
-  xi1 <- runif(n)
-  xi2 <- runif(n)
+  # Outcome depends on correlated features x1, x2 and independent x3
+  y <- 2 * x1 + 1.5 * x2 + x3 + rnorm(n, 0, 0.2)
 
-  # z is a confounder affecting xz and y
-  # z -> y and z -> xz but xz !-> y
-  z <- runif(n)
-  xz <- z + rnorm(n, 0, 0.1)
+  data.table::data.table(
+    y = y,
+    x1 = x1,
+    x2 = x2,
+    x3 = x3,
+    x4 = x4
+  ) |>
+    mlr3::TaskRegr$new(target = "y", id = paste0("correlated_", n))
+}
 
-  # 3 correlated features for good measure
-  xc <- mvtnorm::rmvnorm(n = n, sigma = stats::toeplitz(0.5^(0:2)))
-  colnames(xc) <- c("xc1", "xc2", "xc3")
+#' @describeIn sim_dgp_scenarios Mediated effects showing direct vs total importance
+#'
+#' @details
+#' **Mediated Effects DGP:**
+#' This DGP demonstrates the difference between total and direct causal effects.
+#' Some features affect the outcome only through mediators.
+#'
+#' - `exposure`: Has no direct effect on y, only through mediator
+#' - `mediator`: Mediates the effect of exposure on y
+#' - `direct`: Has both direct effect on y and effect on mediator
+#' - `noise`: No causal relationship to y
+#'
+#' Causal structure: exposure → mediator → y ← direct → mediator
+#'
+#' Expected behavior:
+#' - **PFI**: Shows total effects (exposure appears important)
+#' - **CFI**: Shows direct effects (exposure appears less important when conditioning on mediator)
+#' - **RFI with mediator**: Should show direct effects similar to CFI
+#'
+#' @export
+#' @examples
+#' task = sim_dgp_mediated(200)
+#' task$data()
+sim_dgp_mediated <- function(n = 500L) {
+  # Initial exposure variable
+  exposure <- rnorm(n)
 
-  # a binary
-  xbin <- rbinom(100, 1, 1 / 3)
+  # Direct predictor that affects both mediator and outcome
+  direct <- rnorm(n)
 
-  znoise <- runif(n)
+  # Mediator affected by both exposure and direct
+  mediator <- 0.8 * exposure + 0.6 * direct + rnorm(n, 0, 0.3)
 
-  y <- x1 + xme + xi1 * xi2 + z + xc[, 1] + xc[, 2] + xc[, 3] + xbin + rnorm(n, 0, 0.1)
+  # Noise variable
+  noise <- rnorm(n)
 
-  xdf <- data.table::data.table(
-    y,
-    x1,
-    xme,
-    xm,
-    xi1,
-    xi2,
-    z,
-    xz,
-    xc,
-    xbin,
-    znoise
-  )
+  # Outcome depends on mediator and direct effect, but NOT directly on exposure
+  y <- 1.5 * mediator + 0.5 * direct + rnorm(n, 0, 0.2)
 
-  mlr3::TaskRegr$new(backend = xdf, target = "y", id = paste0("Example_", n))
+  data.table::data.table(
+    y = y,
+    exposure = exposure,
+    mediator = mediator,
+    direct = direct,
+    noise = noise
+  ) |>
+    mlr3::TaskRegr$new(target = "y", id = paste0("mediated_", n))
+}
+
+#' @describeIn sim_dgp_scenarios Confounding scenario for conditional sampling
+#'
+#' @details
+#' **Confounding DGP:**
+#' This DGP includes a confounder that affects both features and the outcome.
+#' Demonstrates when conditioning can be helpful or harmful.
+#'
+#' - `confounder`: Latent variable affecting both predictors and outcome
+#' - `x1`: Affected by confounder, has direct effect on y
+#' - `x2`: Affected by confounder, has direct effect on y
+#' - `proxy`: Noisy measurement of confounder, no direct effect on y
+#' - `independent`: Independent of confounder, has direct effect on y
+#'
+#' Expected behavior:
+#' - **PFI**: May show confounded associations
+#' - **CFI**: Should better isolate direct effects by conditioning on related variables
+#' - **RFI conditioning on proxy**: Should help remove confounding bias
+#'
+#' @export
+#' @examples
+#' task = sim_dgp_confounded(200)
+#' task$data()
+sim_dgp_confounded <- function(n = 500L) {
+  # Hidden confounder
+  confounder <- rnorm(n)
+
+  # Features affected by confounder
+  x1 <- 0.7 * confounder + rnorm(n, 0, 0.5)
+  x2 <- 0.8 * confounder + rnorm(n, 0, 0.4)
+
+  # Proxy measurement of confounder (observable but noisy)
+  proxy <- confounder + rnorm(n, 0, 0.3)
+
+  # Independent feature unaffected by confounder
+  independent <- rnorm(n)
+
+  # Outcome affected by confounder and all features
+  y <- 1.2 * confounder + 0.8 * x1 + 0.6 * x2 + 0.5 * independent + rnorm(n, 0, 0.3)
+
+  data.table::data.table(
+    y = y,
+    x1 = x1,
+    x2 = x2,
+    proxy = proxy,
+    independent = independent
+  ) |>
+    mlr3::TaskRegr$new(target = "y", id = paste0("confounded_", n))
+}
+
+#' @describeIn sim_dgp_scenarios Interaction effects between features
+#'
+#' @details
+#' **Interaction Effects DGP:**
+#' This DGP focuses on interaction effects where the importance of features
+#' depends on the values of other features.
+#'
+#' - `x1`, `x2`: Independent features with interaction effect
+#' - `x3`: Independent feature with main effect only
+#' - `noise1`, `noise2`: No causal effects
+#'
+#' Expected behavior:
+#' - **PFI**: May underestimate importance of interacting features when permuted independently
+#' - **CFI**: Should better capture interaction effects through conditional sampling
+#' - **Ground truth**: x1 and x2 are important mainly through their interaction
+#'
+#' @export
+#' @examples
+#' task = sim_dgp_interactions(200)
+#' task$data()
+sim_dgp_interactions <- function(n = 500L) {
+  # Independent features for interaction
+  x1 <- rnorm(n)
+  x2 <- rnorm(n)
+
+  # Independent feature with main effect
+  x3 <- rnorm(n)
+
+  # Noise features
+  noise1 <- rnorm(n)
+  noise2 <- rnorm(n)
+
+  # Outcome with strong interaction between x1 and x2, plus main effect of x3
+  y <- 0.3 * x1 + 0.2 * x2 + 1.5 * x1 * x2 + x3 + rnorm(n, 0, 0.3)
+
+  data.table::data.table(
+    y = y,
+    x1 = x1,
+    x2 = x2,
+    x3 = x3,
+    noise1 = noise1,
+    noise2 = noise2
+  ) |>
+    mlr3::TaskRegr$new(target = "y", id = paste0("interactions_", n))
+}
+
+#' @describeIn sim_dgp_scenarios Independent features baseline scenario
+#'
+#' @details
+#' **Independent Features DGP:**
+#' This is a baseline scenario where all features are independent and their
+#' effects are additive. All importance methods should give similar results.
+#'
+#' - `important1-3`: Independent features with different effect sizes
+#' - `unimportant1-2`: Independent noise features with no effect
+#'
+#' Expected behavior:
+#' - **All methods**: Should rank features consistently by their true effect sizes
+#' - **Ground truth**: important1 > important2 > important3 > unimportant1,2 ≈ 0
+#'
+#' @export
+#' @examples
+#' task = sim_dgp_independent(200)
+#' task$data()
+sim_dgp_independent <- function(n = 500L) {
+  # Independent important features with different effect sizes
+  important1 <- rnorm(n)
+  important2 <- rnorm(n)
+  important3 <- rnorm(n)
+
+  # Independent unimportant features
+  unimportant1 <- rnorm(n)
+  unimportant2 <- rnorm(n)
+
+  # Additive linear outcome
+  y <- 2.0 * important1 + 1.0 * important2 + 0.5 * important3 + rnorm(n, 0, 0.2)
+
+  data.table::data.table(
+    y = y,
+    important1 = important1,
+    important2 = important2,
+    important3 = important3,
+    unimportant1 = unimportant1,
+    unimportant2 = unimportant2
+  ) |>
+    mlr3::TaskRegr$new(target = "y", id = paste0("independent_", n))
 }

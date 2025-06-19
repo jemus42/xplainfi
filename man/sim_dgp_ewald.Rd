@@ -22,3 +22,9 @@ A regression task (\link[mlr3:TaskRegr]{mlr3::TaskRegr}) with \link[data.table:d
 sim_dgp_ewald(100)
 
 }
+\references{
+Ewald, Katharina F, Bothmann, Ludwig, Wright, N. M, Bischl, Bernd, Casalicchio, Giuseppe, König, Gunnar (2024).
+\dQuote{A Guide to Feature Importance Methods for Scientific Inference.}
+In Longo, Luca, Lapuschkin, Sebastian, Seifert, Christin (eds.), \emph{Explainable Artificial Intelligence}, 440--464.
+ISBN 978-3-031-63797-1, \doi{10.1007/978-3-031-63797-1_22}.
+}
