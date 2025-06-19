@@ -20,7 +20,7 @@ A regression task (\link[mlr3:TaskRegr]{mlr3::TaskRegr}) with \link[data.table:d
 \item z: random uniform, xz is noisy version of z, only z has effect on y
 \item xc1,2,3: correlated multivariate normal, additive effects on y
 \item xbin: random bernoulli with prob 1/3
-\item znoise1,2: random uniform and random normal noise terms, no effect on y
+\item znoise: random uniform and random normal noise terms, no effect on y
 }
 }
 \details{
