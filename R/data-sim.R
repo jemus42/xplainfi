@@ -146,18 +146,19 @@ sim_dgp_mediated <- function(n = 500L) {
 #' @details
 #' **Confounding DGP:**
 #' This DGP includes a confounder that affects both features and the outcome.
-#' Demonstrates when conditioning can be helpful or harmful.
+#' Uses simple coefficients for easy interpretation.
 #'
-#' - `confounder`: Latent variable affecting both predictors and outcome
-#' - `x1`: Affected by confounder, has direct effect on y
-#' - `x2`: Affected by confounder, has direct effect on y
-#' - `proxy`: Noisy measurement of confounder, no direct effect on y
-#' - `independent`: Independent of confounder, has direct effect on y
+#' Model structure:
+#' - Hidden confounder H ~ N(0,1)
+#' - x1 = H + noise, x2 = H + noise (both affected by confounder)
+#' - proxy = H + noise (noisy measurement of confounder)
+#' - independent ~ N(0,1) (truly independent)
+#' - y = H + 0.5*x1 + 0.5*x2 + independent + noise
 #'
 #' Expected behavior:
-#' - **PFI**: May show confounded associations
-#' - **CFI**: Should better isolate direct effects by conditioning on related variables
-#' - **RFI conditioning on proxy**: Should help remove confounding bias
+#' - **PFI**: Will show inflated importance for x1 and x2 due to confounding
+#' - **CFI**: Should partially account for confounding through conditional sampling
+#' - **RFI conditioning on proxy**: Should reduce confounding bias by controlling for H
 #'
 #' @export
 #' @examples
@@ -168,17 +169,17 @@ sim_dgp_confounded <- function(n = 500L) {
   confounder <- rnorm(n)
 
   # Features affected by confounder
-  x1 <- 0.7 * confounder + rnorm(n, 0, 0.5)
-  x2 <- 0.8 * confounder + rnorm(n, 0, 0.4)
+  x1 <- confounder + rnorm(n, 0, 0.5)
+  x2 <- confounder + rnorm(n, 0, 0.5)
 
   # Proxy measurement of confounder (observable but noisy)
-  proxy <- confounder + rnorm(n, 0, 0.3)
+  proxy <- confounder + rnorm(n, 0, 0.5)
 
   # Independent feature unaffected by confounder
   independent <- rnorm(n)
 
   # Outcome affected by confounder and all features
-  y <- 1.2 * confounder + 0.8 * x1 + 0.6 * x2 + 0.5 * independent + rnorm(n, 0, 0.3)
+  y <- confounder + 0.5 * x1 + 0.5 * x2 + independent + rnorm(n, 0, 0.5)
 
   data.table::data.table(
     y = y,
@@ -194,17 +195,18 @@ sim_dgp_confounded <- function(n = 500L) {
 #'
 #' @details
 #' **Interaction Effects DGP:**
-#' This DGP focuses on interaction effects where the importance of features
-#' depends on the values of other features.
+#' This DGP demonstrates a pure interaction effect where features have no main effects.
 #'
-#' - `x1`, `x2`: Independent features with interaction effect
+#' Model: y = 2 * x1 * x2 + x3 + noise
+#'
+#' - `x1`, `x2`: Independent features with ONLY interaction effect (no main effects)
 #' - `x3`: Independent feature with main effect only
 #' - `noise1`, `noise2`: No causal effects
 #'
 #' Expected behavior:
-#' - **PFI**: May underestimate importance of interacting features when permuted independently
-#' - **CFI**: Should better capture interaction effects through conditional sampling
-#' - **Ground truth**: x1 and x2 are important mainly through their interaction
+#' - **PFI**: Should assign near-zero importance to x1 and x2 (no marginal effect)
+#' - **CFI**: Should capture the interaction and assign high importance to x1 and x2
+#' - **Ground truth**: x1 and x2 are important ONLY through their interaction
 #'
 #' @export
 #' @examples
@@ -222,8 +224,8 @@ sim_dgp_interactions <- function(n = 500L) {
   noise1 <- rnorm(n)
   noise2 <- rnorm(n)
 
-  # Outcome with strong interaction between x1 and x2, plus main effect of x3
-  y <- 0.3 * x1 + 0.2 * x2 + 1.5 * x1 * x2 + x3 + rnorm(n, 0, 0.3)
+  # Outcome with ONLY interaction between x1 and x2 (no main effects), plus main effect of x3
+  y <- 2 * x1 * x2 + x3 + rnorm(n, 0, 0.5)
 
   data.table::data.table(
     y = y,

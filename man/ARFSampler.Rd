@@ -69,10 +69,10 @@ To fit the ARF in parallel, set \code{arf_args = list(parallel = TRUE)} and regi
 \if{html}{\out{<div class="r">}}\preformatted{ARFSampler$new(
   task,
   conditioning_set = NULL,
-  finite_bounds = "local",
+  finite_bounds = "no",
   round = TRUE,
   stepsize = 0,
-  verbose = TRUE,
+  verbose = FALSE,
   parallel = FALSE,
   arf_args = NULL
 )}\if{html}{\out{</div>}}
@@ -85,7 +85,7 @@ To fit the ARF in parallel, set \code{arf_args = list(parallel = TRUE)} and regi
 
 \item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Default conditioning set to use in \verb{$sample()}. This parameter only affects the sampling behavior, not the ARF model fitting.}
 
-\item{\code{finite_bounds}}{(\code{character(1)}: \code{"local"}) Passed to \code{arf::forde()} to mitigate poor extrapolation behavior of teh udnerlying random forest.}
+\item{\code{finite_bounds}}{(\code{character(1)}: \code{"no"}) Passed to \code{arf::forde()}. Default is \code{"no"} for compatibility. \code{"local"} may improve extrapolation but can cause issues with some data.}
 
 \item{\code{round}}{(\code{logical(1)}: \code{TRUE}) Whether to round continuous variables back to their original precision.}
 

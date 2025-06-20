@@ -70,36 +70,39 @@ Expected behavior:
 
 \strong{Confounding DGP:}
 This DGP includes a confounder that affects both features and the outcome.
-Demonstrates when conditioning can be helpful or harmful.
+Uses simple coefficients for easy interpretation.
+
+Model structure:
 \itemize{
-\item \code{confounder}: Latent variable affecting both predictors and outcome
-\item \code{x1}: Affected by confounder, has direct effect on y
-\item \code{x2}: Affected by confounder, has direct effect on y
-\item \code{proxy}: Noisy measurement of confounder, no direct effect on y
-\item \code{independent}: Independent of confounder, has direct effect on y
+\item Hidden confounder H ~ N(0,1)
+\item x1 = H + noise, x2 = H + noise (both affected by confounder)
+\item proxy = H + noise (noisy measurement of confounder)
+\item independent ~ N(0,1) (truly independent)
+\item y = H + 0.5\emph{x1 + 0.5}x2 + independent + noise
 }
 
 Expected behavior:
 \itemize{
-\item \strong{PFI}: May show confounded associations
-\item \strong{CFI}: Should better isolate direct effects by conditioning on related variables
-\item \strong{RFI conditioning on proxy}: Should help remove confounding bias
+\item \strong{PFI}: Will show inflated importance for x1 and x2 due to confounding
+\item \strong{CFI}: Should partially account for confounding through conditional sampling
+\item \strong{RFI conditioning on proxy}: Should reduce confounding bias by controlling for H
 }
 
 \strong{Interaction Effects DGP:}
-This DGP focuses on interaction effects where the importance of features
-depends on the values of other features.
+This DGP demonstrates a pure interaction effect where features have no main effects.
+
+Model: y = 2 * x1 * x2 + x3 + noise
 \itemize{
-\item \code{x1}, \code{x2}: Independent features with interaction effect
+\item \code{x1}, \code{x2}: Independent features with ONLY interaction effect (no main effects)
 \item \code{x3}: Independent feature with main effect only
 \item \code{noise1}, \code{noise2}: No causal effects
 }
 
 Expected behavior:
 \itemize{
-\item \strong{PFI}: May underestimate importance of interacting features when permuted independently
-\item \strong{CFI}: Should better capture interaction effects through conditional sampling
-\item \strong{Ground truth}: x1 and x2 are important mainly through their interaction
+\item \strong{PFI}: Should assign near-zero importance to x1 and x2 (no marginal effect)
+\item \strong{CFI}: Should capture the interaction and assign high importance to x1 and x2
+\item \strong{Ground truth}: x1 and x2 are important ONLY through their interaction
 }
 
 \strong{Independent Features DGP:}
