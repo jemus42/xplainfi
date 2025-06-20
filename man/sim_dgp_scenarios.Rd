@@ -13,14 +13,18 @@ sim_dgp_correlated(n = 500L)
 
 sim_dgp_mediated(n = 500L)
 
-sim_dgp_confounded(n = 500L)
+sim_dgp_confounded(n = 500L, hidden = TRUE)
 
 sim_dgp_interactions(n = 500L)
 
 sim_dgp_independent(n = 500L)
 }
 \arguments{
-\item{n}{(\code{integer(1)}) Number of samples to generate.}
+\item{n}{(integer(1)) Number of observations to generate.}
+
+\item{hidden}{(logical(1)) Whether to hide the confounder from the returned task.
+If \code{FALSE}, the confounder is included as a feature, allowing direct adjustment.
+If \code{TRUE} (default), only the proxy is available, simulating unmeasured confounding.}
 }
 \value{
 A regression task (\link[mlr3:TaskRegr]{mlr3::TaskRegr}) with \link[data.table:data.table]{data.table} backend.
@@ -74,7 +78,7 @@ Uses simple coefficients for easy interpretation.
 
 Model structure:
 \itemize{
-\item Hidden confounder H ~ N(0,1)
+\item Confounder H ~ N(0,1)
 \item x1 = H + noise, x2 = H + noise (both affected by confounder)
 \item proxy = H + noise (noisy measurement of confounder)
 \item independent ~ N(0,1) (truly independent)
@@ -85,7 +89,7 @@ Expected behavior:
 \itemize{
 \item \strong{PFI}: Will show inflated importance for x1 and x2 due to confounding
 \item \strong{CFI}: Should partially account for confounding through conditional sampling
-\item \strong{RFI conditioning on proxy}: Should reduce confounding bias by controlling for H
+\item \strong{RFI conditioning on confounder/proxy}: Should reduce confounding bias
 }
 
 \strong{Interaction Effects DGP:}
@@ -137,8 +141,13 @@ task = sim_dgp_correlated(200)
 task$data()
 task = sim_dgp_mediated(200)
 task$data()
-task = sim_dgp_confounded(200)
-task$data()
+# Hidden confounder scenario (traditional)
+task_hidden = sim_dgp_confounded(200, hidden = TRUE)
+task_hidden$feature_names  # proxy available but not confounder
+
+# Observable confounder scenario  
+task_observed = sim_dgp_confounded(200, hidden = FALSE)
+task_observed$feature_names  # both confounder and proxy available
 task = sim_dgp_interactions(200)
 task$data()
 task = sim_dgp_independent(200)

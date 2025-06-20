@@ -149,7 +149,7 @@ sim_dgp_mediated <- function(n = 500L) {
 #' Uses simple coefficients for easy interpretation.
 #'
 #' Model structure:
-#' - Hidden confounder H ~ N(0,1)
+#' - Confounder H ~ N(0,1)
 #' - x1 = H + noise, x2 = H + noise (both affected by confounder)
 #' - proxy = H + noise (noisy measurement of confounder)
 #' - independent ~ N(0,1) (truly independent)
@@ -158,14 +158,24 @@ sim_dgp_mediated <- function(n = 500L) {
 #' Expected behavior:
 #' - **PFI**: Will show inflated importance for x1 and x2 due to confounding
 #' - **CFI**: Should partially account for confounding through conditional sampling
-#' - **RFI conditioning on proxy**: Should reduce confounding bias by controlling for H
+#' - **RFI conditioning on confounder/proxy**: Should reduce confounding bias
+#'
+#' @param n (`integer(1)`: `500L`) Number of observations to generate.
+#' @param hidden (`logical(1)`: `TRUE`) Whether to hide the confounder from the returned task.
+#'   If `FALSE`, the confounder is included as a feature, allowing direct adjustment.
+#'   If `TRUE` (default), only the proxy is available, simulating unmeasured confounding.
 #'
 #' @export
 #' @examples
-#' task = sim_dgp_confounded(200)
-#' task$data()
-sim_dgp_confounded <- function(n = 500L) {
-  # Hidden confounder
+#' # Hidden confounder scenario (traditional)
+#' task_hidden = sim_dgp_confounded(200, hidden = TRUE)
+#' task_hidden$feature_names  # proxy available but not confounder
+#'
+#' # Observable confounder scenario
+#' task_observed = sim_dgp_confounded(200, hidden = FALSE)
+#' task_observed$feature_names  # both confounder and proxy available
+sim_dgp_confounded <- function(n = 500L, hidden = TRUE) {
+  # Confounder
   confounder <- rnorm(n)
 
   # Features affected by confounder
@@ -181,14 +191,31 @@ sim_dgp_confounded <- function(n = 500L) {
   # Outcome affected by confounder and all features
   y <- confounder + 0.5 * x1 + 0.5 * x2 + independent + rnorm(n, 0, 0.5)
 
-  data.table::data.table(
-    y = y,
-    x1 = x1,
-    x2 = x2,
-    proxy = proxy,
-    independent = independent
-  ) |>
-    mlr3::TaskRegr$new(target = "y", id = paste0("confounded_", n))
+  # Create data.table conditionally including the confounder
+  if (hidden) {
+    # Traditional scenario: confounder is hidden, only proxy available
+    dt <- data.table::data.table(
+      y = y,
+      x1 = x1,
+      x2 = x2,
+      proxy = proxy,
+      independent = independent
+    )
+    task_id <- paste0("confounded_hidden_", n)
+  } else {
+    # Observable confounder scenario: both confounder and proxy available
+    dt <- data.table::data.table(
+      y = y,
+      x1 = x1,
+      x2 = x2,
+      confounder = confounder,
+      proxy = proxy,
+      independent = independent
+    )
+    task_id <- paste0("confounded_observed_", n)
+  }
+
+  mlr3::TaskRegr$new(dt, target = "y", id = task_id)
 }
 
 #' @describeIn sim_dgp_scenarios Interaction effects between features
