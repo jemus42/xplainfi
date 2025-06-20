@@ -21,8 +21,8 @@ template:
     heading_font: {google: "Roboto Slab"}
     code_font: {google: "JetBrains Mono"}
 
-development:
-  mode: auto
+# development:
+#   mode: auto
 
 reference:
   - title: Importance Measures
