@@ -36,11 +36,16 @@ This vignette demonstrates the three perturbation-based feature importance metho
 - **CFI (Conditional Feature Importance)**: Uses conditional sampling via Adversarial Random Forests
 - **RFI (Relative Feature Importance)**: Uses conditional sampling on a user-specified subset of features
 
-## Problem Setup: Illustrative Scenarios
+We'll demonstrate these methods using three carefully designed scenarios that highlight their key differences.
 
-We'll demonstrate the methods using two carefully designed scenarios that highlight key differences between PFI, CFI, and RFI:
+```{r setup-common}
+# Common setup for all scenarios
+learner <- lrn("regr.ranger", num.trees = 100)
+resampling <- rsmp("cv", folds = 3)
+measure <- msr("regr.mse")
+```
 
-### Scenario 1: Interaction Effects
+## Scenario 1: Interaction Effects
 
 This scenario demonstrates how marginal methods (PFI) can miss important interaction effects that conditional methods (CFI) capture:
 
@@ -88,7 +93,175 @@ digraph interaction_dag {
 
 The key insight: x1 and x2 have **NO direct effects** - they affect y ONLY through their interaction (thick red arrow). However, PFI will still show them as important because permuting either feature destroys the crucial interaction term.
 
-### Scenario 2: Confounding
+### Analysis
+
+Let's analyze the interaction scenario where $y = 2 \cdot x_1 \cdot x_2 + x_3 + \epsilon$. Note that x1 and x2 have NO main effects.
+
+#### PFI on Interactions
+
+```{r pfi-interactions}
+#| cache: true
+pfi_int <- PFI$new(
+  task = task_int,
+  learner = learner,
+  measure = measure,
+  resampling = resampling,
+  iters_perm = 5
+)
+
+# Compute importance scores
+pfi_int_results <- pfi_int$compute(relation = "difference")
+pfi_int_results
+```
+
+Expected: x1 and x2 will show high importance with PFI because permuting either feature destroys the interaction term x1×x2, which is crucial for prediction. This demonstrates a key limitation of PFI with interactions.
+
+#### CFI on Interactions
+
+CFI preserves the joint distribution, which should better capture the interaction effect:
+
+```{r cfi-interactions}
+#| cache: true
+# Create ARF sampler for the interaction task
+sampler_int = ARFSampler$new(task = task_int, finite_bounds = "local")
+
+cfi_int <- CFI$new(
+  task = task_int,
+  learner = learner,
+  measure = measure,
+  resampling = resampling,
+  iters_perm = 5,
+  sampler = sampler_int
+)
+
+# Compute importance scores
+cfi_int_results <- cfi_int$compute(relation = "difference")
+cfi_int_results
+```
+
+Expected: CFI should show somewhat lower importance for x1 and x2 compared to PFI because it better preserves the interaction structure during conditional sampling, providing a more nuanced importance estimate.
+
+#### RFI on Interactions: Targeted Conditional Questions
+
+RFI's unique strength is answering specific conditional questions. Let's explore what happens when we condition on different features:
+
+```{r rfi-interactions}
+#| cache: true
+# RFI conditioning on x2: "How important is x1 given we know x2?"
+rfi_int_x2 <- RFI$new(
+  task = task_int,
+  learner = learner,
+  measure = measure,
+  resampling = resampling,
+  conditioning_set = "x2",  # Condition on x2
+  iters_perm = 5,
+  sampler = sampler_int
+)
+rfi_int_x2_results <- rfi_int_x2$compute(relation = "difference")
+
+# RFI conditioning on x1: "How important is x2 given we know x1?"  
+rfi_int_x1 <- RFI$new(
+  task = task_int,
+  learner = learner,
+  measure = measure,
+  resampling = resampling,
+  conditioning_set = "x1",  # Condition on x1
+  iters_perm = 5,
+  sampler = sampler_int
+)
+rfi_int_x1_results <- rfi_int_x1$compute(relation = "difference")
+```
+
+**RFI Results:**
+
+- **x1 given x2**: `r sprintf("%.3f", rfi_int_x2_results[feature == "x1", importance])` (How important is x1 when we condition on x2)
+- **x2 given x1**: `r sprintf("%.3f", rfi_int_x1_results[feature == "x2", importance])` (How important is x2 when we condition on x1)  
+- **x3 given x2**: `r sprintf("%.3f", rfi_int_x2_results[feature == "x3", importance])` (How important is x3 when we condition on x2)
+
+**Key insight**: In the pure interaction case (y = 2·x1·x2 + x3), when we condition on one interacting feature, the other becomes extremely important because they only matter together. This demonstrates RFI's power to answer targeted questions like "Given I already know x2, how much does x1 add?"
+
+#### Comparing Methods on Interactions
+
+Let's compare how the methods handle the interaction:
+
+```{r compare-interactions}
+#| echo: false
+
+# Create comprehensive comparison including all methods
+comp_all <- rbindlist(list(
+  # PFI and CFI for all features
+  pfi_int_results[, .(feature, importance, method = "PFI")],
+  cfi_int_results[, .(feature, importance, method = "CFI")],
+  # Selected RFI conditional results
+  rfi_int_x2_results[feature == "x1", .(feature, importance, method = "RFI|x2")],
+  rfi_int_x1_results[feature == "x2", .(feature, importance, method = "RFI|x1")],
+  rfi_int_x2_results[feature == "x3", .(feature, importance, method = "RFI|x2")],
+  # Add some noise features for completeness
+  rfi_int_x2_results[feature %in% c("noise1", "noise2"), .(feature, importance, method = "RFI|x2")]
+))
+
+# Create comprehensive comparison plot
+p1 <- ggplot(comp_all[method %in% c("PFI", "CFI")], aes(x = feature, y = importance, fill = method)) +
+  geom_col(position = "dodge", alpha = 0.8) +
+  scale_fill_manual(values = c("PFI" = "steelblue", "CFI" = "darkgreen")) +
+  labs(
+    title = "PFI vs CFI on Interaction Effects",
+    subtitle = "Marginal vs conditional sampling",
+    y = "Importance Score",
+    x = "Feature",
+    fill = "Method"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+# Show RFI conditional results separately since they answer different questions
+p2 <- ggplot(comp_all[method == "RFI|x2"], aes(x = feature, y = importance)) +
+  geom_col(fill = "orange", alpha = 0.8) +
+  labs(
+    title = "RFI Conditioning on x2",
+    subtitle = "How important is each feature given we know x2?",
+    y = "Importance Score",
+    x = "Feature"
+  ) +
+  theme_minimal()
+
+# Display both plots
+p1
+p2
+
+# Store RFI results for inline text
+rfi_x1_given_x2 <- rfi_int_x2_results[feature == "x1", importance]
+rfi_x2_given_x1 <- rfi_int_x1_results[feature == "x2", importance]
+rfi_x3_given_x2 <- rfi_int_x2_results[feature == "x3", importance]
+```
+
+**RFI Conditional Summary**: x1 given x2 has importance `r sprintf("%.3f", rfi_x1_given_x2)`, x2 given x1 has importance `r sprintf("%.3f", rfi_x2_given_x1)`, and x3 given x2 has importance `r sprintf("%.3f", rfi_x3_given_x2)`. This shows how RFI reveals the conditional dependencies that pure marginal methods miss.
+
+### Key Insights: Interaction Effects
+
+```{r summary-interactions}
+# Combine results and calculate ratios
+comp_int <- rbindlist(list(
+  pfi_int_results[, .(feature, importance, method = "PFI")],
+  cfi_int_results[, .(feature, importance, method = "CFI")]
+))
+
+# Calculate the ratio of CFI to PFI importance for interacting features
+int_ratio <- dcast(comp_int[feature %in% c("x1", "x2")], 
+                   feature ~ method, value.var = "importance")
+int_ratio[, cfi_pfi_ratio := CFI / PFI]
+setnames(int_ratio, c("PFI", "CFI"), c("pfi_importance", "cfi_importance"))
+
+int_ratio |> 
+  knitr::kable(
+    digits = 3,
+    caption = "CFI vs PFI for Interacting Features"
+  )
+```
+
+**Important insight about interaction effects**: This example illustrates a crucial subtlety about PFI and interactions. While x1 and x2 have no main effects, PFI still correctly identifies them as important because permuting either feature destroys the interaction term x1×x2, which is crucial for prediction. The key limitation is that **PFI cannot distinguish between main effects and interaction effects** - it measures total contribution including through interactions.
+
+## Scenario 2: Confounding
 
 This scenario shows how hidden confounders affect importance estimates and how conditioning can help:
 
@@ -164,163 +337,14 @@ ggplot(cor_df, aes(x = var1, y = var2, fill = correlation)) +
 
 **Key insight**: The hidden confounder creates spurious correlations between x1, x2, and y (red paths), making them appear more important than they truly are. RFI conditioning on the proxy (which measures the confounder) should help isolate the true direct effects (blue paths).
 
-```{r setup-common}
-# Common setup for both scenarios
-learner <- lrn("regr.ranger", num.trees = 100)
-resampling <- rsmp("cv", folds = 3)
-measure <- msr("regr.mse")
-```
-
-## Analysis 1: Interaction Effects
-
-Let's first analyze the interaction scenario where $y = 2 \cdot x_1 \cdot x_2 + x_3 + \epsilon$. Note that x1 and x2 have NO main effects.
-
-### PFI on Interactions
-
-```{r pfi-interactions}
-pfi_int <- PFI$new(
-  task = task_int,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  iters_perm = 5
-)
-
-# Compute importance scores
-pfi_int_results <- pfi_int$compute(relation = "difference")
-pfi_int_results
-```
-
-Expected: x1 and x2 will show high importance with PFI because permuting either feature destroys the interaction term x1×x2, which is crucial for prediction. This demonstrates a key limitation of PFI with interactions.
-
-### CFI on Interactions
-
-CFI preserves the joint distribution, which should better capture the interaction effect:
-
-```{r cfi-interactions}
-# Create ARF sampler for the interaction task
-sampler_int = ARFSampler$new(task = task_int, finite_bounds = "local")
-
-cfi_int <- CFI$new(
-  task = task_int,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  iters_perm = 5,
-  sampler = sampler_int
-)
-
-# Compute importance scores
-cfi_int_results <- cfi_int$compute(relation = "difference")
-cfi_int_results
-```
-
-Expected: CFI should show somewhat lower importance for x1 and x2 compared to PFI because it better preserves the interaction structure during conditional sampling, providing a more nuanced importance estimate.
-
-### RFI on Interactions: Targeted Conditional Questions
-
-RFI's unique strength is answering specific conditional questions. Let's explore what happens when we condition on different features:
-
-```{r rfi-interactions}
-# RFI conditioning on x2: "How important is x1 given we know x2?"
-rfi_int_x2 <- RFI$new(
-  task = task_int,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  conditioning_set = "x2",  # Condition on x2
-  iters_perm = 5,
-  sampler = sampler_int
-)
-rfi_int_x2_results <- rfi_int_x2$compute(relation = "difference")
-
-# RFI conditioning on x1: "How important is x2 given we know x1?"  
-rfi_int_x1 <- RFI$new(
-  task = task_int,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  conditioning_set = "x1",  # Condition on x1
-  iters_perm = 5,
-  sampler = sampler_int
-)
-rfi_int_x1_results <- rfi_int_x1$compute(relation = "difference")
-```
-
-**RFI Results:**
-
-- **x1 given x2**: `r sprintf("%.3f", rfi_int_x2_results[feature == "x1", importance])` (How important is x1 when we condition on x2)
-- **x2 given x1**: `r sprintf("%.3f", rfi_int_x1_results[feature == "x2", importance])` (How important is x2 when we condition on x1)  
-- **x3 given x2**: `r sprintf("%.3f", rfi_int_x2_results[feature == "x3", importance])` (How important is x3 when we condition on x2)
-
-**Key insight**: In the pure interaction case (y = 2·x1·x2 + x3), when we condition on one interacting feature, the other becomes extremely important because they only matter together. This demonstrates RFI's power to answer targeted questions like "Given I already know x2, how much does x1 add?"
-
-### Comparing Methods on Interactions
-
-Let's compare how the methods handle the interaction:
-
-```{r compare-interactions}
-#| echo: false
-
-# Create comprehensive comparison including all methods
-comp_all <- rbind(
-  # PFI and CFI for all features
-  pfi_int_results[, .(feature, method = "PFI", importance)],
-  cfi_int_results[, .(feature, method = "CFI", importance)],
-  # Selected RFI conditional results
-  rfi_int_x2_results[feature == "x1", .(feature, method = "RFI|x2", importance)],
-  rfi_int_x1_results[feature == "x2", .(feature, method = "RFI|x1", importance)],
-  rfi_int_x2_results[feature == "x3", .(feature, method = "RFI|x2", importance)],
-  # Add some noise features for completeness
-  rfi_int_x2_results[feature %in% c("noise1", "noise2"), .(feature, method = "RFI|x2", importance)]
-)
-
-# Create comprehensive comparison plot
-p1 <- ggplot(comp_all[method %in% c("PFI", "CFI")], aes(x = feature, y = importance, fill = method)) +
-  geom_col(position = "dodge", alpha = 0.8) +
-  scale_fill_manual(values = c("PFI" = "steelblue", "CFI" = "darkgreen")) +
-  labs(
-    title = "PFI vs CFI on Interaction Effects",
-    subtitle = "Marginal vs conditional sampling",
-    y = "Importance Score",
-    x = "Feature",
-    fill = "Method"
-  ) +
-  theme_minimal() +
-  theme(legend.position = "bottom")
-
-# Show RFI conditional results separately since they answer different questions
-p2 <- ggplot(comp_all[method == "RFI|x2"], aes(x = feature, y = importance)) +
-  geom_col(fill = "orange", alpha = 0.8) +
-  labs(
-    title = "RFI Conditioning on x2",
-    subtitle = "How important is each feature given we know x2?",
-    y = "Importance Score",
-    x = "Feature"
-  ) +
-  theme_minimal()
-
-# Display both plots
-print(p1)
-print(p2)
-
-# Store RFI results for inline text
-rfi_x1_given_x2 <- rfi_int_x2_results[feature == "x1", importance]
-rfi_x2_given_x1 <- rfi_int_x1_results[feature == "x2", importance]
-rfi_x3_given_x2 <- rfi_int_x2_results[feature == "x3", importance]
-```
-
-**RFI Conditional Summary**: x1 given x2 has importance `r sprintf("%.3f", rfi_x1_given_x2)`, x2 given x1 has importance `r sprintf("%.3f", rfi_x2_given_x1)`, and x3 given x2 has importance `r sprintf("%.3f", rfi_x3_given_x2)`. This shows how RFI reveals the conditional dependencies that pure marginal methods miss.
-
-**Important insight about interaction effects**: This example illustrates a crucial subtlety about PFI and interactions. While x1 and x2 have no main effects, PFI still correctly identifies them as important because permuting either feature destroys the interaction term x1×x2, which is crucial for prediction. The key limitation is that **PFI cannot distinguish between main effects and interaction effects** - it measures total contribution including through interactions.
-
-## Analysis 2: Confounding
+### Analysis
 
 Now let's analyze the confounding scenario where a hidden confounder affects both features and the outcome.
 
-### PFI on Confounded Data
+#### PFI on Confounded Data
 
 ```{r pfi-confounding}
+#| cache: true
 pfi_conf <- PFI$new(
   task = task_conf,
   learner = learner,
@@ -333,11 +357,12 @@ pfi_conf_results <- pfi_conf$compute(relation = "difference")
 pfi_conf_results
 ```
 
-### RFI Conditioning on Proxy
+#### RFI Conditioning on Proxy
 
 RFI can condition on the proxy to help isolate direct effects:
 
 ```{r rfi-confounding}
+#| cache: true
 # Create sampler for confounding task
 sampler_conf = ARFSampler$new(
   task = task_conf,
@@ -360,9 +385,10 @@ rfi_conf_results <- rfi_conf$compute(relation = "difference")
 rfi_conf_results
 ```
 
-## Also trying CFI for comparison
+#### Also trying CFI for comparison
 
 ```{r cfi-confounding}
+#| cache: true
 cfi_conf <- CFI$new(
   task = task_conf,
   learner = learner,
@@ -376,11 +402,12 @@ cfi_conf_results <- cfi_conf$compute(relation = "difference")
 cfi_conf_results
 ```
 
-### Observable Confounder Scenario
+#### Observable Confounder Scenario
 
 In many real-world situations, confounders are actually observable (e.g., demographics, baseline characteristics). Let's explore how RFI performs when we can condition directly on the true confounder:
 
 ```{r observable-confounder}
+#| cache: true
 # Generate scenario where confounder is observable
 task_conf_obs <- sim_dgp_confounded(n = 1000, hidden = FALSE)
 
@@ -423,30 +450,16 @@ pfi_conf_obs_results <- pfi_conf_obs$compute(relation = "difference")
 
 **Insight**: When conditioning on the true confounder, RFI should show reduced importance for x1 and x2 (since much of their apparent importance was due to confounding) while independent maintains its importance (since it's truly causally related to y).
 
-### Comparing Methods on Confounding
+#### Comparing Methods on Confounding
 
 ```{r compare-confounding}
 #| echo: false
 # Combine all results
-comp_conf <- merge(
-  pfi_conf_results[, .(feature, pfi = importance)],
-  cfi_conf_results[, .(feature, cfi = importance)],
-  by = "feature"
-) |>
-  merge(
-    rfi_conf_results[, .(feature, rfi = importance)],
-    by = "feature"
-  )
-
-# Visualize the comparison
-comp_conf_long <- melt(
-  comp_conf, 
-  id.vars = "feature",
-  measure.vars = c("pfi", "cfi", "rfi"),
-  variable.name = "method",
-  value.name = "importance"
-)
-comp_conf_long[, method := toupper(method)]
+comp_conf_long <- rbindlist(list(
+  pfi_conf_results[, .(feature, importance, method = "PFI")],
+  cfi_conf_results[, .(feature, importance, method = "CFI")],
+  rfi_conf_results[, .(feature, importance, method = "RFI")]
+))
 
 ggplot(comp_conf_long, aes(x = feature, y = importance, fill = method)) +
   geom_col(position = "dodge", alpha = 0.8) +
@@ -460,7 +473,54 @@ ggplot(comp_conf_long, aes(x = feature, y = importance, fill = method)) +
   ) +
   theme_minimal() +
   theme(legend.position = "bottom")
+
+comp_conf_obs_long <- rbindlist(list(
+  pfi_conf_obs_results[, .(feature, importance, method = "PFI")],
+  rfi_conf_obs_results[, .(feature, importance, method = "RFI")]
+))
+
+ggplot(comp_conf_obs_long, aes(x = feature, y = importance, fill = method)) +
+  geom_col(position = "dodge", alpha = 0.8) +
+  scale_fill_manual(values = c("PFI" = "steelblue", "RFI" = "orange")) +
+  labs(
+    title = "Feature Importance Under Observed Confounding",
+    subtitle = "RFI conditions on confounder to reduce confounding bias",
+    y = "Importance Score",
+    x = "Feature",
+    fill = "Method"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
 ```
+
+### Key Insights: Confounding Effects
+
+```{r summary-confounding}
+# Show how conditioning affects importance estimates
+conf_wide <- dcast(comp_conf_long, feature ~ method, value.var = "importance")
+conf_summary <- conf_wide[, .(
+  feature,
+  pfi_importance = round(PFI, 3),
+  cfi_importance = round(CFI, 3),
+  rfi_proxy_importance = round(RFI, 3),
+  pfi_rfi_diff = round(PFI - RFI, 3)
+)]
+
+conf_summary |> 
+  knitr::kable(
+    caption = "Effect of Conditioning on Proxy in Confounded Scenario"
+  )
+```
+
+In the confounding scenario, we observed:
+
+1. **PFI shows confounded effects**: Without accounting for confounders, PFI overestimates the importance of x1 and x2 due to their spurious correlation with y through the hidden confounder.
+
+2. **RFI conditioning on proxy reduces bias**: By conditioning on the proxy (noisy measurement of the confounder), RFI can partially isolate direct effects, though some confounding remains due to measurement error.
+
+3. **RFI conditioning on true confounder removes bias**: When the confounder is observable and we can condition directly on it, RFI dramatically reduces the apparent importance of x1 and x2, revealing their true direct effects.
+
+4. **CFI partially accounts for confounding**: Through its conditional sampling, CFI captures some of the confounding structure but cannot target specific confounders like RFI can.
 
 ## Scenario 3: Independent Features (Baseline)
 
@@ -481,23 +541,24 @@ digraph independent_dag {
   node [shape=circle, style=filled, fontname='Arial', fontsize=12];
   
   # Feature nodes
-  x1 [fillcolor='lightblue', label='x1'];
-  x2 [fillcolor='lightblue', label='x2'];
-  x3 [fillcolor='lightblue', label='x3'];
-  noise [fillcolor='lightgray', label='noise'];
+  important1 [fillcolor='lightblue', label='important1'];
+  important2 [fillcolor='lightblue', label='important2'];
+  important3 [fillcolor='lightblue', label='important3'];
+  unimportant1 [fillcolor='lightgray', label='unimportant1'];
+  unimportant2 [fillcolor='lightgray', label='unimportant2'];
   
   # Outcome
   y [fillcolor='greenyellow', label='y'];
   
   # Direct effects only - no interactions or confounding
-  x1 -> y [label='1.5', color='blue'];
-  x2 -> y [label='1.0', color='blue'];
-  x3 -> y [label='0.5', color='blue'];
+  important1 -> y [label='2.0', color='blue'];
+  important2 -> y [label='1.0', color='blue'];
+  important3 -> y [label='0.5', color='blue'];
   
-  # No edge from noise to y
+  # No edge from unimportant features to y
   
   # Layout
-  {rank=same; x1, x2, x3, noise}
+  {rank=same; important1, important2, important3, unimportant1, unimportant2}
 }
 ")
 ```
@@ -506,7 +567,10 @@ This is the **simplest scenario**: all features are independent, there are no in
 
 ### Running All Methods on Independent Features
 
-```{r all-methods-independent}
+First PFI:
+
+```{r all-methods-independent-pfi}
+#| cache: true
 # PFI
 pfi_ind <- PFI$new(
   task = task_ind,
@@ -516,8 +580,12 @@ pfi_ind <- PFI$new(
   iters_perm = 5
 )
 pfi_ind_results <- pfi_ind$compute(relation = "difference")
+```
 
-# CFI  
+Now CFI  with the ARF sampler:
+
+```{r all-methods-independent-cfi}
+#| cache: true
 sampler_ind = ARFSampler$new(task = task_ind, finite_bounds = "local")
 cfi_ind <- CFI$new(
   task = task_ind,
@@ -528,8 +596,12 @@ cfi_ind <- CFI$new(
   sampler = sampler_ind
 )
 cfi_ind_results <- cfi_ind$compute(relation = "difference")
+```
 
-# RFI (with empty conditioning set, equivalent to PFI)
+RFI with empty conditioning set, basically equivalent to PFI with a different sampler:
+
+```{r all-methods-independent-rfi}
+#| cache: true
 rfi_ind <- RFI$new(
   task = task_ind,
   learner = learner,
@@ -540,27 +612,18 @@ rfi_ind <- RFI$new(
   sampler = sampler_ind
 )
 rfi_ind_results <- rfi_ind$compute(relation = "difference")
+```
 
-# Combine results
-comp_ind <- merge(
-  pfi_ind_results[, .(feature, pfi = importance)],
-  cfi_ind_results[, .(feature, cfi = importance)],
-  by = "feature"
-) |>
-  merge(
-    rfi_ind_results[, .(feature, rfi = importance)],
-    by = "feature"
-  )
+And now we visualize:
 
-# Visualize
-comp_ind_long <- melt(
-  comp_ind, 
-  id.vars = "feature",
-  measure.vars = c("pfi", "cfi", "rfi"),
-  variable.name = "method",
-  value.name = "importance"
-)
-comp_ind_long[, method := toupper(method)]
+```{r combine-rf-plot}
+#| echo: false
+# Combine results using rbindlist
+comp_ind_long <- rbindlist(list(
+  pfi_ind_results[, .(feature, importance, method = "PFI")],
+  cfi_ind_results[, .(feature, importance, method = "CFI")],
+  rfi_ind_results[, .(feature, importance, method = "RFI")]
+))
 
 ggplot(comp_ind_long, aes(x = feature, y = importance, fill = method)) +
   geom_col(position = "dodge", alpha = 0.8) +
@@ -580,13 +643,14 @@ ggplot(comp_ind_long, aes(x = feature, y = importance, fill = method)) +
 
 ```{r agreement-independent}
 # Calculate coefficient of variation for each feature across methods
-comp_ind[, `:=`(
+comp_ind_wide <- dcast(comp_ind_long, feature ~ method, value.var = "importance")
+comp_ind_wide[, `:=`(
   mean_importance = rowMeans(.SD),
   sd_importance = apply(.SD, 1, sd),
   cv = apply(.SD, 1, sd) / rowMeans(.SD)
-), .SDcols = c("pfi", "cfi", "rfi")]
+), .SDcols = c("PFI", "CFI", "RFI")]
 
-comp_ind[, .(
+comp_ind_wide[, .(
   feature,
   mean_importance = round(mean_importance, 3),
   cv = round(cv, 3),
@@ -600,63 +664,7 @@ comp_ind[, .(
 
 **Key insight**: With independent features and no complex relationships, all three methods (PFI, CFI, RFI) produce very similar importance estimates. This confirms that the differences we observe in Scenarios 1 and 2 are truly due to interactions and confounding, not artifacts of the methods themselves.
 
-## Key Insights from All Scenarios
-
-### Interaction Effects (Scenario 1)
-
-In the interaction scenario, we observed:
-
-1. **PFI detects interacting features but cannot distinguish the source**: When x1 and x2 only contribute through their interaction, PFI still assigns them high importance because permuting either feature destroys the crucial interaction term. This shows a key limitation - PFI cannot separate main effects from interaction effects.
-
-2. **CFI provides more nuanced estimates**: By preserving the conditional distribution, CFI provides somewhat lower but still substantial importance scores, reflecting a more sophisticated understanding of the feature dependencies.
-
-3. **RFI answers targeted conditional questions**: RFI's unique strength is revealed when conditioning on specific features. For example, "x1 given x2" shows extremely high importance because x1 becomes crucial when x2 is fixed. This demonstrates RFI's power for targeted inference and feature selection contexts.
-
-```{r summary-interactions}
-# Calculate the ratio of CFI to PFI importance for interacting features
-int_ratio <- comp_int[feature %in% c("x1", "x2"), .(
-  feature,
-  pfi_importance = pfi,
-  cfi_importance = cfi,
-  cfi_pfi_ratio = cfi / pfi
-)]
-
-int_ratio |> 
-  knitr::kable(
-    digits = 3,
-    caption = "CFI vs PFI for Interacting Features"
-  )
-```
-
-### Confounding Effects (Scenario 2)
-
-In the confounding scenario, we observed:
-
-1. **PFI shows confounded effects**: Without accounting for confounders, PFI overestimates the importance of x1 and x2 due to their spurious correlation with y through the hidden confounder.
-
-2. **RFI conditioning on proxy reduces bias**: By conditioning on the proxy (noisy measurement of the confounder), RFI can partially isolate direct effects, though some confounding remains due to measurement error.
-
-3. **RFI conditioning on true confounder removes bias**: When the confounder is observable and we can condition directly on it, RFI dramatically reduces the apparent importance of x1 and x2, revealing their true direct effects.
-
-4. **CFI partially accounts for confounding**: Through its conditional sampling, CFI captures some of the confounding structure but cannot target specific confounders like RFI can.
-
-```{r summary-confounding}
-# Show how conditioning affects importance estimates
-conf_summary <- comp_conf[, .(
-  feature,
-  pfi_importance = round(pfi, 3),
-  cfi_importance = round(cfi, 3),
-  rfi_proxy_importance = round(rfi, 3),
-  pfi_rfi_diff = round(pfi - rfi, 3)
-)]
-
-conf_summary |> 
-  knitr::kable(
-    caption = "Effect of Conditioning on Proxy in Confounded Scenario"
-  )
-```
-
-### Independent Features (Scenario 3)
+### Key Insights: Independent Features
 
 In the baseline scenario with independent features:
 
@@ -664,7 +672,7 @@ In the baseline scenario with independent features:
 
 2. **Validates methodology**: The agreement between methods confirms that differences in other scenarios are due to data structure, not method artifacts.
 
-3. **Noise correctly identified**: All methods correctly assign near-zero importance to the noise feature.
+3. **Noise correctly identified**: All methods correctly assign near-zero importance to the noise features.
 
 ## Key Takeaways
 

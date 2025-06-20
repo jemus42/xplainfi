@@ -20,9 +20,9 @@ sim_dgp_interactions(n = 500L)
 sim_dgp_independent(n = 500L)
 }
 \arguments{
-\item{n}{(integer(1)) Number of observations to generate.}
+\item{n}{(\code{integer(1)}: \code{500L}) Number of observations to generate.}
 
-\item{hidden}{(logical(1)) Whether to hide the confounder from the returned task.
+\item{hidden}{(\code{logical(1)}: \code{TRUE}) Whether to hide the confounder from the returned task.
 If \code{FALSE}, the confounder is included as a feature, allowing direct adjustment.
 If \code{TRUE} (default), only the proxy is available, simulating unmeasured confounding.}
 }
@@ -145,7 +145,7 @@ task$data()
 task_hidden = sim_dgp_confounded(200, hidden = TRUE)
 task_hidden$feature_names  # proxy available but not confounder
 
-# Observable confounder scenario  
+# Observable confounder scenario
 task_observed = sim_dgp_confounded(200, hidden = FALSE)
 task_observed$feature_names  # both confounder and proxy available
 task = sim_dgp_interactions(200)

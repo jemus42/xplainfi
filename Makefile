@@ -77,7 +77,7 @@ README.md: README.Rmd
 	rm README.html
 
 clean:
-	rm vignettes/*html
+	fd -HI ".*(_cache|_files|\.html)" vignettes -X rm -r
 	rm -r docs
 	rm -rf lib
 	rm coverage.html

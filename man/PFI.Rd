@@ -42,6 +42,10 @@ Fisher, Aaron, Rudin, Cynthia, Dominici, Francesca (2019).
 \dQuote{All Models Are Wrong, but Many Are Useful: Learning a Variable's Importance by Studying an Entire Class of Prediction Models Simultaneously.}
 \emph{Journal of Machine Learning Research}, \bold{20}, 177.
 \url{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8323609/}.
+Strobl, Carolin, Boulesteix, Anne-Laure, Kneib, Thomas, Augustin, Thomas, Zeileis, Achim (2008).
+\dQuote{Conditional Variable Importance for Random Forests.}
+\emph{BMC Bioinformatics}, \bold{9}(1), 307.
+ISSN 1471-2105, \doi{10.1186/1471-2105-9-307}, \url{2025-06-20}.
 }
 \section{Super classes}{
 \code{\link[xplainfi:FeatureImportanceMethod]{xplainfi::FeatureImportanceMethod}} -> \code{\link[xplainfi:PerturbationImportance]{xplainfi::PerturbationImportance}} -> \code{PFI}

@@ -137,5 +137,20 @@ bibentries = c(
     publisher = "ASA Website",
     issn = "0162-1459",
     doi = "10.1080/01621459.2017.1307116",
+  ),
+
+  strobl_2008 = bibentry(
+    "article",
+    title = "Conditional Variable Importance for Random Forests",
+    author = "Strobl, Carolin and Boulesteix, Anne-Laure and Kneib, Thomas and Augustin, Thomas and Zeileis, Achim",
+    year = "2008",
+    month = "jul",
+    journal = "BMC Bioinformatics",
+    volume = "9",
+    number = "1",
+    pages = "307",
+    issn = "1471-2105",
+    doi = "10.1186/1471-2105-9-307",
+    urldate = "2025-06-20"
   )
 )

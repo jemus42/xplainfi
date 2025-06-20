@@ -178,6 +178,7 @@ PerturbationImportance = R6Class(
 #' @references
 #' `r print_bib("breiman_2001")`
 #' `r print_bib("fisher_2019")`
+#' `r print_bib("strobl_2008")`
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
 #' library(mlr3learners)
