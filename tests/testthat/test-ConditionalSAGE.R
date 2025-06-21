@@ -240,7 +240,7 @@ test_that("ConditionalSAGE batching produces identical results", {
   measure_binary = mlr3::msr("classif.ce")
 
   # Test with multiclass classification
-  task_multi = mlr3::tgen("cassini")$generate(n = 30)
+  task_multi = mlr3::tgen("cassini")$generate(n = 90)
   learner_multi = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob")
   measure_multi = mlr3::msr("classif.ce")
 

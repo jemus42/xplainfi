@@ -2,7 +2,7 @@ test_that("LeaveOutIn base class works correctly", {
   skip_if_not_installed("ranger")
   skip_if_not_installed("mlr3learners")
 
-  task = mlr3::tgen("simplex", d = 5)$generate(n = 150)
+  task = mlr3::tgen("cassini")$generate(n = 180)
 
   # LeaveOutIn should work but is intended to be used via LOCO/LOCI
   loi = LeaveOutIn$new(
@@ -207,7 +207,7 @@ test_that("LOCO/LOCI different relations (difference vs ratio)", {
   skip_if_not_installed("mlr3learners")
 
   set.seed(123)
-  task = mlr3::tgen("simplex", d = 5)$generate(n = 150)
+  task = mlr3::tgen("cassini")$generate(n = 180)
 
   loco = LOCO$new(
     task = task,

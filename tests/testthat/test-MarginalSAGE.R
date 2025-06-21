@@ -206,7 +206,10 @@ test_that("MarginalSAGE with custom reference data", {
 
   # Test with binary classification
   task_binary = mlr3::tgen("2dnormals")$generate(n = 200)
-  reference_data_binary = task_binary$data(cols = task_binary$feature_names)[1:20, ]
+  # Use stratified sampling to ensure all factor levels are represented
+  set.seed(42)
+  reference_indices_binary = sample(task_binary$nrow, size = 20)
+  reference_data_binary = task_binary$data(cols = task_binary$feature_names)[reference_indices_binary, ]
   sage_binary = MarginalSAGE$new(
     task = task_binary,
     learner = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob"),
@@ -220,7 +223,10 @@ test_that("MarginalSAGE with custom reference data", {
 
   # Test with regression
   task_regr = mlr3::tgen("friedman1")$generate(n = 200)
-  reference_data_regr = task_regr$data(cols = task_regr$feature_names)[1:20, ]
+  # Use stratified sampling to ensure all factor levels are represented
+  set.seed(43)
+  reference_indices_regr = sample(task_regr$nrow, size = 20)
+  reference_data_regr = task_regr$data(cols = task_regr$feature_names)[reference_indices_regr, ]
   sage_regr = MarginalSAGE$new(
     task = task_regr,
     learner = mlr3::lrn("regr.ranger", num.trees = 10),
@@ -411,7 +417,7 @@ test_that("MarginalSAGE batching produces identical results", {
   measure_binary = mlr3::msr("classif.ce")
 
   # Test with multiclass classification
-  task_multi = mlr3::tgen("cassini")$generate(n = 30)
+  task_multi = mlr3::tgen("cassini")$generate(n = 90)
   learner_multi = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob")
   measure_multi = mlr3::msr("classif.ce")
 
