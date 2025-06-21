@@ -235,15 +235,17 @@ For classification, the response columns contain predicted classes (factors). No
 head(loco_classif$predictions)
 
 # Get probabilities for a specific feature and iteration  
-feature_pred <- loco_classif$predictions[loco_classif$predictions$feature == "x1" & loco_classif$predictions$iteration == 1, ]$prediction[[1]]
-
-# Access both predicted classes and probabilities
-head(feature_pred$response)  # Predicted classes
-head(feature_pred$prob)      # Probability matrix
-
-# Compare with reference model (full model for LOCO)
-ref_pred <- loco_classif$resample_result$prediction(1)
-head(ref_pred$prob)  # Reference model probabilities
+if (nrow(loco_classif$predictions) > 0) {
+  feature_pred <- loco_classif$predictions[1, ]$prediction[[1]]
+  
+  # Access both predicted classes and probabilities
+  head(feature_pred$response)  # Predicted classes
+  head(feature_pred$prob)      # Probability matrix
+  
+  # Compare with reference model (full model for LOCO)
+  ref_pred <- loco_classif$resample_result$prediction(1)
+  head(ref_pred$prob)  # Reference model probabilities
+}
 ```
 
 The `$predictions` field provides complete access to feature-specific prediction objects:
