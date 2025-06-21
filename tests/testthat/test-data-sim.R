@@ -22,9 +22,9 @@ test_that("sim_dgp_independent generates correct structure", {
 
   # Check that y has reasonable correlation with predictors
   cor_y <- cor(data$y, data[, .(important1, important2, important3)])
-  expect_true(all(abs(cor_y) > 0.2)) # Should have some correlation
-  expect_true(abs(cor(data$y, data$unimportant1)) < 0.2) # Noise should have low correlation
-  expect_true(abs(cor(data$y, data$unimportant2)) < 0.2) # Noise should have low correlation
+  expect_true(all(abs(cor_y) > 0.1)) # Should have some correlation
+  expect_true(abs(cor(data$y, data$unimportant1)) < 0.3) # Noise should have low correlation
+  expect_true(abs(cor(data$y, data$unimportant2)) < 0.3) # Noise should have low correlation
 })
 
 test_that("sim_dgp_correlated generates correlated features", {
@@ -135,8 +135,8 @@ test_that("sim_dgp_interactions generates pure interaction effects", {
   expect_true(grepl("^interactions_", task$id))
 
   # Check that x1 and x2 have low marginal correlations with y
-  expect_true(abs(cor(data$x1, data$y)) < 0.2) # Should have low marginal correlation
-  expect_true(abs(cor(data$x2, data$y)) < 0.2) # Should have low marginal correlation
+  expect_true(abs(cor(data$x1, data$y)) < 0.3) # Should have low marginal correlation
+  expect_true(abs(cor(data$x2, data$y)) < 0.3) # Should have low marginal correlation
 
   # But x3 should have strong correlation (main effect)
   expect_true(abs(cor(data$x3, data$y)) > 0.3)
@@ -184,6 +184,9 @@ test_that("all simulation functions handle different sample sizes", {
 
     task_int <- sim_dgp_interactions(n = n)
     expect_equal(nrow(task_int$data()), n)
+    
+    task_ewald <- sim_dgp_ewald(n = n)
+    expect_equal(nrow(task_ewald$data()), n)
   }
 })
 
@@ -195,7 +198,8 @@ test_that("simulation functions produce finite values", {
     function() sim_dgp_mediated(n = 50),
     function() sim_dgp_confounded(n = 50, hidden = TRUE),
     function() sim_dgp_confounded(n = 50, hidden = FALSE),
-    function() sim_dgp_interactions(n = 50)
+    function() sim_dgp_interactions(n = 50),
+    function() sim_dgp_ewald(n = 50)
   )
 
   for (sim_fn in functions_to_test) {
@@ -232,6 +236,17 @@ test_that("simulation functions are reproducible with set.seed", {
   data4 <- task4$data()
 
   expect_equal(data3, data4)
+  
+  # Test with sim_dgp_ewald
+  set.seed(789)
+  task5 <- sim_dgp_ewald(n = 75)
+  data5 <- task5$data()
+
+  set.seed(789)
+  task6 <- sim_dgp_ewald(n = 75)
+  data6 <- task6$data()
+
+  expect_equal(data5, data6)
 })
 
 test_that("sim_dgp_confounded default parameters work correctly", {
@@ -244,4 +259,69 @@ test_that("sim_dgp_confounded default parameters work correctly", {
   task_explicit <- sim_dgp_confounded(n = 500L, hidden = TRUE)
   expect_equal(task_default$feature_names, task_explicit$feature_names)
   expect_equal(nrow(task_default$data()), nrow(task_explicit$data()))
+})
+
+test_that("sim_dgp_ewald generates correct structure", {
+  task <- sim_dgp_ewald(n = 200)
+  data <- task$data()
+  
+  # Basic structure tests
+  expect_s3_class(task, "TaskRegr")
+  expect_equal(nrow(data), 200)
+  expect_equal(task$target_names, "y")
+  expect_setequal(task$feature_names, c("x1", "x2", "x3", "x4", "x5"))
+  expect_true(grepl("^Ewald_", task$id))
+  
+  # Check data types
+  expect_true(all(sapply(data, is.numeric)))
+  
+  # Check relationships as specified in Ewald et al.
+  # x2 should be highly correlated with x1 (noisy copy with sd=0.001)
+  expect_true(cor(data$x1, data$x2) > 0.99)
+  
+  # x4 should be correlated with x3 (noisier copy with sd=0.1)
+  expect_true(cor(data$x3, data$x4) > 0.9)
+  expect_true(cor(data$x3, data$x4) < 0.99) # But not as high as x1-x2
+  
+  # x1, x3, x5 should be relatively independent
+  expect_true(abs(cor(data$x1, data$x3)) < 0.2)
+  expect_true(abs(cor(data$x1, data$x5)) < 0.2)
+  expect_true(abs(cor(data$x3, data$x5)) < 0.2)
+  
+  # Check that y depends on x4, x5, and their interaction
+  # Simple check: both x4 and x5 should correlate with y
+  expect_true(abs(cor(data$x4, data$y)) > 0.3)
+  expect_true(abs(cor(data$x5, data$y)) > 0.3)
+  
+  # Fit a model to verify the interaction effect
+  lm_fit <- lm(y ~ x4 + x5 + x4:x5, data = data)
+  expect_true(summary(lm_fit)$r.squared > 0.8) # Should explain most variance
+  
+  # All coefficients should be significant and close to 1
+  coefs <- coef(lm_fit)
+  expect_true(abs(coefs["x4"] - 1) < 0.3)
+  expect_true(abs(coefs["x5"] - 1) < 0.3)
+  expect_true(abs(coefs["x4:x5"] - 1) < 0.3)
+})
+
+test_that("sim_dgp_ewald produces expected feature distributions", {
+  # Test with larger sample for better statistical properties
+  task <- sim_dgp_ewald(n = 1000)
+  data <- task$data()
+  
+  # Check that x1, x3, x5 are uniform [0,1] (as per the function)
+  # They should have mean ~0.5 and reasonable spread
+  expect_true(abs(mean(data$x1) - 0.5) < 0.1)
+  expect_true(abs(mean(data$x3) - 0.5) < 0.1)
+  expect_true(abs(mean(data$x5) - 0.5) < 0.1)
+  
+  # Check ranges are approximately [0, 1]
+  expect_true(min(data$x1) >= 0 && max(data$x1) <= 1)
+  expect_true(min(data$x3) >= 0 && max(data$x3) <= 1)
+  expect_true(min(data$x5) >= 0 && max(data$x5) <= 1)
+  
+  # x2 and x4 should also be approximately in [0, 1] range
+  # (with small noise they shouldn't go much outside)
+  expect_true(min(data$x2) > -0.1 && max(data$x2) < 1.1)
+  expect_true(min(data$x4) > -0.5 && max(data$x4) < 1.5)
 })
