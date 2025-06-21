@@ -58,7 +58,9 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   measure,
   resampling = NULL,
   features = NULL,
-  iters_refit = 1L
+  iters_refit = 1L,
+  obs_loss = FALSE,
+  aggregation_fun = median
 )}\if{html}{\out{</div>}}
 }
 
@@ -76,6 +78,10 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 \item{\code{features}}{(\code{character()}) Features to compute importance for. Defaults to all features.}
 
 \item{\code{iters_refit}}{(\code{integer(1)}) Number of refit iterations per resampling iteration.}
+
+\item{\code{obs_loss}}{(\code{logical(1)}) Whether to use observation-wise loss calculation (original LOCI formulation). If \code{FALSE} (default), uses aggregated scores.}
+
+\item{\code{aggregation_fun}}{(\code{function}) Function to aggregate observation-wise losses when \code{obs_loss = TRUE}. Defaults to \code{median} for original LOCI formulation.}
 }
 \if{html}{\out{</div>}}
 }

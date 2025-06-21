@@ -25,6 +25,10 @@ FeatureImportanceMethod = R6Class(
     importance = NULL,
     #' @field scores ([data.table][data.table::data.table]) Individual performance scores used to compute `$importance` per resampling iteration and permutation iteration.
     scores = NULL,
+    #' @field obs_losses ([data.table][data.table::data.table]) Observation-wise losses when available (e.g., when using obs_loss = TRUE). Contains columns for row_ids, feature, iteration indices, individual loss values, and both reference and feature-specific predictions.
+    obs_losses = NULL,
+    #' @field predictions ([data.table][data.table::data.table]) Feature-specific prediction objects when using obs_loss = TRUE. Contains columns for feature, iteration, iter_refit, and prediction objects. Similar to ResampleResult$predictions() but extended for feature-specific models.
+    predictions = NULL,
 
     #' @description
     #' Creates a new instance of this [R6][R6::R6Class] class.
@@ -94,9 +98,41 @@ FeatureImportanceMethod = R6Class(
       # Merge aggregated cores
       importance = scores[, list(importance = mean(importance)), by = feature]
 
+      # Combine obs_losses if available
+      obs_losses = NULL
+      if (!is.null(self$obs_losses) || !is.null(y$obs_losses)) {
+        if (!is.null(self$obs_losses) && !is.null(y$obs_losses)) {
+          obs_losses_y = copy(y$obs_losses)
+          # Increase iteration count for y for consistency
+          obs_losses_y[, let(iteration = iteration + self$resampling$iters)]
+          obs_losses = rbindlist(list(self$obs_losses, obs_losses_y))
+        } else if (!is.null(self$obs_losses)) {
+          obs_losses = copy(self$obs_losses)
+        } else {
+          obs_losses = copy(y$obs_losses)
+        }
+      }
+
+      # Combine predictions if available
+      predictions = NULL
+      if (!is.null(self$predictions) || !is.null(y$predictions)) {
+        if (!is.null(self$predictions) && !is.null(y$predictions)) {
+          predictions_y = copy(y$predictions)
+          # Increase iteration count for y for consistency
+          predictions_y[, let(iteration = iteration + self$resampling$iters)]
+          predictions = rbindlist(list(self$predictions, predictions_y))
+        } else if (!is.null(self$predictions)) {
+          predictions = copy(self$predictions)
+        } else {
+          predictions = copy(y$predictions)
+        }
+      }
+
       # Modify
       self$scores = scores
       self$importance = importance
+      self$obs_losses = obs_losses
+      self$predictions = predictions
       self$resample_result = c(self$resample_result, y$resample_result)
 
       # Combine resampling objects
@@ -117,11 +153,13 @@ FeatureImportanceMethod = R6Class(
     },
 
     #' @description
-    #' Resets all stored fields populated by `$compute`: `$resample_result`, `$importance` and `$scores`.
+    #' Resets all stored fields populated by `$compute`: `$resample_result`, `$importance`, `$scores`, `$obs_losses`, and `$predictions`.
     reset = function() {
       self$resample_result = NULL
       self$importance = NULL
       self$scores = NULL
+      self$obs_losses = NULL
+      self$predictions = NULL
     },
 
     #' @description
@@ -140,7 +178,9 @@ FeatureImportanceMethod = R6Class(
 
       # Skip aggregation if only one row per feature anyway
       if (nrow(xdf) == length(unique(xdf$feature))) {
-        return(xdf[, list(feature, importance)])
+        res = xdf[, list(feature, importance)]
+        setkeyv(res, "feature")
+        return(res)
       }
 
       res = xdf[, list(importance = mean(importance)), by = feature]
@@ -151,6 +191,7 @@ FeatureImportanceMethod = R6Class(
         res = res[sd, on = "feature"]
       }
 
+      setkeyv(res, "feature")
       res
     },
 

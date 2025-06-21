@@ -57,7 +57,8 @@ test_that("MarginalSAGE null result for featureless learner", {
   sage_binary$compute()
   expected_binary = data.table::data.table(
     feature = sage_binary$features,
-    importance = 0
+    importance = 0,
+    key = "feature"
   )
   expect_identical(sage_binary$importance, expected_binary)
 
@@ -72,7 +73,8 @@ test_that("MarginalSAGE null result for featureless learner", {
   sage_multi$compute()
   expected_multi = data.table::data.table(
     feature = sage_multi$features,
-    importance = 0
+    importance = 0,
+    key = "feature"
   )
   expect_identical(sage_multi$importance, expected_multi)
 
@@ -87,7 +89,8 @@ test_that("MarginalSAGE null result for featureless learner", {
   sage_regr$compute()
   expected_regr = data.table::data.table(
     feature = sage_regr$features,
-    importance = 0
+    importance = 0,
+    key = "feature"
   )
   expect_identical(sage_regr$importance, expected_regr)
 })
