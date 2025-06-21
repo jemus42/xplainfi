@@ -1,10 +1,11 @@
 test_that("sim_dgp_independent generates correct structure", {
-  task <- sim_dgp_independent(n = 100)
+  set.seed(42)  # Fixed seed for reproducibility
+  task <- sim_dgp_independent(n = 200)
   data <- task$data()
 
   # Basic structure tests
   expect_s3_class(task, "TaskRegr")
-  expect_equal(nrow(data), 100)
+  expect_equal(nrow(data), 200)
   expect_equal(task$target_names, "y")
   expect_setequal(
     task$feature_names,
@@ -22,7 +23,7 @@ test_that("sim_dgp_independent generates correct structure", {
 
   # Check that y has reasonable correlation with predictors
   cor_y <- cor(data$y, data[, .(important1, important2, important3)])
-  expect_true(all(abs(cor_y) > 0.1)) # Should have some correlation
+  expect_true(all(abs(cor_y) > 0.15)) # Should have meaningful correlation
   expect_true(abs(cor(data$y, data$unimportant1)) < 0.3) # Noise should have low correlation
   expect_true(abs(cor(data$y, data$unimportant2)) < 0.3) # Noise should have low correlation
 })
