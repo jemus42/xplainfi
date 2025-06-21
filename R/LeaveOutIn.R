@@ -91,7 +91,8 @@ LeaveOutIn = R6Class(
   ),
 
   private = list(
-    .compute_loc = function(
+    # Helper for micro-averaged computation: returns aggregated scores per feature
+    .compute_feature_scores = function(
       learner,
       task,
       train_ids,
@@ -196,7 +197,7 @@ LeaveOutIn = R6Class(
 
       # Compute feature-specific scores using the instantiated resampling
       scores = lapply(seq_len(self$resampling$iters), \(iter) {
-        private$.compute_loc(
+        private$.compute_feature_scores(
           learner = self$learner$clone(),
           task = self$task,
           train_ids = self$resampling$train_set(iter),
@@ -381,6 +382,7 @@ LeaveOutIn = R6Class(
       copy(self$importance)
     },
 
+    # Helper for macro-averaged computation: returns observation-wise losses and predictions
     .compute_obs_loss_iter = function(
       learner,
       task,
