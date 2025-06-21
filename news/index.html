@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -60,6 +60,10 @@
 <li>Streamline <code>PerturbationImportance</code> implementation.</li>
 <li>Add <code>batch_size</code> argument for <code>SAGE</code> methods to control number of observations used at once per <code>learner$predict_newdata()</code> call (could lead to excessive RAM usage).</li>
 <li>Add <code><a href="../reference/sim_dgp_ewald.html">sim_dgp_ewald()</a></code> to simulate data with a simple DGP as used for illustration in Ewald et al. (2024), which should make it easier to interpret the results of various importance methods.</li>
+<li>Add <code>KnockoffSampler</code> (<a href="https://github.com/jemus42/xplainfi/issues/16" class="external-link">#16</a> via <a href="https://github.com/mnwright" class="external-link">@mnwright</a>)
+<ul><li>Currently does not support <code>conditioning_set</code>
+</li>
+</ul></li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="xplainfi-010">xplainfi 0.1.0<a class="anchor" aria-label="anchor" href="#xplainfi-010"></a></h2>
@@ -71,10 +75,6 @@
 </ul></li>
 <li>Includes comparison to reference implementation in Python via <code>fippy</code>
 </li>
-</ul></div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.0.0.9000" id="xplainfi-0009000-development-version">xplainfi 0.0.0.9000 (development version)<a class="anchor" aria-label="anchor" href="#xplainfi-0009000-development-version"></a></h2>
-<ul><li>Initial design phase.</li>
 </ul></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

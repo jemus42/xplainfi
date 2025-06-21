@@ -19,7 +19,7 @@ the feature and the target variable."><script defer src="https://umami.jemu.name
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -86,7 +86,12 @@ the Random Forest algorithm. The method works by:</p><ol><li><p>Computing baseli
 Fisher, Aaron, Rudin, Cynthia, Dominici, Francesca (2019).
 “All Models Are Wrong, but Many Are Useful: Learning a Variable's Importance by Studying an Entire Class of Prediction Models Simultaneously.”
 <em>Journal of Machine Learning Research</em>, <b>20</b>, 177.
-<a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8323609/" class="external-link">https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8323609/</a>.</p>
+<a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8323609/" class="external-link">https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8323609/</a>.
+Strobl, Carolin, Boulesteix, Anne-Laure, Kneib, Thomas, Augustin, Thomas, Zeileis, Achim (2008).
+“Conditional Variable Importance for Random Forests.”
+<em>BMC Bioinformatics</em>, <b>9</b>(1), 307.
+ISSN 1471-2105, <a href="https://doi.org/10.1186/1471-2105-9-307" class="external-link">doi:10.1186/1471-2105-9-307</a>
+, <a href="2025-06-20">2025-06-20</a>.</p>
     </div>
     <div class="section level2">
     <h2 id="super-classes">Super classes<a class="anchor" aria-label="anchor" href="#super-classes"></a></h2>
@@ -192,16 +197,14 @@ Fisher, Aaron, Rudin, Cynthia, Dominici, Francesca (2019).
 <span class="r-in"><span>  iters_perm <span class="op">=</span> <span class="fl">3</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Dropped unused factor level(s) in dependent variable: N.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Dropped unused factor level(s) in dependent variable: M.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    feature importance         sd</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;char&gt;      &lt;num&gt;      &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1:      x1 0.02337096 0.03907053</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2:      x2 0.03693801 0.05825890</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3:      x3 0.06020994 0.04009485</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4:      x4 0.02663894 0.04654132</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5:      x5 0.03030303 0.08274742</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    feature  importance         sd</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;char&gt;       &lt;num&gt;      &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1:      x1 0.003367003 0.04387792</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2:      x2 0.026638938 0.02364562</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3:      x3 0.046840959 0.02669006</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4:      x4 0.040205981 0.03394846</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5:      x5 0.026836997 0.05554960</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

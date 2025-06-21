@@ -30,7 +30,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -75,8 +75,9 @@
 
 
 
-
-<div class="row">
+<link href="perturbation-importance_files/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
+<script src="perturbation-importance_files/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="perturbation-importance_files/viz-1.8.2/viz.js"></script><link href="perturbation-importance_files/DiagrammeR-styles-0.2/styles.css" rel="stylesheet">
+<script src="perturbation-importance_files/grViz-binding-1.0.11/grViz.js"></script><div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Perturbation-based Feature Importance Methods</h1>
@@ -94,7 +95,7 @@
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr3learners.mlr-org.com" class="external-link">mlr3learners</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-datatable.com" class="external-link">data.table</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span></code></pre></div>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rich-iannone.github.io/DiagrammeR/" class="external-link">DiagrammeR</a></span><span class="op">)</span></span></code></pre></div>
 <p>This vignette demonstrates the three perturbation-based feature
 importance methods implemented in xplainfi:</p>
 <ul>
@@ -108,51 +109,40 @@ conditional sampling via Adversarial Random Forests</li>
 <strong>RFI (Relative Feature Importance)</strong>: Uses conditional
 sampling on a user-specified subset of features</li>
 </ul>
-<div class="section level2">
-<h2 id="problem-setup-friedman1-task">Problem Setup: Friedman1 Task<a class="anchor" aria-label="anchor" href="#problem-setup-friedman1-task"></a>
-</h2>
-<p>We’ll use the Friedman1 task generator which provides an ideal setup
-for demonstrating feature importance methods. This synthetic regression
-task has a known ground truth:</p>
-<ul>
-<li>
-<strong>5 important features</strong> (<code>important1</code> to
-<code>important5</code>) that actually affect the target</li>
-<li>
-<strong>5 unimportant features</strong> (<code>unimportant1</code>
-to <code>unimportant5</code>) that are pure noise</li>
-</ul>
-<p>The target function is: <span class="math inline">\(y = 10 *
-\operatorname{sin}(\pi * x_1 * x_2) + 20 * (x_3 - 0.5)^2 + 10 * x_4 + 5
-* x_5 + \epsilon\)</span></p>
-<p>This makes it easy to evaluate whether our importance methods
-correctly identify the truly important features.</p>
+<p>We’ll demonstrate these methods using three carefully designed
+scenarios that highlight their key differences.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Generate the task</span></span>
-<span><span class="va">task</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tgen</a></span><span class="op">(</span><span class="st">"friedman1"</span><span class="op">)</span><span class="op">$</span><span class="fu">generate</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">400</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># Common setup for all scenarios</span></span>
 <span><span class="va">learner</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="va">resampling</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">measure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span></span></code></pre></div>
-<p>The task has 400 observations with 10 features: important1,
-important2, important3, important4, important5, unimportant1,
-unimportant2, unimportant3, unimportant4, unimportant5. The target
-variable is y.</p>
-</div>
 <div class="section level2">
-<h2 id="permutation-feature-importance-pfi">Permutation Feature Importance (PFI)<a class="anchor" aria-label="anchor" href="#permutation-feature-importance-pfi"></a>
+<h2 id="scenario-1-interaction-effects">Scenario 1: Interaction Effects<a class="anchor" aria-label="anchor" href="#scenario-1-interaction-effects"></a>
 </h2>
-<p>PFI shuffles each feature independently, breaking the association
-between the feature and the target while preserving the marginal
-distribution.</p>
-<p>For more stable results, we use:</p>
-<ul>
-<li>3-fold CV for more reliable performance estimates</li>
-<li>Within each resampling iteration, we repeat the
-permutation-prediction-scoring step <code>iters_perm</code> times</li>
-</ul>
+<p>This scenario demonstrates how marginal methods (PFI) can miss
+important interaction effects that conditional methods (CFI)
+capture:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pfi</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
+<code class="sourceCode R"><span><span class="co"># Generate interaction scenario</span></span>
+<span><span class="va">task_int</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_interactions</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
+<span><span class="va">data_int</span> <span class="op">&lt;-</span> <span class="va">task_int</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><strong>Causal Structure:</strong></p>
+<div class="grViz html-widget html-fill-item" id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:768px;height:384px;"></div>
+<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"diagram":"\ndigraph interaction_dag {\n  rankdir=TB;\n  node [shape=circle, style=filled, fontname=\"Arial\", fontsize=12];\n  \n  # Feature nodes\n  x1 [fillcolor=\"lightblue\", label=\"x1\"];\n  x2 [fillcolor=\"lightblue\", label=\"x2\"];  \n  x3 [fillcolor=\"lightblue\", label=\"x3\"];\n  # noise1 [fillcolor=\"lightgray\", label=\"noise1\"];\n  # noise2 [fillcolor=\"lightgray\", label=\"noise2\"];\n  \n  # Interaction node\n  interaction [fillcolor=\"yellow\", label=\"x1×x2\", shape=diamond];\n  \n  # Outcome\n  y [fillcolor=\"greenyellow\", label=\"y\"];\n  \n  # NO direct effects from x1 and x2\n  x3 -> y [label=\"1.0\", color=\"blue\"];\n  \n  # Pure interaction effect\n  x1 -> interaction [style=dashed];\n  x2 -> interaction [style=dashed];\n  interaction -> y [label=\"2.0\", color=\"red\", penwidth=3];\n  \n  # Layout\n  {rank=same; x1, x2, x3, noise1, noise2}\n  {rank=same; interaction}\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>The key insight: x1 and x2 have <strong>NO direct effects</strong> -
+they affect y ONLY through their interaction (thick red arrow). However,
+PFI will still show them as important because permuting either feature
+destroys the crucial interaction term.</p>
+<div class="section level3">
+<h3 id="analysis">Analysis<a class="anchor" aria-label="anchor" href="#analysis"></a>
+</h3>
+<p>Let’s analyze the interaction scenario where <span class="math inline">\(y = 2 \cdot x_1 \cdot x_2 + x_3 +
+\epsilon\)</span>. Note that x1 and x2 have NO main effects.</p>
+<div class="section level4">
+<h4 id="pfi-on-interactions">PFI on Interactions<a class="anchor" aria-label="anchor" href="#pfi-on-interactions"></a>
+</h4>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pfi_int</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_int</span>,</span>
 <span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
@@ -160,689 +150,628 @@ permutation-prediction-scoring step <code>iters_perm</code> times</li>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Compute importance scores</span></span>
-<span><span class="va">pfi_results</span> <span class="op">&lt;-</span> <span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
-<span><span class="va">pfi_results</span></span>
+<span><span class="va">pfi_int_results</span> <span class="op">&lt;-</span> <span class="va">pfi_int</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span><span class="va">pfi_int_results</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature  importance         sd</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;       &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  5.86554439 0.59082615</span></span>
-<span><span class="co">#&gt;  2:   important2  7.53042540 1.18889134</span></span>
-<span><span class="co">#&gt;  3:   important3  0.62852245 0.19171506</span></span>
-<span><span class="co">#&gt;  4:   important4 12.07781769 2.05173137</span></span>
-<span><span class="co">#&gt;  5:   important5  1.42191247 0.58343346</span></span>
-<span><span class="co">#&gt;  6: unimportant1  0.03241761 0.07411001</span></span>
-<span><span class="co">#&gt;  7: unimportant2  0.06147252 0.08463275</span></span>
-<span><span class="co">#&gt;  8: unimportant3 -0.04262232 0.07889375</span></span>
-<span><span class="co">#&gt;  9: unimportant4  0.07622793 0.07243864</span></span>
-<span><span class="co">#&gt; 10: unimportant5 -0.01541102 0.08219456</span></span>
+<span><span class="co">#&gt;    feature  importance         sd</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:  noise1 0.011151109 0.06592808</span></span>
+<span><span class="co">#&gt; 2:  noise2 0.007140595 0.04380357</span></span>
+<span><span class="co">#&gt; 3:      x1 2.396084412 0.49513544</span></span>
+<span><span class="co">#&gt; 4:      x2 2.081716910 0.37950171</span></span>
+<span><span class="co">#&gt; 5:      x3 2.022106644 0.21062276</span></span></code></pre></div>
+<p>Expected: x1 and x2 will show high importance with PFI because
+permuting either feature destroys the interaction term x1×x2, which is
+crucial for prediction. This demonstrates a key limitation of PFI with
+interactions.</p>
+</div>
+<div class="section level4">
+<h4 id="cfi-on-interactions">CFI on Interactions<a class="anchor" aria-label="anchor" href="#cfi-on-interactions"></a>
+</h4>
+<p>CFI preserves the joint distribution, which should better capture the
+interaction effect:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Create ARF sampler for the interaction task</span></span>
+<span><span class="va">sampler_int</span> <span class="op">=</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>task <span class="op">=</span> <span class="va">task_int</span>, finite_bounds <span class="op">=</span> <span class="st">"local"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Also stored in</span></span>
-<span><span class="va">pfi</span><span class="op">$</span><span class="va">importance</span></span>
+<span><span class="va">cfi_int</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/CFI.html">CFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_int</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  sampler <span class="op">=</span> <span class="va">sampler_int</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Compute importance scores</span></span>
+<span><span class="va">cfi_int_results</span> <span class="op">&lt;-</span> <span class="va">cfi_int</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span><span class="va">cfi_int_results</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature  importance         sd</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;       &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  5.86554439 0.59082615</span></span>
-<span><span class="co">#&gt;  2:   important2  7.53042540 1.18889134</span></span>
-<span><span class="co">#&gt;  3:   important3  0.62852245 0.19171506</span></span>
-<span><span class="co">#&gt;  4:   important4 12.07781769 2.05173137</span></span>
-<span><span class="co">#&gt;  5:   important5  1.42191247 0.58343346</span></span>
-<span><span class="co">#&gt;  6: unimportant1  0.03241761 0.07411001</span></span>
-<span><span class="co">#&gt;  7: unimportant2  0.06147252 0.08463275</span></span>
-<span><span class="co">#&gt;  8: unimportant3 -0.04262232 0.07889375</span></span>
-<span><span class="co">#&gt;  9: unimportant4  0.07622793 0.07243864</span></span>
-<span><span class="co">#&gt; 10: unimportant5 -0.01541102 0.08219456</span></span>
+<span><span class="co">#&gt;    feature  importance         sd</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:  noise1 -0.02125244 0.02681519</span></span>
+<span><span class="co">#&gt; 2:  noise2 -0.02958837 0.03942009</span></span>
+<span><span class="co">#&gt; 3:      x1  1.00940147 0.22695657</span></span>
+<span><span class="co">#&gt; 4:      x2  1.03622368 0.18141070</span></span>
+<span><span class="co">#&gt; 5:      x3  0.76545513 0.16371265</span></span></code></pre></div>
+<p>Expected: CFI should show somewhat lower importance for x1 and x2
+compared to PFI because it better preserves the interaction structure
+during conditional sampling, providing a more nuanced importance
+estimate.</p>
+</div>
+<div class="section level4">
+<h4 id="rfi-on-interactions-targeted-conditional-questions">RFI on Interactions: Targeted Conditional Questions<a class="anchor" aria-label="anchor" href="#rfi-on-interactions-targeted-conditional-questions"></a>
+</h4>
+<p>RFI’s unique strength is answering specific conditional questions.
+Let’s explore what happens when we condition on different features:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># RFI conditioning on x2: "How important is x1 given we know x2?"</span></span>
+<span><span class="va">rfi_int_x2</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/RFI.html">RFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_int</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  conditioning_set <span class="op">=</span> <span class="st">"x2"</span>,  <span class="co"># Condition on x2</span></span>
+<span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  sampler <span class="op">=</span> <span class="va">sampler_int</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">rfi_int_x2_results</span> <span class="op">&lt;-</span> <span class="va">rfi_int_x2</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Show a sample of detailed scores</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">pfi</span><span class="op">$</span><span class="va">scores</span>, <span class="fl">10</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"Sample of PFI detailed scores"</span><span class="op">)</span></span></code></pre></div>
-<table style="width:100%;" class="table">
-<caption>Sample of PFI detailed scores</caption>
+<span><span class="co"># RFI conditioning on x1: "How important is x2 given we know x1?"  </span></span>
+<span><span class="va">rfi_int_x1</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/RFI.html">RFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_int</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  conditioning_set <span class="op">=</span> <span class="st">"x1"</span>,  <span class="co"># Condition on x1</span></span>
+<span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  sampler <span class="op">=</span> <span class="va">sampler_int</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">rfi_int_x1_results</span> <span class="op">&lt;-</span> <span class="va">rfi_int_x1</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
+<p><strong>RFI Results:</strong></p>
+<ul>
+<li>
+<strong>x1 given x2</strong>: 2.095 (How important is x1 when we
+condition on x2)</li>
+<li>
+<strong>x2 given x1</strong>: 1.912 (How important is x2 when we
+condition on x1)<br>
+</li>
+<li>
+<strong>x3 given x2</strong>: 1.964 (How important is x3 when we
+condition on x2)</li>
+</ul>
+<p><strong>Key insight</strong>: In the pure interaction case (y =
+2·x1·x2 + x3), when we condition on one interacting feature, the other
+becomes extremely important because they only matter together. This
+demonstrates RFI’s power to answer targeted questions like “Given I
+already know x2, how much does x1 add?”</p>
+</div>
+<div class="section level4">
+<h4 id="comparing-methods-on-interactions">Comparing Methods on Interactions<a class="anchor" aria-label="anchor" href="#comparing-methods-on-interactions"></a>
+</h4>
+<p>Let’s compare how the methods handle the interaction:</p>
+<p><img src="perturbation-importance_files/figure-html/compare-interactions-1.png" width="768"><img src="perturbation-importance_files/figure-html/compare-interactions-2.png" width="768"></p>
+<p><strong>RFI Conditional Summary</strong>: x1 given x2 has importance
+2.095, x2 given x1 has importance 1.912, and x3 given x2 has importance
+1.964. This shows how RFI reveals the conditional dependencies that pure
+marginal methods miss.</p>
+</div>
+</div>
+<div class="section level3">
+<h3 id="key-insights-interaction-effects">Key Insights: Interaction Effects<a class="anchor" aria-label="anchor" href="#key-insights-interaction-effects"></a>
+</h3>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Combine results and calculate ratios</span></span>
+<span><span class="va">comp_int</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/rbindlist.html" class="external-link">rbindlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  <span class="va">pfi_int_results</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, <span class="va">importance</span>, method <span class="op">=</span> <span class="st">"PFI"</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>  <span class="va">cfi_int_results</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, <span class="va">importance</span>, method <span class="op">=</span> <span class="st">"CFI"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Calculate the ratio of CFI to PFI importance for interacting features</span></span>
+<span><span class="va">int_ratio</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/dcast.data.table.html" class="external-link">dcast</a></span><span class="op">(</span><span class="va">comp_int</span><span class="op">[</span><span class="va">feature</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span><span class="op">]</span>, </span>
+<span>                   <span class="va">feature</span> <span class="op">~</span> <span class="va">method</span>, value.var <span class="op">=</span> <span class="st">"importance"</span><span class="op">)</span></span>
+<span><span class="va">int_ratio</span><span class="op">[</span>, <span class="va">cfi_pfi_ratio</span> <span class="op">:=</span> <span class="va">CFI</span> <span class="op">/</span> <span class="va">PFI</span><span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/setattr.html" class="external-link">setnames</a></span><span class="op">(</span><span class="va">int_ratio</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PFI"</span>, <span class="st">"CFI"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pfi_importance"</span>, <span class="st">"cfi_importance"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">int_ratio</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
+<span>    digits <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>    caption <span class="op">=</span> <span class="st">"CFI vs PFI for Interacting Features"</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>CFI vs PFI for Interacting Features</caption>
+<thead><tr class="header">
+<th align="left">feature</th>
+<th align="right">cfi_importance</th>
+<th align="right">pfi_importance</th>
+<th align="right">cfi_pfi_ratio</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">x1</td>
+<td align="right">1.009</td>
+<td align="right">2.396</td>
+<td align="right">0.421</td>
+</tr>
+<tr class="even">
+<td align="left">x2</td>
+<td align="right">1.036</td>
+<td align="right">2.082</td>
+<td align="right">0.498</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Important insight about interaction effects</strong>: This
+example illustrates a crucial subtlety about PFI and interactions. While
+x1 and x2 have no main effects, PFI still correctly identifies them as
+important because permuting either feature destroys the interaction term
+x1×x2, which is crucial for prediction. The key limitation is that
+<strong>PFI cannot distinguish between main effects and interaction
+effects</strong> - it measures total contribution including through
+interactions.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="scenario-2-confounding">Scenario 2: Confounding<a class="anchor" aria-label="anchor" href="#scenario-2-confounding"></a>
+</h2>
+<p>This scenario shows how hidden confounders affect importance
+estimates and how conditioning can help:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Generate confounding scenario  </span></span>
+<span><span class="va">task_conf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_confounded</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
+<span><span class="va">data_conf</span> <span class="op">&lt;-</span> <span class="va">task_conf</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><strong>Causal Structure:</strong></p>
+<div class="grViz html-widget html-fill-item" id="htmlwidget-e5c8c404fe174e4c81bd" style="width:768px;height:480px;"></div>
+<script type="application/json" data-for="htmlwidget-e5c8c404fe174e4c81bd">{"x":{"diagram":"\ndigraph confounding_dag {\n  rankdir=TB;\n  node [shape=circle, style=filled, fontname=\"Arial\", fontsize=12];\n  \n  # Hidden confounder\n  H [fillcolor=\"red\", label=\"Hidden\\nConfounder\", fontcolor=\"white\"];\n  \n  # Observed features\n  x1 [fillcolor=\"lightblue\", label=\"x1\"];\n  x2 [fillcolor=\"lightblue\", label=\"x2\"];\n  proxy [fillcolor=\"orange\", label=\"proxy\"];\n  independent [fillcolor=\"lightblue\", label=\"independent\"];\n  \n  # Outcome\n  y [fillcolor=\"greenyellow\", label=\"y\"];\n  \n  # Confounding paths (creating spurious correlations)\n  H -> x1 [label=\"1.0\", color=\"red\"];\n  H -> x2 [label=\"1.0\", color=\"red\"];\n  H -> proxy [label=\"1.0\", color=\"red\"];\n  H -> y [label=\"1.0\", color=\"red\", penwidth=2];\n  \n  # Direct causal effects\n  x1 -> y [label=\"0.5\", color=\"blue\"];\n  x2 -> y [label=\"0.5\", color=\"blue\"];\n  independent -> y [label=\"1.0\", color=\"blue\"];\n  \n  # Layout\n  {rank=same; x1, x2, proxy, independent}\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>The <strong>red arrows</strong> show the confounding paths: the
+hidden confounder creates spurious correlations between x1, x2, proxy,
+and y. The <strong>blue arrows</strong> show true direct causal effects.
+Note that <code>independent</code> is truly independent (no confounding)
+while <code>proxy</code> provides a noisy measurement of the
+confounder.</p>
+<p>In the <strong>observable confounder scenario</strong> (used later),
+the confounder H would be included as a feature in the dataset, allowing
+direct conditioning rather than relying on the noisy proxy.</p>
+<p><img src="perturbation-importance_files/figure-html/viz-confounding-1.png" width="768"></p>
+<p><strong>Key insight</strong>: The hidden confounder creates spurious
+correlations between x1, x2, and y (red paths), making them appear more
+important than they truly are. RFI conditioning on the proxy (which
+measures the confounder) should help isolate the true direct effects
+(blue paths).</p>
+<div class="section level3">
+<h3 id="analysis-1">Analysis<a class="anchor" aria-label="anchor" href="#analysis-1"></a>
+</h3>
+<p>Now let’s analyze the confounding scenario where a hidden confounder
+affects both features and the outcome.</p>
+<div class="section level4">
+<h4 id="pfi-on-confounded-data">PFI on Confounded Data<a class="anchor" aria-label="anchor" href="#pfi-on-confounded-data"></a>
+</h4>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pfi_conf</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_conf</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  iters_perm <span class="op">=</span> <span class="fl">5</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">pfi_conf_results</span> <span class="op">&lt;-</span> <span class="va">pfi_conf</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span><span class="va">pfi_conf_results</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;        feature importance         sd</span></span>
+<span><span class="co">#&gt;         &lt;char&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: independent  1.5558886 0.14955983</span></span>
+<span><span class="co">#&gt; 2:       proxy  0.2164108 0.06458989</span></span>
+<span><span class="co">#&gt; 3:          x1  1.6184945 0.17254140</span></span>
+<span><span class="co">#&gt; 4:          x2  2.0832008 0.43771483</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="rfi-conditioning-on-proxy">RFI Conditioning on Proxy<a class="anchor" aria-label="anchor" href="#rfi-conditioning-on-proxy"></a>
+</h4>
+<p>RFI can condition on the proxy to help isolate direct effects:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Create sampler for confounding task</span></span>
+<span><span class="va">sampler_conf</span> <span class="op">=</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_conf</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  finite_bounds <span class="op">=</span> <span class="st">"local"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># RFI conditioning on the proxy</span></span>
+<span><span class="va">rfi_conf</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/RFI.html">RFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_conf</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  conditioning_set <span class="op">=</span> <span class="st">"proxy"</span>,  <span class="co"># Condition on proxy to reduce confounding</span></span>
+<span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  sampler <span class="op">=</span> <span class="va">sampler_conf</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">rfi_conf_results</span> <span class="op">&lt;-</span> <span class="va">rfi_conf</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span><span class="va">rfi_conf_results</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;        feature importance         sd</span></span>
+<span><span class="co">#&gt;         &lt;char&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: independent  1.5370390 0.12262544</span></span>
+<span><span class="co">#&gt; 2:       proxy  0.0000000 0.00000000</span></span>
+<span><span class="co">#&gt; 3:          x1  0.5846276 0.08205033</span></span>
+<span><span class="co">#&gt; 4:          x2  0.7221616 0.09826116</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="also-trying-cfi-for-comparison">Also trying CFI for comparison<a class="anchor" aria-label="anchor" href="#also-trying-cfi-for-comparison"></a>
+</h4>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cfi_conf</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/CFI.html">CFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_conf</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  sampler <span class="op">=</span> <span class="va">sampler_conf</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">cfi_conf_results</span> <span class="op">&lt;-</span> <span class="va">cfi_conf</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span><span class="va">cfi_conf_results</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;        feature importance         sd</span></span>
+<span><span class="co">#&gt;         &lt;char&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: independent  1.5247804 0.15991909</span></span>
+<span><span class="co">#&gt; 2:       proxy  0.0000000 0.00000000</span></span>
+<span><span class="co">#&gt; 3:          x1  0.6137199 0.07982261</span></span>
+<span><span class="co">#&gt; 4:          x2  0.6813112 0.08152289</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="observable-confounder-scenario">Observable Confounder Scenario<a class="anchor" aria-label="anchor" href="#observable-confounder-scenario"></a>
+</h4>
+<p>In many real-world situations, confounders are actually observable
+(e.g., demographics, baseline characteristics). Let’s explore how RFI
+performs when we can condition directly on the true confounder:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Generate scenario where confounder is observable</span></span>
+<span><span class="va">task_conf_obs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_confounded</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1000</span>, hidden <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Now we can condition directly on the true confounder</span></span>
+<span><span class="va">sampler_conf_obs</span> <span class="op">=</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_conf_obs</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  finite_bounds <span class="op">=</span> <span class="st">"local"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># RFI conditioning on the true confounder (not just proxy)</span></span>
+<span><span class="va">rfi_conf_obs</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/RFI.html">RFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_conf_obs</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  conditioning_set <span class="op">=</span> <span class="st">"confounder"</span>,  <span class="co"># Condition on true confounder</span></span>
+<span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  sampler <span class="op">=</span> <span class="va">sampler_conf_obs</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">rfi_conf_obs_results</span> <span class="op">&lt;-</span> <span class="va">rfi_conf_obs</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Compare with PFI on the same data</span></span>
+<span><span class="va">pfi_conf_obs</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_conf_obs</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  iters_perm <span class="op">=</span> <span class="fl">5</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">pfi_conf_obs_results</span> <span class="op">&lt;-</span> <span class="va">pfi_conf_obs</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
+<p><strong>Key Results:</strong></p>
+<ul>
+<li>
+<strong>x1 importance</strong>: PFI = 0.594, RFI|confounder =
+0.098</li>
+<li>
+<strong>x2 importance</strong>: PFI = 0.612, RFI|confounder =
+0.142<br>
+</li>
+<li>
+<strong>independent importance</strong>: PFI = 1.444, RFI|confounder
+= 1.407</li>
+</ul>
+<p><strong>Insight</strong>: When conditioning on the true confounder,
+RFI should show reduced importance for x1 and x2 (since much of their
+apparent importance was due to confounding) while independent maintains
+its importance (since it’s truly causally related to y).</p>
+</div>
+<div class="section level4">
+<h4 id="comparing-methods-on-confounding">Comparing Methods on Confounding<a class="anchor" aria-label="anchor" href="#comparing-methods-on-confounding"></a>
+</h4>
+<p><img src="perturbation-importance_files/figure-html/compare-confounding-1.png" width="768"><img src="perturbation-importance_files/figure-html/compare-confounding-2.png" width="768"></p>
+</div>
+</div>
+<div class="section level3">
+<h3 id="key-insights-confounding-effects">Key Insights: Confounding Effects<a class="anchor" aria-label="anchor" href="#key-insights-confounding-effects"></a>
+</h3>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Show how conditioning affects importance estimates</span></span>
+<span><span class="va">conf_wide</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/dcast.data.table.html" class="external-link">dcast</a></span><span class="op">(</span><span class="va">comp_conf_long</span>, <span class="va">feature</span> <span class="op">~</span> <span class="va">method</span>, value.var <span class="op">=</span> <span class="st">"importance"</span><span class="op">)</span></span>
+<span><span class="va">conf_summary</span> <span class="op">&lt;-</span> <span class="va">conf_wide</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span></span>
+<span>  <span class="va">feature</span>,</span>
+<span>  pfi_importance <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">PFI</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  cfi_importance <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">CFI</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  rfi_proxy_importance <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">RFI</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  pfi_rfi_diff <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">PFI</span> <span class="op">-</span> <span class="va">RFI</span>, <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">conf_summary</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
+<span>    caption <span class="op">=</span> <span class="st">"Effect of Conditioning on Proxy in Confounded Scenario"</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Effect of Conditioning on Proxy in Confounded
+Scenario</caption>
 <colgroup>
 <col width="15%">
-<col width="14%">
-<col width="14%">
-<col width="20%">
-<col width="20%">
-<col width="15%">
+<col width="19%">
+<col width="19%">
+<col width="27%">
+<col width="17%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">feature</th>
-<th align="right">iter_rsmp</th>
-<th align="right">iter_perm</th>
-<th align="right">regr.mse_orig</th>
-<th align="right">regr.mse_perm</th>
-<th align="right">importance</th>
+<th align="right">pfi_importance</th>
+<th align="right">cfi_importance</th>
+<th align="right">rfi_proxy_importance</th>
+<th align="right">pfi_rfi_diff</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">important1</td>
-<td align="right">1</td>
-<td align="right">1</td>
-<td align="right">7.2702</td>
-<td align="right">12.8889</td>
-<td align="right">5.6187</td>
+<td align="left">independent</td>
+<td align="right">1.556</td>
+<td align="right">1.525</td>
+<td align="right">1.537</td>
+<td align="right">0.019</td>
 </tr>
 <tr class="even">
-<td align="left">important1</td>
-<td align="right">1</td>
-<td align="right">2</td>
-<td align="right">7.2702</td>
-<td align="right">12.9852</td>
-<td align="right">5.7150</td>
+<td align="left">proxy</td>
+<td align="right">0.216</td>
+<td align="right">0.000</td>
+<td align="right">0.000</td>
+<td align="right">0.216</td>
 </tr>
 <tr class="odd">
-<td align="left">important1</td>
-<td align="right">1</td>
-<td align="right">3</td>
-<td align="right">7.2702</td>
-<td align="right">12.8721</td>
-<td align="right">5.6019</td>
+<td align="left">x1</td>
+<td align="right">1.618</td>
+<td align="right">0.614</td>
+<td align="right">0.585</td>
+<td align="right">1.034</td>
 </tr>
 <tr class="even">
-<td align="left">important1</td>
-<td align="right">1</td>
-<td align="right">4</td>
-<td align="right">7.2702</td>
-<td align="right">13.3088</td>
-<td align="right">6.0386</td>
-</tr>
-<tr class="odd">
-<td align="left">important1</td>
-<td align="right">1</td>
-<td align="right">5</td>
-<td align="right">7.2702</td>
-<td align="right">13.8732</td>
-<td align="right">6.6030</td>
-</tr>
-<tr class="even">
-<td align="left">important1</td>
-<td align="right">2</td>
-<td align="right">1</td>
-<td align="right">6.5886</td>
-<td align="right">12.4538</td>
-<td align="right">5.8652</td>
-</tr>
-<tr class="odd">
-<td align="left">important1</td>
-<td align="right">2</td>
-<td align="right">2</td>
-<td align="right">6.5886</td>
-<td align="right">12.5989</td>
-<td align="right">6.0103</td>
-</tr>
-<tr class="even">
-<td align="left">important1</td>
-<td align="right">2</td>
-<td align="right">3</td>
-<td align="right">6.5886</td>
-<td align="right">13.0967</td>
-<td align="right">6.5081</td>
-</tr>
-<tr class="odd">
-<td align="left">important1</td>
-<td align="right">2</td>
-<td align="right">4</td>
-<td align="right">6.5886</td>
-<td align="right">12.4237</td>
-<td align="right">5.8351</td>
-</tr>
-<tr class="even">
-<td align="left">important1</td>
-<td align="right">2</td>
-<td align="right">5</td>
-<td align="right">6.5886</td>
-<td align="right">12.5381</td>
-<td align="right">5.9495</td>
+<td align="left">x2</td>
+<td align="right">2.083</td>
+<td align="right">0.681</td>
+<td align="right">0.722</td>
+<td align="right">1.361</td>
 </tr>
 </tbody>
 </table>
+<p>In the confounding scenario, we observed:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>PFI shows confounded effects</strong>: Without accounting
+for confounders, PFI overestimates the importance of x1 and x2 due to
+their spurious correlation with y through the hidden
+confounder.</p></li>
+<li><p><strong>RFI conditioning on proxy reduces bias</strong>: By
+conditioning on the proxy (noisy measurement of the confounder), RFI can
+partially isolate direct effects, though some confounding remains due to
+measurement error.</p></li>
+<li><p><strong>RFI conditioning on true confounder removes
+bias</strong>: When the confounder is observable and we can condition
+directly on it, RFI dramatically reduces the apparent importance of x1
+and x2, revealing their true direct effects.</p></li>
+<li><p><strong>CFI partially accounts for confounding</strong>: Through
+its conditional sampling, CFI captures some of the confounding structure
+but cannot target specific confounders like RFI can.</p></li>
+</ol>
+</div>
 </div>
 <div class="section level2">
-<h2 id="conditional-feature-importance-cfi">Conditional Feature Importance (CFI)<a class="anchor" aria-label="anchor" href="#conditional-feature-importance-cfi"></a>
+<h2 id="scenario-3-independent-features-baseline">Scenario 3: Independent Features (Baseline)<a class="anchor" aria-label="anchor" href="#scenario-3-independent-features-baseline"></a>
 </h2>
-<p>CFI uses conditional sampling to preserve the joint distribution of
-all other features when perturbing a feature of interest. By default we
-use Adversarial Random Forests (ARF) as conditional sampler
-internally.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sampler</span> <span class="op">=</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>, </span>
-<span>  arf_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
-<span>  forde_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
+<p>To provide a baseline comparison, let’s examine a scenario where all
+feature importance methods should produce similar results:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Generate independent features scenario</span></span>
+<span><span class="va">task_ind</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_independent</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
+<span><span class="va">data_ind</span> <span class="op">&lt;-</span> <span class="va">task_ind</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><strong>Causal Structure:</strong></p>
+<div class="grViz html-widget html-fill-item" id="htmlwidget-36aa3d2a04d42bbc2145" style="width:576px;height:384px;"></div>
+<script type="application/json" data-for="htmlwidget-36aa3d2a04d42bbc2145">{"x":{"diagram":"\ndigraph independent_dag {\n  rankdir=TB;\n  node [shape=circle, style=filled, fontname=\"Arial\", fontsize=12];\n  \n  # Feature nodes\n  important1 [fillcolor=\"lightblue\", label=\"important1\"];\n  important2 [fillcolor=\"lightblue\", label=\"important2\"];\n  important3 [fillcolor=\"lightblue\", label=\"important3\"];\n  unimportant1 [fillcolor=\"lightgray\", label=\"unimportant1\"];\n  unimportant2 [fillcolor=\"lightgray\", label=\"unimportant2\"];\n  \n  # Outcome\n  y [fillcolor=\"greenyellow\", label=\"y\"];\n  \n  # Direct effects only - no interactions or confounding\n  important1 -> y [label=\"2.0\", color=\"blue\"];\n  important2 -> y [label=\"1.0\", color=\"blue\"];\n  important3 -> y [label=\"0.5\", color=\"blue\"];\n  \n  # No edge from unimportant features to y\n  \n  # Layout\n  {rank=same; important1, important2, important3, unimportant1, unimportant2}\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>This is the <strong>simplest scenario</strong>: all features are
+independent, there are no interactions, and no confounding. Each feature
+has only a direct effect on y (or no effect in the case of noise).</p>
+<div class="section level3">
+<h3 id="running-all-methods-on-independent-features">Running All Methods on Independent Features<a class="anchor" aria-label="anchor" href="#running-all-methods-on-independent-features"></a>
+</h3>
+<p>First PFI:</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># PFI</span></span>
+<span><span class="va">pfi_ind</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_ind</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  iters_perm <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Example sampling for 5 randomly chosen rows from the task</span></span>
-<span><span class="va">sample_data</span> <span class="op">&lt;-</span> <span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span>rows <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">task</span><span class="op">$</span><span class="va">nrow</span>, size <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">sampled_result</span> <span class="op">&lt;-</span> <span class="va">sampler</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span></span>
-<span>  feature <span class="op">=</span> <span class="st">"important1"</span>, </span>
-<span>  data <span class="op">=</span> <span class="va">sample_data</span>, </span>
-<span>  conditioning_set <span class="op">=</span> <span class="st">"important2"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>Original <code>important1</code> values: 0.246, 0.786, 0.492, 0.668,
-0.521</p>
-<p>Sampled <code>important1</code> values (conditioned on
-<code>important2</code>): -0.152, 0.829, 0.16, 0.756, 0.74</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cfi</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/CFI.html">CFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
+<span><span class="va">pfi_ind_results</span> <span class="op">&lt;-</span> <span class="va">pfi_ind</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
+<p>Now CFI with the ARF sampler:</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sampler_ind</span> <span class="op">=</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>task <span class="op">=</span> <span class="va">task_ind</span>, finite_bounds <span class="op">=</span> <span class="st">"local"</span><span class="op">)</span></span>
+<span><span class="va">cfi_ind</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/CFI.html">CFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_ind</span>,</span>
 <span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
 <span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  sampler <span class="op">=</span> <span class="va">sampler</span></span>
+<span>  sampler <span class="op">=</span> <span class="va">sampler_ind</span></span>
 <span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Compute importance scores</span></span>
-<span><span class="va">cfi_results</span> <span class="op">&lt;-</span> <span class="va">cfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
-<span><span class="va">cfi_results</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature   importance         sd</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;        &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  3.174003832 0.71919051</span></span>
-<span><span class="co">#&gt;  2:   important2  3.435560781 0.63674319</span></span>
-<span><span class="co">#&gt;  3:   important3  0.487036933 0.20581981</span></span>
-<span><span class="co">#&gt;  4:   important4  4.345208881 0.73990098</span></span>
-<span><span class="co">#&gt;  5:   important5  0.551741678 0.27226931</span></span>
-<span><span class="co">#&gt;  6: unimportant1  0.040457097 0.05467298</span></span>
-<span><span class="co">#&gt;  7: unimportant2  0.055751318 0.08539057</span></span>
-<span><span class="co">#&gt;  8: unimportant3 -0.036216862 0.05459353</span></span>
-<span><span class="co">#&gt;  9: unimportant4  0.051101874 0.05396739</span></span>
-<span><span class="co">#&gt; 10: unimportant5 -0.008660248 0.07443565</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="relative-feature-importance-rfi">Relative Feature Importance (RFI)<a class="anchor" aria-label="anchor" href="#relative-feature-importance-rfi"></a>
-</h2>
-<p>RFI conditions on a specific subset of features, measuring importance
-relative to those features. Let’s condition on two of the important
-features to see how the others rank relative to this baseline.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">conditioning_set</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"important1"</span>, <span class="st">"important2"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">rfi</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/RFI.html">RFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
+<span><span class="va">cfi_ind_results</span> <span class="op">&lt;-</span> <span class="va">cfi_ind</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
+<p>RFI with empty conditioning set, basically equivalent to PFI with a
+different sampler:</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rfi_ind</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/RFI.html">RFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_ind</span>,</span>
 <span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>  conditioning_set <span class="op">=</span> <span class="va">conditioning_set</span>,</span>
+<span>  conditioning_set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,  <span class="co"># Empty set</span></span>
 <span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  sampler <span class="op">=</span> <span class="va">sampler</span></span>
+<span>  sampler <span class="op">=</span> <span class="va">sampler_ind</span></span>
 <span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Compute importance scores</span></span>
-<span><span class="va">rfi_results</span> <span class="op">&lt;-</span> <span class="va">rfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
-<span><span class="va">rfi_results</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature   importance         sd</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;        &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  0.000000000 0.00000000</span></span>
-<span><span class="co">#&gt;  2:   important2  0.000000000 0.00000000</span></span>
-<span><span class="co">#&gt;  3:   important3  0.659032969 0.16358207</span></span>
-<span><span class="co">#&gt;  4:   important4 11.168278482 1.03079984</span></span>
-<span><span class="co">#&gt;  5:   important5  1.391927039 0.30919359</span></span>
-<span><span class="co">#&gt;  6: unimportant1  0.035829586 0.09673696</span></span>
-<span><span class="co">#&gt;  7: unimportant2  0.111951122 0.11040894</span></span>
-<span><span class="co">#&gt;  8: unimportant3 -0.003414726 0.11705205</span></span>
-<span><span class="co">#&gt;  9: unimportant4  0.063271393 0.07071163</span></span>
-<span><span class="co">#&gt; 10: unimportant5  0.022609332 0.06713596</span></span></code></pre></div>
+<span><span class="va">rfi_ind_results</span> <span class="op">&lt;-</span> <span class="va">rfi_ind</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
+<p>And now we visualize:</p>
+<p><img src="perturbation-importance_files/figure-html/combine-rf-plot-1.png" width="768"></p>
 </div>
-<div class="section level2">
-<h2 id="comparing-methods">Comparing Methods<a class="anchor" aria-label="anchor" href="#comparing-methods"></a>
-</h2>
-<p>Now let’s compare the results from all three methods:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Combine results for comparison</span></span>
-<span><span class="va">comparison</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span></span>
-<span>  <span class="va">pfi_results</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, pfi <span class="op">=</span> <span class="va">importance</span><span class="op">)</span><span class="op">]</span>,</span>
-<span>  <span class="va">cfi_results</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, cfi <span class="op">=</span> <span class="va">importance</span><span class="op">)</span><span class="op">]</span>,</span>
-<span>  by <span class="op">=</span> <span class="st">"feature"</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">comparison</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span></span>
-<span>  <span class="va">comparison</span>,</span>
-<span>  <span class="va">rfi_results</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, rfi <span class="op">=</span> <span class="va">importance</span><span class="op">)</span><span class="op">]</span>,</span>
-<span>  by <span class="op">=</span> <span class="st">"feature"</span></span>
-<span><span class="op">)</span></span>
+<div class="section level3">
+<h3 id="agreement-between-methods">Agreement Between Methods<a class="anchor" aria-label="anchor" href="#agreement-between-methods"></a>
+</h3>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Calculate coefficient of variation for each feature across methods</span></span>
+<span><span class="va">comp_ind_wide</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/dcast.data.table.html" class="external-link">dcast</a></span><span class="op">(</span><span class="va">comp_ind_long</span>, <span class="va">feature</span> <span class="op">~</span> <span class="va">method</span>, value.var <span class="op">=</span> <span class="st">"importance"</span><span class="op">)</span></span>
+<span><span class="va">comp_ind_wide</span><span class="op">[</span>, <span class="fu">`:=`</span><span class="op">(</span></span>
+<span>  mean_importance <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="va">.SD</span><span class="op">)</span>,</span>
+<span>  sd_importance <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">.SD</span>, <span class="fl">1</span>, <span class="va">sd</span><span class="op">)</span>,</span>
+<span>  cv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">.SD</span>, <span class="fl">1</span>, <span class="va">sd</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="va">.SD</span><span class="op">)</span></span>
+<span><span class="op">)</span>, .SDcols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PFI"</span>, <span class="st">"CFI"</span>, <span class="st">"RFI"</span><span class="op">)</span><span class="op">]</span></span>
 <span></span>
-<span><span class="co"># Add feature type for analysis</span></span>
-<span><span class="va">comparison</span><span class="op">[</span>, <span class="va">feature_type</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"^important"</span>, <span class="va">feature</span><span class="op">)</span>, <span class="st">"Important"</span>, <span class="st">"Noise"</span><span class="op">)</span><span class="op">]</span></span>
-<span></span>
-<span><span class="va">comparison</span> <span class="op">|&gt;</span></span>
+<span><span class="va">comp_ind_wide</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span></span>
+<span>  <span class="va">feature</span>,</span>
+<span>  mean_importance <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">mean_importance</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  cv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">cv</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  agreement <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">cv</span> <span class="op">&lt;</span> <span class="fl">0.1</span>, <span class="st">"High"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">cv</span> <span class="op">&lt;</span> <span class="fl">0.2</span>, <span class="st">"Moderate"</span>, <span class="st">"Low"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">]</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
-<span>    digits <span class="op">=</span> <span class="fl">4</span>, </span>
-<span>    caption <span class="op">=</span> <span class="st">"Feature Importance Comparison (Difference Scores)"</span>,</span>
-<span>    col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Feature"</span>, <span class="st">"PFI"</span>, <span class="st">"CFI"</span>, <span class="st">"RFI"</span>, <span class="st">"Type"</span><span class="op">)</span></span>
+<span>    caption <span class="op">=</span> <span class="st">"Method Agreement on Independent Features"</span>,</span>
+<span>    col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Feature"</span>, <span class="st">"Mean Importance"</span>, <span class="st">"Coef. of Variation"</span>, <span class="st">"Agreement Level"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <table class="table">
-<caption>Feature Importance Comparison (Difference Scores)</caption>
+<caption>Method Agreement on Independent Features</caption>
 <thead><tr class="header">
 <th align="left">Feature</th>
-<th align="right">PFI</th>
-<th align="right">CFI</th>
-<th align="right">RFI</th>
-<th align="left">Type</th>
+<th align="right">Mean Importance</th>
+<th align="right">Coef. of Variation</th>
+<th align="left">Agreement Level</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left">important1</td>
-<td align="right">5.8655</td>
-<td align="right">3.1740</td>
-<td align="right">0.0000</td>
-<td align="left">Important</td>
+<td align="right">5.669</td>
+<td align="right">0.324</td>
+<td align="left">Low</td>
 </tr>
 <tr class="even">
 <td align="left">important2</td>
-<td align="right">7.5304</td>
-<td align="right">3.4356</td>
-<td align="right">0.0000</td>
-<td align="left">Important</td>
+<td align="right">1.212</td>
+<td align="right">0.345</td>
+<td align="left">Low</td>
 </tr>
 <tr class="odd">
 <td align="left">important3</td>
-<td align="right">0.6285</td>
-<td align="right">0.4870</td>
-<td align="right">0.6590</td>
-<td align="left">Important</td>
-</tr>
-<tr class="even">
-<td align="left">important4</td>
-<td align="right">12.0778</td>
-<td align="right">4.3452</td>
-<td align="right">11.1683</td>
-<td align="left">Important</td>
-</tr>
-<tr class="odd">
-<td align="left">important5</td>
-<td align="right">1.4219</td>
-<td align="right">0.5517</td>
-<td align="right">1.3919</td>
-<td align="left">Important</td>
+<td align="right">0.279</td>
+<td align="right">0.299</td>
+<td align="left">Low</td>
 </tr>
 <tr class="even">
 <td align="left">unimportant1</td>
-<td align="right">0.0324</td>
-<td align="right">0.0405</td>
-<td align="right">0.0358</td>
-<td align="left">Noise</td>
+<td align="right">0.003</td>
+<td align="right">3.755</td>
+<td align="left">Low</td>
 </tr>
 <tr class="odd">
 <td align="left">unimportant2</td>
-<td align="right">0.0615</td>
-<td align="right">0.0558</td>
-<td align="right">0.1120</td>
-<td align="left">Noise</td>
-</tr>
-<tr class="even">
-<td align="left">unimportant3</td>
-<td align="right">-0.0426</td>
-<td align="right">-0.0362</td>
-<td align="right">-0.0034</td>
-<td align="left">Noise</td>
-</tr>
-<tr class="odd">
-<td align="left">unimportant4</td>
-<td align="right">0.0762</td>
-<td align="right">0.0511</td>
-<td align="right">0.0633</td>
-<td align="left">Noise</td>
-</tr>
-<tr class="even">
-<td align="left">unimportant5</td>
-<td align="right">-0.0154</td>
-<td align="right">-0.0087</td>
-<td align="right">0.0226</td>
-<td align="left">Noise</td>
+<td align="right">-0.003</td>
+<td align="right">-1.439</td>
+<td align="left">High</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Key insight</strong>: With independent features and no
+complex relationships, all three methods (PFI, CFI, RFI) produce very
+similar importance estimates. This confirms that the differences we
+observe in Scenarios 1 and 2 are truly due to interactions and
+confounding, not artifacts of the methods themselves.</p>
 </div>
-<div class="section level2">
-<h2 id="visualization">Visualization<a class="anchor" aria-label="anchor" href="#visualization"></a>
-</h2>
-<p>Let’s create comprehensive visualizations to understand the
-results:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Reshape data for plotting</span></span>
-<span><span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="va">comparison</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/melt.data.table.html" class="external-link">melt</a></span><span class="op">(</span></span>
-<span>    id.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"feature"</span>, <span class="st">"feature_type"</span><span class="op">)</span>,</span>
-<span>    measure.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pfi"</span>, <span class="st">"cfi"</span>, <span class="st">"rfi"</span><span class="op">)</span>,</span>
-<span>    value.name <span class="op">=</span> <span class="st">"importance"</span>,</span>
-<span>    variable.name <span class="op">=</span> <span class="st">"method"</span></span>
-<span>  <span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Clean up method names</span></span>
-<span><span class="va">plot_data</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/chartr.html" class="external-link">toupper</a></span><span class="op">(</span><span class="va">method</span><span class="op">)</span><span class="op">]</span></span>
-<span></span>
-<span><span class="co"># Create the comparison plot</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">plot_data</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">importance</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">feature</span>, <span class="va">importance</span><span class="op">)</span>, fill <span class="op">=</span> <span class="va">method</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">feature_type</span>, scales <span class="op">=</span> <span class="st">"free_y"</span>, ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span>position <span class="op">=</span> <span class="st">"dodge"</span>, alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_fill_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PFI"</span> <span class="op">=</span> <span class="st">"steelblue"</span>, <span class="st">"CFI"</span> <span class="op">=</span> <span class="st">"darkgreen"</span>, <span class="st">"RFI"</span> <span class="op">=</span> <span class="st">"orange"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"Feature Importance Comparison: PFI vs CFI vs RFI"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"Friedman1 task: 5 important + 5 noise features</span></span>
-<span><span class="st">                          RFI conditioned on: {paste(conditioning_set, collapse = ', ')}"</span><span class="op">)</span>,</span>
-<span>    x <span class="op">=</span> <span class="st">"Importance Score (Difference)"</span>,</span>
-<span>    y <span class="op">=</span> <span class="st">"Feature"</span>,</span>
-<span>    fill <span class="op">=</span> <span class="st">"Method"</span>,</span>
-<span>    caption <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"Using {resampling$iters}-fold cross-validation</span></span>
-<span><span class="st">                          and 5 permutation iterations"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
-<span>    legend.position <span class="op">=</span> <span class="st">"bottom"</span>,</span>
-<span>    plot.title.position <span class="op">=</span> <span class="st">"plot"</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="perturbation-importance_files/figure-html/visualization-comparison-1.png" width="768"></p>
-<p>Let’s also create a correlation plot to see how similar the methods
-are:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Calculate correlations between methods</span></span>
-<span><span class="va">pfi_cfi_cor</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">comparison</span><span class="op">$</span><span class="va">pfi</span>, <span class="va">comparison</span><span class="op">$</span><span class="va">cfi</span><span class="op">)</span></span>
-<span><span class="va">pfi_rfi_cor</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">comparison</span><span class="op">$</span><span class="va">pfi</span>, <span class="va">comparison</span><span class="op">$</span><span class="va">rfi</span><span class="op">)</span></span>
-<span><span class="va">cfi_rfi_cor</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">comparison</span><span class="op">$</span><span class="va">cfi</span>, <span class="va">comparison</span><span class="op">$</span><span class="va">rfi</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Create correlation matrix plot</span></span>
-<span><span class="va">cor_data</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, <span class="va">pfi</span>, <span class="va">cfi</span>, <span class="va">rfi</span>, <span class="va">feature_type</span><span class="op">)</span><span class="op">]</span></span>
-<span></span>
-<span><span class="co"># PFI vs CFI</span></span>
-<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">cor_data</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">pfi</span>, y <span class="op">=</span> <span class="va">cfi</span>, color <span class="op">=</span> <span class="va">feature_type</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">3</span>, alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth</a></span><span class="op">(</span>method <span class="op">=</span> <span class="st">"lm"</span>, formula <span class="op">=</span> <span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, se <span class="op">=</span> <span class="cn">FALSE</span>, color <span class="op">=</span> <span class="st">"gray50"</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Important"</span> <span class="op">=</span> <span class="st">"steelblue"</span>, <span class="st">"Noise"</span> <span class="op">=</span> <span class="st">"lightcoral"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"PFI vs CFI"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Correlation: %.3f"</span>, <span class="va">pfi_cfi_cor</span><span class="op">)</span>,</span>
-<span>    x <span class="op">=</span> <span class="st">"PFI Score"</span>, y <span class="op">=</span> <span class="st">"CFI Score"</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># PFI vs RFI  </span></span>
-<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">cor_data</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">pfi</span>, y <span class="op">=</span> <span class="va">rfi</span>, color <span class="op">=</span> <span class="va">feature_type</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">3</span>, alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth</a></span><span class="op">(</span>method <span class="op">=</span> <span class="st">"lm"</span>, formula <span class="op">=</span> <span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, se <span class="op">=</span> <span class="cn">FALSE</span>, color <span class="op">=</span> <span class="st">"gray50"</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Important"</span> <span class="op">=</span> <span class="st">"steelblue"</span>, <span class="st">"Noise"</span> <span class="op">=</span> <span class="st">"lightcoral"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"PFI vs RFI"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Correlation: %.3f"</span>, <span class="va">pfi_rfi_cor</span><span class="op">)</span>,</span>
-<span>    x <span class="op">=</span> <span class="st">"PFI Score"</span>, y <span class="op">=</span> <span class="st">"RFI Score"</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># CFI vs RFI</span></span>
-<span><span class="va">p3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">cor_data</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">cfi</span>, y <span class="op">=</span> <span class="va">rfi</span>, color <span class="op">=</span> <span class="va">feature_type</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">3</span>, alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth</a></span><span class="op">(</span>method <span class="op">=</span> <span class="st">"lm"</span>, formula <span class="op">=</span> <span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, se <span class="op">=</span> <span class="cn">FALSE</span>, color <span class="op">=</span> <span class="st">"gray50"</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span></span>
-<span>    values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Important"</span> <span class="op">=</span> <span class="st">"steelblue"</span>, <span class="st">"Noise"</span> <span class="op">=</span> <span class="st">"lightcoral"</span><span class="op">)</span>,</span>
-<span>    name <span class="op">=</span> <span class="st">"Feature Type"</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"CFI vs RFI"</span>, </span>
-<span>    subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Correlation: %.3f"</span>, <span class="va">cfi_rfi_cor</span><span class="op">)</span>,</span>
-<span>    x <span class="op">=</span> <span class="st">"CFI Score"</span>, y <span class="op">=</span> <span class="st">"RFI Score"</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Combine plots</span></span>
-<span><span class="op">(</span><span class="va">p1</span> <span class="op">/</span> <span class="va">p2</span> <span class="op">/</span> <span class="va">p3</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_annotation.html" class="external-link">plot_annotation</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"Method Correlations"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="st">"Each point represents one feature"</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="perturbation-importance_files/figure-html/correlation-analysis-1.png" width="768"></p>
-</div>
-<div class="section level2">
-<h2 id="understanding-the-results">Understanding the Results<a class="anchor" aria-label="anchor" href="#understanding-the-results"></a>
-</h2>
-<p>Let’s analyze how well each method distinguishes important from noise
-features:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Calculate summary statistics by feature type</span></span>
-<span><span class="va">summary_stats</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span></span>
-<span>  mean_importance <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">pfi</span>, <span class="va">cfi</span>, <span class="va">rfi</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  pfi_mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">pfi</span><span class="op">)</span>,</span>
-<span>  cfi_mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">cfi</span><span class="op">)</span>, </span>
-<span>  rfi_mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">rfi</span><span class="op">)</span>,</span>
-<span>  n_features <span class="op">=</span> <span class="va">.N</span></span>
-<span><span class="op">)</span>, by <span class="op">=</span> <span class="va">feature_type</span><span class="op">]</span></span>
-<span></span>
-<span><span class="va">summary_stats</span> <span class="op">|&gt;</span> <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"Summary by feature type"</span><span class="op">)</span></span></code></pre></div>
-<table class="table">
-<caption>Summary by feature type</caption>
-<colgroup>
-<col width="19%">
-<col width="23%">
-<col width="13%">
-<col width="13%">
-<col width="13%">
-<col width="16%">
-</colgroup>
-<thead><tr class="header">
-<th align="left">feature_type</th>
-<th align="right">mean_importance</th>
-<th align="right">pfi_mean</th>
-<th align="right">cfi_mean</th>
-<th align="right">rfi_mean</th>
-<th align="right">n_features</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td align="left">Important</td>
-<td align="right">3.5158</td>
-<td align="right">5.5048</td>
-<td align="right">2.3987</td>
-<td align="right">2.6438</td>
-<td align="right">5</td>
-</tr>
-<tr class="even">
-<td align="left">Noise</td>
-<td align="right">0.0297</td>
-<td align="right">0.0224</td>
-<td align="right">0.0205</td>
-<td align="right">0.0460</td>
-<td align="right">5</td>
-</tr>
-</tbody>
-</table>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># Calculate separation ratios (how well each method separates signal from noise)</span></span>
-<span><span class="va">important_pfi</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span><span class="va">feature_type</span> <span class="op">==</span> <span class="st">"Important"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">pfi</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="va">noise_pfi</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span><span class="va">feature_type</span> <span class="op">==</span> <span class="st">"Noise"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">pfi</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="va">pfi_separation</span> <span class="op">&lt;-</span> <span class="va">important_pfi</span> <span class="op">/</span> <span class="va">noise_pfi</span></span>
-<span></span>
-<span><span class="va">important_cfi</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span><span class="va">feature_type</span> <span class="op">==</span> <span class="st">"Important"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">cfi</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="va">noise_cfi</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span><span class="va">feature_type</span> <span class="op">==</span> <span class="st">"Noise"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">cfi</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="va">cfi_separation</span> <span class="op">&lt;-</span> <span class="va">important_cfi</span> <span class="op">/</span> <span class="va">noise_cfi</span></span>
-<span></span>
-<span><span class="va">important_rfi</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span><span class="va">feature_type</span> <span class="op">==</span> <span class="st">"Important"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">rfi</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="va">noise_rfi</span> <span class="op">&lt;-</span> <span class="va">comparison</span><span class="op">[</span><span class="va">feature_type</span> <span class="op">==</span> <span class="st">"Noise"</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">rfi</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="va">rfi_separation</span> <span class="op">&lt;-</span> <span class="va">important_rfi</span> <span class="op">/</span> <span class="va">noise_rfi</span></span>
-<span></span>
-<span><span class="co"># Store results for inline reporting</span></span>
-<span><span class="va">pfi_sep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">pfi_separation</span>, <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="va">cfi_sep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">cfi_separation</span>, <span class="fl">2</span><span class="op">)</span> </span>
-<span><span class="va">rfi_sep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">rfi_separation</span>, <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="va">pfi_cfi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">pfi_cfi_cor</span>, <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="va">pfi_rfi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">pfi_rfi_cor</span>, <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="va">cfi_rfi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">cfi_rfi_cor</span>, <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
-<h3 id="method-performance">Method Performance<a class="anchor" aria-label="anchor" href="#method-performance"></a>
+<h3 id="key-insights-independent-features">Key Insights: Independent Features<a class="anchor" aria-label="anchor" href="#key-insights-independent-features"></a>
 </h3>
-<p><strong>Separation ratios</strong> (how well each method
-distinguishes important from noise features): - PFI: 120.64 - CFI:
-62.41<br>
-- RFI: 55.76</p>
-<p><strong>Correlations between methods:</strong> - PFI vs CFI: 0.98 -
-PFI vs RFI: 0.751 - CFI vs RFI: 0.619</p>
-</div>
-</div>
-<div class="section level2">
-<h2 id="understanding-the-differences">Understanding the Differences<a class="anchor" aria-label="anchor" href="#understanding-the-differences"></a>
-</h2>
-<p>The three methods can yield different results because they make
-different assumptions:</p>
+<p>In the baseline scenario with independent features:</p>
 <ol style="list-style-type: decimal">
-<li><p><strong>PFI</strong> assumes features are independent and
-measures the marginal importance of each feature.</p></li>
-<li><p><strong>CFI</strong> preserves the conditional distribution <span class="math inline">\(P(X_{-j} | X_j)\)</span> when perturbing feature
-<span class="math inline">\(j\)</span>, providing a more realistic
-assessment when features are correlated.</p></li>
-<li><p><strong>RFI</strong> measures importance relative to a specific
-conditioning set, answering “what additional information does this
-feature provide beyond what we already know from the conditioning
-features?”</p></li>
+<li><p><strong>All methods agree</strong>: PFI, CFI, and RFI produce
+nearly identical importance estimates when features are truly
+independent.</p></li>
+<li><p><strong>Validates methodology</strong>: The agreement between
+methods confirms that differences in other scenarios are due to data
+structure, not method artifacts.</p></li>
+<li><p><strong>Noise correctly identified</strong>: All methods
+correctly assign near-zero importance to the noise features.</p></li>
 </ol>
-<p>In our Friedman1 example:</p>
-<ul>
-<li>All methods successfully identify that <code>important1</code>
-through <code>important5</code> are more important than
-<code>unimportant1</code> through <code>unimportant5</code>
-</li>
-<li>The relative rankings may differ because:
-<ul>
-<li>PFI treats each feature in isolation</li>
-<li>CFI accounts for dependencies between all features</li>
-<li>RFI shows which features add value beyond <code>important1</code>
-and <code>important2</code>
-</li>
-</ul>
-</li>
-</ul>
-</div>
-<div class="section level2">
-<h2 id="variability-analysis">Variability Analysis<a class="anchor" aria-label="anchor" href="#variability-analysis"></a>
-</h2>
-<p>Let’s examine the stability of our importance estimates across
-resampling- and permutation iterations using the <code>$scores</code>
-tables:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">detailed_scores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/rbindlist.html" class="external-link">rbindlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  <span class="va">pfi</span><span class="op">$</span><span class="va">scores</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"PFI"</span><span class="op">]</span>,</span>
-<span>  <span class="va">cfi</span><span class="op">$</span><span class="va">scores</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"CFI"</span><span class="op">]</span>,</span>
-<span>  <span class="va">rfi</span><span class="op">$</span><span class="va">scores</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"RFI"</span><span class="op">]</span></span>
-<span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">score_summary</span> <span class="op">&lt;-</span> <span class="va">detailed_scores</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span></span>
-<span>  mean_importance <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">importance</span><span class="op">)</span>,</span>
-<span>  sd_importance <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">importance</span><span class="op">)</span>,</span>
-<span>  n_iterations <span class="op">=</span> <span class="va">.N</span></span>
-<span><span class="op">)</span>, by <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, <span class="va">method</span><span class="op">)</span><span class="op">]</span></span>
-<span></span>
-<span><span class="co"># Add feature type</span></span>
-<span><span class="va">score_summary</span><span class="op">[</span>, <span class="va">feature_type</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"^important"</span>, <span class="va">feature</span><span class="op">)</span>, <span class="st">"Important"</span>, <span class="st">"Noise"</span><span class="op">)</span><span class="op">]</span></span>
-<span></span>
-<span><span class="co"># Plot error bars</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">score_summary</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span></span>
-<span>    y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">feature</span>, <span class="va">mean_importance</span><span class="op">)</span>, </span>
-<span>    x <span class="op">=</span> <span class="va">mean_importance</span>,</span>
-<span>    xmin <span class="op">=</span> <span class="va">mean_importance</span> <span class="op">-</span> <span class="va">sd_importance</span>, </span>
-<span>    xmax <span class="op">=</span> <span class="va">mean_importance</span> <span class="op">+</span> <span class="va">sd_importance</span>,</span>
-<span>    color <span class="op">=</span> <span class="va">method</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">feature_type</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">1</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_errorbarh.html" class="external-link">geom_errorbarh</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">1</span>, height <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_color_brewer</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Dark2"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"Importance Score Variability: Mean ± SD"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"Error bars show standard deviation across iterations</span></span>
-<span><span class="st">                      RFI conditioned on: {paste(conditioning_set, collapse = ', ')}"</span><span class="op">)</span>,</span>
-<span>    x <span class="op">=</span> <span class="st">"Score (Difference)"</span>,</span>
-<span>    y <span class="op">=</span> <span class="st">"Feature"</span>,</span>
-<span>    color <span class="op">=</span> <span class="st">"Method"</span>,</span>
-<span>    caption <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Using"</span>, <span class="va">resampling</span><span class="op">$</span><span class="va">iters</span>, <span class="st">"-fold CV and"</span>, <span class="va">pfi</span><span class="op">$</span><span class="va">param_set</span><span class="op">$</span><span class="va">values</span><span class="op">$</span><span class="va">iters_perm</span>, <span class="st">"permutations each"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
-<span>    plot.title.position <span class="op">=</span> <span class="st">"plot"</span>,</span>
-<span>    legend.position <span class="op">=</span> <span class="st">"bottom"</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="perturbation-importance_files/figure-html/variability-analysis-1.png" width="768"></p>
-</div>
-<div class="section level2">
-<h2 id="advanced-usage">Advanced Usage<a class="anchor" aria-label="anchor" href="#advanced-usage"></a>
-</h2>
-<div class="section level3">
-<h3 id="custom-samplers">Custom Samplers<a class="anchor" aria-label="anchor" href="#custom-samplers"></a>
-</h3>
-<p>You can provide custom samplers for more control:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Create a custom ARF sampler with specific parameters</span></span>
-<span><span class="va">custom_sampler</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
-<span>  arf_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>num.trees <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>,  <span class="co"># Fewer trees for faster computation</span></span>
-<span>  forde_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>finite_bounds <span class="op">=</span> <span class="st">"no"</span><span class="op">)</span> <span class="co"># Allow extrapolation</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">cfi_custom</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/CFI.html">CFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
-<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
-<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
-<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>  sampler <span class="op">=</span> <span class="va">custom_sampler</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="empty-conditioning-set-for-rfi">Empty Conditioning Set for RFI<a class="anchor" aria-label="anchor" href="#empty-conditioning-set-for-rfi"></a>
-</h3>
-<p>RFI with an empty conditioning set should produce similar results to
-PFI:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rfi_empty</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/RFI.html">RFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
-<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
-<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
-<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>  conditioning_set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>, <span class="co"># Empty conditioning set</span></span>
-<span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  sampler <span class="op">=</span> <span class="va">sampler</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">rfi_empty_results</span> <span class="op">&lt;-</span> <span class="va">rfi_empty</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Compare with PFI</span></span>
-<span><span class="va">empty_comparison</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span></span>
-<span>  <span class="va">pfi_results</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, pfi <span class="op">=</span> <span class="va">importance</span><span class="op">)</span><span class="op">]</span>,</span>
-<span>  <span class="va">rfi_empty_results</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, rfi_empty <span class="op">=</span> <span class="va">importance</span><span class="op">)</span><span class="op">]</span>,</span>
-<span>  by <span class="op">=</span> <span class="st">"feature"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">correlation_empty</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">empty_comparison</span><span class="op">$</span><span class="va">pfi</span>, <span class="va">empty_comparison</span><span class="op">$</span><span class="va">rfi_empty</span><span class="op">)</span></span></code></pre></div>
-<p>The correlation between PFI and RFI with empty conditioning set is
-0.988, confirming that <span class="math inline">\(\mathrm{RFI}(\emptyset) \approx
-\mathrm{PFI}\)</span> as expected.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="key-takeaways">Key Takeaways<a class="anchor" aria-label="anchor" href="#key-takeaways"></a>
 </h2>
+<p>Through these three scenarios, we’ve demonstrated:</p>
 <ol style="list-style-type: decimal">
 <li>
-<strong>All methods correctly identify important features</strong>
-in this well-structured synthetic task</li>
-<li>
-<strong>PFI provides a baseline</strong> for marginal feature
-importance</li>
-<li>
-<strong>CFI accounts for feature dependencies</strong> through
-conditional sampling</li>
-<li>
-<strong>RFI measures relative importance</strong> beyond a specified
-conditioning set</li>
-<li>
-<strong>Method choice depends on your question</strong>:
+<strong>Method choice matters</strong>:
 <ul>
-<li>Use PFI for simple, interpretable marginal importance</li>
-<li>Use CFI when feature dependencies matter</li>
-<li>Use RFI to understand incremental value beyond known important
-features</li>
+<li>
+<strong>PFI</strong> is simple and fast but can miss interaction
+effects and be affected by confounding</li>
+<li>
+<strong>CFI</strong> captures feature dependencies and interactions
+through conditional sampling</li>
+<li>
+<strong>RFI</strong> allows targeted conditioning to isolate
+specific relationships</li>
+</ul>
+</li>
+<li>
+<strong>When to use each method</strong>:
+<ul>
+<li>Use <strong>PFI</strong> when features are believed to be
+independent (as in Scenario 3) and you want a quick baseline importance
+ranking</li>
+<li>Use <strong>CFI</strong> when you suspect feature interactions or
+dependencies (as in Scenario 1) and want a sophisticated analysis that
+respects feature relationships</li>
+<li>Use <strong>RFI</strong> when you have specific conditional
+questions: “How important is feature X given I already know feature Y?”
+(as in Scenarios 1 &amp; 2). Essential for feature selection and
+understanding incremental value.</li>
+</ul>
+</li>
+<li>
+<strong>Practical considerations</strong>:
+<ul>
+<li>All methods benefit from cross-validation and multiple permutation
+iterations for stability</li>
+<li>ARF-based conditional sampling (used in CFI/RFI) is more
+computationally intensive than marginal sampling</li>
+<li>The choice of conditioning set in RFI requires domain knowledge</li>
 </ul>
 </li>
 </ol>
+</div>
+<div class="section level2">
+<h2 id="further-reading">Further Reading<a class="anchor" aria-label="anchor" href="#further-reading"></a>
+</h2>
+<p>For more details on these methods and their theoretical foundations,
+see:</p>
+<ul>
+<li>Breiman (2001) for the original PFI formulation</li>
+<li>Strobl et al. (2008) for limitations of PFI with correlated
+features<br>
+</li>
+<li>Watson &amp; Wright (2021) for conditional sampling with ARF</li>
+<li>König et al. (2021) for relative feature importance</li>
+<li>Ewald et al. (2024) for a comprehensive review of feature importance
+methods</li>
+</ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

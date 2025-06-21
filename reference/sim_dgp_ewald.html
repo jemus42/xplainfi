@@ -19,7 +19,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -84,15 +84,24 @@
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A regression task (<a href="https://mlr3.mlr-org.com/reference/TaskRegr.html" class="external-link">mlr3::TaskRegr</a>) with <a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a> backend.</p>
     </div>
+    <div class="section level2">
+    <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
+    <p>Ewald, Katharina F, Bothmann, Ludwig, Wright, N. M, Bischl, Bernd, Casalicchio, Giuseppe, König, Gunnar (2024).
+“A Guide to Feature Importance Methods for Scientific Inference.”
+In Longo, Luca, Lapuschkin, Sebastian, Seifert, Christin (eds.), <em>Explainable Artificial Intelligence</em>, 440–464.
+ISBN 978-3-031-63797-1, <a href="https://doi.org/10.1007/978-3-031-63797-1_22" class="external-link">doi:10.1007/978-3-031-63797-1_22</a>
+.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">sim_dgp_ewald</span><span class="op">(</span><span class="fl">100</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;TaskRegr:Ewald_100&gt; (100 x 6)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> * Target: y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> * Properties: -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> * Features (5):</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   - dbl (5): x1, x2, x3, x4, x5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">──</span> <span style="color: #0000BB; font-weight: bold;">&lt;TaskRegr&gt;</span><span style="font-weight: bold;"> (100x6)</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────────</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • Target: y</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • Properties: -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> • Features (5):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   • dbl (5): x1, x2, x3, x4, x5</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

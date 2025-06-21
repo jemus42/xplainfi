@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -189,21 +189,20 @@ Default (<code>character(0)</code>) is equivalent to <code>PFI</code>. In <code>
 <span class="r-in"><span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  conditioning_set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"important1"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration: 0, Accuracy: 48.24%</span>
 <span class="r-in"><span><span class="va">rfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  0.00000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  6.51976885</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  1.51725013</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4 10.98446902</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  2.00069572</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.18625470</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  0.01093123</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3  0.02684055</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.30343325</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  0.32443804</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  4.54950432</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  1.37196262</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  9.05700827</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  1.62585663</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.02592419</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 -0.06597218</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3  0.12246728</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.46114607</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  0.36073587</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

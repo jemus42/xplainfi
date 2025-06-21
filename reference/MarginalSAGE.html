@@ -15,7 +15,7 @@ This is the standard SAGE implementation."><script defer src="https://umami.jemu
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -146,33 +146,33 @@ This is the standard SAGE implementation.</p>
 <span class="r-in"><span>  n_permutations <span class="op">=</span> <span class="fl">3L</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sage</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  3.69267356</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  0.12279400</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.13271141</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  4.75213626</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  1.27065117</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1  0.08044271</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 -0.17539124</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.44813329</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.25070707</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.11446254</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          feature   importance</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;        &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  2.417161730</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  4.770559625</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.326854684</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  6.860108485</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  0.024923449</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.014944046</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  0.178285832</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3  0.193667844</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4  0.007583026</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.293646346</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Use batching for memory efficiency with large datasets</span></span></span>
 <span class="r-in"><span><span class="va">sage</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>batch_size <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  3.69267356</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  0.12279400</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.13271141</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  4.75213626</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  1.27065117</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1  0.08044271</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 -0.17539124</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.44813329</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.25070707</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.11446254</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          feature   importance</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;        &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  2.417161730</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  4.770559625</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.326854684</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  6.860108485</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  0.024923449</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.014944046</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  0.178285832</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3  0.193667844</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4  0.007583026</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.293646346</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

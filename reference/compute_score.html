@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -108,14 +108,14 @@ If <code>minimize == FALSE</code>, then <code>scores_pre - scores_post</code> is
 <span class="r-in"><span><span class="va">post</span> <span class="op">=</span> <span class="va">pre</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">compute_score</span><span class="op">(</span><span class="va">pre</span>, <span class="va">post</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] 0.98272711 0.06367616 0.23446105 0.41262737 0.69137535 0.30580794</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [7] 0.06903065 0.49439662 0.97240477 0.97130458</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] 0.90602006 0.92675843 0.92669598 0.90918197 0.88983910 0.45575959</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [7] 0.61000367 0.09088416 0.36835267 0.37838893</span>
 <span class="r-in"><span><span class="fu">compute_score</span><span class="op">(</span><span class="va">pre</span>, <span class="va">post</span>, <span class="st">"ratio"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] 1.9019328 0.9421777 0.7882807 0.6046324 8.3558903 1.2859186 0.9445000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [8] 0.6183377 1.7889813 2.4991967</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1]  0.32430894 -0.09002874  0.36909528  8.85950798  7.17093792 16.39726009</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [7]  1.39762237  1.14754062  0.14517079  1.46801779</span>
 <span class="r-in"><span><span class="fu">compute_score</span><span class="op">(</span><span class="va">pre</span>, <span class="va">post</span>, minimize <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] -0.98272711 -0.06367616 -0.23446105 -0.41262737 -0.69137535 -0.30580794</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [7] -0.06903065 -0.49439662 -0.97240477 -0.97130458</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] -0.90602006 -0.92675843 -0.92669598 -0.90918197 -0.88983910 -0.45575959</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [7] -0.61000367 -0.09088416 -0.36835267 -0.37838893</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

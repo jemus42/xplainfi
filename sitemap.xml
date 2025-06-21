@@ -17,6 +17,7 @@
 <url><loc>https://jemus42.github.io/xplainfi/reference/ConditionalSampler.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/FeatureImportanceMethod.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/FeatureSampler.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/reference/KnockoffSampler.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/LOCI.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/LOCO.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/LeaveOutIn.html</loc></url>
@@ -32,6 +33,7 @@
 <url><loc>https://jemus42.github.io/xplainfi/reference/op-null-default.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/print_bib.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/sim_dgp_ewald.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/reference/sim_dgp_scenarios.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/xplainfi-package.html</loc></url>
 </urlset>
 

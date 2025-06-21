@@ -17,7 +17,7 @@ flexible conditional sampling by modeling the joint distribution."><script defer
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -116,15 +116,12 @@ To fit the ARF in parallel, set <code>arf_args = list(parallel = TRUE)</code> an
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  <span class="va">task</span>,</span>
 <span>  conditioning_set <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  evidence_row_mode <span class="op">=</span> <span class="st">"separate"</span>,</span>
+<span>  finite_bounds <span class="op">=</span> <span class="st">"no"</span>,</span>
 <span>  round <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  sample_NAs <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  nomatch <span class="op">=</span> <span class="st">"force"</span>,</span>
 <span>  stepsize <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  parallel <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  arf_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  forde_args <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  parallel <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  arf_args <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -138,36 +135,28 @@ To fit the ARF in parallel, set <code>arf_args = list(parallel = TRUE)</code> an
 <dd><p>(<code>character</code> | <code>NULL</code>) Default conditioning set to use in <code>$sample()</code>. This parameter only affects the sampling behavior, not the ARF model fitting.</p></dd>
 
 
-<dt><code>evidence_row_mode</code></dt>
-<dd><p>(<code>character(1)</code>) Evidence row mode for <code><a href="https://bips-hb.github.io/arf/reference/forge.html" class="external-link">arf::forge()</a></code>. Default is "separate".</p></dd>
+<dt><code>finite_bounds</code></dt>
+<dd><p>(<code>character(1)</code>: <code>"no"</code>) Passed to <code><a href="https://bips-hb.github.io/arf/reference/forde.html" class="external-link">arf::forde()</a></code>. Default is <code>"no"</code> for compatibility. <code>"local"</code> may improve extrapolation but can cause issues with some data.</p></dd>
 
 
 <dt><code>round</code></dt>
-<dd><p>(<code>logical(1)</code>) Whether to round continuous variables. Default is <code>TRUE</code>.</p></dd>
-
-
-<dt><code>sample_NAs</code></dt>
-<dd><p>(<code>logical(1)</code>) Whether to sample missing values. Default is <code>FALSE</code>.</p></dd>
-
-
-<dt><code>nomatch</code></dt>
-<dd><p>(<code>character(1)</code>) How to handle factor levels not seen in training. Default is "force".</p></dd>
+<dd><p>(<code>logical(1)</code>: <code>TRUE</code>) Whether to round continuous variables back to their original precision.</p></dd>
 
 
 <dt><code>stepsize</code></dt>
-<dd><p>(<code>numeric(1)</code>) Step size for variance adjustment. Default is 0.</p></dd>
+<dd><p>(<code>numeric(1)</code>: <code>0</code>) Number of rows of evidence to process at a time wehn <code>parallel</code> is <code>TRUE</code>. Default (<code>0</code>) spreads evidence evenly over registered workers.</p></dd>
 
 
 <dt><code>verbose</code></dt>
-<dd><p>(<code>logical(1)</code>) Whether to print progress messages. Default is <code>TRUE</code>.</p></dd>
+<dd><p>(<code>logical(1)</code>: <code>FALSE</code>) Whether to print progress messages. Default is <code>FALSE</code> but default in <code>arf</code> is <code>TRUE</code>.</p></dd>
 
 
 <dt><code>parallel</code></dt>
-<dd><p>(<code>logical(1)</code>) Whether to use parallel processing. Default is <code>TRUE</code>.</p></dd>
+<dd><p>(<code>logical(1)</code>: <code>FALSE</code>) Whether to use parallel processing via <code>foreach</code>. See examples in <code><a href="https://bips-hb.github.io/arf/reference/forge.html" class="external-link">arf::forge()</a></code>.</p></dd>
 
 
-<dt><code>arf_args, forde_args</code></dt>
-<dd><p>(<a href="https://rdrr.io/r/base/list.html" class="external-link">list</a>) Arguments passed to <code><a href="https://bips-hb.github.io/arf/reference/adversarial_rf.html" class="external-link">arf::adversarial_rf</a></code> or <code><a href="https://bips-hb.github.io/arf/reference/forde.html" class="external-link">arf::forde</a></code> respectively.</p></dd>
+<dt><code>arf_args</code></dt>
+<dd><p>(<a href="https://rdrr.io/r/base/list.html" class="external-link">list</a>) Additional passed to <code><a href="https://bips-hb.github.io/arf/reference/adversarial_rf.html" class="external-link">arf::adversarial_rf</a></code>.</p></dd>
 
 
 </dl><p></p></div>
@@ -181,10 +170,7 @@ To fit the ARF in parallel, set <code>arf_args = list(parallel = TRUE)</code> an
 <span>  <span class="va">feature</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">self</span><span class="op">$</span><span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  conditioning_set <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  evidence_row_mode <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  round <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  sample_NAs <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  nomatch <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  stepsize <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  parallel <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -206,20 +192,8 @@ To fit the ARF in parallel, set <code>arf_args = list(parallel = TRUE)</code> an
 <dd><p>(<code>character(n) | NULL</code>) Features to condition on. If <code>NULL</code>, uses the stored parameter if available, otherwise defaults to all other features.</p></dd>
 
 
-<dt><code>evidence_row_mode</code></dt>
-<dd><p>(<code>character(1) | NULL</code>) Evidence row mode for <code><a href="https://bips-hb.github.io/arf/reference/forge.html" class="external-link">arf::forge()</a></code>. If <code>NULL</code>, uses the stored parameter value. Must be <code>"separate"</code> or <code>"or"</code>.</p></dd>
-
-
 <dt><code>round</code></dt>
 <dd><p>(<code>logical(1) | NULL</code>) Whether to round continuous variables. If <code>NULL</code>, uses the stored parameter value.</p></dd>
-
-
-<dt><code>sample_NAs</code></dt>
-<dd><p>(<code>logical(1) | NULL</code>) Whether to sample missing values. If <code>NULL</code>, uses the stored parameter value.</p></dd>
-
-
-<dt><code>nomatch</code></dt>
-<dd><p>(<code>character(1) | NULL</code>) How to handle factor levels not seen in training. If <code>NULL</code>, uses the stored parameter value.</p></dd>
 
 
 <dt><code>stepsize</code></dt>
@@ -275,10 +249,9 @@ To fit the ARF in parallel, set <code>arf_args = list(parallel = TRUE)</code> an
 <span class="r-in"><span><span class="co"># Will use the stored parameters</span></span></span>
 <span class="r-in"><span><span class="va">sampled_data</span> <span class="op">=</span> <span class="va">sampler</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span><span class="st">"x1"</span>, <span class="va">data</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Example with "or" mode and custom parameters</span></span></span>
-<span class="r-in"><span><span class="va">sampler_or</span> <span class="op">=</span> <span class="va">ARFSampler</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">task</span>, evidence_row_mode <span class="op">=</span> <span class="st">"or"</span>, round <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration: 0, Accuracy: 45.23%</span>
-<span class="r-in"><span><span class="va">sampled_or</span> <span class="op">=</span> <span class="va">sampler_or</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span><span class="st">"x1"</span>, <span class="va">data</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Example with custom parameters</span></span></span>
+<span class="r-in"><span><span class="va">sampler_custom</span> <span class="op">=</span> <span class="va">ARFSampler</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">task</span>, round <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sampled_custom</span> <span class="op">=</span> <span class="va">sampler_custom</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span><span class="st">"x1"</span>, <span class="va">data</span><span class="op">)</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
