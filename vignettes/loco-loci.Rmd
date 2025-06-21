@@ -27,6 +27,21 @@ library(data.table)
 library(ggplot2)
 ```
 
+## Example Data: Interaction Effects
+
+To illustrate the key differences between LOCO and LOCI, we'll use a data generating process with interaction effects:
+
+$$y = 2 \cdot x_1 \cdot x_2 + x_3 + \epsilon$$
+
+where $\epsilon \sim N(0, 0.5^2)$ and all features $x_1, x_2, x_3, noise_1, noise_2 \sim N(0,1)$ are independent.
+
+**Key characteristics:**
+- **$x_1, x_2$**: Have NO individual effects, only interact with each other
+- **$x_3$**: Has a direct main effect on $y$  
+- **$noise_1, noise_2$**: Pure noise variables with no effect on $y$
+
+This setup highlights how LOCO and LOCI handle interaction effects differently.
+
 ## Leave-One-Covariate-Out (LOCO)
 
 LOCO measures feature importance by comparing model performance with and without each feature. For each feature, the learner is retrained without that feature and the performance difference indicates the feature's importance.
@@ -38,7 +53,7 @@ $$\text{LOCO}_j = \mathbb{E}(L(Y, f_{-j}(X_{-j}))) - \mathbb{E}(L(Y, f(X)))$$
 Higher values indicate more important features (larger performance drop when removed).
 
 ```{r loco-example}
-task <- tgen("friedman1")$generate(n = 200)
+task <- sim_dgp_interactions(n = 500)
 learner <- lrn("regr.lm")
 measure <- msr("regr.mse")
 
@@ -69,6 +84,18 @@ loci <- LOCI$new(
 
 loci$compute()
 ```
+
+## Understanding the Results
+
+**LOCO results interpretation:**
+- $x_1$ and $x_2$ show low importance because removing either one eliminates the interaction ($x_1 \cdot x_2$ becomes zero)
+- $x_3$ shows higher importance due to its direct main effect
+- This demonstrates LOCO's limitation with interaction effects
+
+**LOCI results interpretation:**  
+- $x_1$ and $x_2$ show low importance because individually they have no predictive power
+- $x_3$ shows high importance because it alone can predict $y$ reasonably well
+- This shows how LOCI focuses on individual feature contributions
 
 ## Multiple Refits
 
@@ -113,7 +140,11 @@ importance_combined |>
   - Positive values: feature performs better than featureless baseline
   - Negative values: feature performs worse than featureless baseline
 
-```{r plot, fig.width=7, fig.height=7}
+```{r plot}
+#| echo: false
+#| fig-width: 7
+#| fig-height: 7
+
 importance_combined |>
   data.table::melt(
     id.vars = "feature",
@@ -171,14 +202,14 @@ The `$obs_losses` field provides detailed observation-level information:
 
 ```{r obs-loss-details}
 # Examine observation-wise data for first feature
-feature_data <- loco_obs$obs_losses[feature == "important1"]
+feature_data <- loco_obs$obs_losses[feature == "x3"]
 
 # Show structure
 str(feature_data)
 
 # Display first few observations
 head(feature_data) |>
-  knitr::kable(digits = 3, caption = "Observation-wise losses for important1")
+  knitr::kable(digits = 3, caption = "Observation-wise losses for x3")
 ```
 
 Each row contains:
@@ -196,9 +227,9 @@ For classification tasks, the `obs_losses` field stores predicted classes while 
 
 ```{r classification-example}
 # Binary classification task
-task_classif <- tgen("circle", d = 6)$generate(n = 300)
+task_classif <- tgen("circle", d = 6)$generate(n = 200)
 
-# Learner with probability predictions
+# Learner with probability predictions (required for accessing probabilities later)
 learner_classif <- lrn("classif.rpart", predict_type = "prob")
 
 # LOCO with observation-wise losses
@@ -207,7 +238,7 @@ loco_classif <- LOCO$new(
   learner = learner_classif,
   measure = msr("classif.ce"),  # Classification error supports obs_loss
   obs_loss = TRUE,
-  features = c("x1", "x2"),
+  features = c("x1", "x2"),  # Focus on just two features for clarity
   aggregation_fun = mean  # Could also use median
 )
 
@@ -239,13 +270,14 @@ if (nrow(loco_classif$predictions) > 0) {
   feature_pred <- loco_classif$predictions[1, ]$prediction[[1]]
   
   # Access both predicted classes and probabilities
+  # Note: probabilities are only available because we used predict_type = "prob"
   head(feature_pred$response)  # Predicted classes
   head(feature_pred$prob)      # Probability matrix
-  
-  # Compare with reference model (full model for LOCO)
-  ref_pred <- loco_classif$resample_result$prediction(1)
-  head(ref_pred$prob)  # Reference model probabilities
 }
+
+# Compare with reference model (full model for LOCO)
+ref_pred <- loco_classif$resample_result$prediction(1)
+head(ref_pred$prob)  # Reference model probabilities
 ```
 
 The `$predictions` field provides complete access to feature-specific prediction objects:
