@@ -137,3 +137,130 @@ importance_combined |>
     plot.title.position = "plot"
   ) 
 ```
+
+## Micro-averaged vs Macro-averaged LOCO
+
+The examples above use the **micro-averaged** approach (obs_loss = FALSE), computing importance as the difference of expected losses using the measure's default aggregation: $\mathbb{E}(L(Y, f_{-j}(X_{-j}))) - \mathbb{E}(L(Y, f(X)))$. 
+
+LOCO can also be computed using the **macro-averaged** approach (obs_loss = TRUE), which follows the original paper formulation by aggregating observation-wise differences: $F(\{L(y_i, f_{-j}(x_{i,-j})) - L(y_i, f(x_i))\}_{i=1}^n)$, where $F$ is a custom aggregation function (commonly the median).
+
+The macro-averaged approach can be more robust to outliers and provides access to individual observation-level differences:
+
+```{r obs-loss-regression}
+# Use macro-averaged approach with median aggregation
+loco_obs <- LOCO$new(
+  task = task,
+  learner = learner,
+  measure = msr("regr.mae"),  # MAE supports obs_loss
+  obs_loss = TRUE,
+  aggregation_fun = median
+)
+
+loco_obs$compute()
+
+# Compare aggregated results
+rbind(
+  loco$importance[, method := "Micro-averaged (measure default)"],
+  loco_obs$importance[, method := "Macro-averaged (median of diffs)"]
+) |>
+  dcast(feature ~ method, value.var = "importance") |>
+  knitr::kable(digits = 4, caption = "Comparison of LOCO aggregation approaches")
+```
+
+The `$obs_losses` field provides detailed observation-level information:
+
+```{r obs-loss-details}
+# Examine observation-wise data for first feature
+feature_data <- loco_obs$obs_losses[feature == "important1"]
+
+# Show structure
+str(feature_data)
+
+# Display first few observations
+head(feature_data) |>
+  knitr::kable(digits = 3, caption = "Observation-wise losses for important1")
+```
+
+Each row contains:
+
+- `row_ids`: Test set observation identifiers
+- `truth`: Original target values  
+- `response_ref`: Full model predictions
+- `response_feature`: Reduced model predictions (without this feature)
+- `loss_ref` / `loss_feature`: Individual losses from each model
+- `obs_diff`: Observation-wise importance differences
+
+## Classification Example with Probability Access
+
+For classification tasks, the `obs_losses` field stores predicted classes while preserving access to probabilities from the original mlr3 prediction objects:
+
+```{r classification-example}
+# Binary classification task
+task_classif <- tgen("circle", d = 6)$generate(n = 300)
+
+# Learner with probability predictions
+learner_classif <- lrn("classif.rpart", predict_type = "prob")
+
+# LOCO with observation-wise losses
+loco_classif <- LOCO$new(
+  task = task_classif,
+  learner = learner_classif,
+  measure = msr("classif.ce"),  # Classification error supports obs_loss
+  obs_loss = TRUE,
+  features = c("x1", "x2"),
+  aggregation_fun = mean  # Could also use median
+)
+
+loco_classif$compute()
+
+# Show classification importance
+loco_classif$importance |>
+  knitr::kable(digits = 4, caption = "LOCO importance for classification")
+```
+
+Examine the observation-wise classification results:
+
+```{r classification-obs-details}
+# Look at observation-wise data
+classif_data <- head(loco_classif$obs_losses, 8)
+
+classif_data |>
+  knitr::kable(caption = "Observation-wise classification losses")
+```
+
+For classification, the response columns contain predicted classes (factors). Note that `$resample_result` only contains the reference model predictions (full model for LOCO, featureless for LOCI), not the feature-specific models:
+
+```{r access-probabilities}
+# Access feature-specific predictions (available with obs_loss = TRUE)
+head(loco_classif$predictions)
+
+# Get probabilities for a specific feature and iteration  
+feature_pred <- loco_classif$predictions[loco_classif$predictions$feature == "x1" & loco_classif$predictions$iteration == 1, ]$prediction[[1]]
+
+# Access both predicted classes and probabilities
+head(feature_pred$response)  # Predicted classes
+head(feature_pred$prob)      # Probability matrix
+
+# Compare with reference model (full model for LOCO)
+ref_pred <- loco_classif$resample_result$prediction(1)
+head(ref_pred$prob)  # Reference model probabilities
+```
+
+The `$predictions` field provides complete access to feature-specific prediction objects:
+
+- `feature`: Which feature was left out (LOCO) or left in (LOCI)
+- `iteration`: Resampling iteration
+- `iter_refit`: Refit iteration within resampling  
+- `prediction`: Complete mlr3 prediction object with responses, probabilities, etc.
+
+This gives you full access to:
+- **Feature-specific probabilities**: `prediction$prob`
+- **Feature-specific predicted classes**: `prediction$response`
+- **Additional prediction data**: Any other fields the learner provides
+
+The observation-wise approach is particularly useful for:
+
+- **Robust aggregation**: Using median instead of mean to reduce outlier influence
+- **Individual analysis**: Examining which specific observations drive importance scores
+- **Distribution analysis**: Understanding the variability in feature effects across observations
+- **Model debugging**: Identifying problematic observations or prediction patterns
