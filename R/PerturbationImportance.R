@@ -128,7 +128,7 @@ PerturbationImportance = R6Class(
 
       # Calculate importance depending on relation
       scores[,
-        importance := compute_score(
+        importance := private$compute_score(
           scores_pre,
           scores_post,
           relation = self$param_set$values$relation,

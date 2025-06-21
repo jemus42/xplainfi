@@ -152,6 +152,32 @@ FeatureImportanceMethod = R6Class(
       }
 
       res
+    },
+
+    # Scoring utility for computing importance scores
+    # Computes the relation of score before a change (e.g. PFI, LOCO, ...) and after.
+    # If minimize == TRUE, then scores_post - scores_pre is computed for
+    # relation == "difference", otherwise scores_pre - scores_post is given.
+    # If minimize == FALSE, then scores_pre - scores_post is computed.
+    compute_score = function(
+      scores_pre,
+      scores_post,
+      relation = c("difference", "ratio"),
+      minimize = TRUE
+    ) {
+      checkmate::assert_numeric(scores_pre, any.missing = FALSE)
+      checkmate::assert_numeric(scores_post, any.missing = FALSE)
+      checkmate::assert_true(length(scores_pre) == length(scores_post))
+      checkmate::assert_flag(minimize)
+      relation = match.arg(relation)
+
+      if (minimize) {
+        # Lower is better, e.g. ce
+        switch(relation, difference = scores_post - scores_pre, ratio = scores_post / scores_pre)
+      } else {
+        # Higher is better, e.g. accuracy
+        switch(relation, difference = scores_pre - scores_post, ratio = scores_pre / scores_post)
+      }
     }
   )
 )

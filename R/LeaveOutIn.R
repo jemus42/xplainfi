@@ -128,7 +128,7 @@ LeaveOutIn = R6Class(
       # For LOCO: importance = reduced_model - full_model
       if (self$direction == "leave-in") {
         scores[,
-          importance := compute_score(
+          importance := private$compute_score(
             scores_post, # single feature score (as "pre")
             scores_pre, # featureless score (as "post") - this gives featureless - single_feature
             relation = self$param_set$values$relation,
@@ -137,7 +137,7 @@ LeaveOutIn = R6Class(
         ]
       } else {
         scores[,
-          importance := compute_score(
+          importance := private$compute_score(
             scores_pre, # full model score
             scores_post, # reduced model score
             relation = self$param_set$values$relation,
