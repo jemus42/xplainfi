@@ -84,104 +84,9 @@ LeaveOutIn = R6Class(
       # Store relation
       self$param_set$values$relation = relation
 
-      # Use observation-wise loss computation if requested and supported
-      if (self$param_set$values$obs_loss) {
-        return(private$.compute_obs_loss(relation, store_backends))
-      }
+      # Unified computation path
+      return(private$.compute_unified(relation, store_backends))
 
-      # For LOCO: use full model as baseline
-      # For LOCI: use featureless model as baseline
-      if (self$direction == "leave-out") {
-        # For LOCO, get baseline scores by running full model across resampling
-        rr_reference = resample(
-          self$task,
-          self$learner,
-          self$resampling,
-          store_models = FALSE,
-          store_backends = FALSE
-        )
-      } else {
-        # For LOCI, get baseline scores using featureless learner
-        learner_featureless = switch(
-          self$task$task_type,
-          "classif" = mlr3::lrn("classif.featureless", predict_type = "prob"),
-          "regr" = mlr3::lrn("regr.featureless")
-        )
-
-        rr_reference = resample(
-          self$task,
-          learner_featureless,
-          self$resampling,
-          store_models = FALSE,
-          store_backends = FALSE
-        )
-      }
-
-      scores_pre = rr_reference$score(self$measure)[,
-        .SD,
-        .SDcols = c("iteration", self$measure$id)
-      ]
-      setnames(scores_pre, old = self$measure$id, "scores_pre")
-
-      # Compute feature-specific scores using the instantiated resampling
-      scores = lapply(seq_len(self$resampling$iters), \(iter) {
-        private$.compute_loc(
-          learner = self$learner$clone(),
-          task = self$task,
-          train_ids = self$resampling$train_set(iter),
-          test_ids = self$resampling$test_set(iter),
-          features = self$features,
-          measure = self$measure,
-          iters_refit = self$param_set$values$iters_refit
-        )
-      })
-
-      # Collect scores, add original scores
-      scores = rbindlist(scores, idcol = "iteration")
-      scores = scores[scores_pre, on = "iteration"]
-      setcolorder(scores, c("feature", "iteration", "iter_refit", "scores_pre", "scores_post"))
-
-      # Calculate importance depending on relation(-, /), and minimize property
-      # For LOCI: importance = featureless - single_feature (so swap arguments)
-      # For LOCO: importance = reduced_model - full_model
-      if (self$direction == "leave-in") {
-        scores[,
-          importance := private$compute_score(
-            scores_post, # single feature score (as "pre")
-            scores_pre, # featureless score (as "post") - this gives featureless - single_feature
-            relation = self$param_set$values$relation,
-            minimize = self$measure$minimize
-          )
-        ]
-      } else {
-        scores[,
-          importance := private$compute_score(
-            scores_pre, # full model score
-            scores_post, # reduced model score
-            relation = self$param_set$values$relation,
-            minimize = self$measure$minimize
-          )
-        ]
-      }
-
-      setnames(
-        scores,
-        old = c("iteration", "scores_pre", "scores_post"),
-        new = c("iter_rsmp", paste0(self$measure$id, c("_orig", "_post")))
-      )
-
-      setkeyv(scores, c("feature", "iter_rsmp"))
-
-      # Aggregate by feature
-      scores_agg = private$.aggregate_importances(scores)
-
-      # Store results
-      # Store the baseline resample result (either full model or featureless)
-      self$resample_result = rr_reference
-      self$scores = scores
-      self$importance = scores_agg
-
-      copy(self$importance)
     }
   ),
 
@@ -234,13 +139,126 @@ LeaveOutIn = R6Class(
       )
     },
 
-    .compute_obs_loss = function(relation, store_backends) {
-      # Check if measure supports obs_loss
-      if (is.null(self$measure$obs_loss)) {
-        cli::cli_abort(
-          "Measure {.cls {class(self$measure)[[1]]}} does not support observation-wise loss calculation. Set obs_loss = FALSE to use aggregated scores."
+    .compute_unified = function(relation, store_backends) {
+      # Unified computation dispatcher: routes to appropriate aggregation strategy
+      if (self$param_set$values$obs_loss) {
+        # Check if measure supports obs_loss for macro-averaged computation
+        if (is.null(self$measure$obs_loss)) {
+          cli::cli_abort(
+            "Measure {.cls {class(self$measure)[[1]]}} does not support observation-wise loss calculation. Set obs_loss = FALSE to use aggregated scores."
+          )
+        }
+        # Macro-averaged: custom aggregation of observation-wise differences
+        return(private$.compute_macro_averaged(relation, store_backends))
+      } else {
+        # Micro-averaged: measure's default aggregation of score differences  
+        return(private$.compute_micro_averaged(relation, store_backends))
+      }
+    },
+
+    .compute_micro_averaged = function(relation, store_backends) {
+      # Micro-averaged approach: E[L(Y, f_-j(X_-j))] - E[L(Y, f(X))]
+      # Computes aggregated scores first, then differences
+      
+      # For LOCO: use full model as baseline
+      # For LOCI: use featureless model as baseline
+      if (self$direction == "leave-out") {
+        # For LOCO, get baseline scores by running full model across resampling
+        rr_reference = resample(
+          self$task,
+          self$learner,
+          self$resampling,
+          store_models = FALSE,
+          store_backends = FALSE
+        )
+      } else {
+        # For LOCI, get baseline scores using featureless learner
+        learner_featureless = switch(
+          self$task$task_type,
+          "classif" = mlr3::lrn("classif.featureless", predict_type = self$learner$predict_type),
+          "regr" = mlr3::lrn("regr.featureless")
+        )
+
+        rr_reference = resample(
+          self$task,
+          learner_featureless,
+          self$resampling,
+          store_models = FALSE,
+          store_backends = FALSE
         )
       }
+
+      scores_pre = rr_reference$score(self$measure)[,
+        .SD,
+        .SDcols = c("iteration", self$measure$id)
+      ]
+      setnames(scores_pre, old = self$measure$id, "scores_pre")
+
+      # Compute feature-specific scores using the instantiated resampling
+      scores = lapply(seq_len(self$resampling$iters), \(iter) {
+        private$.compute_loc(
+          learner = self$learner$clone(),
+          task = self$task,
+          train_ids = self$resampling$train_set(iter),
+          test_ids = self$resampling$test_set(iter),
+          features = self$features,
+          measure = self$measure,
+          iters_refit = self$param_set$values$iters_refit
+        )
+      })
+
+      # Collect scores, add original scores
+      scores = rbindlist(scores, idcol = "iteration")
+      scores = scores[scores_pre, on = "iteration"]
+      setcolorder(scores, c("feature", "iteration", "iter_refit", "scores_pre", "scores_post"))
+
+      # Calculate importance depending on relation(-, /), and minimize property
+      # For LOCI: importance = featureless - single_feature (so swap arguments)
+      # For LOCO: importance = reduced_model - full_model
+      if (self$direction == "leave-in") {
+        scores[,
+          importance := private$compute_score(
+            scores_post, # single feature score (as "pre")
+            scores_pre, # featureless score (as "post") - this gives featureless - single_feature
+            relation = relation,
+            minimize = self$measure$minimize
+          )
+        ]
+      } else {
+        scores[,
+          importance := private$compute_score(
+            scores_pre, # full model score
+            scores_post, # reduced model score
+            relation = relation,
+            minimize = self$measure$minimize
+          )
+        ]
+      }
+
+      setnames(
+        scores,
+        old = c("iteration", "scores_pre", "scores_post"),
+        new = c("iter_rsmp", paste0(self$measure$id, c("_orig", "_post")))
+      )
+
+      setkeyv(scores, c("feature", "iter_rsmp"))
+
+      # Aggregate by feature
+      scores_agg = private$.aggregate_importances(scores)
+
+      # Store results
+      # Store the baseline resample result (either full model or featureless)
+      self$resample_result = rr_reference
+      self$scores = scores
+      self$importance = scores_agg
+
+      copy(self$importance)
+    },
+
+    .compute_macro_averaged = function(relation, store_backends) {
+      # Macro-averaged approach: F({L(y_i, f_-j(x_i,-j)) - L(y_i, f(x_i))}_{i=1}^n)  
+      # Computes observation-wise differences first, then custom aggregation
+      # obs_loss check already done in .compute_unified
 
       # Get reference predictions (full model for LOCO, featureless for LOCI)
       if (self$direction == "leave-out") {
