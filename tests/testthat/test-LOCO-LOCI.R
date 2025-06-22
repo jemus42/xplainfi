@@ -439,7 +439,7 @@ test_that("LOCI uses featureless baseline", {
   expect_lt(loci2$importance$importance, 5)
 })
 
-test_that("LOCO/LOCI with obs_loss macro-averaged formulation", {
+test_that("LOCO/LOCI with obs_loss original formulation", {
   skip_if_not_installed("mlr3learners")
 
   set.seed(42)
@@ -448,8 +448,8 @@ test_that("LOCO/LOCI with obs_loss macro-averaged formulation", {
   x1 = runif(n, max = 10)
   x2 = runif(n, max = 10)
   y = x1 + x2 + rnorm(n, sd = 0.1)
-  
-  task = mlr3::TaskRegr$new("test", data.table::data.table(x1=x1, x2=x2, y=y), target="y")
+
+  task = mlr3::TaskRegr$new("test", data.table::data.table(x1 = x1, x2 = x2, y = y), target = "y")
   learner = mlr3::lrn("regr.lm")
 
   # Test LOCO with obs_loss=TRUE
@@ -465,7 +465,7 @@ test_that("LOCO/LOCI with obs_loss macro-averaged formulation", {
   expect_true(all(is.finite(result_obs$importance)))
   expect_gt(max(result_obs$importance), 0) # Should show some importance
 
-  # Test LOCI with obs_loss=TRUE  
+  # Test LOCI with obs_loss=TRUE
   loci_obs = LOCI$new(
     task = task,
     learner = learner,
@@ -488,7 +488,7 @@ test_that("LOCO/LOCI with obs_loss macro-averaged formulation", {
   )
   result_mean = loco_mean$compute()
   expect_importance_dt(result_mean, features = c("x1", "x2"))
-  
+
   # Results should be different with different aggregation functions
   expect_false(all(result_obs$importance == result_mean$importance))
 })
@@ -545,12 +545,12 @@ test_that("LOCO/LOCI obs_loss vs micro-averaged results differ appropriately", {
   # Both should be finite and positive for important features
   expect_true(all(is.finite(result_micro$importance)))
   expect_true(all(is.finite(result_macro$importance)))
-  
+
   # Important features should have higher importance than unimportant ones in both methods
   important_micro = result_micro[grepl("^important", feature)]$importance
   unimportant_micro = result_micro[grepl("^unimportant", feature)]$importance
   expect_gt(mean(important_micro), mean(unimportant_micro))
-  
+
   important_macro = result_macro[grepl("^important", feature)]$importance
   unimportant_macro = result_macro[grepl("^unimportant", feature)]$importance
   expect_gt(mean(important_macro), mean(unimportant_macro))
@@ -565,8 +565,8 @@ test_that("LOCO/LOCI obs_losses field functionality", {
   x1 = runif(n, max = 10)
   x2 = runif(n, max = 10)
   y = x1 + x2 + rnorm(n)
-  
-  task = mlr3::TaskRegr$new("test", data.table::data.table(x1=x1, x2=x2, y=y), target="y")
+
+  task = mlr3::TaskRegr$new("test", data.table::data.table(x1 = x1, x2 = x2, y = y), target = "y")
   learner = mlr3::lrn("regr.lm")
 
   # Test LOCO with obs_loss=TRUE stores obs_losses
@@ -578,13 +578,24 @@ test_that("LOCO/LOCI obs_losses field functionality", {
     aggregation_fun = median
   )
   loco_obs$compute()
-  
+
   # Should have obs_losses data.table
   expect_false(is.null(loco_obs$obs_losses))
   checkmate::expect_data_table(loco_obs$obs_losses, min.rows = 1, min.cols = 10)
-  
+
   # Should have expected columns
-  expected_cols = c("row_ids", "feature", "iteration", "iter_refit", "truth", "response_ref", "response_feature", "loss_ref", "loss_feature", "obs_diff")
+  expected_cols = c(
+    "row_ids",
+    "feature",
+    "iteration",
+    "iter_refit",
+    "truth",
+    "response_ref",
+    "response_feature",
+    "loss_ref",
+    "loss_feature",
+    "obs_diff"
+  )
   expect_true(all(expected_cols %in% colnames(loco_obs$obs_losses)))
 
   # Should have predictions data.table
@@ -592,12 +603,19 @@ test_that("LOCO/LOCI obs_losses field functionality", {
   checkmate::expect_data_table(loco_obs$predictions, min.rows = 1, min.cols = 4)
   expected_pred_cols = c("feature", "iteration", "iter_refit", "prediction")
   expect_true(all(expected_pred_cols %in% colnames(loco_obs$predictions)))
-  
+
   # Should have entries for all features
   expect_setequal(unique(loco_obs$obs_losses$feature), c("x1", "x2"))
-  
+
   # All values should be finite
-  numeric_cols = c("truth", "response_ref", "response_feature", "loss_ref", "loss_feature", "obs_diff")
+  numeric_cols = c(
+    "truth",
+    "response_ref",
+    "response_feature",
+    "loss_ref",
+    "loss_feature",
+    "obs_diff"
+  )
   for (col in numeric_cols) {
     expect_true(all(is.finite(loco_obs$obs_losses[[col]])))
   }
@@ -610,7 +628,7 @@ test_that("LOCO/LOCI obs_losses field functionality", {
     obs_loss = FALSE
   )
   loco_micro$compute()
-  
+
   # Should not have obs_losses
   expect_true(is.null(loco_micro$obs_losses))
 
@@ -623,7 +641,7 @@ test_that("LOCO/LOCI obs_losses field functionality", {
     aggregation_fun = median
   )
   loci_obs$compute()
-  
+
   # Should have obs_losses data.table
   expect_false(is.null(loci_obs$obs_losses))
   checkmate::expect_data_table(loci_obs$obs_losses, min.rows = 1, min.cols = 10)
@@ -646,13 +664,67 @@ test_that("obs_losses and predictions fields survive reset and combine operation
     features = c("important1", "important2")
   )
   loco$compute()
-  
+
   # Should have obs_losses
   expect_false(is.null(loco$obs_losses))
-  
+
   # Test reset clears obs_losses
   loco$reset()
   expect_true(is.null(loco$obs_losses))
   expect_true(is.null(loco$importance))
   expect_true(is.null(loco$scores))
+})
+
+test_that("LOCO micro-averaged and macro-averaged with mean produce equivalent results", {
+  skip_if_not_installed("mlr3learners")
+
+  set.seed(1)
+  n <- 400
+  x1 <- runif(n, max = 10)
+  x2 <- runif(n, max = 10)
+  y <- x1 + x2 + rnorm(n)
+
+  task_full = mlr3::as_task_regr(data.frame(x1, x2, y), target = "y")
+  resampling = mlr3::rsmp("cv", folds = 3)
+  resampling$instantiate(task_full)
+  learner = mlr3::lrn("regr.ranger")
+  measure = mlr3::msr("regr.mse")
+
+  # Micro-averaged approach (default)
+  set.seed(1)
+  loco_micro <- LOCO$new(
+    task = task_full,
+    learner = learner,
+    resampling = resampling,
+    measure = measure
+  )
+  loco_micro$compute()
+
+  # Macro-averaged approach with mean aggregation
+  set.seed(1)
+  loco_macro <- LOCO$new(
+    task = task_full,
+    learner = learner,
+    resampling = resampling,
+    measure = measure,
+    obs_loss = TRUE,
+    aggregation_fun = mean
+  )
+  loco_macro$compute()
+
+  # Results should be equivalent when using mean aggregation
+  expect_equal(
+    loco_micro$importance$importance,
+    loco_macro$importance$importance,
+    tolerance = 1e-10,
+    info = "Micro-averaged and macro-averaged with mean should produce identical results"
+  )
+
+  # Both should have proper structure
+  expect_importance_dt(loco_micro$importance, features = c("x1", "x2"))
+  expect_importance_dt(loco_macro$importance, features = c("x1", "x2"))
+
+  # Macro-averaged should have obs_losses field
+  expect_false(is.null(loco_macro$obs_losses))
+  expect_true(is.null(loco_micro$obs_losses))
 })

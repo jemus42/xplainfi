@@ -178,7 +178,7 @@ The examples above use the **micro-averaged** approach (`obs_loss = FALSE`), com
 
 LOCO can also be computed using the **macro-averaged** approach (`obs_loss = TRUE`), which follows the original paper formulation by aggregating observation-wise differences with the median: $\mathrm{median}(\{L(y_i, f_{-j}(x_{i,-j})) - L(y_i, f(x_i))\}_{i=1}^n)$.
 
-The macro-averaged approach can be more robust to outliers and provides access to individual observation-level differences:
+The macro-averaged approach provides access to individual observation-level differences:
 
 ```{r obs-loss-regression}
 # Use macro-averaged approach with median aggregation
@@ -223,6 +223,36 @@ Each row contains:
 - `response_feature`: Reduced model predictions (without this feature)
 - `loss_ref` / `loss_feature`: Individual losses from each model
 - `obs_diff`: Observation-wise importance differences
+
+Note that in case of `regr.mse` which aggregates with the mean and using `aggregation_fun = mean` to aggregate the observation-wise losses, both approaches yield the same result, but in slightly different ways:
+
+```{r obs-loss-mean-identity}
+set.seed(1)
+resampling = rsmp("holdout")
+resampling$instantiate(task)
+
+loco_orig <- LOCO$new(
+  task = task,
+  learner = learner,
+  resampling = resampling,
+  measure = measure
+)
+
+loco_obsloss <- LOCO$new(
+  task = task,
+  learner = learner,
+  resampling = resampling,
+  measure = measure,
+  obs_loss = TRUE,
+  aggregation_fun = mean
+)
+
+rbind(
+  loco_orig$compute()[, method := "micro-averaged"],
+  loco_obsloss$compute()[, method := "macro-averaged"]
+) |>
+  dcast(feature ~ method, value.var = "importance")
+```
 
 ## Classification Example with Probability Access
 

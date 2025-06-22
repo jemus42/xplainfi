@@ -86,7 +86,6 @@ LeaveOutIn = R6Class(
 
       # Unified computation path
       return(private$.compute_unified(relation, store_backends))
-
     }
   ),
 
@@ -152,7 +151,7 @@ LeaveOutIn = R6Class(
         # Macro-averaged: custom aggregation of observation-wise differences
         return(private$.compute_macro_averaged(relation, store_backends))
       } else {
-        # Micro-averaged: measure's default aggregation of score differences  
+        # Micro-averaged: measure's default aggregation of score differences
         return(private$.compute_micro_averaged(relation, store_backends))
       }
     },
@@ -160,7 +159,7 @@ LeaveOutIn = R6Class(
     .compute_micro_averaged = function(relation, store_backends) {
       # Micro-averaged approach: E[L(Y, f_-j(X_-j))] - E[L(Y, f(X))]
       # Computes aggregated scores first, then differences
-      
+
       # For LOCO: use full model as baseline
       # For LOCI: use featureless model as baseline
       if (self$direction == "leave-out") {
@@ -257,7 +256,7 @@ LeaveOutIn = R6Class(
     },
 
     .compute_macro_averaged = function(relation, store_backends) {
-      # Macro-averaged approach: F({L(y_i, f_-j(x_i,-j)) - L(y_i, f(x_i))}_{i=1}^n)  
+      # Macro-averaged approach: F({L(y_i, f_-j(x_i,-j)) - L(y_i, f(x_i))}_{i=1}^n)
       # Computes observation-wise differences first, then custom aggregation
       # obs_loss check already done in .compute_unified
 
@@ -289,10 +288,11 @@ LeaveOutIn = R6Class(
       }
 
       # Get observation-wise losses for reference predictions
+      ref_predictions = rr_reference$predictions()
       obs_losses_ref = lapply(seq_len(self$resampling$iters), \(iter) {
-        pred_ref = rr_reference$prediction(iter)
+        pred_ref = ref_predictions[[iter]]
         losses_ref = pred_ref$obs_loss(self$measure)
-        losses_ref[, ':='(
+        losses_ref[, let(
           iteration = iter,
           response_ref = response # Store reference prediction
         )]
@@ -314,7 +314,7 @@ LeaveOutIn = R6Class(
           iteration = iter
         )
       })
-      
+
       # Extract obs_losses and predictions
       obs_losses_features = rbindlist(lapply(results_features, `[[`, "obs_losses"))
       predictions_features = rbindlist(lapply(results_features, `[[`, "predictions"))
