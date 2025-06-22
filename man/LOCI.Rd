@@ -79,9 +79,9 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 
 \item{\code{iters_refit}}{(\code{integer(1)}) Number of refit iterations per resampling iteration.}
 
-\item{\code{obs_loss}}{(\code{logical(1)}) Whether to use observation-wise loss calculation (original LOCI formulation). If \code{FALSE} (default), uses aggregated scores.}
+\item{\code{obs_loss}}{(\code{logical(1)}) Whether to use observation-wise loss calculation (analogous to \link{LOCO}) when supported by the measure. If \code{FALSE} (default), uses aggregated scores.}
 
-\item{\code{aggregation_fun}}{(\code{function}) Function to aggregate observation-wise losses when \code{obs_loss = TRUE}. Defaults to \code{median} for original LOCI formulation.}
+\item{\code{aggregation_fun}}{(\code{function}) Function to aggregate observation-wise losses when \code{obs_loss = TRUE}. Defaults to \code{median}, analogous to \link{LOCO}.}
 }
 \if{html}{\out{</div>}}
 }
