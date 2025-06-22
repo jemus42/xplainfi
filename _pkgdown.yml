@@ -69,7 +69,7 @@ articles:
     navbar: ~
     contents:
     - perturbation-importance
-    - loco-loci
+    - articles/loco-loci
     - sage-methods
   - title: Testing and Validation
     contents:

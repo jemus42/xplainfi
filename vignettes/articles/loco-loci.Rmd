@@ -97,7 +97,7 @@ loci$compute()
 
 ## Multiple Refits
 
-Like PFI has `iters_perm` for multiple permutation iterations, LOCO and LOCI support `iters_refit` for multiple refit iterations per resampling iteration:
+Like PFI has `iters_perm` for multiple permutation iterations, LOCO and LOCI support `iters_refit` for multiple refit iterations per resampling iteration, which then also provide standard deviations:
 
 ```{r multiple-refits}
 loco_multi = LOCO$new(
@@ -171,7 +171,7 @@ importance_combined |>
 
 The examples above use the **micro-averaged** approach (`obs_loss = FALSE`), computing importance as the difference of expected losses using the measure's default aggregation: $\mathbb{E}(L(Y, f_{-j}(X_{-j}))) - \mathbb{E}(L(Y, f(X)))$. 
 
-LOCO can also be computed using the **macro-averaged** approach (`obs_loss = TRUE`), which follows the original paper formulation by aggregating observation-wise differences with the median: $\mathrm{median}(\{L(y_i, f_{-j}(x_{i,-j})) - L(y_i, f(x_i))\}_{i=1}^n)$.
+LOCO can also be computed using the **macro-averaged** approach (`obs_loss = TRUE`), which follows the original paper formulation by aggregating observation-wise differences with the median of absolute differences: $\mathrm{median}(\{|L(y_i, f_{-j}(x_{i,-j}))| - |L(y_i, f(x_i))|\}_{i=1}^n)$.
 
 The macro-averaged approach provides access to individual observation-level differences:
 
