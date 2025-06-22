@@ -289,8 +289,8 @@ test_that("sim_dgp_ewald generates correct structure", {
   expect_gt(cor(data$x1, data$x2), 0.8)
 
   # x4 should be correlated with x3 (noisier copy with sd=0.1)
-  expect_gt(cor(data$x3, data$x4), 0.8)
-  expect_lt(cor(data$x3, data$x4), 0.8) # But not as high as x1-x2
+  expect_gt(cor(data$x3, data$x4), 0.6)
+  expect_lt(cor(data$x3, data$x4), 0.8)
 
   # x1, x3, x5 should be relatively independent
   expect_lt(abs(cor(data$x1, data$x3)), 0.2)
