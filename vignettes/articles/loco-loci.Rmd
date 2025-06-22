@@ -1,10 +1,5 @@
 ---
 title: "LOCO and LOCI"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{LOCO and LOCI}
-  %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
 ---
