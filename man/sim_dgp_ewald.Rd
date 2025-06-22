@@ -13,10 +13,23 @@ sim_dgp_ewald(n = 500)
 A regression task (\link[mlr3:TaskRegr]{mlr3::TaskRegr}) with \link[data.table:data.table]{data.table} backend.
 }
 \description{
-– X1, X3 and X5 are independent and standard normal: Xj ∼ N (0, 1),
-– X2 is a noisy copy of X1: X2 := X1 + eps_2, eps_2 ∼ N (0, 0.001),
-– X4 is a (more) noisy copy of X3: X4 := X3 + eps_4, eps_4 ∼ N (0, 0.1),
-– Y depends on X4 and X5 via linear effects and a bivariate interaction: Y := X4 + X5 + X4 ∗ X5 + eps_Y , eps_Y ∼ N (0, 0.1).
+Reproduces the data generating process from Ewald et al. (2024) for benchmarking
+feature importance methods. Includes correlated features and interaction effects.
+}
+\details{
+\strong{Mathematical Model:}
+\deqn{X_1, X_3, X_5 \sim \text{Uniform}(0,1)}
+\deqn{X_2 = X_1 + \varepsilon_2, \quad \varepsilon_2 \sim N(0, 0.001)}
+\deqn{X_4 = X_3 + \varepsilon_4, \quad \varepsilon_4 \sim N(0, 0.1)}
+\deqn{Y = X_4 + X_5 + X_4 \cdot X_5 + \varepsilon, \quad \varepsilon \sim N(0, 0.1)}
+
+\strong{Feature Properties:}
+\itemize{
+\item X1, X3, X5: Independent uniform(0,1) distributions
+\item X2: Nearly perfect copy of X1 (correlation ≈ 0.99)
+\item X4: Noisy copy of X3 (correlation ≈ 0.67)
+\item Y depends on X4, X5, and their interaction
+}
 }
 \examples{
 sim_dgp_ewald(100)

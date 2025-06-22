@@ -1,10 +1,21 @@
 #' Simulate data as in Ewald et al. (2024)
 #'
+#' @description
+#' Reproduces the data generating process from Ewald et al. (2024) for benchmarking
+#' feature importance methods. Includes correlated features and interaction effects.
 #'
-#' – X1, X3 and X5 are independent and standard normal: Xj ∼ N (0, 1),
-#' – X2 is a noisy copy of X1: X2 := X1 + eps_2, eps_2 ∼ N (0, 0.001),
-#' – X4 is a (more) noisy copy of X3: X4 := X3 + eps_4, eps_4 ∼ N (0, 0.1),
-#' – Y depends on X4 and X5 via linear effects and a bivariate interaction: Y := X4 + X5 + X4 ∗ X5 + eps_Y , eps_Y ∼ N (0, 0.1).
+#' @details
+#' **Mathematical Model:**
+#' \deqn{X_1, X_3, X_5 \sim \text{Uniform}(0,1)}
+#' \deqn{X_2 = X_1 + \varepsilon_2, \quad \varepsilon_2 \sim N(0, 0.001)}
+#' \deqn{X_4 = X_3 + \varepsilon_4, \quad \varepsilon_4 \sim N(0, 0.1)}
+#' \deqn{Y = X_4 + X_5 + X_4 \cdot X_5 + \varepsilon, \quad \varepsilon \sim N(0, 0.1)}
+#'
+#' **Feature Properties:**
+#' - X1, X3, X5: Independent uniform(0,1) distributions
+#' - X2: Nearly perfect copy of X1 (correlation ≈ 0.99)
+#' - X4: Noisy copy of X3 (correlation ≈ 0.67)
+#' - Y depends on X4, X5, and their interaction
 #'
 #' @param n (`integer(1)`) Number of samples to create.
 #'
@@ -19,10 +30,10 @@ sim_dgp_ewald <- function(n = 500) {
   x3 <- runif(n)
   x5 <- runif(n)
 
-  x2 <- x1 + rnorm(n, 0, 0.001)
-  x4 <- x3 + rnorm(n, 0, 0.1)
+  x2 <- x1 + rnorm(n, 0, sqrt(0.001))
+  x4 <- x3 + rnorm(n, 0, sqrt(0.1))
 
-  y <- x4 + x5 + x4 * x5 + rnorm(n, 0, 0.1)
+  y <- x4 + x5 + x4 * x5 + rnorm(n, 0, sqrt(0.1))
 
   xdf <- data.table::data.table(
     y,
@@ -54,14 +65,23 @@ NULL
 #' importance due to redundancy, while CFI will correctly identify each feature's
 #' conditional contribution.
 #'
+#' **Mathematical Model:**
+#' \deqn{X_1 \sim N(0,1)}
+#' \deqn{X_2 = X_1 + \varepsilon_2, \quad \varepsilon_2 \sim N(0, 0.05^2)}
+#' \deqn{X_3 \sim N(0,1), \quad X_4 \sim N(0,1)}
+#' \deqn{Y = 2 \cdot X_1 + 1.5 \cdot X_2 + X_3 + \varepsilon}
+#' where \eqn{\varepsilon \sim N(0, 0.2^2)}.
+#'
+#' **Feature Properties:**
 #' - `x1`: Standard normal, direct effect on y
-#' - `x2`: Nearly perfect copy of x1 (x1 + small noise)
+#' - `x2`: Nearly perfect copy of x1 (x1 + small noise), with r ≈ 0.999
 #' - `x3`: Independent standard normal, direct effect on y
 #' - `x4`: Independent standard normal, no effect on y
 #'
-#' Expected behavior:
-#' - **PFI**: Will show low importance for x1 and x2 due to redundancy
-#' - **CFI**: Will show high importance for both x1 and x2 when conditioned properly
+#' **Expected Behavior:**
+#' - **PFI**: Will show high importance for x1 and x2 (permutation breaks correlation structure)
+#' - **CFI**: Will show low importance for x1 and x2 (they are redundant given each other)
+#' - **Interpretation**: PFI measures marginal importance, CFI measures conditional importance
 #' - **Ground truth**: Both x1 and x2 have causal effects, x3 has effect, x4 has none
 #'
 #' @param n (`integer(1)`) Number of samples to generate.
@@ -99,14 +119,21 @@ sim_dgp_correlated <- function(n = 500L) {
 #' This DGP demonstrates the difference between total and direct causal effects.
 #' Some features affect the outcome only through mediators.
 #'
-#' - `exposure`: Has no direct effect on y, only through mediator
+#' **Mathematical Model:**
+#' \deqn{\text{exposure} \sim N(0,1), \quad \text{direct} \sim N(0,1)}
+#' \deqn{\text{mediator} = 0.8 \cdot \text{exposure} + 0.6 \cdot \text{direct} + \varepsilon_m}
+#' \deqn{Y = 1.5 \cdot \text{mediator} + 0.5 \cdot \text{direct} + \varepsilon}
+#' where \eqn{\varepsilon_m \sim N(0, 0.3^2)} and \eqn{\varepsilon \sim N(0, 0.2^2)}.
+#'
+#' **Feature Properties:**
+#' - `exposure`: Has no direct effect on y, only through mediator (total effect = 1.2)
 #' - `mediator`: Mediates the effect of exposure on y
 #' - `direct`: Has both direct effect on y and effect on mediator
 #' - `noise`: No causal relationship to y
 #'
-#' Causal structure: exposure → mediator → y ← direct → mediator
+#' **Causal Structure:** exposure → mediator → y ← direct → mediator
 #'
-#' Expected behavior:
+#' **Expected Behavior:**
 #' - **PFI**: Shows total effects (exposure appears important)
 #' - **CFI**: Shows direct effects (exposure appears less important when conditioning on mediator)
 #' - **RFI with mediator**: Should show direct effects similar to CFI
@@ -148,14 +175,21 @@ sim_dgp_mediated <- function(n = 500L) {
 #' This DGP includes a confounder that affects both features and the outcome.
 #' Uses simple coefficients for easy interpretation.
 #'
-#' Model structure:
-#' - Confounder H ~ N(0,1)
+#' **Mathematical Model:**
+#' \deqn{H \sim N(0,1)}
+#' \deqn{X_1 = H + \varepsilon_1, \quad X_2 = H + \varepsilon_2}
+#' \deqn{\text{proxy} = H + \varepsilon_p, \quad \text{independent} \sim N(0,1)}
+#' \deqn{Y = H + 0.5 \cdot X_1 + 0.5 \cdot X_2 + \text{independent} + \varepsilon}
+#' where all \eqn{\varepsilon \sim N(0, 0.5^2)} independently.
+#'
+#' **Model Structure:**
+#' - Confounder H ~ N(0,1) (dashed red node = potentially unobserved)
 #' - x1 = H + noise, x2 = H + noise (both affected by confounder)
 #' - proxy = H + noise (noisy measurement of confounder)
 #' - independent ~ N(0,1) (truly independent)
 #' - y = H + 0.5*x1 + 0.5*x2 + independent + noise
 #'
-#' Expected behavior:
+#' **Expected Behavior:**
 #' - **PFI**: Will show inflated importance for x1 and x2 due to confounding
 #' - **CFI**: Should partially account for confounding through conditional sampling
 #' - **RFI conditioning on confounder/proxy**: Should reduce confounding bias
@@ -224,13 +258,16 @@ sim_dgp_confounded <- function(n = 500L, hidden = TRUE) {
 #' **Interaction Effects DGP:**
 #' This DGP demonstrates a pure interaction effect where features have no main effects.
 #'
-#' Model: y = 2 * x1 * x2 + x3 + noise
+#' **Mathematical Model:**
+#' \deqn{Y = 2 \cdot X_1 \cdot X_2 + X_3 + \varepsilon}
+#' where \eqn{X_j \sim N(0,1)} independently and \eqn{\varepsilon \sim N(0, 0.5^2)}.
 #'
+#' **Feature Properties:**
 #' - `x1`, `x2`: Independent features with ONLY interaction effect (no main effects)
 #' - `x3`: Independent feature with main effect only
 #' - `noise1`, `noise2`: No causal effects
 #'
-#' Expected behavior:
+#' **Expected Behavior:**
 #' - **PFI**: Should assign near-zero importance to x1 and x2 (no marginal effect)
 #' - **CFI**: Should capture the interaction and assign high importance to x1 and x2
 #' - **Ground truth**: x1 and x2 are important ONLY through their interaction
@@ -272,10 +309,15 @@ sim_dgp_interactions <- function(n = 500L) {
 #' This is a baseline scenario where all features are independent and their
 #' effects are additive. All importance methods should give similar results.
 #'
+#' **Mathematical Model:**
+#' \deqn{Y = 2.0 \cdot X_1 + 1.0 \cdot X_2 + 0.5 \cdot X_3 + \varepsilon}
+#' where \eqn{X_j \sim N(0,1)} independently and \eqn{\varepsilon \sim N(0, 0.2^2)}.
+#'
+#' **Feature Properties:**
 #' - `important1-3`: Independent features with different effect sizes
 #' - `unimportant1-2`: Independent noise features with no effect
 #'
-#' Expected behavior:
+#' **Expected Behavior:**
 #' - **All methods**: Should rank features consistently by their true effect sizes
 #' - **Ground truth**: important1 > important2 > important3 > unimportant1,2 ≈ 0
 #'

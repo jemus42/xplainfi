@@ -66,11 +66,29 @@ reference:
 
 articles:
   - title: Feature Importance Methods
-    navbar: ~
+    # navbar: ~
     contents:
     - perturbation-importance
     - articles/loco-loci
     - sage-methods
   - title: Testing and Validation
     contents:
+    - articles/simulation-settings
     - contains("fippy")
+
+navbar:
+ components:
+   articles:
+    text: Articles
+    menu:
+    - text: Method Showcase
+    - text: Perturbation-Based Methods (PFI, CFI, RFI)
+      href: vignettes/perturbation-importance.html
+    - text: "Leave-Out/In Methods (LOCO, LOCI)"
+      href: articles/loco-loci.html
+    - text: -------
+    - text: "Testing & Validation"
+    - text: Simulation Settings
+      href: articles/simulation-settings.html
+    - text: "Comparison with fippy (Python)"
+      href: articles/fippy-comparison.html

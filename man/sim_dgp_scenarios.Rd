@@ -39,14 +39,23 @@ Each DGP focuses on one primary challenge to make the differences between method
 This DGP creates highly correlated predictors where PFI will show artificially low
 importance due to redundancy, while CFI will correctly identify each feature's
 conditional contribution.
+
+\strong{Mathematical Model:}
+\deqn{X_1 \sim N(0,1)}
+\deqn{X_2 = X_1 + \varepsilon_2, \quad \varepsilon_2 \sim N(0, 0.05^2)}
+\deqn{X_3 \sim N(0,1), \quad X_4 \sim N(0,1)}
+\deqn{Y = 2 \cdot X_1 + 1.5 \cdot X_2 + X_3 + \varepsilon}
+where \eqn{\varepsilon \sim N(0, 0.2^2)}.
+
+\strong{Feature Properties:}
 \itemize{
 \item \code{x1}: Standard normal, direct effect on y
-\item \code{x2}: Nearly perfect copy of x1 (x1 + small noise)
+\item \code{x2}: Nearly perfect copy of x1 (x1 + small noise), with r ≈ 0.999
 \item \code{x3}: Independent standard normal, direct effect on y
 \item \code{x4}: Independent standard normal, no effect on y
 }
 
-Expected behavior:
+\strong{Expected Behavior:}
 \itemize{
 \item \strong{PFI}: Will show low importance for x1 and x2 due to redundancy
 \item \strong{CFI}: Will show high importance for both x1 and x2 when conditioned properly
@@ -56,16 +65,24 @@ Expected behavior:
 \strong{Mediated Effects DGP:}
 This DGP demonstrates the difference between total and direct causal effects.
 Some features affect the outcome only through mediators.
+
+\strong{Mathematical Model:}
+\deqn{\text{exposure} \sim N(0,1), \quad \text{direct} \sim N(0,1)}
+\deqn{\text{mediator} = 0.8 \cdot \text{exposure} + 0.6 \cdot \text{direct} + \varepsilon_m}
+\deqn{Y = 1.5 \cdot \text{mediator} + 0.5 \cdot \text{direct} + \varepsilon}
+where \eqn{\varepsilon_m \sim N(0, 0.3^2)} and \eqn{\varepsilon \sim N(0, 0.2^2)}.
+
+\strong{Feature Properties:}
 \itemize{
-\item \code{exposure}: Has no direct effect on y, only through mediator
+\item \code{exposure}: Has no direct effect on y, only through mediator (total effect = 1.2)
 \item \code{mediator}: Mediates the effect of exposure on y
 \item \code{direct}: Has both direct effect on y and effect on mediator
 \item \code{noise}: No causal relationship to y
 }
 
-Causal structure: exposure → mediator → y ← direct → mediator
+\strong{Causal Structure:} exposure → mediator → y ← direct → mediator
 
-Expected behavior:
+\strong{Expected Behavior:}
 \itemize{
 \item \strong{PFI}: Shows total effects (exposure appears important)
 \item \strong{CFI}: Shows direct effects (exposure appears less important when conditioning on mediator)
@@ -76,16 +93,23 @@ Expected behavior:
 This DGP includes a confounder that affects both features and the outcome.
 Uses simple coefficients for easy interpretation.
 
-Model structure:
+\strong{Mathematical Model:}
+\deqn{H \sim N(0,1)}
+\deqn{X_1 = H + \varepsilon_1, \quad X_2 = H + \varepsilon_2}
+\deqn{\text{proxy} = H + \varepsilon_p, \quad \text{independent} \sim N(0,1)}
+\deqn{Y = H + 0.5 \cdot X_1 + 0.5 \cdot X_2 + \text{independent} + \varepsilon}
+where all \eqn{\varepsilon \sim N(0, 0.5^2)} independently.
+
+\strong{Model Structure:}
 \itemize{
-\item Confounder H ~ N(0,1)
+\item Confounder H ~ N(0,1) (dashed red node = potentially unobserved)
 \item x1 = H + noise, x2 = H + noise (both affected by confounder)
 \item proxy = H + noise (noisy measurement of confounder)
 \item independent ~ N(0,1) (truly independent)
 \item y = H + 0.5\emph{x1 + 0.5}x2 + independent + noise
 }
 
-Expected behavior:
+\strong{Expected Behavior:}
 \itemize{
 \item \strong{PFI}: Will show inflated importance for x1 and x2 due to confounding
 \item \strong{CFI}: Should partially account for confounding through conditional sampling
@@ -95,14 +119,18 @@ Expected behavior:
 \strong{Interaction Effects DGP:}
 This DGP demonstrates a pure interaction effect where features have no main effects.
 
-Model: y = 2 * x1 * x2 + x3 + noise
+\strong{Mathematical Model:}
+\deqn{Y = 2 \cdot X_1 \cdot X_2 + X_3 + \varepsilon}
+where \eqn{X_j \sim N(0,1)} independently and \eqn{\varepsilon \sim N(0, 0.5^2)}.
+
+\strong{Feature Properties:}
 \itemize{
 \item \code{x1}, \code{x2}: Independent features with ONLY interaction effect (no main effects)
 \item \code{x3}: Independent feature with main effect only
 \item \code{noise1}, \code{noise2}: No causal effects
 }
 
-Expected behavior:
+\strong{Expected Behavior:}
 \itemize{
 \item \strong{PFI}: Should assign near-zero importance to x1 and x2 (no marginal effect)
 \item \strong{CFI}: Should capture the interaction and assign high importance to x1 and x2
@@ -112,12 +140,18 @@ Expected behavior:
 \strong{Independent Features DGP:}
 This is a baseline scenario where all features are independent and their
 effects are additive. All importance methods should give similar results.
+
+\strong{Mathematical Model:}
+\deqn{Y = 2.0 \cdot X_1 + 1.0 \cdot X_2 + 0.5 \cdot X_3 + \varepsilon}
+where \eqn{X_j \sim N(0,1)} independently and \eqn{\varepsilon \sim N(0, 0.2^2)}.
+
+\strong{Feature Properties:}
 \itemize{
 \item \code{important1-3}: Independent features with different effect sizes
 \item \code{unimportant1-2}: Independent noise features with no effect
 }
 
-Expected behavior:
+\strong{Expected Behavior:}
 \itemize{
 \item \strong{All methods}: Should rank features consistently by their true effect sizes
 \item \strong{Ground truth}: important1 > important2 > important3 > unimportant1,2 ≈ 0
