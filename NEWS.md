@@ -9,6 +9,7 @@
   - Currently does not support `conditioning_set`
 - Add `$obs_loss` and `$predictions` fields to `FeatureImportanceMeasure`, nosw used by `LOCO` and `LOCI`
   - Both get arugments `obs_loss = FALSE` and `aggregation_fun`, defaulting to `median` in case of `obs_loss = TRUE`, to allow for macro-averaged median of absolute differences calculcation as in original LOCO formulation, rather than the micro-averaged approach calculated by default.
+- Fix accidentally marginal `ConditionalSAGE`.
 
 # xplainfi 0.1.0
 
