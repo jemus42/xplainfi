@@ -91,7 +91,7 @@ FeatureImportanceMethod = R6Class(
       # merge importance scores
       scores_y = copy(y$scores)
       # Increase iteration count for y for consistency
-      scores_y[, let(iter_rsmp = iter_rsmp + self$resampling$iters)]
+      scores_y[, iter_rsmp := iter_rsmp + self$resampling$iters]
       scores = rbindlist(list(self$scores, scores_y))
       setkeyv(scores, c("feature", "iter_rsmp"))
 
@@ -104,7 +104,7 @@ FeatureImportanceMethod = R6Class(
         if (!is.null(self$obs_losses) && !is.null(y$obs_losses)) {
           obs_losses_y = copy(y$obs_losses)
           # Increase iteration count for y for consistency
-          obs_losses_y[, let(iteration = iteration + self$resampling$iters)]
+          obs_losses_y[, iteration := iteration + self$resampling$iters]
           obs_losses = rbindlist(list(self$obs_losses, obs_losses_y))
         } else if (!is.null(self$obs_losses)) {
           obs_losses = copy(self$obs_losses)
@@ -119,7 +119,7 @@ FeatureImportanceMethod = R6Class(
         if (!is.null(self$predictions) && !is.null(y$predictions)) {
           predictions_y = copy(y$predictions)
           # Increase iteration count for y for consistency
-          predictions_y[, let(iteration = iteration + self$resampling$iters)]
+          predictions_y[, iteration := iteration + self$resampling$iters]
           predictions = rbindlist(list(self$predictions, predictions_y))
         } else if (!is.null(self$predictions)) {
           predictions = copy(self$predictions)
@@ -138,7 +138,7 @@ FeatureImportanceMethod = R6Class(
       # Combine resampling objects
       rsmp_x = as.data.table(self$resampling)
       rsmp_y = as.data.table(y$resampling)
-      rsmp_y[, let(iteration = iteration + self$resampling$iters)]
+      rsmp_y[, iteration := iteration + self$resampling$iters]
       rsmp_x = rbind(rsmp_x, rsmp_y)
       setkeyv(rsmp_x, c("set"))
 
