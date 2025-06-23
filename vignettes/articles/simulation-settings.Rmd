@@ -1,0 +1,398 @@
+---
+title: "Simulation Settings for Feature Importance Methods"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+```{r setup}
+library(xplainfi)
+library(DiagrammeR)
+library(mlr3learners)
+set.seed(123)
+```
+
+## Introduction
+
+The `xplainfi` package provides several data generating processes (DGPs) designed to illustrate specific strengths and weaknesses of different feature importance methods. Each DGP focuses on one primary challenge to make the differences between methods clear.
+
+This article provides a comprehensive overview of all simulation settings, including their mathematical formulations and causal structures visualized as directed acyclic graphs (DAGs).
+
+## Overview of Simulation Settings
+
+```{r overview-table, echo=FALSE}
+dgp_overview <- data.frame(
+  DGP = c("sim_dgp_correlated", "sim_dgp_mediated", "sim_dgp_confounded", 
+          "sim_dgp_interactions", "sim_dgp_independent", "sim_dgp_ewald"),
+  Challenge = c("Feature correlation", "Mediation effects", "Confounding",
+                "Interaction effects", "Baseline (no challenges)", "Mixed effects"),
+  `PFI Behavior` = c("High (breaks correlation)", "Shows total effects", "Biased upward", "Low (no main effects)", "Accurate", "Mixed"),
+  `CFI Behavior` = c("Low (preserves correlation)", "Shows direct effects", "Less biased", "High (captures interactions)", "Accurate", "Mixed"),
+  check.names = FALSE
+)
+knitr::kable(dgp_overview, caption = "Overview of simulation settings and expected method behavior")
+```
+
+## 1. Correlated Features DGP
+
+This DGP creates highly correlated predictors that illustrate the fundamental difference between PFI and CFI when features are redundant.
+
+### Mathematical Model
+
+$$X_1 \sim N(0,1)$$
+$$X_2 = X_1 + \varepsilon_2, \quad \varepsilon_2 \sim N(0, 0.05^2)$$
+$$X_3 \sim N(0,1), \quad X_4 \sim N(0,1)$$
+$$Y = 2 \cdot X_1 + 1.5 \cdot X_2 + X_3 + \varepsilon$$
+
+where $\varepsilon \sim N(0, 0.2^2)$.
+
+### Causal Structure
+
+```{r dag-correlated, echo=FALSE, fig.cap="DAG for correlated features DGP", fig.width=10, fig.height=4}
+grViz("
+  digraph Correlated {
+    rankdir=LR;
+    graph [ranksep=1.5];
+    node [shape=circle, style=filled, fontsize=14, width=1.2];
+    
+    X1 [fillcolor='lightcoral', label='X₁\n(β=2.0)'];
+    X2 [fillcolor='lightcoral', label='X₂\n(β=1.5)'];
+    X3 [fillcolor='lightblue', label='X₃\n(β=1.0)'];
+    X4 [fillcolor='lightgray', label='X₄\n(β=0)'];
+    Y [fillcolor='greenyellow', label='Y', width=1.5];
+    
+    X1 -> X2 [color=red, style=bold, label='≈1.0'];
+    X1 -> Y [label='2.0'];
+    X2 -> Y [label='1.5'];
+    X3 -> Y [label='1.0'];
+    X4 -> Y [style=dashed, color=gray];
+    
+    {rank=source; X1; X3; X4}
+    {rank=same; X2}
+    {rank=sink; Y}
+  }")
+```
+
+### Usage Example
+
+```{r correlated-example}
+set.seed(123)
+task <- sim_dgp_correlated(n = 500)
+
+# Check correlation between X1 and X2
+cor(task$data()[, c("x1", "x2")])
+
+# True coefficients: x1=2.0, x2=1.5, x3=1.0, x4=0
+```
+
+### Expected Behavior
+
+- **PFI**: Shows high importance for x1 and x2 because permuting either feature breaks the correlation structure, creating unrealistic data combinations that confuse the model
+- **CFI**: Shows low importance for x1 and x2 because conditional sampling preserves the correlation, meaning each feature provides little additional information given the other
+- **Interpretation**: 
+  - PFI measures marginal importance (how much the feature matters on its own)
+  - CFI measures conditional importance (how much the feature matters given other features)
+  - Both x1 and x2 are individually important but redundant with each other
+
+## 2. Mediated Effects DGP
+
+This DGP demonstrates the difference between total and direct causal effects. Some features affect the outcome only through mediators.
+
+### Mathematical Model
+
+$$\text{exposure} \sim N(0,1), \quad \text{direct} \sim N(0,1)$$
+$$\text{mediator} = 0.8 \cdot \text{exposure} + 0.6 \cdot \text{direct} + \varepsilon_m$$
+$$Y = 1.5 \cdot \text{mediator} + 0.5 \cdot \text{direct} + \varepsilon$$
+
+where $\varepsilon_m \sim N(0, 0.3^2)$ and $\varepsilon \sim N(0, 0.2^2)$.
+
+### Causal Structure
+
+```{r dag-mediated, echo=FALSE, fig.cap="DAG for mediated effects DGP", fig.width=10, fig.height=4}
+grViz("
+  digraph Mediated {
+    rankdir=LR;
+    graph [ranksep=1.2];
+    node [shape=circle, style=filled, fontsize=14, width=1.2];
+    
+    E [fillcolor='orange', label='Exposure\n(β=0)'];
+    D [fillcolor='lightblue', label='Direct\n(β=0.5)'];
+    M [fillcolor='yellow', label='Mediator\n(β=1.5)'];
+    N [fillcolor='lightgray', label='Noise\n(β=0)'];
+    Y [fillcolor='greenyellow', label='Y', width=1.5];
+    
+    E -> M [label='0.8', color=purple, penwidth=2];
+    D -> M [label='0.6', color=blue];
+    D -> Y [label='0.5', color=blue];
+    M -> Y [label='1.5', color=purple, penwidth=2];
+    N -> Y [style=dashed, color=gray];
+    
+    {rank=source; E; D; N}
+    {rank=same; M}
+    {rank=sink; Y}
+  }")
+```
+
+### Usage Example
+
+```{r mediated-example}
+set.seed(123)
+task <- sim_dgp_mediated(n = 500)
+
+# Calculate total effect of exposure
+# Total effect = 0.8 * 1.5 = 1.2 (through mediator)
+# Direct effect = 0 (no direct path to Y)
+```
+
+### Expected Behavior
+
+- **PFI**: Shows total effects (exposure appears important with effect ≈ 1.2)
+- **CFI**: Shows direct effects (exposure appears unimportant when conditioning on mediator)
+- **RFI with mediator**: Should show direct effects similar to CFI
+
+## 3. Confounding DGP
+
+This DGP includes a confounder that affects both features and the outcome.
+
+### Mathematical Model
+
+$$H \sim N(0,1) \quad \text{(confounder)}$$
+$$X_1 = H + \varepsilon_1, \quad X_2 = H + \varepsilon_2$$
+$$\text{proxy} = H + \varepsilon_p, \quad \text{independent} \sim N(0,1)$$
+$$Y = H + 0.5 \cdot X_1 + 0.5 \cdot X_2 + \text{independent} + \varepsilon$$
+
+where all $\varepsilon \sim N(0, 0.5^2)$ independently.
+
+### Causal Structure
+
+```{r dag-confounded, echo=FALSE, fig.cap="DAG for confounding DGP", fig.width=10, fig.height=5}
+grViz("
+  digraph Confounded {
+    rankdir=LR;
+    graph [ranksep=1.2, nodesep=0.8];
+    node [shape=circle, style=filled, fontsize=14, width=1.2];
+    
+    H [fillcolor='red', label='H\n(Confounder)', style='filled,dashed'];
+    X1 [fillcolor='lightcoral', label='X₁\n(β=0.5)'];
+    X2 [fillcolor='lightcoral', label='X₂\n(β=0.5)'];
+    P [fillcolor='pink', label='Proxy\n(β=0)'];
+    I [fillcolor='lightblue', label='Independent\n(β=1.0)'];
+    Y [fillcolor='greenyellow', label='Y', width=1.5];
+    
+    H -> X1 [color=red, label='1.0'];
+    H -> X2 [color=red, label='1.0'];
+    H -> P [color=red, style=dashed, label='1.0'];
+    H -> Y [color=red, label='1.0', penwidth=2];
+    X1 -> Y [label='0.5'];
+    X2 -> Y [label='0.5'];
+    I -> Y [label='1.0'];
+    
+    {rank=source; H}
+    {rank=same; X1; X2; P; I}
+    {rank=sink; Y}
+  }")
+```
+
+### Usage Example
+
+```{r confounded-example}
+set.seed(123)
+# Hidden confounder scenario (default)
+task_hidden <- sim_dgp_confounded(n = 500, hidden = TRUE)
+task_hidden$feature_names  # proxy available but not confounder
+
+# Observable confounder scenario
+task_observed <- sim_dgp_confounded(n = 500, hidden = FALSE)
+task_observed$feature_names  # both confounder and proxy available
+```
+
+### Expected Behavior
+
+- **PFI**: Will show inflated importance for x1 and x2 due to confounding
+- **CFI**: Should partially account for confounding through conditional sampling
+- **RFI conditioning on proxy**: Should reduce confounding bias
+
+## 4. Interaction Effects DGP
+
+This DGP demonstrates a pure interaction effect where features have no main effects.
+
+### Mathematical Model
+
+$$Y = 2 \cdot X_1 \cdot X_2 + X_3 + \varepsilon$$
+
+where $X_j \sim N(0,1)$ independently and $\varepsilon \sim N(0, 0.5^2)$.
+
+### Causal Structure
+
+```{r dag-interactions, echo=FALSE, fig.cap="DAG for interaction effects DGP", fig.width=10, fig.height=4}
+grViz("
+  digraph Interaction {
+    rankdir=LR;
+    graph [ranksep=1.2];
+    node [shape=circle, style=filled, fontsize=14, width=1.2];
+    
+    X1 [fillcolor='orange', label='X₁\n(β=0)'];
+    X2 [fillcolor='orange', label='X₂\n(β=0)'];
+    X3 [fillcolor='lightblue', label='X₃\n(β=1.0)'];
+    N1 [fillcolor='lightgray', label='N₁\n(β=0)'];
+    N2 [fillcolor='lightgray', label='N₂\n(β=0)'];
+    Y [fillcolor='greenyellow', label='Y', width=1.5];
+    INT [fillcolor='red', shape=diamond, label='X₁×X₂\n(β=2.0)', width=1.5];
+    
+    X1 -> INT [color=red, penwidth=2];
+    X2 -> INT [color=red, penwidth=2];
+    INT -> Y [color=red, label='2.0', penwidth=2];
+    X3 -> Y [label='1.0'];
+    N1 -> Y [style=dashed, color=gray];
+    N2 -> Y [style=dashed, color=gray];
+    
+    {rank=source; X1; X2; X3; N1; N2}
+    {rank=same; INT}
+    {rank=sink; Y}
+  }")
+```
+
+### Usage Example
+
+```{r interactions-example}
+set.seed(123)
+task <- sim_dgp_interactions(n = 500)
+
+# Note: X1 and X2 have NO main effects
+# Their importance comes ONLY through their interaction
+```
+
+### Expected Behavior
+
+- **PFI**: Should assign near-zero importance to x1 and x2 (no marginal effect)
+- **CFI**: Should capture the interaction and assign high importance to x1 and x2
+- **LOCO**: May show high importance for x1 and x2 (removing either breaks the interaction)
+- **LOCI**: Should show near-zero importance for x1 and x2 (individually useless)
+
+## 5. Independent Features DGP (Baseline)
+
+This is a baseline scenario where all features are independent and their effects are additive. All importance methods should give similar results.
+
+### Mathematical Model
+
+$$Y = 2.0 \cdot X_1 + 1.0 \cdot X_2 + 0.5 \cdot X_3 + \varepsilon$$
+
+where $X_j \sim N(0,1)$ independently and $\varepsilon \sim N(0, 0.2^2)$.
+
+### Causal Structure
+
+```{r dag-independent, echo=FALSE, fig.cap="DAG for independent features DGP", fig.width=10, fig.height=4}
+grViz("
+  digraph Independent {
+    rankdir=LR;
+    graph [ranksep=1.5];
+    node [shape=circle, style=filled, fontsize=14, width=1.2];
+    
+    X1 [fillcolor='lightblue', label='X₁\n(β=2.0)'];
+    X2 [fillcolor='lightblue', label='X₂\n(β=1.0)'];
+    X3 [fillcolor='lightblue', label='X₃\n(β=0.5)'];
+    N1 [fillcolor='lightgray', label='N₁\n(β=0)'];
+    N2 [fillcolor='lightgray', label='N₂\n(β=0)'];
+    Y [fillcolor='greenyellow', label='Y', width=1.5];
+    
+    X1 -> Y [label='2.0', penwidth=3];
+    X2 -> Y [label='1.0', penwidth=2];
+    X3 -> Y [label='0.5'];
+    N1 -> Y [style=dashed, color=gray];
+    N2 -> Y [style=dashed, color=gray];
+    
+    {rank=source; X1; X2; X3; N1; N2}
+    {rank=sink; Y}
+  }")
+```
+
+### Usage Example
+
+```{r independent-example}
+set.seed(123)
+task <- sim_dgp_independent(n = 500)
+
+# All methods should rank features consistently:
+# important1 > important2 > important3 > unimportant1,2 ≈ 0
+```
+
+### Expected Behavior
+
+- **All methods**: Should rank features consistently by their true effect sizes
+- **Ground truth**: important1 (2.0) > important2 (1.0) > important3 (0.5) > unimportant1,2 (0)
+
+## 6. Ewald et al. (2024) DGP
+
+Reproduces the data generating process from Ewald et al. (2024) for benchmarking feature importance methods. Includes correlated features and interaction effects.
+
+### Mathematical Model
+
+$$X_1, X_3, X_5 \sim \text{Uniform}(0,1)$$
+$$X_2 = X_1 + \varepsilon_2, \quad \varepsilon_2 \sim N(0, 0.001)$$
+$$X_4 = X_3 + \varepsilon_4, \quad \varepsilon_4 \sim N(0, 0.1)$$
+$$Y = X_4 + X_5 + X_4 \cdot X_5 + \varepsilon, \quad \varepsilon \sim N(0, 0.1)$$
+
+### Causal Structure
+
+```{r dag-ewald, echo=FALSE, fig.cap="DAG for Ewald et al. (2024) DGP", fig.width=10, fig.height=4}
+grViz("
+  digraph Ewald {
+    rankdir=LR;
+    graph [ranksep=1.2];
+    node [shape=circle, style=filled, fontsize=14, width=1.2];
+    
+    X1 [fillcolor='lightgray', label='X₁\n(β=0)'];
+    X2 [fillcolor='lightgray', label='X₂\n(β=0)'];
+    X3 [fillcolor='lightgray', label='X₃\n(β=0)'];
+    X4 [fillcolor='lightblue', label='X₄\n(β=1.0)'];
+    X5 [fillcolor='lightblue', label='X₅\n(β=1.0)'];
+    Y [fillcolor='greenyellow', label='Y', width=1.5];
+    INT [fillcolor='red', shape=diamond, label='X₄×X₅\n(β=1.0)', width=1.5];
+    
+    X1 -> X2 [color=gray, label='≈1.0'];
+    X3 -> X4 [color=gray, label='≈1.0'];
+    X4 -> Y [label='1.0'];
+    X5 -> Y [label='1.0'];
+    X4 -> INT [color=red];
+    X5 -> INT [color=red];
+    INT -> Y [color=red, label='1.0'];
+    
+    {rank=source; X1; X3; X5}
+    {rank=same; X2; X4}
+    {rank=same; INT}
+    {rank=sink; Y}
+  }")
+```
+
+### Usage Example
+
+```{r ewald-example}
+task <- sim_dgp_ewald(n = 500)
+task
+```
+
+## Comparing Methods on Different DGPs
+
+Here's a practical example comparing PFI and CFI on the correlated features DGP:
+
+```{r method-comparison}
+task <- sim_dgp_correlated(n = 1000)
+learner <- lrn("regr.ranger")
+measure <- msr("regr.mse")
+
+# Compute PFI
+pfi <- PFI$new(task, learner, measure)
+pfi$compute()
+
+# Compute CFI
+cfi <- CFI$new(task, learner, measure)
+cfi$compute()
+```
+
+Expected pattern: PFI shows high importance for correlated x1,x2 while CFI shows low importance (they are redundant given each other)

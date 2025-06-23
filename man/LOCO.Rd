@@ -20,9 +20,20 @@ task = tgen("friedman1")$generate(n = 200)
 loco = LOCO$new(
   task = task,
   learner = lrn("regr.ranger", num.trees = 50),
-  measure = msr("regr.mse")
+  measure = msr("regr.mse"), obs_loss = TRUE
 )
 loco$compute()
+
+# Using observation-wise losses to compute the median instead
+loco_obsloss = LOCO$new(
+  task = task,
+  learner = lrn("regr.ranger", num.trees = 50),
+  measure = msr("regr.mae"), # to use absolute differences observation-wise
+  obs_loss = TRUE,
+  aggregation_fun = median
+)
+loco_obsloss$compute()
+loco_obsloss$obs_losses
 \dontshow{\}) # examplesIf}
 }
 \references{
@@ -63,7 +74,9 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   measure,
   resampling = NULL,
   features = NULL,
-  iters_refit = 1L
+  iters_refit = 1L,
+  obs_loss = FALSE,
+  aggregation_fun = median
 )}\if{html}{\out{</div>}}
 }
 
@@ -80,7 +93,11 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 
 \item{\code{features}}{(\code{character()}) Features to compute importance for. Defaults to all features.}
 
-\item{\code{iters_refit}}{(\code{integer(1)}) Number of refit iterations per resampling iteration.}
+\item{\code{iters_refit}}{(\code{integer(1)}: \code{1L}) Number of refit iterations per resampling iteration.}
+
+\item{\code{obs_loss}}{(\code{logical(1)}: \code{FALSE}) Whether to use observation-wise loss calculation (original LOCO formulation). If \code{FALSE}, uses aggregated scores.}
+
+\item{\code{aggregation_fun}}{(\code{function}) Function to aggregate observation-wise losses when \code{obs_loss = TRUE}. Defaults to \code{median} for original LOCO formulation.}
 }
 \if{html}{\out{</div>}}
 }

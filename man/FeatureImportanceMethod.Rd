@@ -30,6 +30,10 @@ Feature Importance Method Class
 \item{\code{importance}}{(\link[data.table:data.table]{data.table}) Aggregated importance scores}
 
 \item{\code{scores}}{(\link[data.table:data.table]{data.table}) Individual performance scores used to compute \verb{$importance} per resampling iteration and permutation iteration.}
+
+\item{\code{obs_losses}}{(\link[data.table:data.table]{data.table}) Observation-wise losses when available (e.g., when using obs_loss = TRUE). Contains columns for row_ids, feature, iteration indices, individual loss values, and both reference and feature-specific predictions.}
+
+\item{\code{predictions}}{(\link[data.table:data.table]{data.table}) Feature-specific prediction objects when using obs_loss = TRUE. Contains columns for feature, iteration, iter_refit, and prediction objects. Similar to ResampleResult$predictions() but extended for feature-specific models.}
 }
 \if{html}{\out{</div>}}
 }
@@ -125,7 +129,7 @@ Currently this method merges the following:
 \if{html}{\out{<a id="method-FeatureImportanceMethod-reset"></a>}}
 \if{latex}{\out{\hypertarget{method-FeatureImportanceMethod-reset}{}}}
 \subsection{Method \code{reset()}}{
-Resets all stored fields populated by \verb{$compute}: \verb{$resample_result}, \verb{$importance} and \verb{$scores}.
+Resets all stored fields populated by \verb{$compute}: \verb{$resample_result}, \verb{$importance}, \verb{$scores}, \verb{$obs_losses}, and \verb{$predictions}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$reset()}\if{html}{\out{</div>}}
 }

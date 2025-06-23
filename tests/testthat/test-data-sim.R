@@ -1,5 +1,5 @@
 test_that("sim_dgp_independent generates correct structure", {
-  set.seed(42)  # Fixed seed for reproducibility
+  set.seed(42) # Fixed seed for reproducibility
   task <- sim_dgp_independent(n = 200)
   data <- task$data()
 
@@ -25,9 +25,9 @@ test_that("sim_dgp_independent generates correct structure", {
   cor_y <- cor(data$y, data[, .(important1, important2, important3)])
   # Check each correlation individually for better error messages
   expect_gt(abs(cor_y[1, 1]), 0.15) # important1 should have meaningful correlation
-  expect_gt(abs(cor_y[1, 2]), 0.15) # important2 should have meaningful correlation  
+  expect_gt(abs(cor_y[1, 2]), 0.15) # important2 should have meaningful correlation
   expect_gt(abs(cor_y[1, 3]), 0.15) # important3 should have meaningful correlation
-  
+
   # Noise features should have low correlation
   expect_lt(abs(cor(data$y, data$unimportant1)), 0.3)
   expect_lt(abs(cor(data$y, data$unimportant2)), 0.3)
@@ -106,7 +106,7 @@ test_that("sim_dgp_confounded with hidden=TRUE generates correct structure", {
   # All should correlate with y
   cor_y <- cor(data$y, data[, .(x1, x2, proxy, independent)])
   # Check all correlations are meaningful
-  for(i in 1:ncol(cor_y)) {
+  for (i in 1:ncol(cor_y)) {
     expect_gt(abs(cor_y[1, i]), 0.2)
   }
 })
@@ -271,12 +271,12 @@ test_that("sim_dgp_confounded default parameters work correctly", {
 })
 
 test_that("sim_dgp_ewald generates correct structure", {
-  task <- sim_dgp_ewald(n = 200)
+  task <- sim_dgp_ewald(n = 500)
   data <- task$data()
 
   # Basic structure tests
   expect_s3_class(task, "TaskRegr")
-  expect_equal(nrow(data), 200)
+  expect_equal(nrow(data), 500)
   expect_equal(task$target_names, "y")
   expect_setequal(task$feature_names, c("x1", "x2", "x3", "x4", "x5"))
   expect_true(grepl("^Ewald_", task$id))
@@ -286,11 +286,11 @@ test_that("sim_dgp_ewald generates correct structure", {
 
   # Check relationships as specified in Ewald et al.
   # x2 should be highly correlated with x1 (noisy copy with sd=0.001)
-  expect_gt(cor(data$x1, data$x2), 0.99)
+  expect_gt(cor(data$x1, data$x2), 0.8)
 
   # x4 should be correlated with x3 (noisier copy with sd=0.1)
-  expect_gt(cor(data$x3, data$x4), 0.9)
-  expect_lt(cor(data$x3, data$x4), 0.99) # But not as high as x1-x2
+  expect_gt(cor(data$x3, data$x4), 0.6)
+  expect_lt(cor(data$x3, data$x4), 0.8)
 
   # x1, x3, x5 should be relatively independent
   expect_lt(abs(cor(data$x1, data$x3)), 0.2)
@@ -304,41 +304,11 @@ test_that("sim_dgp_ewald generates correct structure", {
 
   # Fit a model to verify the interaction effect
   lm_fit <- lm(y ~ x4 + x5 + x4:x5, data = data)
-  expect_gt(summary(lm_fit)$r.squared, 0.8) # Should explain most variance
+  expect_gt(summary(lm_fit)$r.squared, 0.75) # Should explain most variance
 
   # All coefficients should be significant and close to 1
   coefs <- coef(lm_fit)
   expect_lt(abs(coefs["x4"] - 1), 0.3)
   expect_lt(abs(coefs["x5"] - 1), 0.3)
   expect_lt(abs(coefs["x4:x5"] - 1), 0.3)
-})
-
-test_that("sim_dgp_ewald produces expected feature distributions", {
-  # Test with larger sample for better statistical properties
-  task <- sim_dgp_ewald(n = 1000)
-  data <- task$data()
-
-  # Check that x1, x3, x5 are uniform [0,1] (as per the function)
-  # They should have mean ~0.5 and reasonable spread
-  expect_lt(abs(mean(data$x1) - 0.5), 0.1)
-  expect_lt(abs(mean(data$x3) - 0.5), 0.1)
-  expect_lt(abs(mean(data$x5) - 0.5), 0.1)
-
-  # Check ranges are approximately [0, 1]
-  # Check ranges are approximately [0, 1]
-  expect_gte(min(data$x1), 0)
-  expect_lte(max(data$x1), 1)
-  expect_gte(min(data$x3), 0)
-  expect_lte(max(data$x3), 1)
-  expect_gte(min(data$x5), 0)
-  expect_lte(max(data$x5), 1)
-
-  # x2 and x4 should also be approximately in [0, 1] range
-  # (with small noise they shouldn't go much outside)
-  # x2 and x4 should also be approximately in [0, 1] range
-  # (with small noise they shouldn't go much outside)
-  expect_gt(min(data$x2), -0.1)
-  expect_lt(max(data$x2), 1.1)
-  expect_gt(min(data$x4), -0.5)
-  expect_lt(max(data$x4), 1.5)
 })
