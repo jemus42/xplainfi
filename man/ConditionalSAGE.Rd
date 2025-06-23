@@ -58,7 +58,7 @@ Creates a new instance of the ConditionalSAGE class.
   n_permutations = 10L,
   reference_data = NULL,
   sampler = NULL,
-  max_reference_size = 100L
+  max_reference_size = NULL
 )}\if{html}{\out{</div>}}
 }
 

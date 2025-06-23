@@ -66,7 +66,7 @@ Creates a new instance of the SAGE class.
   n_permutations = 10L,
   reference_data = NULL,
   sampler = NULL,
-  max_reference_size = 100L
+  max_reference_size = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -75,13 +75,13 @@ Creates a new instance of the SAGE class.
 \describe{
 \item{\code{task, learner, measure, resampling, features}}{Passed to FeatureImportanceMethod.}
 
-\item{\code{n_permutations}}{(integer(1)) Number of permutations to sample for Shapley value estimation.}
+\item{\code{n_permutations}}{(\code{integer(1)}) Number of permutations to sample for Shapley value estimation.}
 
-\item{\code{reference_data}}{(data.table) Optional reference dataset. If NULL, uses training data.}
+\item{\code{reference_data}}{(\code{data.table | NULL}) Optional reference dataset. If \code{NULL}, uses training data.}
 
 \item{\code{sampler}}{(\link{FeatureSampler}) Sampler for marginalization.}
 
-\item{\code{max_reference_size}}{(integer(1)) Maximum size of reference dataset. If reference is larger, it will be subsampled.}
+\item{\code{max_reference_size}}{(\code{integer(1) | NULL}) Maximum size of reference dataset. If reference is larger, it will be subsampled. If \code{NULL}, no subsampling is performed.}
 }
 \if{html}{\out{</div>}}
 }
