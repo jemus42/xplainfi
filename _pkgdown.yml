@@ -86,6 +86,8 @@ navbar:
       href: articles/perturbation-importance.html
     - text: "Leave-Out/In Methods (LOCO, LOCI)"
       href: articles/loco-loci.html
+    - text: "Shapley Additive Global Importance (SAGE)"
+      href: articles/sage-methods.html
     - text: -------
     - text: "Testing & Validation"
     - text: Simulation Settings
