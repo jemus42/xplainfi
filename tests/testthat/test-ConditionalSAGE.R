@@ -161,7 +161,7 @@ test_that("ConditionalSAGE with custom sampler", {
 
   set.seed(123)
   task = mlr3::tgen("spirals")$generate(n = 200)
-  custom_sampler = MarginalSampler$new(task)
+  custom_sampler = ARFSampler$new(task, finite_bounds = "local")
 
   sage = ConditionalSAGE$new(
     task = task,
@@ -172,7 +172,7 @@ test_that("ConditionalSAGE with custom sampler", {
   )
 
   # Should use the custom sampler
-  checkmate::expect_r6(sage$sampler, "MarginalSampler")
+  checkmate::expect_r6(sage$sampler, "ConditionalSampler")
   sage$compute()
   expect_importance_dt(sage$importance, features = sage$features)
 })
