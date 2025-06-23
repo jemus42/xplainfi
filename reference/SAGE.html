@@ -32,6 +32,7 @@ This is an abstract class - use MarginalSAGE or ConditionalSAGE."><script defer 
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><h6 class="dropdown-header" data-toc-skip>Method Showcase</h6></li>
     <li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-Based Methods (PFI, CFI, RFI)</a></li>
     <li><a class="dropdown-item" href="../articles/loco-loci.html">Leave-Out/In Methods (LOCO, LOCI)</a></li>
+    <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Testing &amp; Validation</h6></li>
     <li><a class="dropdown-item" href="../articles/simulation-settings.html">Simulation Settings</a></li>
@@ -126,7 +127,7 @@ In <em>Advances in Neural Information Processing Systems</em>, volume 33, 17212â
 <span>  n_permutations <span class="op">=</span> <span class="fl">10L</span>,</span>
 <span>  reference_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sampler <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  max_reference_size <span class="op">=</span> <span class="fl">100L</span></span>
+<span>  max_reference_size <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -137,11 +138,11 @@ In <em>Advances in Neural Information Processing Systems</em>, volume 33, 17212â
 
 
 <dt><code>n_permutations</code></dt>
-<dd><p>(integer(1)) Number of permutations to sample for Shapley value estimation.</p></dd>
+<dd><p>(<code>integer(1)</code>) Number of permutations to sample for Shapley value estimation.</p></dd>
 
 
 <dt><code>reference_data</code></dt>
-<dd><p>(data.table) Optional reference dataset. If NULL, uses training data.</p></dd>
+<dd><p>(<code>data.table | NULL</code>) Optional reference dataset. If <code>NULL</code>, uses training data.</p></dd>
 
 
 <dt><code>sampler</code></dt>
@@ -149,7 +150,7 @@ In <em>Advances in Neural Information Processing Systems</em>, volume 33, 17212â
 
 
 <dt><code>max_reference_size</code></dt>
-<dd><p>(integer(1)) Maximum size of reference dataset. If reference is larger, it will be subsampled.</p></dd>
+<dd><p>(<code>integer(1) | NULL</code>) Maximum size of reference dataset. If reference is larger, it will be subsampled. If <code>NULL</code>, no subsampling is performed.</p></dd>
 
 
 </dl><p></p></div>

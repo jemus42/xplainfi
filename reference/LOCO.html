@@ -30,6 +30,7 @@ Despite the name, this implementation can leave out one or more features at a ti
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><h6 class="dropdown-header" data-toc-skip>Method Showcase</h6></li>
     <li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-Based Methods (PFI, CFI, RFI)</a></li>
     <li><a class="dropdown-item" href="../articles/loco-loci.html">Leave-Out/In Methods (LOCO, LOCI)</a></li>
+    <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Testing &amp; Validation</h6></li>
     <li><a class="dropdown-item" href="../articles/simulation-settings.html">Simulation Settings</a></li>
@@ -179,18 +180,18 @@ ISSN 0162-1459, <a href="https://doi.org/10.1080/01621459.2017.1307116" class="e
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">loco</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          feature importance</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;      &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  1.3486621</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2 -0.1029566</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3 -0.6187540</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  3.5539721</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5 -0.3692830</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.7835088</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 -0.7810132</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.3033563</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.9372339</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.4392863</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  2.94732045</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  0.86723577</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.01139204</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  3.64957000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  0.59223158</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.48550724</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 -0.33015697</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.14008650</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.15561077</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.67586552</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Using observation-wise losses to compute the median instead</span></span></span>
 <span class="r-in"><span><span class="va">loco_obsloss</span> <span class="op">=</span> <span class="va">LOCO</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span></span>
@@ -204,43 +205,43 @@ ISSN 0162-1459, <a href="https://doi.org/10.1080/01621459.2017.1307116" class="e
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  0.62520371</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  0.70326816</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.06747752</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  0.92265199</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  0.10410624</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1  0.01075417</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 -0.03980262</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.07784557</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4  0.04669621</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.02747171</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  0.73135175</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  0.22281111</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.03009412</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  0.93552712</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  0.07754968</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.18921770</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 -0.17120105</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.06660810</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.11810734</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.08932307</span>
 <span class="r-in"><span><span class="va">loco_obsloss</span><span class="op">$</span><span class="va">obs_losses</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      row_ids      feature iteration iter_refit     truth response_ref</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        &lt;int&gt;       &lt;char&gt;     &lt;int&gt;      &lt;int&gt;     &lt;num&gt;        &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   1:       5   important1         1          1 21.546350     18.32207</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   2:       5   important2         1          1 21.546350     18.32207</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   3:       5   important3         1          1 21.546350     18.32207</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   4:       5   important4         1          1 21.546350     18.32207</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   5:       5   important5         1          1 21.546350     18.32207</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1:       1   important1         1          1  5.177457     9.124809</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2:       1   important2         1          1  5.177457     9.124809</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   3:       1   important3         1          1  5.177457     9.124809</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   4:       1   important4         1          1  5.177457     9.124809</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   5:       1   important5         1          1  5.177457     9.124809</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                                                 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 666:     198 unimportant1         1          1  8.960132     11.13131</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 667:     198 unimportant2         1          1  8.960132     11.13131</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 668:     198 unimportant3         1          1  8.960132     11.13131</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 669:     198 unimportant4         1          1  8.960132     11.13131</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 670:     198 unimportant5         1          1  8.960132     11.13131</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 666:     197 unimportant1         1          1 20.228495    16.597960</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 667:     197 unimportant2         1          1 20.228495    16.597960</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 668:     197 unimportant3         1          1 20.228495    16.597960</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 669:     197 unimportant4         1          1 20.228495    16.597960</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 670:     197 unimportant5         1          1 20.228495    16.597960</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      response_feature loss_ref loss_feature    obs_diff</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                 &lt;num&gt;    &lt;num&gt;        &lt;num&gt;       &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   1:         17.26252 3.224283     4.283829  1.05954585</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   2:         16.63495 3.224283     4.911398  1.68711508</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   3:         18.23274 3.224283     3.313605  0.08932251</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   4:         15.71048 3.224283     5.835869  2.61158585</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   5:         18.63428 3.224283     2.912066 -0.31221643</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1:        10.776419 3.947352     5.598962  1.65160984</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2:        10.222532 3.947352     5.045075  1.09772321</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   3:         9.142916 3.947352     3.965459  0.01810729</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   4:        11.481945 3.947352     6.304488  2.35713592</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   5:        10.464568 3.947352     5.287111  1.33975936</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 666:         11.81763 2.171176     2.857494  0.68631849</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 667:         11.45319 2.171176     2.493059  0.32188290</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 668:         11.05210 2.171176     2.091965 -0.07921088</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 669:         11.79992 2.171176     2.839787  0.66861130</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 670:         11.51683 2.171176     2.556694  0.38551850</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 666:        17.042869 3.630535     3.185626 -0.44490956</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 667:        17.047377 3.630535     3.181118 -0.44941741</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 668:        17.722991 3.630535     2.505504 -1.12503138</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 669:        17.227836 3.630535     3.000659 -0.62987634</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 670:        17.080910 3.630535     3.147585 -0.48295066</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

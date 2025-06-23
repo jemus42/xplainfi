@@ -30,6 +30,7 @@ Uses ARF by default for conditional marginalization."><script defer src="https:/
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><h6 class="dropdown-header" data-toc-skip>Method Showcase</h6></li>
     <li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-Based Methods (PFI, CFI, RFI)</a></li>
     <li><a class="dropdown-item" href="../articles/loco-loci.html">Leave-Out/In Methods (LOCO, LOCI)</a></li>
+    <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Testing &amp; Validation</h6></li>
     <li><a class="dropdown-item" href="../articles/simulation-settings.html">Simulation Settings</a></li>
@@ -93,7 +94,7 @@ Uses ARF by default for conditional marginalization.</p>
 <span>  n_permutations <span class="op">=</span> <span class="fl">10L</span>,</span>
 <span>  reference_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sampler <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  max_reference_size <span class="op">=</span> <span class="fl">100L</span></span>
+<span>  max_reference_size <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -156,32 +157,32 @@ Uses ARF by default for conditional marginalization.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  3.17587293</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  1.19039278</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.58116374</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  3.90602129</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  1.32292574</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1  0.09132294</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  0.19317282</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.22556376</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4  0.11531664</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  0.14236188</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  4.58861248</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2 -0.10848016</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.08622897</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  4.78590789</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  2.26613012</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.51814805</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  0.28900725</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.69336275</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.05010833</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.14724626</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Use batching for memory efficiency with large datasets</span></span></span>
 <span class="r-in"><span><span class="va">sage</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>batch_size <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  3.17587293</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  1.19039278</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.58116374</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  3.90602129</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  1.32292574</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1  0.09132294</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  0.19317282</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.22556376</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4  0.11531664</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  0.14236188</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  4.58861248</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2 -0.10848016</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.08622897</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  4.78590789</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  2.26613012</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.51814805</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  0.28900725</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.69336275</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.05010833</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.14724626</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

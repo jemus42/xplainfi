@@ -30,6 +30,7 @@ Despite the name, this implementation can leave in one or more features at a tim
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><h6 class="dropdown-header" data-toc-skip>Method Showcase</h6></li>
     <li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-Based Methods (PFI, CFI, RFI)</a></li>
     <li><a class="dropdown-item" href="../articles/loco-loci.html">Leave-Out/In Methods (LOCO, LOCI)</a></li>
+    <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Testing &amp; Validation</h6></li>
     <li><a class="dropdown-item" href="../articles/simulation-settings.html">Simulation Settings</a></li>
@@ -172,18 +173,18 @@ feature performs better than the baseline, negative values indicate worse perfor
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">loci</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  -4.2135095</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2   0.1279971</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  -2.6391058</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  -0.7807587</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  -1.9246762</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -11.5109983</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  -6.6988863</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3  -8.2713775</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4  -5.9393479</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  -5.7606441</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          feature importance</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;      &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1   3.551881</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  -6.699716</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  -4.446604</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4   5.771280</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  -7.030814</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -12.061976</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  -4.970430</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -10.786875</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -11.829766</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  -6.400764</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

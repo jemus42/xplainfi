@@ -30,6 +30,7 @@ This is the standard SAGE implementation."><script defer src="https://umami.jemu
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><h6 class="dropdown-header" data-toc-skip>Method Showcase</h6></li>
     <li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-Based Methods (PFI, CFI, RFI)</a></li>
     <li><a class="dropdown-item" href="../articles/loco-loci.html">Leave-Out/In Methods (LOCO, LOCI)</a></li>
+    <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Testing &amp; Validation</h6></li>
     <li><a class="dropdown-item" href="../articles/simulation-settings.html">Simulation Settings</a></li>
@@ -92,7 +93,7 @@ This is the standard SAGE implementation.</p>
 <span>  features <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n_permutations <span class="op">=</span> <span class="fl">10L</span>,</span>
 <span>  reference_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  max_reference_size <span class="op">=</span> <span class="fl">100L</span></span>
+<span>  max_reference_size <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -151,32 +152,32 @@ This is the standard SAGE implementation.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  3.01034716</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  3.02117913</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.80385301</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  6.01509575</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  0.93120726</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.14866857</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 -0.81730477</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.19642052</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4  0.10601960</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  0.04539597</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  2.96326057</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  2.90667497</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.57062042</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  7.20769278</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  1.12671607</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.24742440</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  0.20349454</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3  0.08402295</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.32247028</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  0.06865530</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Use batching for memory efficiency with large datasets</span></span></span>
 <span class="r-in"><span><span class="va">sage</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>batch_size <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  3.01034716</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  3.02117913</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.80385301</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  6.01509575</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  0.93120726</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.14866857</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 -0.81730477</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.19642052</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4  0.10601960</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  0.04539597</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  2.96326057</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  2.90667497</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.57062042</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  7.20769278</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  1.12671607</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.24742440</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  0.20349454</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3  0.08402295</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.32247028</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  0.06865530</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

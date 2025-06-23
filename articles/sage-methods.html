@@ -41,12 +41,13 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../articles/xplainfi.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="nav-item dropdown">
+<li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><h6 class="dropdown-header" data-toc-skip>Method Showcase</h6></li>
     <li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-Based Methods (PFI, CFI, RFI)</a></li>
     <li><a class="dropdown-item" href="../articles/loco-loci.html">Leave-Out/In Methods (LOCO, LOCI)</a></li>
+    <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Testing &amp; Validation</h6></li>
     <li><a class="dropdown-item" href="../articles/simulation-settings.html">Simulation Settings</a></li>
@@ -247,30 +248,30 @@ are correlated.</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;          feature  importance</span></span>
 <span><span class="co">#&gt;           &lt;char&gt;       &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  4.66358094</span></span>
-<span><span class="co">#&gt;  2:   important2  4.35406218</span></span>
-<span><span class="co">#&gt;  3:   important3  1.24089600</span></span>
-<span><span class="co">#&gt;  4:   important4  6.30771863</span></span>
-<span><span class="co">#&gt;  5:   important5  1.50581856</span></span>
-<span><span class="co">#&gt;  6: unimportant1  0.03857396</span></span>
-<span><span class="co">#&gt;  7: unimportant2 -0.01510479</span></span>
-<span><span class="co">#&gt;  8: unimportant3  0.01149043</span></span>
-<span><span class="co">#&gt;  9: unimportant4  0.05352929</span></span>
-<span><span class="co">#&gt; 10: unimportant5 -0.02463429</span></span>
+<span><span class="co">#&gt;  1:   important1  4.94332708</span></span>
+<span><span class="co">#&gt;  2:   important2  4.43093215</span></span>
+<span><span class="co">#&gt;  3:   important3  1.59920720</span></span>
+<span><span class="co">#&gt;  4:   important4  7.33511651</span></span>
+<span><span class="co">#&gt;  5:   important5  1.83157318</span></span>
+<span><span class="co">#&gt;  6: unimportant1 -0.27698082</span></span>
+<span><span class="co">#&gt;  7: unimportant2  0.29035816</span></span>
+<span><span class="co">#&gt;  8: unimportant3  1.57639985</span></span>
+<span><span class="co">#&gt;  9: unimportant4 -0.01202852</span></span>
+<span><span class="co">#&gt; 10: unimportant5  0.58770433</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">conditional_sage</span><span class="op">$</span><span class="va">importance</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;          feature  importance</span></span>
 <span><span class="co">#&gt;           &lt;char&gt;       &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  4.66358094</span></span>
-<span><span class="co">#&gt;  2:   important2  4.35406218</span></span>
-<span><span class="co">#&gt;  3:   important3  1.24089600</span></span>
-<span><span class="co">#&gt;  4:   important4  6.30771863</span></span>
-<span><span class="co">#&gt;  5:   important5  1.50581856</span></span>
-<span><span class="co">#&gt;  6: unimportant1  0.03857396</span></span>
-<span><span class="co">#&gt;  7: unimportant2 -0.01510479</span></span>
-<span><span class="co">#&gt;  8: unimportant3  0.01149043</span></span>
-<span><span class="co">#&gt;  9: unimportant4  0.05352929</span></span>
-<span><span class="co">#&gt; 10: unimportant5 -0.02463429</span></span></code></pre></div>
+<span><span class="co">#&gt;  1:   important1  4.94332708</span></span>
+<span><span class="co">#&gt;  2:   important2  4.43093215</span></span>
+<span><span class="co">#&gt;  3:   important3  1.59920720</span></span>
+<span><span class="co">#&gt;  4:   important4  7.33511651</span></span>
+<span><span class="co">#&gt;  5:   important5  1.83157318</span></span>
+<span><span class="co">#&gt;  6: unimportant1 -0.27698082</span></span>
+<span><span class="co">#&gt;  7: unimportant2  0.29035816</span></span>
+<span><span class="co">#&gt;  8: unimportant3  1.57639985</span></span>
+<span><span class="co">#&gt;  9: unimportant4 -0.01202852</span></span>
+<span><span class="co">#&gt; 10: unimportant5  0.58770433</span></span></code></pre></div>
 <p>Let’s visualize the conditional SAGE results:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Extract importance scores</span></span>
@@ -407,12 +408,11 @@ are:</p>
 </h3>
 <ul>
 <li>
-<strong>Important features</strong> - Mean: 3.6144 | Std:
-2.1784</li>
+<strong>Important features</strong> - Mean: 4.028 | Std: 2.3802</li>
 <li>
-<strong>Noise features</strong> - Mean: 0.0128 | Std: 0.0336</li>
+<strong>Noise features</strong> - Mean: 0.4331 | Std: 0.7165</li>
 <li>
-<strong>Separation ratio</strong>: 126.08</li>
+<strong>Separation ratio</strong>: 7.34</li>
 </ul>
 </div>
 <div class="section level3">
@@ -420,11 +420,11 @@ are:</p>
 </h3>
 <ul>
 <li>
-<strong>Correlation between methods</strong>: 0.99</li>
+<strong>Correlation between methods</strong>: 0.963</li>
 <li>
 <strong>Total SAGE sum (Marginal)</strong>: 17.1381</li>
 <li>
-<strong>Total SAGE sum (Conditional)</strong>: 18.1359</li>
+<strong>Total SAGE sum (Conditional)</strong>: 22.3056</li>
 </ul>
 </div>
 </div>
