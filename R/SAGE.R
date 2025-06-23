@@ -407,9 +407,7 @@ MarginalSAGE = R6Class(
       reference_data = NULL,
       max_reference_size = NULL
     ) {
-      # Create marginal sampler
-      sampler = MarginalSampler$new(task)
-
+      # No need to initialize sampler as marginal sampling is done differently here
       super$initialize(
         task = task,
         learner = learner,
@@ -418,7 +416,6 @@ MarginalSAGE = R6Class(
         features = features,
         n_permutations = n_permutations,
         reference_data = reference_data,
-        sampler = sampler,
         max_reference_size = max_reference_size
       )
 
@@ -481,6 +478,8 @@ ConditionalSAGE = R6Class(
       # Use ARFSampler by default
       if (is.null(sampler)) {
         sampler = ARFSampler$new(task)
+      } else {
+        checkmate::assert_class(sampler, "ConditionalSampler")
       }
 
       super$initialize(
