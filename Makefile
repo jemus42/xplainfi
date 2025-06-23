@@ -21,7 +21,7 @@ vignettes:
 	Rscript -e "devtools::build_vignettes()"
 
 .PHONY: install
-install:
+install: doc
 	Rscript -e "pak::local_install()"
 
 .PHONY: deps 
