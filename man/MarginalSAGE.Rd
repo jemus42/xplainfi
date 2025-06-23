@@ -57,7 +57,7 @@ Creates a new instance of the MarginalSAGE class.
   features = NULL,
   n_permutations = 10L,
   reference_data = NULL,
-  max_reference_size = 100L
+  max_reference_size = NULL
 )}\if{html}{\out{</div>}}
 }
 

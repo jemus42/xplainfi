@@ -28,10 +28,10 @@ SAGE = R6Class(
     #' @description
     #' Creates a new instance of the SAGE class.
     #' @param task,learner,measure,resampling,features Passed to FeatureImportanceMethod.
-    #' @param n_permutations (integer(1)) Number of permutations to sample for Shapley value estimation.
-    #' @param reference_data (data.table) Optional reference dataset. If NULL, uses training data.
+    #' @param n_permutations (`integer(1)`) Number of permutations to sample for Shapley value estimation.
+    #' @param reference_data (`data.table | NULL`) Optional reference dataset. If `NULL`, uses training data.
     #' @param sampler ([FeatureSampler]) Sampler for marginalization.
-    #' @param max_reference_size (integer(1)) Maximum size of reference dataset. If reference is larger, it will be subsampled.
+    #' @param max_reference_size (`integer(1) | NULL`) Maximum size of reference dataset. If reference is larger, it will be subsampled. If `NULL`, no subsampling is performed.
     initialize = function(
       task,
       learner,
@@ -41,7 +41,7 @@ SAGE = R6Class(
       n_permutations = 10L,
       reference_data = NULL,
       sampler = NULL,
-      max_reference_size = 100L
+      max_reference_size = NULL
     ) {
       super$initialize(
         task = task,
@@ -77,7 +77,7 @@ SAGE = R6Class(
       }
 
       # Subsample reference data if it's too large for efficiency
-      if (nrow(self$reference_data) > max_reference_size) {
+      if (!is.null(max_reference_size) && nrow(self$reference_data) > max_reference_size) {
         sample_idx = sample(nrow(self$reference_data), size = max_reference_size)
         self$reference_data = self$reference_data[sample_idx, ]
       }
@@ -225,9 +225,11 @@ SAGE = R6Class(
         # Marginalize features not in coalition
         marginalize_features = setdiff(self$features, coalition)
         if (length(marginalize_features) > 0) {
-          test_expanded[,
-            (marginalize_features) := reference_expanded[, .SD, .SDcols = marginalize_features]
-          ]
+          test_expanded = private$.marginalize_features(
+            test_expanded,
+            reference_expanded,
+            marginalize_features
+          )
         }
 
         all_expanded_data[[i]] = test_expanded
@@ -353,7 +355,15 @@ SAGE = R6Class(
         coalition_losses[i] = pred_obj$score(self$measure)
       }
 
-      return(coalition_losses)
+      coalition_losses
+    },
+
+    .marginalize_features = function(test_data, reference_data, marginalize_features) {
+      # Abstract method - must be implemented by subclasses
+      cli::cli_abort(c(
+        "Abstract method: {.fun marginalize_features} must be implemented by subclasses.",
+        "i" = "Use MarginalSAGE or ConditionalSAGE instead of the abstract SAGE class."
+      ))
     }
   )
 )
@@ -395,11 +405,9 @@ MarginalSAGE = R6Class(
       features = NULL,
       n_permutations = 10L,
       reference_data = NULL,
-      max_reference_size = 100L
+      max_reference_size = NULL
     ) {
-      # Create marginal sampler
-      sampler = MarginalSampler$new(task)
-
+      # No need to initialize sampler as marginal sampling is done differently here
       super$initialize(
         task = task,
         learner = learner,
@@ -408,11 +416,20 @@ MarginalSAGE = R6Class(
         features = features,
         n_permutations = n_permutations,
         reference_data = reference_data,
-        sampler = sampler,
         max_reference_size = max_reference_size
       )
 
       self$label = "Marginal SAGE"
+    }
+  ),
+
+  private = list(
+    .marginalize_features = function(test_data, reference_data, marginalize_features) {
+      # Marginal sampling implementation: replace with reference data
+      test_data[,
+        (marginalize_features) := reference_data[, .SD, .SDcols = marginalize_features]
+      ]
+      test_data
     }
   )
 )
@@ -456,11 +473,13 @@ ConditionalSAGE = R6Class(
       n_permutations = 10L,
       reference_data = NULL,
       sampler = NULL,
-      max_reference_size = 100L
+      max_reference_size = NULL
     ) {
       # Use ARFSampler by default
       if (is.null(sampler)) {
         sampler = ARFSampler$new(task)
+      } else {
+        checkmate::assert_class(sampler, "ConditionalSampler")
       }
 
       super$initialize(
@@ -476,6 +495,49 @@ ConditionalSAGE = R6Class(
       )
 
       self$label = "Conditional SAGE"
+    }
+  ),
+
+  private = list(
+    .marginalize_features = function(test_data, reference_data, marginalize_features) {
+      # Conditional implementation: use sampler for conditional sampling
+      # Extract unique test instances (before expansion with reference data)
+      unique_test_data = test_data[, .(
+        .test_instance_id = .test_instance_id,
+        row_idx = .I
+      )][, .SD[1], by = .test_instance_id]
+
+      # Get the actual test data for these instances
+      unique_instances = test_data[unique_test_data$row_idx]
+      unique_instances[, c(".coalition_id", ".test_instance_id") := NULL]
+
+      # Determine conditioning set (features in coalition = all features except marginalize_features)
+      conditioning_set = setdiff(self$features, marginalize_features)
+
+      # Use sampler to generate conditional samples
+      sampled_data = self$sampler$sample(
+        feature = marginalize_features,
+        data = unique_instances,
+        conditioning_set = conditioning_set
+      )
+
+      # Replace marginalized features in the expanded test data
+      # Since test_data has multiple rows per test instance (one per reference instance),
+      # we need to replicate the sampled values appropriately
+
+      # Create a mapping from test instance ID to sampled values
+      sampled_data[, .test_instance_id := unique_test_data$.test_instance_id]
+
+      # For each marginalized feature, update test_data by joining with sampled values
+      for (feature_name in marginalize_features) {
+        test_data[
+          sampled_data,
+          (feature_name) := get(paste0("i.", feature_name)),
+          on = ".test_instance_id"
+        ]
+      }
+
+      test_data
     }
   )
 )
