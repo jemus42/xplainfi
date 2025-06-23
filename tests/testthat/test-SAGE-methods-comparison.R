@@ -16,6 +16,7 @@ test_that("MarginalSAGE and ConditionalSAGE produce different results on correla
     learner = learner,
     measure = measure,
     n_permutations = 20L
+  )
 
   conditional_sage = ConditionalSAGE$new(
     task = task,
