@@ -200,7 +200,7 @@ FeatureImportanceMethod = R6Class(
     # If minimize == TRUE, then scores_post - scores_pre is computed for
     # relation == "difference", otherwise scores_pre - scores_post is given.
     # If minimize == FALSE, then scores_pre - scores_post is computed.
-    compute_score = function(
+    .compute_score = function(
       scores_pre,
       scores_post,
       relation = c("difference", "ratio"),
