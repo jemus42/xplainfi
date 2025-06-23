@@ -215,7 +215,7 @@ test_that("ARFSampler finite_bounds parameter", {
   sampler = ARFSampler$new(task, finite_bounds = "no")
   expect_equal(sampler$param_set$values$finite_bounds, "no")
 
-  # Test "local" bounds initialization  
+  # Test "local" bounds initialization
   sampler_local = ARFSampler$new(task, finite_bounds = "local")
   expect_equal(sampler_local$param_set$values$finite_bounds, "local")
 
@@ -277,7 +277,7 @@ test_that("ARFSampler param_set structure", {
   expect_true("stepsize" %in% sampler$param_set$ids())
   expect_true("verbose" %in% sampler$param_set$ids())
   expect_true("parallel" %in% sampler$param_set$ids())
-  
+
   # Check that removed parameters are not in param_set
   expect_false("evidence_row_mode" %in% sampler$param_set$ids()) # evidence_row_mode is hardcoded
   expect_false("sample_NAs" %in% sampler$param_set$ids()) # sample_NAs is hardcoded

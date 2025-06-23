@@ -211,8 +211,11 @@ test_that("MarginalSAGE with custom reference data", {
   task_binary = mlr3::tgen("2dnormals")$generate(n = 200)
   # Use mlr3::partition() for random sampling to avoid class imbalance
   set.seed(42)
-  partition_binary = mlr3::partition(task_binary, ratio = 0.9)  # 10% for reference data
-  reference_data_binary = task_binary$data(rows = partition_binary$test, cols = task_binary$feature_names)
+  partition_binary = mlr3::partition(task_binary, ratio = 0.9) # 10% for reference data
+  reference_data_binary = task_binary$data(
+    rows = partition_binary$test,
+    cols = task_binary$feature_names
+  )
   sage_binary = MarginalSAGE$new(
     task = task_binary,
     learner = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob"),
@@ -228,7 +231,7 @@ test_that("MarginalSAGE with custom reference data", {
   task_regr = mlr3::tgen("friedman1")$generate(n = 200)
   # Use mlr3::partition() for random sampling
   set.seed(43)
-  partition_regr = mlr3::partition(task_regr, ratio = 0.9)  # 10% for reference data
+  partition_regr = mlr3::partition(task_regr, ratio = 0.9) # 10% for reference data
   reference_data_regr = task_regr$data(rows = partition_regr$test, cols = task_regr$feature_names)
   sage_regr = MarginalSAGE$new(
     task = task_regr,
