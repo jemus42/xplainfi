@@ -4,11 +4,11 @@ pkgdown_sha: ~
 articles:
   articles/fippy-comparison: fippy-comparison.html
   articles/loco-loci: loco-loci.html
-  perturbation-importance: perturbation-importance.html
-  sage-methods: sage-methods.html
+  articles/perturbation-importance: perturbation-importance.html
+  articles/sage-methods: sage-methods.html
   articles/simulation-settings: simulation-settings.html
   xplainfi: xplainfi.html
-last_built: 2025-06-23T00:17Z
+last_built: 2025-06-23T00:27Z
 urls:
   reference: https://jemus42.github.io/xplainfi/reference
   article: https://jemus42.github.io/xplainfi/articles
