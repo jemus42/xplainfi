@@ -1,10 +1,5 @@
 ---
 title: "Perturbation-based Feature Importance Methods"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Perturbation-based Feature Importance Methods}
-  %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
 ---

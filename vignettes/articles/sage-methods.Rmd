@@ -1,10 +1,5 @@
 ---
 title: "Shapley Additive Global Importance (SAGE)"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Shapley Additive Global Importance (SAGE)}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}

@@ -68,9 +68,9 @@ articles:
   - title: Feature Importance Methods
     # navbar: ~
     contents:
-    - perturbation-importance
+    - articles/perturbation-importance
     - articles/loco-loci
-    - sage-methods
+    - articles/sage-methods
   - title: Testing and Validation
     contents:
     - articles/simulation-settings
@@ -83,7 +83,7 @@ navbar:
     menu:
     - text: Method Showcase
     - text: Perturbation-Based Methods (PFI, CFI, RFI)
-      href: vignettes/perturbation-importance.html
+      href: articles/perturbation-importance.html
     - text: "Leave-Out/In Methods (LOCO, LOCI)"
       href: articles/loco-loci.html
     - text: -------
