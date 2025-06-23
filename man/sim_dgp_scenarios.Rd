@@ -57,8 +57,9 @@ where \eqn{\varepsilon \sim N(0, 0.2^2)}.
 
 \strong{Expected Behavior:}
 \itemize{
-\item \strong{PFI}: Will show low importance for x1 and x2 due to redundancy
-\item \strong{CFI}: Will show high importance for both x1 and x2 when conditioned properly
+\item \strong{PFI}: Will show high importance for x1 and x2 (permutation breaks correlation structure)
+\item \strong{CFI}: Will show low importance for x1 and x2 (they are redundant given each other)
+\item \strong{Interpretation}: PFI measures marginal importance, CFI measures conditional importance
 \item \strong{Ground truth}: Both x1 and x2 have causal effects, x3 has effect, x4 has none
 }
 
