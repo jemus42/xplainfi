@@ -113,8 +113,9 @@ where \(\varepsilon \sim N(0, 0.2^2)\).</p>
 <li><p><code>x2</code>: Nearly perfect copy of x1 (x1 + small noise), with r ≈ 0.999</p></li>
 <li><p><code>x3</code>: Independent standard normal, direct effect on y</p></li>
 <li><p><code>x4</code>: Independent standard normal, no effect on y</p></li>
-</ul><p><strong>Expected Behavior:</strong></p><ul><li><p><strong>PFI</strong>: Will show low importance for x1 and x2 due to redundancy</p></li>
-<li><p><strong>CFI</strong>: Will show high importance for both x1 and x2 when conditioned properly</p></li>
+</ul><p><strong>Expected Behavior:</strong></p><ul><li><p><strong>PFI</strong>: Will show high importance for x1 and x2 (permutation breaks correlation structure)</p></li>
+<li><p><strong>CFI</strong>: Will show low importance for x1 and x2 (they are redundant given each other)</p></li>
+<li><p><strong>Interpretation</strong>: PFI measures marginal importance, CFI measures conditional importance</p></li>
 <li><p><strong>Ground truth</strong>: Both x1 and x2 have causal effects, x3 has effect, x4 has none</p></li>
 </ul><p><strong>Mediated Effects DGP:</strong>
 This DGP demonstrates the difference between total and direct causal effects.
