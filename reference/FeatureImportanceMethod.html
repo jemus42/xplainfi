@@ -27,11 +27,13 @@ Feature Importance Method Class"><script defer src="https://umami.jemu.name/scri
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-based Feature Importance Methods</a></li>
-    <li><a class="dropdown-item" href="../articles/loco-loci.html">LOCO and LOCI</a></li>
-    <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><h6 class="dropdown-header" data-toc-skip>Method Showcase</h6></li>
+    <li><a class="dropdown-item" href="../vignettes/perturbation-importance.html">Perturbation-Based Methods (PFI, CFI, RFI)</a></li>
+    <li><a class="dropdown-item" href="../articles/loco-loci.html">Leave-Out/In Methods (LOCO, LOCI)</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Testing &amp; Validation</h6></li>
+    <li><a class="dropdown-item" href="../articles/simulation-settings.html">Simulation Settings</a></li>
+    <li><a class="dropdown-item" href="../articles/fippy-comparison.html">Comparison with fippy (Python)</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -102,6 +104,14 @@ Feature Importance Method Class"><script defer src="https://umami.jemu.name/scri
 
 <dt><code>scores</code></dt>
 <dd><p>(<a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a>) Individual performance scores used to compute <code>$importance</code> per resampling iteration and permutation iteration.</p></dd>
+
+
+<dt><code>obs_losses</code></dt>
+<dd><p>(<a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a>) Observation-wise losses when available (e.g., when using obs_loss = TRUE). Contains columns for row_ids, feature, iteration indices, individual loss values, and both reference and feature-specific predictions.</p></dd>
+
+
+<dt><code>predictions</code></dt>
+<dd><p>(<a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a>) Feature-specific prediction objects when using obs_loss = TRUE. Contains columns for feature, iteration, iter_refit, and prediction objects. Similar to ResampleResult$predictions() but extended for feature-specific models.</p></dd>
 
 
 </dl><p></p></div>
@@ -196,7 +206,7 @@ Currently this method merges the following:</p><ul><li><p><code>$scores</code> i
 
 </div><p></p><hr><a id="method-FeatureImportanceMethod-reset"></a><div class="section">
 <h3 id="method-reset-">Method <code>reset()</code><a class="anchor" aria-label="anchor" href="#method-reset-"></a></h3>
-<p>Resets all stored fields populated by <code>$compute</code>: <code>$resample_result</code>, <code>$importance</code> and <code>$scores</code>.</p><div class="section">
+<p>Resets all stored fields populated by <code>$compute</code>: <code>$resample_result</code>, <code>$importance</code>, <code>$scores</code>, <code>$obs_losses</code>, and <code>$predictions</code>.</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceMethod</span><span class="op">$</span><span class="fu">reset</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>

@@ -27,11 +27,13 @@ Despite the name, this implementation can leave in one or more features at a tim
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-based Feature Importance Methods</a></li>
-    <li><a class="dropdown-item" href="../articles/loco-loci.html">LOCO and LOCI</a></li>
-    <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><h6 class="dropdown-header" data-toc-skip>Method Showcase</h6></li>
+    <li><a class="dropdown-item" href="../vignettes/perturbation-importance.html">Perturbation-Based Methods (PFI, CFI, RFI)</a></li>
+    <li><a class="dropdown-item" href="../articles/loco-loci.html">Leave-Out/In Methods (LOCO, LOCI)</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Testing &amp; Validation</h6></li>
+    <li><a class="dropdown-item" href="../articles/simulation-settings.html">Simulation Settings</a></li>
+    <li><a class="dropdown-item" href="../articles/fippy-comparison.html">Comparison with fippy (Python)</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -96,7 +98,9 @@ feature performs better than the baseline, negative values indicate worse perfor
 <span>  <span class="va">measure</span>,</span>
 <span>  resampling <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  features <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  iters_refit <span class="op">=</span> <span class="fl">1L</span></span>
+<span>  iters_refit <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  obs_loss <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  aggregation_fun <span class="op">=</span> <span class="va">median</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -124,6 +128,14 @@ feature performs better than the baseline, negative values indicate worse perfor
 
 <dt><code>iters_refit</code></dt>
 <dd><p>(<code>integer(1)</code>) Number of refit iterations per resampling iteration.</p></dd>
+
+
+<dt><code>obs_loss</code></dt>
+<dd><p>(<code>logical(1)</code>) Whether to use observation-wise loss calculation (analogous to <a href="LOCO.html">LOCO</a>) when supported by the measure. If <code>FALSE</code> (default), uses aggregated scores.</p></dd>
+
+
+<dt><code>aggregation_fun</code></dt>
+<dd><p>(<code>function</code>) Function to aggregate observation-wise losses when <code>obs_loss = TRUE</code>. Defaults to <code>median</code>, analogous to <a href="LOCO.html">LOCO</a>.</p></dd>
 
 
 </dl><p></p></div>

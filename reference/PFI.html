@@ -31,11 +31,13 @@ the feature and the target variable."><script defer src="https://umami.jemu.name
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-based Feature Importance Methods</a></li>
-    <li><a class="dropdown-item" href="../articles/loco-loci.html">LOCO and LOCI</a></li>
-    <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><h6 class="dropdown-header" data-toc-skip>Method Showcase</h6></li>
+    <li><a class="dropdown-item" href="../vignettes/perturbation-importance.html">Perturbation-Based Methods (PFI, CFI, RFI)</a></li>
+    <li><a class="dropdown-item" href="../articles/loco-loci.html">Leave-Out/In Methods (LOCO, LOCI)</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Testing &amp; Validation</h6></li>
+    <li><a class="dropdown-item" href="../articles/simulation-settings.html">Simulation Settings</a></li>
+    <li><a class="dropdown-item" href="../articles/fippy-comparison.html">Comparison with fippy (Python)</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -198,13 +200,13 @@ ISSN 1471-2105, <a href="https://doi.org/10.1186/1471-2105-9-307" class="externa
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    feature  importance         sd</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;char&gt;       &lt;num&gt;      &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1:      x1 0.003367003 0.04387792</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2:      x2 0.026638938 0.02364562</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3:      x3 0.046840959 0.02669006</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4:      x4 0.040205981 0.03394846</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5:      x5 0.026836997 0.05554960</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    feature importance         sd</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;char&gt;      &lt;num&gt;      &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1:      x1 0.06971678 0.05559665</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2:      x2 0.08981977 0.03910356</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3:      x3 0.09269162 0.05727205</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4:      x4 0.04981184 0.06908522</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5:      x5 0.11358685 0.04484340</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

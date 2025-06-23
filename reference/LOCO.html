@@ -27,11 +27,13 @@ Despite the name, this implementation can leave out one or more features at a ti
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-based Feature Importance Methods</a></li>
-    <li><a class="dropdown-item" href="../articles/loco-loci.html">LOCO and LOCI</a></li>
-    <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><h6 class="dropdown-header" data-toc-skip>Method Showcase</h6></li>
+    <li><a class="dropdown-item" href="../vignettes/perturbation-importance.html">Perturbation-Based Methods (PFI, CFI, RFI)</a></li>
+    <li><a class="dropdown-item" href="../articles/loco-loci.html">Leave-Out/In Methods (LOCO, LOCI)</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Testing &amp; Validation</h6></li>
+    <li><a class="dropdown-item" href="../articles/simulation-settings.html">Simulation Settings</a></li>
+    <li><a class="dropdown-item" href="../articles/fippy-comparison.html">Comparison with fippy (Python)</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -103,7 +105,9 @@ ISSN 0162-1459, <a href="https://doi.org/10.1080/01621459.2017.1307116" class="e
 <span>  <span class="va">measure</span>,</span>
 <span>  resampling <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  features <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  iters_refit <span class="op">=</span> <span class="fl">1L</span></span>
+<span>  iters_refit <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  obs_loss <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  aggregation_fun <span class="op">=</span> <span class="va">median</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -130,7 +134,15 @@ ISSN 0162-1459, <a href="https://doi.org/10.1080/01621459.2017.1307116" class="e
 
 
 <dt><code>iters_refit</code></dt>
-<dd><p>(<code>integer(1)</code>) Number of refit iterations per resampling iteration.</p></dd>
+<dd><p>(<code>integer(1)</code>: <code>1L</code>) Number of refit iterations per resampling iteration.</p></dd>
+
+
+<dt><code>obs_loss</code></dt>
+<dd><p>(<code>logical(1)</code>: <code>FALSE</code>) Whether to use observation-wise loss calculation (original LOCO formulation). If <code>FALSE</code>, uses aggregated scores.</p></dd>
+
+
+<dt><code>aggregation_fun</code></dt>
+<dd><p>(<code>function</code>) Function to aggregate observation-wise losses when <code>obs_loss = TRUE</code>. Defaults to <code>median</code> for original LOCO formulation.</p></dd>
 
 
 </dl><p></p></div>
@@ -163,22 +175,72 @@ ISSN 0162-1459, <a href="https://doi.org/10.1080/01621459.2017.1307116" class="e
 <span class="r-in"><span><span class="va">loco</span> <span class="op">=</span> <span class="va">LOCO</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  task <span class="op">=</span> <span class="va">task</span>,</span></span>
 <span class="r-in"><span>  learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span>, obs_loss <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">loco</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          feature importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;      &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1   3.575372</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2   1.493984</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  -1.572624</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4   5.798478</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  -1.517563</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1  -2.279977</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  -1.645667</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3  -1.200187</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4  -1.846852</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  -1.587165</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  1.3486621</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2 -0.1029566</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3 -0.6187540</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  3.5539721</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5 -0.3692830</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.7835088</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 -0.7810132</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.3033563</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.9372339</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.4392863</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Using observation-wise losses to compute the median instead</span></span></span>
+<span class="r-in"><span><span class="va">loco_obsloss</span> <span class="op">=</span> <span class="va">LOCO</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  task <span class="op">=</span> <span class="va">task</span>,</span></span>
+<span class="r-in"><span>  learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mae"</span><span class="op">)</span>, <span class="co"># to use absolute differences observation-wise</span></span></span>
+<span class="r-in"><span>  obs_loss <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>  aggregation_fun <span class="op">=</span> <span class="va">median</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">loco_obsloss</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  0.62520371</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  0.70326816</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.06747752</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  0.92265199</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  0.10410624</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1  0.01075417</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 -0.03980262</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.07784557</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4  0.04669621</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.02747171</span>
+<span class="r-in"><span><span class="va">loco_obsloss</span><span class="op">$</span><span class="va">obs_losses</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      row_ids      feature iteration iter_refit     truth response_ref</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        &lt;int&gt;       &lt;char&gt;     &lt;int&gt;      &lt;int&gt;     &lt;num&gt;        &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1:       5   important1         1          1 21.546350     18.32207</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2:       5   important2         1          1 21.546350     18.32207</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   3:       5   important3         1          1 21.546350     18.32207</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   4:       5   important4         1          1 21.546350     18.32207</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   5:       5   important5         1          1 21.546350     18.32207</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                                                 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 666:     198 unimportant1         1          1  8.960132     11.13131</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 667:     198 unimportant2         1          1  8.960132     11.13131</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 668:     198 unimportant3         1          1  8.960132     11.13131</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 669:     198 unimportant4         1          1  8.960132     11.13131</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 670:     198 unimportant5         1          1  8.960132     11.13131</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      response_feature loss_ref loss_feature    obs_diff</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 &lt;num&gt;    &lt;num&gt;        &lt;num&gt;       &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1:         17.26252 3.224283     4.283829  1.05954585</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2:         16.63495 3.224283     4.911398  1.68711508</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   3:         18.23274 3.224283     3.313605  0.08932251</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   4:         15.71048 3.224283     5.835869  2.61158585</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   5:         18.63428 3.224283     2.912066 -0.31221643</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                                   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 666:         11.81763 2.171176     2.857494  0.68631849</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 667:         11.45319 2.171176     2.493059  0.32188290</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 668:         11.05210 2.171176     2.091965 -0.07921088</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 669:         11.79992 2.171176     2.839787  0.66861130</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 670:         11.51683 2.171176     2.556694  0.38551850</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

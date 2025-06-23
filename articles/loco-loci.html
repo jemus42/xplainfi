@@ -44,11 +44,13 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-based Feature Importance Methods</a></li>
-    <li><a class="dropdown-item" href="../articles/loco-loci.html">LOCO and LOCI</a></li>
-    <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
+<li><h6 class="dropdown-header" data-toc-skip>Method Showcase</h6></li>
+    <li><a class="dropdown-item" href="../vignettes/perturbation-importance.html">Perturbation-Based Methods (PFI, CFI, RFI)</a></li>
+    <li><a class="dropdown-item" href="../articles/loco-loci.html">Leave-Out/In Methods (LOCO, LOCI)</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Testing &amp; Validation</h6></li>
+    <li><a class="dropdown-item" href="../articles/simulation-settings.html">Simulation Settings</a></li>
+    <li><a class="dropdown-item" href="../articles/fippy-comparison.html">Comparison with fippy (Python)</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -82,7 +84,7 @@
       <h1>LOCO and LOCI</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/jemus42/xplainfi/blob/main/vignettes/loco-loci.Rmd" class="external-link"><code>vignettes/loco-loci.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jemus42/xplainfi/blob/main/vignettes/articles/loco-loci.Rmd" class="external-link"><code>vignettes/articles/loco-loci.Rmd</code></a></small>
       <div class="d-none name"><code>loco-loci.Rmd</code></div>
     </div>
 
@@ -94,6 +96,33 @@
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr3learners.mlr-org.com" class="external-link">mlr3learners</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-datatable.com" class="external-link">data.table</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span></code></pre></div>
+<div class="section level2">
+<h2 id="example-data-interaction-effects">Example Data: Interaction Effects<a class="anchor" aria-label="anchor" href="#example-data-interaction-effects"></a>
+</h2>
+<p>To illustrate the key differences between LOCO and LOCI, we’ll use a
+data generating process with interaction effects:</p>
+<p><span class="math display">\[y = 2 \cdot x_1 \cdot x_2 + x_3 +
+\epsilon\]</span></p>
+<p>where <span class="math inline">\(\epsilon \sim N(0, 0.5^2)\)</span>
+and all features <span class="math inline">\(x_1, x_2, x_3, noise_1,
+noise_2 \sim N(0,1)\)</span> are independent.</p>
+<p><strong>Key characteristics:</strong></p>
+<ul>
+<li>
+<strong><span class="math inline">\(x_1, x_2\)</span></strong>: Have
+NO individual effects, only interact with each other</li>
+<li>
+<strong><span class="math inline">\(x_3\)</span></strong>: Has a
+direct main effect on <span class="math inline">\(y\)</span><br>
+</li>
+<li>
+<strong><span class="math inline">\(noise_1,
+noise_2\)</span></strong>: Pure noise variables with no effect on <span class="math inline">\(y\)</span>
+</li>
+</ul>
+<p>This setup highlights how LOCO and LOCI handle interaction effects
+differently.</p>
+</div>
 <div class="section level2">
 <h2 id="leave-one-covariate-out-loco">Leave-One-Covariate-Out (LOCO)<a class="anchor" aria-label="anchor" href="#leave-one-covariate-out-loco"></a>
 </h2>
@@ -108,7 +137,7 @@ the feature and the full model: <span class="math display">\[\text{LOCO}_j = \ma
 <p>Higher values indicate more important features (larger performance
 drop when removed).</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">task</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tgen</a></span><span class="op">(</span><span class="st">"friedman1"</span><span class="op">)</span><span class="op">$</span><span class="fu">generate</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">task</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_interactions</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
 <span><span class="va">learner</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.lm"</span><span class="op">)</span></span>
 <span><span class="va">measure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span></span>
 <span></span>
@@ -120,18 +149,13 @@ drop when removed).</p>
 <span></span>
 <span><span class="va">loco</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature   importance</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  1.907472683</span></span>
-<span><span class="co">#&gt;  2:   important2  4.344817068</span></span>
-<span><span class="co">#&gt;  3:   important3 -0.038993051</span></span>
-<span><span class="co">#&gt;  4:   important4  9.868411131</span></span>
-<span><span class="co">#&gt;  5:   important5  2.159374339</span></span>
-<span><span class="co">#&gt;  6: unimportant1  0.050115133</span></span>
-<span><span class="co">#&gt;  7: unimportant2 -0.019501906</span></span>
-<span><span class="co">#&gt;  8: unimportant3  0.106014948</span></span>
-<span><span class="co">#&gt;  9: unimportant4  0.005096387</span></span>
-<span><span class="co">#&gt; 10: unimportant5  0.024761713</span></span></code></pre></div>
+<span><span class="co">#&gt;    feature  importance</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:  noise1  0.02343712</span></span>
+<span><span class="co">#&gt; 2:  noise2  0.01808013</span></span>
+<span><span class="co">#&gt; 3:      x1 -0.14135998</span></span>
+<span><span class="co">#&gt; 4:      x2  0.11463314</span></span>
+<span><span class="co">#&gt; 5:      x3  0.65082799</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="leave-one-covariate-in-loci">Leave-One-Covariate-In (LOCI)<a class="anchor" aria-label="anchor" href="#leave-one-covariate-in-loci"></a>
@@ -156,25 +180,47 @@ performance compared to baseline).</p>
 <span></span>
 <span><span class="va">loci</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature  importance</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;       &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  0.24301370</span></span>
-<span><span class="co">#&gt;  2:   important2  2.00562769</span></span>
-<span><span class="co">#&gt;  3:   important3 -0.24969927</span></span>
-<span><span class="co">#&gt;  4:   important4  5.15158778</span></span>
-<span><span class="co">#&gt;  5:   important5  1.94506889</span></span>
-<span><span class="co">#&gt;  6: unimportant1 -0.02398509</span></span>
-<span><span class="co">#&gt;  7: unimportant2  0.08193745</span></span>
-<span><span class="co">#&gt;  8: unimportant3  0.37764092</span></span>
-<span><span class="co">#&gt;  9: unimportant4  0.24828048</span></span>
-<span><span class="co">#&gt; 10: unimportant5  0.16518286</span></span></code></pre></div>
+<span><span class="co">#&gt;    feature  importance</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:  noise1  0.09848467</span></span>
+<span><span class="co">#&gt; 2:  noise2 -0.05579254</span></span>
+<span><span class="co">#&gt; 3:      x1 -0.44010340</span></span>
+<span><span class="co">#&gt; 4:      x2  0.11155710</span></span>
+<span><span class="co">#&gt; 5:      x3  0.58359019</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="understanding-the-results">Understanding the Results<a class="anchor" aria-label="anchor" href="#understanding-the-results"></a>
+</h2>
+<p><strong>LOCO results interpretation:</strong></p>
+<ul>
+<li>
+<span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> show low importance because removing
+either one eliminates the interaction (<span class="math inline">\(x_1
+\cdot x_2\)</span> becomes zero)</li>
+<li>
+<span class="math inline">\(x_3\)</span> shows higher importance due
+to its direct main effect</li>
+<li>This demonstrates LOCO’s limitation with interaction effects</li>
+</ul>
+<p><strong>LOCI results interpretation:</strong></p>
+<ul>
+<li>
+<span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> show low importance because
+individually they have no predictive power</li>
+<li>
+<span class="math inline">\(x_3\)</span> shows high importance
+because it alone can predict <span class="math inline">\(y\)</span>
+reasonably well</li>
+<li>This shows how LOCI focuses on individual feature contributions</li>
+</ul>
 </div>
 <div class="section level2">
 <h2 id="multiple-refits">Multiple Refits<a class="anchor" aria-label="anchor" href="#multiple-refits"></a>
 </h2>
 <p>Like PFI has <code>iters_perm</code> for multiple permutation
 iterations, LOCO and LOCI support <code>iters_refit</code> for multiple
-refit iterations per resampling iteration:</p>
+refit iterations per resampling iteration, which then also provide
+standard deviations:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">loco_multi</span> <span class="op">=</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task</span>,</span>
@@ -186,18 +232,13 @@ refit iterations per resampling iteration:</p>
 <span></span>
 <span><span class="va">loco_multi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature  importance         sd</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;       &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  2.63847146 0.39257971</span></span>
-<span><span class="co">#&gt;  2:   important2  6.32614881 1.47504818</span></span>
-<span><span class="co">#&gt;  3:   important3 -0.02421940 0.01792924</span></span>
-<span><span class="co">#&gt;  4:   important4  8.23092916 1.34622213</span></span>
-<span><span class="co">#&gt;  5:   important5  1.87820513 0.60919188</span></span>
-<span><span class="co">#&gt;  6: unimportant1  0.04498329 0.13238800</span></span>
-<span><span class="co">#&gt;  7: unimportant2 -0.08772072 0.10411558</span></span>
-<span><span class="co">#&gt;  8: unimportant3  0.04221687 0.06461107</span></span>
-<span><span class="co">#&gt;  9: unimportant4 -0.26932117 0.09922318</span></span>
-<span><span class="co">#&gt; 10: unimportant5 -0.07450104 0.07841415</span></span>
+<span><span class="co">#&gt;    feature  importance         sd</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:  noise1 -0.01212711 0.05104637</span></span>
+<span><span class="co">#&gt; 2:  noise2 -0.02467126 0.05152184</span></span>
+<span><span class="co">#&gt; 3:      x1 -0.08943524 0.08786365</span></span>
+<span><span class="co">#&gt; 4:      x2 -0.07556117 0.29284316</span></span>
+<span><span class="co">#&gt; 5:      x3  0.82401461 0.34619308</span></span>
 <span></span>
 <span><span class="co"># Check individual scores with multiple refits</span></span>
 <span><span class="va">loco_multi</span><span class="op">$</span><span class="va">scores</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="op">]</span> <span class="op">|&gt;</span></span>
@@ -205,12 +246,12 @@ refit iterations per resampling iteration:</p>
 <table style="width:100%;" class="table">
 <caption>LOCO scores per refit and resampling fold</caption>
 <colgroup>
-<col width="15%">
+<col width="11%">
 <col width="14%">
-<col width="15%">
-<col width="19%">
-<col width="19%">
-<col width="15%">
+<col width="16%">
+<col width="20%">
+<col width="20%">
+<col width="16%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">feature</th>
@@ -222,84 +263,84 @@ refit iterations per resampling iteration:</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">important1</td>
+<td align="left">noise1</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">5.6039</td>
-<td align="right">8.7656</td>
-<td align="right">3.1617</td>
+<td align="right">3.8491</td>
+<td align="right">3.7693</td>
+<td align="right">-0.0798</td>
 </tr>
 <tr class="even">
-<td align="left">important1</td>
+<td align="left">noise1</td>
 <td align="right">1</td>
 <td align="right">2</td>
-<td align="right">5.6039</td>
-<td align="right">8.7656</td>
-<td align="right">3.1617</td>
+<td align="right">3.8491</td>
+<td align="right">3.7693</td>
+<td align="right">-0.0798</td>
 </tr>
 <tr class="odd">
-<td align="left">important1</td>
+<td align="left">noise1</td>
 <td align="right">1</td>
 <td align="right">3</td>
-<td align="right">5.6039</td>
-<td align="right">8.7656</td>
-<td align="right">3.1617</td>
+<td align="right">3.8491</td>
+<td align="right">3.7693</td>
+<td align="right">-0.0798</td>
 </tr>
 <tr class="even">
-<td align="left">important1</td>
+<td align="left">noise1</td>
 <td align="right">2</td>
 <td align="right">1</td>
-<td align="right">6.6815</td>
-<td align="right">9.0453</td>
-<td align="right">2.3638</td>
+<td align="right">4.2981</td>
+<td align="right">4.3134</td>
+<td align="right">0.0153</td>
 </tr>
 <tr class="odd">
-<td align="left">important1</td>
+<td align="left">noise1</td>
 <td align="right">2</td>
 <td align="right">2</td>
-<td align="right">6.6815</td>
-<td align="right">9.0453</td>
-<td align="right">2.3638</td>
+<td align="right">4.2981</td>
+<td align="right">4.3134</td>
+<td align="right">0.0153</td>
 </tr>
 <tr class="even">
-<td align="left">important1</td>
+<td align="left">noise1</td>
 <td align="right">2</td>
 <td align="right">3</td>
-<td align="right">6.6815</td>
-<td align="right">9.0453</td>
-<td align="right">2.3638</td>
+<td align="right">4.2981</td>
+<td align="right">4.3134</td>
+<td align="right">0.0153</td>
 </tr>
 <tr class="odd">
-<td align="left">important1</td>
+<td align="left">noise1</td>
 <td align="right">3</td>
 <td align="right">1</td>
-<td align="right">4.9343</td>
-<td align="right">7.3242</td>
-<td align="right">2.3899</td>
+<td align="right">5.3040</td>
+<td align="right">5.3321</td>
+<td align="right">0.0281</td>
 </tr>
 <tr class="even">
-<td align="left">important1</td>
+<td align="left">noise1</td>
 <td align="right">3</td>
 <td align="right">2</td>
-<td align="right">4.9343</td>
-<td align="right">7.3242</td>
-<td align="right">2.3899</td>
+<td align="right">5.3040</td>
+<td align="right">5.3321</td>
+<td align="right">0.0281</td>
 </tr>
 <tr class="odd">
-<td align="left">important1</td>
+<td align="left">noise1</td>
 <td align="right">3</td>
 <td align="right">3</td>
-<td align="right">4.9343</td>
-<td align="right">7.3242</td>
-<td align="right">2.3899</td>
+<td align="right">5.3040</td>
+<td align="right">5.3321</td>
+<td align="right">0.0281</td>
 </tr>
 <tr class="even">
-<td align="left">important2</td>
+<td align="left">noise2</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">5.6039</td>
-<td align="right">12.2512</td>
-<td align="right">6.6473</td>
+<td align="right">3.8491</td>
+<td align="right">3.7563</td>
+<td align="right">-0.0928</td>
 </tr>
 </tbody>
 </table>
@@ -328,54 +369,29 @@ refit iterations per resampling iteration:</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">important1</td>
-<td align="right">0.2430</td>
-<td align="right">1.9075</td>
+<td align="left">noise1</td>
+<td align="right">0.0985</td>
+<td align="right">0.0234</td>
 </tr>
 <tr class="even">
-<td align="left">important2</td>
-<td align="right">2.0056</td>
-<td align="right">4.3448</td>
+<td align="left">noise2</td>
+<td align="right">-0.0558</td>
+<td align="right">0.0181</td>
 </tr>
 <tr class="odd">
-<td align="left">important3</td>
-<td align="right">-0.2497</td>
-<td align="right">-0.0390</td>
+<td align="left">x1</td>
+<td align="right">-0.4401</td>
+<td align="right">-0.1414</td>
 </tr>
 <tr class="even">
-<td align="left">important4</td>
-<td align="right">5.1516</td>
-<td align="right">9.8684</td>
+<td align="left">x2</td>
+<td align="right">0.1116</td>
+<td align="right">0.1146</td>
 </tr>
 <tr class="odd">
-<td align="left">important5</td>
-<td align="right">1.9451</td>
-<td align="right">2.1594</td>
-</tr>
-<tr class="even">
-<td align="left">unimportant1</td>
-<td align="right">-0.0240</td>
-<td align="right">0.0501</td>
-</tr>
-<tr class="odd">
-<td align="left">unimportant2</td>
-<td align="right">0.0819</td>
-<td align="right">-0.0195</td>
-</tr>
-<tr class="even">
-<td align="left">unimportant3</td>
-<td align="right">0.3776</td>
-<td align="right">0.1060</td>
-</tr>
-<tr class="odd">
-<td align="left">unimportant4</td>
-<td align="right">0.2483</td>
-<td align="right">0.0051</td>
-</tr>
-<tr class="even">
-<td align="left">unimportant5</td>
-<td align="right">0.1652</td>
-<td align="right">0.0248</td>
+<td align="left">x3</td>
+<td align="right">0.5836</td>
+<td align="right">0.6508</td>
 </tr>
 </tbody>
 </table>
@@ -395,30 +411,536 @@ baseline</li>
 </ul>
 </li>
 </ul>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">importance_combined</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/melt.data.table.html" class="external-link">melt</a></span><span class="op">(</span></span>
-<span>    id.vars <span class="op">=</span> <span class="st">"feature"</span>,</span>
-<span>    value.name <span class="op">=</span> <span class="st">"score"</span>,</span>
-<span>    variable.name <span class="op">=</span> <span class="st">"method"</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">score</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">feature</span>, <span class="va">score</span><span class="op">)</span>, color <span class="op">=</span> <span class="va">method</span>, fill <span class="op">=</span> <span class="va">method</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">method</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">1</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span>position <span class="op">=</span> <span class="st">"dodge"</span>, alpha <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_color_brewer</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Set1"</span>, aesthetics <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"color"</span>, <span class="st">"fill"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"LOCO vs LOCI Feature Importance"</span>,</span>
-<span>    x <span class="op">=</span> <span class="st">"Importance Score"</span>,</span>
-<span>    y <span class="op">=</span> <span class="st">"Feature"</span>,</span>
-<span>    color <span class="op">=</span> <span class="st">"Method"</span>,</span>
-<span>    fill <span class="op">=</span> <span class="st">"Method"</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
-<span>    legend.position <span class="op">=</span> <span class="st">"bottom"</span>,</span>
-<span>    plot.title.position <span class="op">=</span> <span class="st">"plot"</span></span>
-<span>  <span class="op">)</span> </span></code></pre></div>
 <p><img src="loco-loci_files/figure-html/plot-1.png" width="672"></p>
+</div>
+<div class="section level2">
+<h2 id="micro-averaged-vs-macro-averaged-loco">Micro-averaged vs Macro-averaged LOCO<a class="anchor" aria-label="anchor" href="#micro-averaged-vs-macro-averaged-loco"></a>
+</h2>
+<p>The examples above use the <strong>micro-averaged</strong> approach
+(<code>obs_loss = FALSE</code>), computing importance as the difference
+of expected losses using the measure’s default aggregation: <span class="math inline">\(\mathbb{E}(L(Y, f_{-j}(X_{-j}))) - \mathbb{E}(L(Y,
+f(X)))\)</span>.</p>
+<p>LOCO can also be computed using the <strong>macro-averaged</strong>
+approach (<code>obs_loss = TRUE</code>), which follows the original
+paper formulation by aggregating observation-wise differences with the
+median of absolute differences: <span class="math inline">\(\mathrm{median}(\{|L(y_i, f_{-j}(x_{i,-j}))| -
+|L(y_i, f(x_i))|\}_{i=1}^n)\)</span>.</p>
+<p>The macro-averaged approach provides access to individual
+observation-level differences:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Use macro-averaged approach with median aggregation</span></span>
+<span><span class="va">loco_obs</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mae"</span><span class="op">)</span>,  <span class="co"># MAE supports obs_loss</span></span>
+<span>  obs_loss <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  aggregation_fun <span class="op">=</span> <span class="va">median</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">loco_obs</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;    feature   importance</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;        &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:  noise1  0.001274411</span></span>
+<span><span class="co">#&gt; 2:  noise2  0.003229655</span></span>
+<span><span class="co">#&gt; 3:      x1  0.001995886</span></span>
+<span><span class="co">#&gt; 4:      x2 -0.077958164</span></span>
+<span><span class="co">#&gt; 5:      x3  0.315709247</span></span>
+<span></span>
+<span><span class="co"># Compare aggregated results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
+<span>  <span class="va">loco</span><span class="op">$</span><span class="va">importance</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"Micro-averaged (measure default)"</span><span class="op">]</span>,</span>
+<span>  <span class="va">loco_obs</span><span class="op">$</span><span class="va">importance</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"Macro-averaged (median of diffs)"</span><span class="op">]</span></span>
+<span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/dcast.data.table.html" class="external-link">dcast</a></span><span class="op">(</span><span class="va">feature</span> <span class="op">~</span> <span class="va">method</span>, value.var <span class="op">=</span> <span class="st">"importance"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"Comparison of LOCO aggregation approaches"</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Comparison of LOCO aggregation approaches</caption>
+<colgroup>
+<col width="10%">
+<col width="44%">
+<col width="44%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">feature</th>
+<th align="right">Macro-averaged (median of diffs)</th>
+<th align="right">Micro-averaged (measure default)</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">noise1</td>
+<td align="right">0.0013</td>
+<td align="right">0.0234</td>
+</tr>
+<tr class="even">
+<td align="left">noise2</td>
+<td align="right">0.0032</td>
+<td align="right">0.0181</td>
+</tr>
+<tr class="odd">
+<td align="left">x1</td>
+<td align="right">0.0020</td>
+<td align="right">-0.1414</td>
+</tr>
+<tr class="even">
+<td align="left">x2</td>
+<td align="right">-0.0780</td>
+<td align="right">0.1146</td>
+</tr>
+<tr class="odd">
+<td align="left">x3</td>
+<td align="right">0.3157</td>
+<td align="right">0.6508</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>$obs_losses</code> field provides detailed
+observation-level information:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Examine observation-wise data for first feature</span></span>
+<span><span class="va">feature_data</span> <span class="op">&lt;-</span> <span class="va">loco_obs</span><span class="op">$</span><span class="va">obs_losses</span><span class="op">[</span><span class="va">feature</span> <span class="op">==</span> <span class="st">"x3"</span><span class="op">]</span></span>
+<span></span>
+<span><span class="co"># Show structure</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">feature_data</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Classes 'data.table' and 'data.frame':   167 obs. of  10 variables:</span></span>
+<span><span class="co">#&gt;  $ row_ids         : int  3 4 5 6 8 9 11 12 13 15 ...</span></span>
+<span><span class="co">#&gt;  $ feature         : chr  "x3" "x3" "x3" "x3" ...</span></span>
+<span><span class="co">#&gt;  $ iteration       : int  1 1 1 1 1 1 1 1 1 1 ...</span></span>
+<span><span class="co">#&gt;  $ iter_refit      : int  1 1 1 1 1 1 1 1 1 1 ...</span></span>
+<span><span class="co">#&gt;  $ truth           : num  2.831 -0.293 -2.552 0.476 8.165 ...</span></span>
+<span><span class="co">#&gt;  $ response_ref    : num  0.468 0.0826 -2.7257 0.7273 1.0292 ...</span></span>
+<span><span class="co">#&gt;  $ response_feature: num  0.828 0.247 -0.983 -0.334 -0.975 ...</span></span>
+<span><span class="co">#&gt;  $ loss_ref        : num  2.363 0.376 0.173 0.251 7.136 ...</span></span>
+<span><span class="co">#&gt;  $ loss_feature    : num  2.003 0.541 1.569 0.81 9.14 ...</span></span>
+<span><span class="co">#&gt;  $ obs_diff        : num  -0.36 0.165 1.396 0.559 2.004 ...</span></span>
+<span><span class="co">#&gt;  - attr(*, ".internal.selfref")=&lt;externalptr&gt;</span></span>
+<span></span>
+<span><span class="co"># Display first few observations</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">feature_data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">3</span>, caption <span class="op">=</span> <span class="st">"Observation-wise losses for x3"</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Observation-wise losses for x3</caption>
+<colgroup>
+<col width="7%">
+<col width="7%">
+<col width="9%">
+<col width="10%">
+<col width="6%">
+<col width="12%">
+<col width="16%">
+<col width="8%">
+<col width="12%">
+<col width="8%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">row_ids</th>
+<th align="left">feature</th>
+<th align="right">iteration</th>
+<th align="right">iter_refit</th>
+<th align="right">truth</th>
+<th align="right">response_ref</th>
+<th align="right">response_feature</th>
+<th align="right">loss_ref</th>
+<th align="right">loss_feature</th>
+<th align="right">obs_diff</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">x3</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">2.831</td>
+<td align="right">0.468</td>
+<td align="right">0.828</td>
+<td align="right">2.363</td>
+<td align="right">2.003</td>
+<td align="right">-0.360</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="left">x3</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">-0.293</td>
+<td align="right">0.083</td>
+<td align="right">0.247</td>
+<td align="right">0.376</td>
+<td align="right">0.541</td>
+<td align="right">0.165</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="left">x3</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">-2.552</td>
+<td align="right">-2.726</td>
+<td align="right">-0.983</td>
+<td align="right">0.173</td>
+<td align="right">1.569</td>
+<td align="right">1.396</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="left">x3</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">0.476</td>
+<td align="right">0.727</td>
+<td align="right">-0.334</td>
+<td align="right">0.251</td>
+<td align="right">0.810</td>
+<td align="right">0.559</td>
+</tr>
+<tr class="odd">
+<td align="right">8</td>
+<td align="left">x3</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">8.165</td>
+<td align="right">1.029</td>
+<td align="right">-0.975</td>
+<td align="right">7.136</td>
+<td align="right">9.140</td>
+<td align="right">2.004</td>
+</tr>
+<tr class="even">
+<td align="right">9</td>
+<td align="left">x3</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">-0.124</td>
+<td align="right">0.415</td>
+<td align="right">-0.205</td>
+<td align="right">0.539</td>
+<td align="right">0.081</td>
+<td align="right">-0.458</td>
+</tr>
+</tbody>
+</table>
+<p>Each row contains:</p>
+<ul>
+<li>
+<code>row_ids</code>: Test set observation identifiers</li>
+<li>
+<code>truth</code>: Original target values<br>
+</li>
+<li>
+<code>response_ref</code>: Full model predictions</li>
+<li>
+<code>response_feature</code>: Reduced model predictions (without
+this feature)</li>
+<li>
+<code>loss_ref</code> / <code>loss_feature</code>: Individual losses
+from each model</li>
+<li>
+<code>obs_diff</code>: Observation-wise importance differences</li>
+</ul>
+<p>Note that in case of <code>regr.mse</code> which aggregates with the
+mean and using <code>aggregation_fun = mean</code> to aggregate the
+observation-wise losses, both approaches yield the same result, but in
+slightly different ways:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">resampling</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"holdout"</span><span class="op">)</span></span>
+<span><span class="va">resampling</span><span class="op">$</span><span class="fu">instantiate</span><span class="op">(</span><span class="va">task</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">loco_orig</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">loco_obsloss</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  obs_loss <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  aggregation_fun <span class="op">=</span> <span class="va">mean</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
+<span>  <span class="va">loco_orig</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"micro-averaged"</span><span class="op">]</span>,</span>
+<span>  <span class="va">loco_obsloss</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"macro-averaged"</span><span class="op">]</span></span>
+<span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/dcast.data.table.html" class="external-link">dcast</a></span><span class="op">(</span><span class="va">feature</span> <span class="op">~</span> <span class="va">method</span>, value.var <span class="op">=</span> <span class="st">"importance"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;    feature macro-averaged micro-averaged</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;          &lt;num&gt;          &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:  noise1    -0.06116845    -0.06116845</span></span>
+<span><span class="co">#&gt; 2:  noise2    -0.03037297    -0.03037297</span></span>
+<span><span class="co">#&gt; 3:      x1    -0.04521521    -0.04521521</span></span>
+<span><span class="co">#&gt; 4:      x2     0.02801885     0.02801885</span></span>
+<span><span class="co">#&gt; 5:      x3     1.10230314     1.10230314</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="classification-example-with-probability-access">Classification Example with Probability Access<a class="anchor" aria-label="anchor" href="#classification-example-with-probability-access"></a>
+</h2>
+<p>For classification tasks, the <code>obs_losses</code> field stores
+predicted classes while preserving access to probabilities from the
+original mlr3 prediction objects:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Binary classification task</span></span>
+<span><span class="va">task_classif</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tgen</a></span><span class="op">(</span><span class="st">"circle"</span>, d <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">$</span><span class="fu">generate</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Learner with probability predictions (required for accessing probabilities later)</span></span>
+<span><span class="va">learner_classif</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"classif.rpart"</span>, predict_type <span class="op">=</span> <span class="st">"prob"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># LOCO with observation-wise losses</span></span>
+<span><span class="va">loco_classif</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_classif</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner_classif</span>,</span>
+<span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.ce"</span><span class="op">)</span>,  <span class="co"># Classification error supports obs_loss (zero-one in this case)</span></span>
+<span>  obs_loss <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span>,  <span class="co"># Focus on just two features for clarity</span></span>
+<span>  aggregation_fun <span class="op">=</span> <span class="va">mean</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">loco_classif</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;    feature importance</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      x1 0.04477612</span></span>
+<span><span class="co">#&gt; 2:      x2 0.00000000</span></span>
+<span></span>
+<span><span class="co"># Show classification importance</span></span>
+<span><span class="va">loco_classif</span><span class="op">$</span><span class="va">importance</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"LOCO importance for classification"</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>LOCO importance for classification</caption>
+<thead><tr class="header">
+<th align="left">feature</th>
+<th align="right">importance</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">x1</td>
+<td align="right">0.0448</td>
+</tr>
+<tr class="even">
+<td align="left">x2</td>
+<td align="right">0.0000</td>
+</tr>
+</tbody>
+</table>
+<p>Examine the observation-wise classification results:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Look at observation-wise data</span></span>
+<span><span class="va">classif_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">loco_classif</span><span class="op">$</span><span class="va">obs_losses</span>, <span class="fl">8</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">classif_data</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>caption <span class="op">=</span> <span class="st">"Observation-wise classification losses"</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Observation-wise classification losses</caption>
+<colgroup>
+<col width="7%">
+<col width="7%">
+<col width="9%">
+<col width="10%">
+<col width="5%">
+<col width="12%">
+<col width="16%">
+<col width="8%">
+<col width="12%">
+<col width="8%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">row_ids</th>
+<th align="left">feature</th>
+<th align="right">iteration</th>
+<th align="right">iter_refit</th>
+<th align="left">truth</th>
+<th align="left">response_ref</th>
+<th align="left">response_feature</th>
+<th align="right">loss_ref</th>
+<th align="right">loss_feature</th>
+<th align="right">obs_diff</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">5</td>
+<td align="left">x1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left">B</td>
+<td align="left">B</td>
+<td align="left">B</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">5</td>
+<td align="left">x2</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left">B</td>
+<td align="left">B</td>
+<td align="left">B</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">11</td>
+<td align="left">x1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left">B</td>
+<td align="left">B</td>
+<td align="left">B</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">11</td>
+<td align="left">x2</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left">B</td>
+<td align="left">B</td>
+<td align="left">B</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">14</td>
+<td align="left">x1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left">B</td>
+<td align="left">B</td>
+<td align="left">B</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">14</td>
+<td align="left">x2</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left">B</td>
+<td align="left">B</td>
+<td align="left">B</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">15</td>
+<td align="left">x1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left">B</td>
+<td align="left">B</td>
+<td align="left">B</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">15</td>
+<td align="left">x2</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left">B</td>
+<td align="left">B</td>
+<td align="left">B</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<p>For classification, the response columns contain predicted classes
+(factors). Note that <code>$resample_result</code> only contains the
+reference model predictions (full model for LOCO, featureless for LOCI),
+not the feature-specific models:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Access feature-specific predictions (available with obs_loss = TRUE)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">loco_classif</span><span class="op">$</span><span class="va">predictions</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    feature iteration iter_refit          prediction</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;     &lt;int&gt;      &lt;int&gt;              &lt;list&gt;</span></span>
+<span><span class="co">#&gt; 1:      x1         1          1 &lt;PredictionClassif&gt;</span></span>
+<span><span class="co">#&gt; 2:      x2         1          1 &lt;PredictionClassif&gt;</span></span>
+<span></span>
+<span><span class="co"># Get probabilities for a specific feature and iteration  </span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">loco_classif</span><span class="op">$</span><span class="va">predictions</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">feature_pred</span> <span class="op">&lt;-</span> <span class="va">loco_classif</span><span class="op">$</span><span class="va">predictions</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span><span class="op">$</span><span class="va">prediction</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span>  </span>
+<span>  <span class="co"># Access both predicted classes and probabilities</span></span>
+<span>  <span class="co"># Note: probabilities are only available because we used predict_type = "prob"</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">feature_pred</span><span class="op">$</span><span class="va">response</span><span class="op">)</span>  <span class="co"># Predicted classes</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">feature_pred</span><span class="op">$</span><span class="va">prob</span><span class="op">)</span>      <span class="co"># Probability matrix</span></span>
+<span><span class="op">}</span></span>
+<span><span class="co">#&gt;               A         B</span></span>
+<span><span class="co">#&gt; [1,] 0.06060606 0.9393939</span></span>
+<span><span class="co">#&gt; [2,] 0.06060606 0.9393939</span></span>
+<span><span class="co">#&gt; [3,] 0.11111111 0.8888889</span></span>
+<span><span class="co">#&gt; [4,] 0.09523810 0.9047619</span></span>
+<span><span class="co">#&gt; [5,] 0.80851064 0.1914894</span></span>
+<span><span class="co">#&gt; [6,] 0.06060606 0.9393939</span></span>
+<span></span>
+<span><span class="co"># Compare with reference model (full model for LOCO)</span></span>
+<span><span class="va">ref_pred</span> <span class="op">&lt;-</span> <span class="va">loco_classif</span><span class="op">$</span><span class="va">resample_result</span><span class="op">$</span><span class="fu">prediction</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ref_pred</span><span class="op">$</span><span class="va">prob</span><span class="op">)</span>  <span class="co"># Reference model probabilities</span></span>
+<span><span class="co">#&gt;               A          B</span></span>
+<span><span class="co">#&gt; [1,] 0.06060606 0.93939394</span></span>
+<span><span class="co">#&gt; [2,] 0.06060606 0.93939394</span></span>
+<span><span class="co">#&gt; [3,] 0.11111111 0.88888889</span></span>
+<span><span class="co">#&gt; [4,] 0.09523810 0.90476190</span></span>
+<span><span class="co">#&gt; [5,] 0.91891892 0.08108108</span></span>
+<span><span class="co">#&gt; [6,] 0.06060606 0.93939394</span></span></code></pre></div>
+<p>The <code>$predictions</code> field provides complete access to
+feature-specific prediction objects:</p>
+<ul>
+<li>
+<code>feature</code>: Which feature was left out (LOCO) or left in
+(LOCI)</li>
+<li>
+<code>iteration</code>: Resampling iteration</li>
+<li>
+<code>iter_refit</code>: Refit iteration within resampling<br>
+</li>
+<li>
+<code>prediction</code>: Complete mlr3 prediction object with
+responses, probabilities, etc.</li>
+</ul>
+<p>This gives you full access to:</p>
+<ul>
+<li>
+<strong>Feature-specific probabilities</strong>:
+<code>prediction$prob</code>
+</li>
+<li>
+<strong>Feature-specific predicted classes</strong>:
+<code>prediction$response</code>
+</li>
+<li>
+<strong>Additional prediction data</strong>: Any other fields the
+learner provides</li>
+</ul>
+<p>The observation-wise approach is particularly useful for:</p>
+<ul>
+<li>
+<strong>Robust aggregation</strong>: Using median instead of mean to
+reduce outlier influence</li>
+<li>
+<strong>Individual analysis</strong>: Examining which specific
+observations drive importance scores</li>
+<li>
+<strong>Distribution analysis</strong>: Understanding the
+variability in feature effects across observations</li>
+<li>
+<strong>Model debugging</strong>: Identifying problematic
+observations or prediction patterns</li>
+</ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
