@@ -531,14 +531,13 @@ ConditionalSAGE = R6Class(
       # Create a mapping from test instance ID to sampled values
       sampled_data[, .test_instance_id := unique_test_data$.test_instance_id]
 
-      # For each marginalized feature, update test_data by joining with sampled values
-      for (feature_name in marginalize_features) {
-        test_data[
-          sampled_data,
-          (feature_name) := get(paste0("i.", feature_name)),
-          on = ".test_instance_id"
-        ]
-      }
+      # Replace marginalized features with sampled values
+      # Update all features at once using proper data.table join syntax
+      test_data[
+        sampled_data,
+        (marginalize_features) := mget(paste0("i.", marginalize_features)),
+        on = ".test_instance_id"
+      ]
 
       test_data
     }
