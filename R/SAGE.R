@@ -211,6 +211,9 @@ SAGE = R6Class(
       # Pre-allocate list for expanded data
       all_expanded_data = vector("list", n_coalitions)
 
+      if (getOption("xplainfi.debug")) {
+        cli::cli_inform("Evaluating {.val {length(all_coalitions)}} coalitions")
+      }
       for (i in seq_along(all_coalitions)) {
         coalition = all_coalitions[[i]]
 
@@ -245,7 +248,8 @@ SAGE = R6Class(
         n_batches = ceiling(total_rows / batch_size)
         all_predictions = vector("list", n_batches)
 
-        cli::cli_progress_bar("Evaluating batches", total = n_batches)
+        cli::cli_inform("Evaluating {.val {n_batches}} batches of size {.val {batch_size}}")
+        cli::cli_progress_bar("Evaluating", total = n_batches)
 
         for (batch_idx in seq_len(n_batches)) {
           start_row = (batch_idx - 1) * batch_size + 1
@@ -254,7 +258,6 @@ SAGE = R6Class(
           batch_data = combined_data[start_row:end_row]
 
           # Predict for this batch
-          cli::cli_inform("Evaluation {.val {n_batches}} batches of size {.val {batch_size}}")
           pred_result = learner$predict_newdata(newdata = batch_data, task = self$task)
           cli::cli_progress_update()
 
