@@ -374,6 +374,7 @@ test_that("MarginalSAGE requires predict_type='prob' for classification", {
     MarginalSAGE$new(
       task = task_regr,
       learner = learner_regr,
+      resampling = rsmp("holdout"),
       measure = mlr3::msr("regr.mse")
     )
   )
