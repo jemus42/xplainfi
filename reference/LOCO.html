@@ -178,6 +178,7 @@ ISSN 0162-1459, <a href="https://doi.org/10.1080/01621459.2017.1307116" class="e
 <span class="r-in"><span>  learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span>, obs_loss <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided, using holdout resampling with default ratio.</span>
 <span class="r-in"><span><span class="va">loco</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
@@ -201,6 +202,7 @@ ISSN 0162-1459, <a href="https://doi.org/10.1080/01621459.2017.1307116" class="e
 <span class="r-in"><span>  obs_loss <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>  aggregation_fun <span class="op">=</span> <span class="va">median</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided, using holdout resampling with default ratio.</span>
 <span class="r-in"><span><span class="va">loco_obsloss</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>

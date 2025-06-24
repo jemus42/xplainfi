@@ -108,16 +108,15 @@ conditional contribution.</p>
 $$X_1 \sim N(0,1)$$
 $$X_2 = X_1 + \varepsilon_2, \quad \varepsilon_2 \sim N(0, 0.05^2)$$
 $$X_3 \sim N(0,1), \quad X_4 \sim N(0,1)$$
-$$Y = 2 \cdot X_1 + 1.5 \cdot X_2 + X_3 + \varepsilon$$
+$$Y = 2 \cdot X_1 + X_3 + \varepsilon$$
 where \(\varepsilon \sim N(0, 0.2^2)\).</p>
-<p><strong>Feature Properties:</strong></p><ul><li><p><code>x1</code>: Standard normal, direct effect on y</p></li>
-<li><p><code>x2</code>: Nearly perfect copy of x1 (x1 + small noise), with r ≈ 0.999</p></li>
-<li><p><code>x3</code>: Independent standard normal, direct effect on y</p></li>
-<li><p><code>x4</code>: Independent standard normal, no effect on y</p></li>
-</ul><p><strong>Expected Behavior:</strong></p><ul><li><p><strong>PFI</strong>: Will show high importance for x1 and x2 (permutation breaks correlation structure)</p></li>
-<li><p><strong>CFI</strong>: Will show low importance for x1 and x2 (they are redundant given each other)</p></li>
-<li><p><strong>Interpretation</strong>: PFI measures marginal importance, CFI measures conditional importance</p></li>
-<li><p><strong>Ground truth</strong>: Both x1 and x2 have causal effects, x3 has effect, x4 has none</p></li>
+<p><strong>Feature Properties:</strong></p><ul><li><p><code>x1</code>: Standard normal, direct causal effect on y (β=2.0)</p></li>
+<li><p><code>x2</code>: Nearly perfect copy of x1 (x1 + small noise), NO causal effect on y (β=0)</p></li>
+<li><p><code>x3</code>: Independent standard normal, direct causal effect on y (β=1.0)</p></li>
+<li><p><code>x4</code>: Independent standard normal, no effect on y (β=0)</p></li>
+</ul><p><strong>Expected Behavior:</strong></p><ul><li><p><strong>Marginal methods</strong> (PFI, Marginal SAGE): Will falsely assign importance to x2 due to correlation with x1</p></li>
+<li><p><strong>Conditional methods</strong> (CFI, Conditional SAGE): Should correctly assign near-zero importance to x2</p></li>
+<li><p><strong>Key insight</strong>: x2 is a "spurious predictor" - correlated with causal feature but not causal itself</p></li>
 </ul><p><strong>Mediated Effects DGP:</strong>
 This DGP demonstrates the difference between total and direct causal effects.
 Some features affect the outcome only through mediators.</p>
@@ -197,17 +196,17 @@ ISBN 978-3-031-63797-1, <a href="https://doi.org/10.1007/978-3-031-63797-1_22" c
 <span class="r-in"><span><span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>               y          x1         x2         x3          x4</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;num&gt;       &lt;num&gt;      &lt;num&gt;      &lt;num&gt;       &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   1: -2.6414181 -0.60456326 -0.6061328 -0.5926478  1.28059571</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   2:  1.4551972  0.54272676  0.5378335 -0.3739125  1.05379921</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   3: -5.9076344 -2.12811065 -2.1824885  1.4839135 -1.15881591</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   4:  4.1276057  1.14827217  1.0964226  0.1198225  2.05058602</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   5: -3.0438739 -1.13363444 -1.1593766  0.9747457 -0.04264243</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1: -1.7322190 -0.60456326 -0.6061328 -0.5926478  1.28059571</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2:  0.6484470  0.54272676  0.5378335 -0.3739125  1.05379921</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   3: -2.6339016 -2.12811065 -2.1824885  1.4839135 -1.15881591</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   4:  2.4829718  1.14827217  1.0964226  0.1198225  2.05058602</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   5: -1.3048091 -1.13363444 -1.1593766  0.9747457 -0.04264243</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                                         </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 196: -4.1539678 -1.32872128 -1.2972253  0.5468677  0.26051622</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 197: -0.2319084  0.26173594  0.2041503 -1.0758494 -0.73128217</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 198: -2.3876013 -0.85525389 -0.7914119  0.2770612  1.63629555</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 199: -0.5964431 -0.05907189 -0.1112073 -0.3672032 -1.11308245</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 200: -2.7724369 -0.98834804 -0.9979079  0.3806760  1.21603999</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 196: -2.2081298 -1.32872128 -1.2972253  0.5468677  0.26051622</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 197: -0.5381338  0.26173594  0.2041503 -1.0758494 -0.73128217</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 198: -1.2004834 -0.85525389 -0.7914119  0.2770612  1.63629555</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 199: -0.4296322 -0.05907189 -0.1112073 -0.3672032 -1.11308245</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 200: -1.2755750 -0.98834804 -0.9979079  0.3806760  1.21603999</span>
 <span class="r-in"><span><span class="va">task</span> <span class="op">=</span> <span class="fu">sim_dgp_mediated</span><span class="op">(</span><span class="fl">200</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>               y      direct    exposure    mediator       noise</span>

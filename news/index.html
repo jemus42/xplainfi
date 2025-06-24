@@ -70,6 +70,7 @@
 <li>Add <code>$obs_loss</code> and <code>$predictions</code> fields to <code>FeatureImportanceMeasure</code>, nosw used by <code>LOCO</code> and <code>LOCI</code>
 <ul><li>Both get arugments <code>obs_loss = FALSE</code> and <code>aggregation_fun</code>, defaulting to <code>median</code> in case of <code>obs_loss = TRUE</code>, to allow for macro-averaged median of absolute differences calculcation as in original LOCO formulation, rather than the micro-averaged approach calculated by default.</li>
 </ul></li>
+<li>Fix accidentally marginal <code>ConditionalSAGE</code>.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="xplainfi-010">xplainfi 0.1.0<a class="anchor" aria-label="anchor" href="#xplainfi-010"></a></h2>

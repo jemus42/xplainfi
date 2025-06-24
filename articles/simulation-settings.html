@@ -116,10 +116,10 @@ structures visualized as directed acyclic graphs (DAGs).</p>
 <caption>Overview of simulation settings and expected method
 behavior</caption>
 <colgroup>
-<col width="20%">
-<col width="24%">
+<col width="21%">
 <col width="25%">
-<col width="28%">
+<col width="22%">
+<col width="29%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">DGP</th>
@@ -130,9 +130,9 @@ behavior</caption>
 <tbody>
 <tr class="odd">
 <td align="left">sim_dgp_correlated</td>
-<td align="left">Feature correlation</td>
-<td align="left">High (breaks correlation)</td>
-<td align="left">Low (preserves correlation)</td>
+<td align="left">Spurious correlation</td>
+<td align="left">High for spurious x2</td>
+<td align="left">Low for spurious x2</td>
 </tr>
 <tr class="even">
 <td align="left">sim_dgp_mediated</td>
@@ -170,16 +170,16 @@ behavior</caption>
 <div class="section level2">
 <h2 id="correlated-features-dgp">1. Correlated Features DGP<a class="anchor" aria-label="anchor" href="#correlated-features-dgp"></a>
 </h2>
-<p>This DGP creates highly correlated predictors that illustrate the
-fundamental difference between PFI and CFI when features are
-redundant.</p>
+<p>This DGP creates a highly correlated spurious predictor to illustrate
+the fundamental difference between marginal and conditional importance
+methods.</p>
 <div class="section level3">
 <h3 id="mathematical-model">Mathematical Model<a class="anchor" aria-label="anchor" href="#mathematical-model"></a>
 </h3>
 <p><span class="math display">\[X_1 \sim N(0,1)\]</span> <span class="math display">\[X_2 = X_1 + \varepsilon_2, \quad \varepsilon_2
 \sim N(0, 0.05^2)\]</span> <span class="math display">\[X_3 \sim N(0,1),
 \quad X_4 \sim N(0,1)\]</span> <span class="math display">\[Y = 2 \cdot
-X_1 + 1.5 \cdot X_2 + X_3 + \varepsilon\]</span></p>
+X_1 + X_3 + \varepsilon\]</span></p>
 <p>where <span class="math inline">\(\varepsilon \sim N(0,
 0.2^2)\)</span>.</p>
 </div>
@@ -188,7 +188,7 @@ X_1 + 1.5 \cdot X_2 + X_3 + \varepsilon\]</span></p>
 </h3>
 <div class="figure">
 <div class="grViz html-widget html-fill-item" id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:960px;height:384px;"></div>
-<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"diagram":"\n  digraph Correlated {\n    rankdir=LR;\n    graph [ranksep=1.5];\n    node [shape=circle, style=filled, fontsize=14, width=1.2];\n    \n    X1 [fillcolor=\"lightcoral\", label=\"X₁\n(β=2.0)\"];\n    X2 [fillcolor=\"lightcoral\", label=\"X₂\n(β=1.5)\"];\n    X3 [fillcolor=\"lightblue\", label=\"X₃\n(β=1.0)\"];\n    X4 [fillcolor=\"lightgray\", label=\"X₄\n(β=0)\"];\n    Y [fillcolor=\"greenyellow\", label=\"Y\", width=1.5];\n    \n    X1 -> X2 [color=red, style=bold, label=\"≈1.0\"];\n    X1 -> Y [label=\"2.0\"];\n    X2 -> Y [label=\"1.5\"];\n    X3 -> Y [label=\"1.0\"];\n    X4 -> Y [style=dashed, color=gray];\n    \n    {rank=source; X1; X3; X4}\n    {rank=same; X2}\n    {rank=sink; Y}\n  }","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p class="caption">
+<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"diagram":"\n  digraph Correlated {\n    rankdir=LR;\n    graph [ranksep=1.5];\n    node [shape=circle, style=filled, fontsize=14, width=1.2];\n    \n    X1 [fillcolor=\"lightcoral\", label=\"X₁\n(β=2.0)\"];\n    X2 [fillcolor=\"pink\", label=\"X₂\n(β=0)\"];\n    X3 [fillcolor=\"lightblue\", label=\"X₃\n(β=1.0)\"];\n    X4 [fillcolor=\"lightgray\", label=\"X₄\n(β=0)\"];\n    Y [fillcolor=\"greenyellow\", label=\"Y\", width=1.5];\n    \n    X1 -> X2 [color=red, style=bold, label=\"≈1.0\"];\n    X1 -> Y [label=\"2.0\"];\n    X2 -> Y [style=dashed, color=gray, label=\"0\"];\n    X3 -> Y [label=\"1.0\"];\n    X4 -> Y [style=dashed, color=gray];\n    \n    {rank=source; X1; X3; X4}\n    {rank=same; X2}\n    {rank=sink; Y}\n  }","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p class="caption">
 DAG for correlated features DGP
 </p>
 </div>
@@ -206,31 +206,26 @@ DAG for correlated features DGP
 <span><span class="co">#&gt; x1 1.0000000 0.9986492</span></span>
 <span><span class="co">#&gt; x2 0.9986492 1.0000000</span></span>
 <span></span>
-<span><span class="co"># True coefficients: x1=2.0, x2=1.5, x3=1.0, x4=0</span></span></code></pre></div>
+<span><span class="co"># True coefficients: x1=2.0, x2=0, x3=1.0, x4=0</span></span>
+<span><span class="co"># Note: x2 is highly correlated with x1 but has NO causal effect!</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="expected-behavior">Expected Behavior<a class="anchor" aria-label="anchor" href="#expected-behavior"></a>
 </h3>
 <ul>
 <li>
-<strong>PFI</strong>: Shows high importance for x1 and x2 because
-permuting either feature breaks the correlation structure, creating
-unrealistic data combinations that confuse the model</li>
+<strong>Marginal methods (PFI, Marginal SAGE)</strong>: Will falsely
+assign high importance to x2 because permuting it breaks the correlation
+with x1, creating unrealistic data that confuses the model</li>
 <li>
-<strong>CFI</strong>: Shows low importance for x1 and x2 because
-conditional sampling preserves the correlation, meaning each feature
-provides little additional information given the other</li>
+<strong>Conditional methods (CFI, Conditional SAGE)</strong>: Should
+correctly assign near-zero importance to x2 because conditional sampling
+preserves the correlation, revealing that x2 adds no information beyond
+what x1 provides</li>
 <li>
-<strong>Interpretation</strong>:
-<ul>
-<li>PFI measures marginal importance (how much the feature matters on
-its own)</li>
-<li>CFI measures conditional importance (how much the feature matters
-given other features)</li>
-<li>Both x1 and x2 are individually important but redundant with each
-other</li>
-</ul>
-</li>
+<strong>Key insight</strong>: x2 is a spurious predictor - it
+appears predictive due to correlation with x1 but has no causal effect
+on y</li>
 </ul>
 </div>
 </div>
@@ -497,27 +492,30 @@ features DGP:</p>
 <span></span>
 <span><span class="co"># Compute PFI</span></span>
 <span><span class="va">pfi</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">task</span>, <span class="va">learner</span>, <span class="va">measure</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided, using holdout resampling with default ratio.</span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature  importance</span></span>
 <span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:      x1 6.150049945</span></span>
-<span><span class="co">#&gt; 2:      x2 7.007573628</span></span>
-<span><span class="co">#&gt; 3:      x3 1.365672229</span></span>
-<span><span class="co">#&gt; 4:      x4 0.002355544</span></span>
+<span><span class="co">#&gt; 1:      x1 2.121359858</span></span>
+<span><span class="co">#&gt; 2:      x2 2.225174152</span></span>
+<span><span class="co">#&gt; 3:      x3 1.482607702</span></span>
+<span><span class="co">#&gt; 4:      x4 0.001266445</span></span>
 <span></span>
 <span><span class="co"># Compute CFI</span></span>
 <span><span class="va">cfi</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/CFI.html">CFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">task</span>, <span class="va">learner</span>, <span class="va">measure</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;ConditionalSampler&gt;</span> provided, using <span style="color: #0000BB;">&lt;ARFSampler&gt;</span> with default settings.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided, using holdout resampling with default ratio.</span></span>
 <span><span class="va">cfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature   importance</span></span>
 <span><span class="co">#&gt;     &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:      x1  0.452226112</span></span>
-<span><span class="co">#&gt; 2:      x2  0.287274962</span></span>
-<span><span class="co">#&gt; 3:      x3  1.296049914</span></span>
-<span><span class="co">#&gt; 4:      x4 -0.001758482</span></span></code></pre></div>
-<p>Expected pattern: PFI shows high importance for correlated x1,x2
-while CFI shows low importance (they are redundant given each other)</p>
+<span><span class="co">#&gt; 1:      x1 0.1640989568</span></span>
+<span><span class="co">#&gt; 2:      x2 0.0801231825</span></span>
+<span><span class="co">#&gt; 3:      x3 1.3948312601</span></span>
+<span><span class="co">#&gt; 4:      x4 0.0001695743</span></span></code></pre></div>
+<p>Expected pattern: PFI falsely shows high importance for spurious x2
+while CFI correctly shows near-zero importance for x2</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

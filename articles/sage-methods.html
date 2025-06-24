@@ -121,34 +121,62 @@ conditionally using ARF sampling</li>
 </ul>
 </div>
 <div class="section level2">
-<h2 id="the-friedman1-task">The Friedman1 Task<a class="anchor" aria-label="anchor" href="#the-friedman1-task"></a>
+<h2 id="demonstration-with-correlated-features">Demonstration with Correlated Features<a class="anchor" aria-label="anchor" href="#demonstration-with-correlated-features"></a>
 </h2>
-<p>We’ll use the Friedman1 task generator to demonstrate SAGE methods.
-This synthetic regression task has a known ground truth that makes it
-easy to interpret results:</p>
+<p>To showcase the difference between Marginal and Conditional SAGE,
+we’ll use the <code><a href="../reference/sim_dgp_scenarios.html">sim_dgp_correlated()</a></code> function which creates
+highly correlated features. This is similar to how PFI and CFI behave
+differently with correlated features.</p>
+<p><strong>Model:</strong> <span class="math display">\[X_1 \sim
+N(0,1)\]</span> <span class="math display">\[X_2 = X_1 + \varepsilon_2,
+\quad \varepsilon_2 \sim N(0, 0.05^2)\]</span> <span class="math display">\[X_3 \sim N(0,1), \quad X_4 \sim N(0,1)\]</span>
+<span class="math display">\[Y = 2 \cdot X_1 + X_3 +
+\varepsilon\]</span></p>
+<p>where <span class="math inline">\(\varepsilon \sim N(0,
+0.2^2)\)</span>.</p>
+<p><strong>Key properties:</strong></p>
 <ul>
 <li>
-<strong>5 important features</strong> (<code>important1</code> to
-<code>important5</code>) that actually affect the target</li>
+<code>x1</code> has a direct causal effect on y (β=2.0)</li>
 <li>
-<strong>5 unimportant features</strong> (<code>unimportant1</code>
-to <code>unimportant5</code>) that are pure noise</li>
+<code>x2</code> is highly correlated with x1 (r ≈ 0.999) but has
+<strong>no causal effect</strong> on y</li>
+<li>
+<code>x3</code> is independent with a causal effect (β=1.0)</li>
+<li>
+<code>x4</code> is independent noise (β=0)</li>
 </ul>
-<p>The target function is: <span class="math inline">\(y = 10 *
-\operatorname{sin}(\pi * x_1 * x_2) + 20 * (x_3 - 0.5)^2 + 10 * x_4 + 5
-* x_5 + \epsilon\)</span></p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
-<span><span class="va">task</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tgen</a></span><span class="op">(</span><span class="st">"friedman1"</span><span class="op">)</span><span class="op">$</span><span class="fu">generate</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span></code></pre></div>
-<p>The task has 500 observations with 10 features: important1,
-important2, important3, important4, important5, unimportant1,
-unimportant2, unimportant3, unimportant4, unimportant5. The target
-variable is y.</p>
-<p>Let’s set up our learner and measure. We’ll use a random forest which
-should be able to capture the nonlinear relationships in the data:</p>
+<span><span class="va">task</span> <span class="op">=</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_correlated</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">800</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Check the correlation structure</span></span>
+<span><span class="va">task_data</span> <span class="op">=</span> <span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">correlation_matrix</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">task_data</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span>, <span class="st">"x3"</span>, <span class="st">"x4"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">correlation_matrix</span>, <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="co">#&gt;        x1     x2     x3     x4</span></span>
+<span><span class="co">#&gt; x1  1.000  0.999  0.041 -0.024</span></span>
+<span><span class="co">#&gt; x2  0.999  1.000  0.039 -0.020</span></span>
+<span><span class="co">#&gt; x3  0.041  0.039  1.000 -0.031</span></span>
+<span><span class="co">#&gt; x4 -0.024 -0.020 -0.031  1.000</span></span></code></pre></div>
+<p><strong>Expected behavior:</strong></p>
+<ul>
+<li>
+<strong>Marginal SAGE</strong>: Should show high importance for both
+x1 and x2 due to their correlation, even though x2 has no causal
+effect</li>
+<li>
+<strong>Conditional SAGE</strong>: Should show high importance for
+x1 but near-zero importance for x2 (correctly identifying the spurious
+predictor)</li>
+</ul>
+<p>Let’s set up our learner and measure. We’ll use a random forest and
+instantiate a resampling to ensure both methods see the same data:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">learner</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
-<span><span class="va">measure</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">learner</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">400</span><span class="op">)</span></span>
+<span><span class="va">measure</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span></span>
+<span><span class="va">resampling</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"holdout"</span><span class="op">)</span></span>
+<span><span class="va">resampling</span><span class="op">$</span><span class="fu">instantiate</span><span class="op">(</span><span class="va">task</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="marginal-sage">Marginal SAGE<a class="anchor" aria-label="anchor" href="#marginal-sage"></a>
@@ -162,68 +190,105 @@ implementation described in the original paper.</p>
 <span>  task <span class="op">=</span> <span class="va">task</span>,</span>
 <span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
-<span>  n_permutations <span class="op">=</span> <span class="fl">20L</span>,  <span class="co"># More permutations for stable results</span></span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  n_permutations <span class="op">=</span> <span class="fl">30L</span>,  <span class="co"># More permutations for stable results</span></span>
 <span>  max_reference_size <span class="op">=</span> <span class="fl">100L</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Compute SAGE values</span></span>
-<span><span class="va">marginal_sage</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">marginal_sage</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>batch_size <span class="op">=</span> <span class="fl">5000L</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #0000BB;">647</span> batches of size <span style="color: #0000BB;">5000</span></span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■                               </span>   1% | ETA:  2m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■                               </span>   1% | ETA:  2m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■                              </span>   4% | ETA:  2m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■                             </span>   6% | ETA:  2m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■                            </span>   9% | ETA:  2m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■                            </span>  11% | ETA:  2m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■                           </span>  14% | ETA:  2m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■                          </span>  16% | ETA:  2m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■                         </span>  19% | ETA:  2m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■                         </span>  21% | ETA:  2m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■                        </span>  24% | ETA:  2m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■                       </span>  26% | ETA:  1m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■                      </span>  29% | ETA:  1m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■                      </span>  31% | ETA:  1m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■                     </span>  34% | ETA:  1m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■                    </span>  36% | ETA:  1m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■                   </span>  39% | ETA:  1m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■                   </span>  41% | ETA:  1m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■                  </span>  44% | ETA:  1m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■                 </span>  46% | ETA:  1m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■                </span>  49% | ETA:  1m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■                </span>  51% | ETA:  1m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■               </span>  53% | ETA:  1m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■              </span>  56% | ETA:  1m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■             </span>  58% | ETA:  1m</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■             </span>  61% | ETA: 47s</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■            </span>  64% | ETA: 44s</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■           </span>  66% | ETA: 41s</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■          </span>  69% | ETA: 38s</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■          </span>  71% | ETA: 34s</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■         </span>  74% | ETA: 31s</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■        </span>  77% | ETA: 28s</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■       </span>  79% | ETA: 25s</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■       </span>  81% | ETA: 22s</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■      </span>  84% | ETA: 19s</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■     </span>  87% | ETA: 16s</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■    </span>  89% | ETA: 13s</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■    </span>  91% | ETA: 10s</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■   </span>  94% | ETA:  7s</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  </span>  97% | ETA:  4s</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ </span>  99% | ETA:  1s</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ </span> 100% | ETA:  0s</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature   importance</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  3.822106318</span></span>
-<span><span class="co">#&gt;  2:   important2  4.772059968</span></span>
-<span><span class="co">#&gt;  3:   important3  1.118253503</span></span>
-<span><span class="co">#&gt;  4:   important4  5.893192811</span></span>
-<span><span class="co">#&gt;  5:   important5  1.784793110</span></span>
-<span><span class="co">#&gt;  6: unimportant1 -0.047656519</span></span>
-<span><span class="co">#&gt;  7: unimportant2 -0.048262424</span></span>
-<span><span class="co">#&gt;  8: unimportant3 -0.076914131</span></span>
-<span><span class="co">#&gt;  9: unimportant4 -0.083675223</span></span>
-<span><span class="co">#&gt; 10: unimportant5  0.004202781</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">marginal_sage</span><span class="op">$</span><span class="va">importance</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature   importance</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  3.822106318</span></span>
-<span><span class="co">#&gt;  2:   important2  4.772059968</span></span>
-<span><span class="co">#&gt;  3:   important3  1.118253503</span></span>
-<span><span class="co">#&gt;  4:   important4  5.893192811</span></span>
-<span><span class="co">#&gt;  5:   important5  1.784793110</span></span>
-<span><span class="co">#&gt;  6: unimportant1 -0.047656519</span></span>
-<span><span class="co">#&gt;  7: unimportant2 -0.048262424</span></span>
-<span><span class="co">#&gt;  8: unimportant3 -0.076914131</span></span>
-<span><span class="co">#&gt;  9: unimportant4 -0.083675223</span></span>
-<span><span class="co">#&gt; 10: unimportant5  0.004202781</span></span></code></pre></div>
+<span><span class="co">#&gt;    feature   importance</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;        &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      x1  2.345195994</span></span>
+<span><span class="co">#&gt; 2:      x2  2.081543369</span></span>
+<span><span class="co">#&gt; 3:      x3  1.092772173</span></span>
+<span><span class="co">#&gt; 4:      x4 -0.001768496</span></span></code></pre></div>
 <p>Let’s visualize the results:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># Extract importance scores</span></span>
-<span><span class="va">marginal_results</span> <span class="op">=</span> <span class="va">marginal_sage</span><span class="op">$</span><span class="va">importance</span></span>
-<span><span class="va">marginal_results</span><span class="op">$</span><span class="va">method</span> <span class="op">=</span> <span class="st">"Marginal SAGE"</span></span>
-<span></span>
-<span><span class="co"># Create a factor with proper ordering</span></span>
-<span><span class="va">marginal_results</span><span class="op">$</span><span class="va">feature</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span></span>
-<span>  <span class="va">marginal_results</span><span class="op">$</span><span class="va">feature</span>,</span>
-<span>  levels <span class="op">=</span> <span class="va">marginal_results</span><span class="op">$</span><span class="va">feature</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">marginal_results</span><span class="op">$</span><span class="va">importance</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Create bar plot</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">marginal_results</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">feature</span>, y <span class="op">=</span> <span class="va">importance</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"^important"</span>, <span class="va">feature</span><span class="op">)</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_fill_manual</a></span><span class="op">(</span></span>
-<span>    values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"FALSE"</span> <span class="op">=</span> <span class="st">"lightcoral"</span>, <span class="st">"TRUE"</span> <span class="op">=</span> <span class="st">"steelblue"</span><span class="op">)</span>,</span>
-<span>    labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Noise features"</span>, <span class="st">"Important features"</span><span class="op">)</span>,</span>
-<span>    name <span class="op">=</span> <span class="st">"Feature type"</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"Marginal SAGE Feature Importance"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="st">"Friedman1 task: 5 important features + 5 noise features"</span>,</span>
-<span>    x <span class="op">=</span> <span class="st">"Features"</span>, </span>
-<span>    y <span class="op">=</span> <span class="st">"SAGE Value"</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">45</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="sage-methods_files/figure-html/marginal-sage-plot-1.png" width="768"></p>
 </div>
 <div class="section level2">
@@ -233,200 +298,169 @@ implementation described in the original paper.</p>
 marginalize features while preserving dependencies between the remaining
 features. This can provide different insights, especially when features
 are correlated.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create Conditional SAGE instance</span></span>
 <span><span class="va">conditional_sage</span> <span class="op">=</span> <span class="va"><a href="../reference/ConditionalSAGE.html">ConditionalSAGE</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task</span>,</span>
 <span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
-<span>  n_permutations <span class="op">=</span> <span class="fl">20L</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  n_permutations <span class="op">=</span> <span class="fl">30L</span>,</span>
 <span>  max_reference_size <span class="op">=</span> <span class="fl">100L</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;ConditionalSampler&gt;</span> provided, using <span style="color: #0000BB;">&lt;ARFSampler&gt;</span> with default settings.</span></span>
 <span></span>
 <span><span class="co"># Compute SAGE values</span></span>
-<span><span class="va">conditional_sage</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">conditional_sage</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>batch_size <span class="op">=</span> <span class="fl">5000L</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #0000BB;">647</span> batches of size <span style="color: #0000BB;">5000</span></span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■                               </span>   1% | ETA:  2m</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■                              </span>   4% | ETA:  2m</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■                             </span>   7% | ETA:  2m</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■                            </span>   9% | ETA:  2m</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■                           </span>  12% | ETA:  2m</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■                          </span>  15% | ETA:  1m</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■                          </span>  18% | ETA:  1m</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■                         </span>  21% | ETA:  1m</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■                        </span>  24% | ETA:  1m</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■                       </span>  27% | ETA:  1m</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■                      </span>  30% | ETA:  1m</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■                     </span>  33% | ETA:  1m</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■                    </span>  35% | ETA:  1m</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■                    </span>  38% | ETA:  1m</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■                   </span>  41% | ETA:  1m</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■                  </span>  44% | ETA:  1m</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■                 </span>  47% | ETA:  1m</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■                </span>  50% | ETA:  1m</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■               </span>  53% | ETA: 49s</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■              </span>  56% | ETA: 46s</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■             </span>  59% | ETA: 43s</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■             </span>  61% | ETA: 40s</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■            </span>  64% | ETA: 37s</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■           </span>  67% | ETA: 34s</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■          </span>  70% | ETA: 31s</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■         </span>  73% | ETA: 28s</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■        </span>  76% | ETA: 25s</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■       </span>  79% | ETA: 22s</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■       </span>  82% | ETA: 19s</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■      </span>  84% | ETA: 16s</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■     </span>  87% | ETA: 13s</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■    </span>  90% | ETA: 10s</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■   </span>  93% | ETA:  7s</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  </span>  96% | ETA:  4s</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ </span>  99% | ETA:  1s</span></span>
+<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ </span> 100% | ETA:  0s</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature  importance</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;       &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  4.94332708</span></span>
-<span><span class="co">#&gt;  2:   important2  4.43093215</span></span>
-<span><span class="co">#&gt;  3:   important3  1.59920720</span></span>
-<span><span class="co">#&gt;  4:   important4  7.33511651</span></span>
-<span><span class="co">#&gt;  5:   important5  1.83157318</span></span>
-<span><span class="co">#&gt;  6: unimportant1 -0.27698082</span></span>
-<span><span class="co">#&gt;  7: unimportant2  0.29035816</span></span>
-<span><span class="co">#&gt;  8: unimportant3  1.57639985</span></span>
-<span><span class="co">#&gt;  9: unimportant4 -0.01202852</span></span>
-<span><span class="co">#&gt; 10: unimportant5  0.58770433</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">conditional_sage</span><span class="op">$</span><span class="va">importance</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature  importance</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;       &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  4.94332708</span></span>
-<span><span class="co">#&gt;  2:   important2  4.43093215</span></span>
-<span><span class="co">#&gt;  3:   important3  1.59920720</span></span>
-<span><span class="co">#&gt;  4:   important4  7.33511651</span></span>
-<span><span class="co">#&gt;  5:   important5  1.83157318</span></span>
-<span><span class="co">#&gt;  6: unimportant1 -0.27698082</span></span>
-<span><span class="co">#&gt;  7: unimportant2  0.29035816</span></span>
-<span><span class="co">#&gt;  8: unimportant3  1.57639985</span></span>
-<span><span class="co">#&gt;  9: unimportant4 -0.01202852</span></span>
-<span><span class="co">#&gt; 10: unimportant5  0.58770433</span></span></code></pre></div>
+<span><span class="co">#&gt;    feature importance</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      x1  4.8350542</span></span>
+<span><span class="co">#&gt; 2:      x2  4.5031386</span></span>
+<span><span class="co">#&gt; 3:      x3  2.1808513</span></span>
+<span><span class="co">#&gt; 4:      x4  0.4859302</span></span></code></pre></div>
 <p>Let’s visualize the conditional SAGE results:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Extract importance scores</span></span>
-<span><span class="va">conditional_results</span> <span class="op">=</span> <span class="va">conditional_sage</span><span class="op">$</span><span class="va">importance</span></span>
-<span><span class="va">conditional_results</span><span class="op">$</span><span class="va">method</span> <span class="op">=</span> <span class="st">"Conditional SAGE"</span></span>
-<span></span>
-<span><span class="co"># Create a factor with proper ordering</span></span>
-<span><span class="va">conditional_results</span><span class="op">$</span><span class="va">feature</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span></span>
-<span>  <span class="va">conditional_results</span><span class="op">$</span><span class="va">feature</span>,</span>
-<span>  levels <span class="op">=</span> <span class="va">conditional_results</span><span class="op">$</span><span class="va">feature</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">conditional_results</span><span class="op">$</span><span class="va">importance</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Create bar plot</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">conditional_results</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">feature</span>, y <span class="op">=</span> <span class="va">importance</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"^important"</span>, <span class="va">feature</span><span class="op">)</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_fill_manual</a></span><span class="op">(</span></span>
-<span>    values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"FALSE"</span> <span class="op">=</span> <span class="st">"lightcoral"</span>, <span class="st">"TRUE"</span> <span class="op">=</span> <span class="st">"steelblue"</span><span class="op">)</span>,</span>
-<span>    labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Noise features"</span>, <span class="st">"Important features"</span><span class="op">)</span>,</span>
-<span>    name <span class="op">=</span> <span class="st">"Feature type"</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"Conditional SAGE Feature Importance"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="st">"Friedman1 task: 5 important features + 5 noise features"</span>,</span>
-<span>    x <span class="op">=</span> <span class="st">"Features"</span>, </span>
-<span>    y <span class="op">=</span> <span class="st">"SAGE Value"</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">45</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="sage-methods_files/figure-html/conditional-sage-plot-1.png" width="768"></p>
 </div>
 <div class="section level2">
 <h2 id="comparison-of-methods">Comparison of Methods<a class="anchor" aria-label="anchor" href="#comparison-of-methods"></a>
 </h2>
 <p>Let’s compare the two SAGE methods side by side:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Combine results</span></span>
-<span><span class="va">combined_results</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">marginal_results</span>, <span class="va">conditional_results</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Create comparison plot</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">combined_results</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">feature</span>, y <span class="op">=</span> <span class="va">importance</span>, fill <span class="op">=</span> <span class="va">method</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span>position <span class="op">=</span> <span class="st">"dodge"</span>, alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_fill_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Marginal SAGE"</span> <span class="op">=</span> <span class="st">"steelblue"</span>, <span class="st">"Conditional SAGE"</span> <span class="op">=</span> <span class="st">"darkgreen"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"Marginal vs Conditional SAGE Comparison"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="st">"Friedman1 task: Both methods should identify important features"</span>,</span>
-<span>    x <span class="op">=</span> <span class="st">"Features"</span>, </span>
-<span>    y <span class="op">=</span> <span class="st">"SAGE Value"</span>,</span>
-<span>    fill <span class="op">=</span> <span class="st">"Method"</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">45</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"^important"</span>, <span class="va">feature</span><span class="op">)</span>, </span>
-<span>             labeller <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labeller.html" class="external-link">labeller</a></span><span class="op">(</span>.default <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">x</span>, <span class="st">"Important Features"</span>, <span class="st">"Noise Features"</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>             scales <span class="op">=</span> <span class="st">"free_x"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="sage-methods_files/figure-html/comparison-1.png" width="768"></p>
 <p>Let’s also create a correlation plot to see how similar the rankings
 are:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Merge the two results for correlation analysis</span></span>
-<span><span class="va">merged_results</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span></span>
-<span>  <span class="va">marginal_results</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"feature"</span>, <span class="st">"importance"</span><span class="op">)</span><span class="op">]</span>, </span>
-<span>  <span class="va">conditional_results</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"feature"</span>, <span class="st">"importance"</span><span class="op">)</span><span class="op">]</span>, </span>
-<span>  by <span class="op">=</span> <span class="st">"feature"</span>, </span>
-<span>  suffixes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"_marginal"</span>, <span class="st">"_conditional"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Calculate correlation</span></span>
-<span><span class="va">correlation</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">merged_results</span><span class="op">$</span><span class="va">importance_marginal</span>, <span class="va">merged_results</span><span class="op">$</span><span class="va">importance_conditional</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Create scatter plot</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">merged_results</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">importance_marginal</span>, y <span class="op">=</span> <span class="va">importance_conditional</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>color <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"^important"</span>, <span class="va">feature</span><span class="op">)</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">3</span>, alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth</a></span><span class="op">(</span>method <span class="op">=</span> <span class="st">"lm"</span>, se <span class="op">=</span> <span class="cn">FALSE</span>, color <span class="op">=</span> <span class="st">"gray50"</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span></span>
-<span>    values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"FALSE"</span> <span class="op">=</span> <span class="st">"lightcoral"</span>, <span class="st">"TRUE"</span> <span class="op">=</span> <span class="st">"steelblue"</span><span class="op">)</span>,</span>
-<span>    labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Noise features"</span>, <span class="st">"Important features"</span><span class="op">)</span>,</span>
-<span>    name <span class="op">=</span> <span class="st">"Feature type"</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"Marginal vs Conditional SAGE Correlation"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Pearson correlation: %.3f"</span>, <span class="va">correlation</span><span class="op">)</span>,</span>
-<span>    x <span class="op">=</span> <span class="st">"Marginal SAGE Value"</span>,</span>
-<span>    y <span class="op">=</span> <span class="st">"Conditional SAGE Value"</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_text.html" class="external-link">geom_text</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>label <span class="op">=</span> <span class="va">feature</span><span class="op">)</span>, hjust <span class="op">=</span> <span class="fl">0</span>, vjust <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
+<pre><code><span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre>
 <p><img src="sage-methods_files/figure-html/correlation-plot-1.png" width="768"></p>
+<div class="section level3">
+<h3 id="interpretation">Interpretation<a class="anchor" aria-label="anchor" href="#interpretation"></a>
+</h3>
+<p>The results demonstrate the key difference between marginal and
+conditional SAGE:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Marginal SAGE</strong> treats each feature independently,
+so highly correlated features x1 and x2 both receive substantial
+importance scores reflecting their individual marginal
+contributions.</p></li>
+<li><p><strong>Conditional SAGE</strong> accounts for feature
+dependencies through conditional sampling. When marginalizing x1, it
+properly conditions on x2 (and vice versa), leading to lower importance
+scores for the correlated features since they provide redundant
+information.</p></li>
+<li><p><strong>Independent feature x3</strong> shows similar importance
+in both methods since it doesn’t depend on other features.</p></li>
+<li><p><strong>Noise feature x4</strong> correctly receives near-zero
+importance in both methods.</p></li>
+</ol>
+<p>This pattern mirrors the difference between PFI and CFI: marginal
+methods show inflated importance for correlated features, while
+conditional methods provide a more accurate assessment of each feature’s
+unique contribution.</p>
+</div>
 </div>
 <div class="section level2">
-<h2 id="understanding-the-results">Understanding the Results<a class="anchor" aria-label="anchor" href="#understanding-the-results"></a>
+<h2 id="comparison-with-pfi-and-cfi">Comparison with PFI and CFI<a class="anchor" aria-label="anchor" href="#comparison-with-pfi-and-cfi"></a>
 </h2>
-<p>Let’s analyze what we learned from this comparison:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Calculate summary statistics</span></span>
-<span><span class="va">important_marginal</span> <span class="op">=</span> <span class="va">marginal_results</span><span class="op">$</span><span class="va">importance</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"^important"</span>, <span class="va">marginal_results</span><span class="op">$</span><span class="va">feature</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="va">noise_marginal</span> <span class="op">=</span> <span class="va">marginal_results</span><span class="op">$</span><span class="va">importance</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"^unimportant"</span>, <span class="va">marginal_results</span><span class="op">$</span><span class="va">feature</span><span class="op">)</span><span class="op">]</span></span>
+<p>For reference, let’s compare SAGE methods with the analogous PFI and
+CFI methods on the same data:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Quick PFI and CFI comparison for context</span></span>
+<span><span class="va">pfi</span> <span class="op">=</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">task</span>, <span class="va">learner</span>, <span class="va">measure</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided, using holdout resampling with default ratio.</span></span>
+<span><span class="va">cfi</span> <span class="op">=</span> <span class="va"><a href="../reference/CFI.html">CFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">task</span>, <span class="va">learner</span>, <span class="va">measure</span><span class="op">)</span> </span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;ConditionalSampler&gt;</span> provided, using <span style="color: #0000BB;">&lt;ARFSampler&gt;</span> with default settings.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided, using holdout resampling with default ratio.</span></span>
 <span></span>
-<span><span class="va">important_conditional</span> <span class="op">=</span> <span class="va">conditional_results</span><span class="op">$</span><span class="va">importance</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"^important"</span>, <span class="va">conditional_results</span><span class="op">$</span><span class="va">feature</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="va">noise_conditional</span> <span class="op">=</span> <span class="va">conditional_results</span><span class="op">$</span><span class="va">importance</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"^unimportant"</span>, <span class="va">conditional_results</span><span class="op">$</span><span class="va">feature</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">pfi_results</span> <span class="op">=</span> <span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">cfi_results</span> <span class="op">=</span> <span class="va">cfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Store for inline reporting</span></span>
-<span><span class="va">marg_imp_mean</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">important_marginal</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span>
-<span><span class="va">marg_imp_std</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">important_marginal</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span>
-<span><span class="va">marg_noise_mean</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">noise_marginal</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span>
-<span><span class="va">marg_noise_std</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">noise_marginal</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span>
-<span><span class="va">marg_separation</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">important_marginal</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">noise_marginal</span><span class="op">)</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="co"># Create comparison data frame</span></span>
+<span><span class="va">method_comparison</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  feature <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span>, <span class="st">"x3"</span>, <span class="st">"x4"</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span>,</span>
+<span>  importance <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="va">pfi_results</span><span class="op">$</span><span class="va">importance</span>,</span>
+<span>    <span class="va">cfi_results</span><span class="op">$</span><span class="va">importance</span>,</span>
+<span>    <span class="va">marginal_results</span><span class="op">$</span><span class="va">importance</span>,</span>
+<span>    <span class="va">conditional_results</span><span class="op">$</span><span class="va">importance</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PFI"</span>, <span class="st">"CFI"</span>, <span class="st">"Marginal SAGE"</span>, <span class="st">"Conditional SAGE"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>,</span>
+<span>  approach <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Marginal"</span>, <span class="st">"Conditional"</span>, <span class="st">"Marginal"</span>, <span class="st">"Conditional"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">cond_imp_mean</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">important_conditional</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span>
-<span><span class="va">cond_imp_std</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">important_conditional</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span>
-<span><span class="va">cond_noise_mean</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">noise_conditional</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span>
-<span><span class="va">cond_noise_std</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">noise_conditional</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span>
-<span><span class="va">cond_separation</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">important_conditional</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">noise_conditional</span><span class="op">)</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">method_correlation</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">correlation</span>, <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="va">total_sage_marginal</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">marginal_results</span><span class="op">$</span><span class="va">importance</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span>
-<span><span class="va">total_sage_conditional</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">conditional_results</span><span class="op">$</span><span class="va">importance</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="marginal-sage-results">Marginal SAGE Results<a class="anchor" aria-label="anchor" href="#marginal-sage-results"></a>
-</h3>
+<span><span class="co"># Create comparison plot</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">method_comparison</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">feature</span>, y <span class="op">=</span> <span class="va">importance</span>, fill <span class="op">=</span> <span class="va">method</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span>position <span class="op">=</span> <span class="st">"dodge"</span>, alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_fill_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"PFI"</span> <span class="op">=</span> <span class="st">"lightblue"</span>, </span>
+<span>    <span class="st">"CFI"</span> <span class="op">=</span> <span class="st">"blue"</span>, </span>
+<span>    <span class="st">"Marginal SAGE"</span> <span class="op">=</span> <span class="st">"lightcoral"</span>, </span>
+<span>    <span class="st">"Conditional SAGE"</span> <span class="op">=</span> <span class="st">"darkred"</span></span>
+<span>  <span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
+<span>    title <span class="op">=</span> <span class="st">"Comparison: PFI/CFI vs Marginal/Conditional SAGE"</span>,</span>
+<span>    subtitle <span class="op">=</span> <span class="st">"Both pairs show similar patterns: marginal methods inflate correlated feature importance"</span>,</span>
+<span>    x <span class="op">=</span> <span class="st">"Features"</span>, </span>
+<span>    y <span class="op">=</span> <span class="st">"Importance Value"</span>,</span>
+<span>    fill <span class="op">=</span> <span class="st">"Method"</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">45</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="sage-methods_files/figure-html/pfi-cfi-comparison-1.png" width="768"></p>
+<p><strong>Key Observations:</strong></p>
 <ul>
 <li>
-<strong>Important features</strong> - Mean: 3.4781 | Std:
-2.0038</li>
+<strong>Marginal methods</strong> (PFI, Marginal SAGE) both assign
+high importance to correlated features x1 and x2</li>
 <li>
-<strong>Noise features</strong> - Mean: -0.0505 | Std: 0.0347<br>
-</li>
+<strong>Conditional methods</strong> (CFI, Conditional SAGE) both
+reduce importance for correlated features, accounting for
+redundancy</li>
 <li>
-<strong>Separation ratio</strong>: 66.7</li>
+<strong>Independent feature x3</strong> receives consistent
+importance across all methods</li>
+<li>
+<strong>Noise feature x4</strong> is correctly identified as
+unimportant by all methods</li>
 </ul>
-</div>
-<div class="section level3">
-<h3 id="conditional-sage-results">Conditional SAGE Results<a class="anchor" aria-label="anchor" href="#conditional-sage-results"></a>
-</h3>
-<ul>
-<li>
-<strong>Important features</strong> - Mean: 4.028 | Std: 2.3802</li>
-<li>
-<strong>Noise features</strong> - Mean: 0.4331 | Std: 0.7165</li>
-<li>
-<strong>Separation ratio</strong>: 7.34</li>
-</ul>
-</div>
-<div class="section level3">
-<h3 id="method-comparison">Method Comparison<a class="anchor" aria-label="anchor" href="#method-comparison"></a>
-</h3>
-<ul>
-<li>
-<strong>Correlation between methods</strong>: 0.963</li>
-<li>
-<strong>Total SAGE sum (Marginal)</strong>: 17.1381</li>
-<li>
-<strong>Total SAGE sum (Conditional)</strong>: 22.3056</li>
-</ul>
-</div>
+<p>This demonstrates that the marginal vs conditional distinction is a
+fundamental concept that applies across different importance method
+families.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
