@@ -283,6 +283,11 @@ CFI = R6Class(
       # Use ARFSampler by default for CFI
       if (is.null(sampler)) {
         sampler = ARFSampler$new(task)
+        cli::cli_alert_info(
+          "No {.cls ConditionalSampler} provided, using {.cls ARFSampler} with default settings."
+        )
+      } else {
+        checkmate::assert_class(sampler, "ConditionalSampler")
       }
 
       super$initialize(

@@ -45,13 +45,29 @@ FeatureImportanceMethod = R6Class(
     ) {
       self$task = mlr3::assert_task(task)
       self$learner = mlr3::assert_learner(learner, task = task, task_type = task$task_type)
-      self$measure = mlr3::assert_measure(measure, task = task, learner = learner)
+      if (is.null(measure)) {
+        self$measure = switch(
+          task$task_type,
+          "classif" = mlr3::msr("classif.ce"),
+          "regr" = mlr3::msr("regr.mse")
+        )
+        cli::cli_alert_info(
+          "No {.cls Measure} provided, using default measure {.val {self$measure$id}}"
+        )
+      } else {
+        self$measure = mlr3::assert_measure(measure, task = task, learner = learner)
+      }
       self$param_set = paradox::assert_param_set(param_set)
       self$label = checkmate::assert_string(label, min.chars = 1)
       self$features = features %||% self$task$feature_names
 
       # resampling: default to holdout with default ratio if NULL
-      resampling = resampling %||% mlr3::rsmp("holdout")$instantiate(task)
+      if (is.null(resampling)) {
+        resampling = mlr3::rsmp("holdout")$instantiate(task)
+        cli::cli_alert_info(
+          "No {.cls Resampling} provided, using holdout resampling with default ratio."
+        )
+      }
       if (!resampling$is_instantiated) {
         resampling$instantiate(task)
       }
