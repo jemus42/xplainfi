@@ -245,6 +245,8 @@ SAGE = R6Class(
         n_batches = ceiling(total_rows / batch_size)
         all_predictions = vector("list", n_batches)
 
+        cli::cli_progress_bar("Evaluating batches", total = n_batches)
+
         for (batch_idx in seq_len(n_batches)) {
           start_row = (batch_idx - 1) * batch_size + 1
           end_row = min(batch_idx * batch_size, total_rows)
@@ -252,12 +254,9 @@ SAGE = R6Class(
           batch_data = combined_data[start_row:end_row]
 
           # Predict for this batch
-          if (getOption("xplainfi.debug")) {
-            cli::cli_inform(
-              "Batch {.val {batch_idx}/{n_batches}}Predicting on {.val {nrow(batch_data)}} instances at once"
-            )
-          }
+          cli::cli_inform("Evaluation {.val {n_batches}} batches of size {.val {batch_size}}")
           pred_result = learner$predict_newdata(newdata = batch_data, task = self$task)
+          cli::cli_progress_update()
 
           # Store predictions
           if (self$task$task_type == "classif") {
@@ -266,6 +265,7 @@ SAGE = R6Class(
             all_predictions[[batch_idx]] = pred_result$response
           }
         }
+        cli::cli_progress_done()
 
         # Combine predictions from all batches
         if (self$task$task_type == "classif") {
