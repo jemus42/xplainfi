@@ -89,7 +89,7 @@ marginal_sage = MarginalSAGE$new(
 )
 
 # Compute SAGE values
-marginal_sage$compute(batch_size = 500L)
+marginal_sage$compute(batch_size = 5000L)
 ```
 
 Let's visualize the results:
@@ -122,12 +122,11 @@ ggplot(marginal_results, aes(x = feature, y = importance)) +
   ) +
   labs(
     title = "Marginal SAGE Feature Importance",
-    subtitle = "Correlated features: x1 and x2 are highly correlated (r ≈ 0.999)",
+    subtitle = "Correlated features: x1 and x2 are highly correlated (r ≈ 0.999), x2 has no effect on y",
     x = "Features", 
     y = "SAGE Value"
   ) +
-  theme_minimal(base_size = 14) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme_minimal(base_size = 14) 
 ```
 
 ## Conditional SAGE
@@ -146,7 +145,7 @@ conditional_sage = ConditionalSAGE$new(
 )
 
 # Compute SAGE values
-conditional_sage$compute()
+conditional_sage$compute(batch_size = 5000L)
 ```
 
 Let's visualize the conditional SAGE results:
@@ -166,7 +165,7 @@ conditional_results$feature = factor(
 
 # Color features by type (causal vs noise)
 conditional_results$feature_type = ifelse(
-  conditional_results$feature %in% c("x1", "x2", "x3"), 
+  conditional_results$feature %in% c("x1", "x3"), 
   "Causal", 
   "Noise"
 )
@@ -185,7 +184,7 @@ ggplot(conditional_results, aes(x = feature, y = importance)) +
     y = "SAGE Value"
   ) +
   theme_minimal(base_size = 14) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(legend.position = "bottom")
 ```
 
 ## Comparison of Methods
@@ -197,7 +196,7 @@ Let's compare the two SAGE methods side by side:
 
 # Ensure both datasets have feature_type for consistency
 marginal_results$feature_type = ifelse(
-  marginal_results$feature %in% c("x1", "x2", "x3"), 
+  marginal_results$feature %in% c("x1", "x3"), 
   "Causal", 
   "Noise"
 )
@@ -207,6 +206,7 @@ combined_results = rbind(marginal_results, conditional_results)
 
 # Create comparison plot
 ggplot(combined_results, aes(x = feature, y = importance, fill = method)) +
+  facet_wrap(~ feature_type, scales = "free_x") +
   geom_col(position = "dodge", alpha = 0.8) +
   scale_fill_manual(values = c("Marginal SAGE" = "steelblue", "Conditional SAGE" = "darkgreen")) +
   labs(
@@ -217,10 +217,7 @@ ggplot(combined_results, aes(x = feature, y = importance, fill = method)) +
     fill = "Method"
   ) +
   theme_minimal(base_size = 14) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  facet_wrap(~ feature_type, 
-             labeller = labeller(feature_type = c("Causal" = "Causal Features", "Noise" = "Noise Features")),
-             scales = "free_x")
+  theme(legend.position = "bottom")
 ```
 
 Let's also create a correlation plot to see how similar the rankings are:
@@ -256,10 +253,6 @@ ggplot(merged_results, aes(x = importance_marginal, y = importance_conditional))
   theme_minimal(base_size = 14) +
   geom_text(aes(label = feature), hjust = 0, vjust = -0.5, size = 3)
 ```
-
-## Understanding the Results
-
-The visualization and correlation analysis above demonstrate the key differences between Marginal and Conditional SAGE. The correlation plot shows the overall relationship between the two methods, while the side-by-side comparison highlights specific patterns for different feature types.
 
 ### Interpretation
 
@@ -328,164 +321,3 @@ ggplot(method_comparison, aes(x = feature, y = importance, fill = method)) +
 - **Noise feature x4** is correctly identified as unimportant by all methods
 
 This demonstrates that the marginal vs conditional distinction is a fundamental concept that applies across different importance method families.
-
-## Example 2: Confounding Scenario
-
-Let's explore another scenario where marginal and conditional SAGE differ: confounding. We'll use the `sim_dgp_confounded()` function which includes a hidden confounder that affects both features and the outcome.
-
-**Mathematical Model:**
-$$H \sim N(0,1) \quad \text{(hidden confounder)}$$
-$$X_1 = H + \varepsilon_1, \quad X_2 = H + \varepsilon_2$$
-$$\text{proxy} = H + \varepsilon_p, \quad \text{independent} \sim N(0,1)$$
-$$Y = H + 0.5 \cdot X_1 + 0.5 \cdot X_2 + \text{independent} + \varepsilon$$
-
-where all $\varepsilon \sim N(0, 0.5^2)$ independently.
-
-**Key properties:**
-- Hidden confounder H affects x1, x2, and y
-- x1 and x2 have both direct causal effects (β=0.5 each) and confounded effects (through H)
-- proxy is an observable (but noisy) measurement of the confounder
-- independent is truly unaffected by confounding
-
-```{r confounding-setup}
-set.seed(456)  # Different seed for variety
-task_confounded = sim_dgp_confounded(n = 800, hidden = TRUE)
-
-# Check the structure
-conf_data = task_confounded$data()
-conf_correlation = cor(conf_data[, c("x1", "x2", "proxy", "independent")])
-print("Feature correlations (confounding scenario):")
-print(round(conf_correlation, 3))
-```
-
-**Expected behavior:**
-
-- **Marginal SAGE**: Will show inflated importance for x1 and x2 due to confounding bias
-- **Conditional SAGE**: Should partially account for confounding through conditional sampling
-
-```{r confounding-sage}
-# Create SAGE instances for confounding scenario  
-marginal_sage_conf = MarginalSAGE$new(
-  task = task_confounded,
-  learner = learner,
-  measure = measure,
-  n_permutations = 30L,
-  max_reference_size = 100L
-)
-
-conditional_sage_conf = ConditionalSAGE$new(
-  task = task_confounded,
-  learner = learner,
-  measure = measure,
-  n_permutations = 30L,
-  max_reference_size = 100L
-)
-
-# Compute SAGE values
-marginal_conf_results = marginal_sage_conf$compute()
-conditional_conf_results = conditional_sage_conf$compute()
-
-marginal_conf_results
-conditional_conf_results
-```
-
-```{r confounding-visualization}
-# Prepare data for visualization
-marginal_conf_results$method = "Marginal SAGE"
-conditional_conf_results$method = "Conditional SAGE"
-
-marginal_conf_results$feature_type = ifelse(
-  marginal_conf_results$feature %in% c("x1", "x2"), "Confounded",
-  ifelse(marginal_conf_results$feature == "independent", "Independent", "Proxy")
-)
-
-conditional_conf_results$feature_type = ifelse(
-  conditional_conf_results$feature %in% c("x1", "x2"), "Confounded", 
-  ifelse(conditional_conf_results$feature == "independent", "Independent", "Proxy")
-)
-
-# Combine results
-combined_conf_results = rbind(marginal_conf_results, conditional_conf_results)
-
-# Create comparison plot
-ggplot(combined_conf_results, aes(x = feature, y = importance, fill = method)) +
-  geom_col(position = "dodge", alpha = 0.8) +
-  scale_fill_manual(values = c("Marginal SAGE" = "orange", "Conditional SAGE" = "purple")) +
-  labs(
-    title = "Marginal vs Conditional SAGE: Confounding Scenario",
-    subtitle = "x1 and x2 are confounded by hidden variable H",
-    x = "Features", 
-    y = "SAGE Value",
-    fill = "Method"
-  ) +
-  theme_minimal(base_size = 14) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  facet_wrap(~ feature_type, scales = "free_x")
-```
-
-```{r confounding-analysis}
-# Calculate specific metrics for confounding scenario
-x1_marg_conf = round(marginal_conf_results$importance[marginal_conf_results$feature == "x1"], 4)
-x1_cond_conf = round(conditional_conf_results$importance[conditional_conf_results$feature == "x1"], 4)
-x2_marg_conf = round(marginal_conf_results$importance[marginal_conf_results$feature == "x2"], 4)
-x2_cond_conf = round(conditional_conf_results$importance[conditional_conf_results$feature == "x2"], 4)
-indep_marg_conf = round(marginal_conf_results$importance[marginal_conf_results$feature == "independent"], 4)
-indep_cond_conf = round(conditional_conf_results$importance[conditional_conf_results$feature == "independent"], 4)
-proxy_marg_conf = round(marginal_conf_results$importance[marginal_conf_results$feature == "proxy"], 4)
-proxy_cond_conf = round(conditional_conf_results$importance[conditional_conf_results$feature == "proxy"], 4)
-
-confounded_bias_reduction = round(mean(c(x1_marg_conf, x2_marg_conf)) - mean(c(x1_cond_conf, x2_cond_conf)), 4)
-```
-
-### Confounding Results Analysis
-
-**Individual Feature Analysis (Confounding)**:
-- **x1** (confounded, β=0.5): Marginal = `r x1_marg_conf` vs Conditional = `r x1_cond_conf`
-- **x2** (confounded, β=0.5): Marginal = `r x2_marg_conf` vs Conditional = `r x2_cond_conf`
-- **independent** (unconfounded, β=1.0): Marginal = `r indep_marg_conf` vs Conditional = `r indep_cond_conf`
-- **proxy** (confounder proxy, β=0): Marginal = `r proxy_marg_conf` vs Conditional = `r proxy_cond_conf`
-
-**Key Insights:**
-- **Bias reduction**: Conditional SAGE reduces confounding bias by `r confounded_bias_reduction` on average for confounded features
-- **Independent feature**: Shows similar importance in both methods (`r indep_marg_conf` vs `r indep_cond_conf`)
-- **Proxy variable**: May show some importance in marginal SAGE due to its correlation with confounded variables
-
-### Interpretation: Confounding vs Correlation
-
-The confounding example demonstrates a different mechanism than the correlation example:
-
-1. **Correlation example**: Features are redundant due to high correlation
-   - Conditional SAGE reduces importance because features provide overlapping information
-   
-2. **Confounding example**: Features appear more important due to spurious associations
-   - Conditional SAGE reduces importance by accounting for confounding pathways
-   - The true causal effect (β=0.5 each) is masked by the confounding bias
-
-Both scenarios show conditional SAGE providing more accurate importance estimates, but through different mechanisms: **redundancy reduction** vs **bias correction**.
-
-## Summary and Recommendations
-
-This article demonstrated two key scenarios where Marginal and Conditional SAGE provide different insights:
-
-### When to Use Each Method
-
-**Marginal SAGE** is appropriate when:
-- Features are mostly independent
-- You want to measure marginal contributions (how much each feature matters individually)
-- Computational efficiency is a priority
-- You're working with the standard SAGE interpretation from the literature
-
-**Conditional SAGE** is recommended when:
-- Features are correlated or have complex dependencies
-- You suspect confounding relationships
-- You want to measure conditional contributions (how much each feature matters given other features)
-- You need more accurate importance estimates in the presence of feature interactions
-
-### Key Takeaways
-
-1. **Parallel to PFI/CFI**: The marginal vs conditional distinction in SAGE mirrors the well-established difference between PFI and CFI
-2. **Different mechanisms**: Conditional sampling addresses both redundancy (correlation) and bias (confounding)
-3. **Complementary insights**: Both methods provide valuable but different perspectives on feature importance
-4. **Context matters**: The choice depends on your research question and data structure
-
-The implementation in **xplainfi** makes it easy to compute both variants and compare their results, providing a comprehensive view of feature importance that accounts for different types of feature relationships.
