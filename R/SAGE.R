@@ -252,6 +252,11 @@ SAGE = R6Class(
           batch_data = combined_data[start_row:end_row]
 
           # Predict for this batch
+          if (getOption("xplainfi.debug")) {
+            cli::cli_inform(
+              "Batch {.val {batch_idx}/{n_batches}}Predicting on {.val {nrow(batch_data)}} instances at once"
+            )
+          }
           pred_result = learner$predict_newdata(newdata = batch_data, task = self$task)
 
           # Store predictions
@@ -270,6 +275,9 @@ SAGE = R6Class(
         }
       } else {
         # Process all at once (original behavior)
+        if (getOption("xplainfi.debug")) {
+          cli::cli_inform("Predicting on {.val {nrow(combined_data)}} instances at once")
+        }
         pred_result = learner$predict_newdata(newdata = combined_data, task = self$task)
 
         if (self$task$task_type == "classif") {
