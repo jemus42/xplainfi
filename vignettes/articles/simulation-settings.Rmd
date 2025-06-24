@@ -30,10 +30,10 @@ This article provides a comprehensive overview of all simulation settings, inclu
 dgp_overview <- data.frame(
   DGP = c("sim_dgp_correlated", "sim_dgp_mediated", "sim_dgp_confounded", 
           "sim_dgp_interactions", "sim_dgp_independent", "sim_dgp_ewald"),
-  Challenge = c("Feature correlation", "Mediation effects", "Confounding",
+  Challenge = c("Spurious correlation", "Mediation effects", "Confounding",
                 "Interaction effects", "Baseline (no challenges)", "Mixed effects"),
-  `PFI Behavior` = c("High (breaks correlation)", "Shows total effects", "Biased upward", "Low (no main effects)", "Accurate", "Mixed"),
-  `CFI Behavior` = c("Low (preserves correlation)", "Shows direct effects", "Less biased", "High (captures interactions)", "Accurate", "Mixed"),
+  `PFI Behavior` = c("High for spurious x2", "Shows total effects", "Biased upward", "Low (no main effects)", "Accurate", "Mixed"),
+  `CFI Behavior` = c("Low for spurious x2", "Shows direct effects", "Less biased", "High (captures interactions)", "Accurate", "Mixed"),
   check.names = FALSE
 )
 knitr::kable(dgp_overview, caption = "Overview of simulation settings and expected method behavior")
@@ -41,14 +41,14 @@ knitr::kable(dgp_overview, caption = "Overview of simulation settings and expect
 
 ## 1. Correlated Features DGP
 
-This DGP creates highly correlated predictors that illustrate the fundamental difference between PFI and CFI when features are redundant.
+This DGP creates a highly correlated spurious predictor to illustrate the fundamental difference between marginal and conditional importance methods.
 
 ### Mathematical Model
 
 $$X_1 \sim N(0,1)$$
 $$X_2 = X_1 + \varepsilon_2, \quad \varepsilon_2 \sim N(0, 0.05^2)$$
 $$X_3 \sim N(0,1), \quad X_4 \sim N(0,1)$$
-$$Y = 2 \cdot X_1 + 1.5 \cdot X_2 + X_3 + \varepsilon$$
+$$Y = 2 \cdot X_1 + X_3 + \varepsilon$$
 
 where $\varepsilon \sim N(0, 0.2^2)$.
 
@@ -62,14 +62,14 @@ grViz("
     node [shape=circle, style=filled, fontsize=14, width=1.2];
     
     X1 [fillcolor='lightcoral', label='X₁\n(β=2.0)'];
-    X2 [fillcolor='lightcoral', label='X₂\n(β=1.5)'];
+    X2 [fillcolor='pink', label='X₂\n(β=0)'];
     X3 [fillcolor='lightblue', label='X₃\n(β=1.0)'];
     X4 [fillcolor='lightgray', label='X₄\n(β=0)'];
     Y [fillcolor='greenyellow', label='Y', width=1.5];
     
     X1 -> X2 [color=red, style=bold, label='≈1.0'];
     X1 -> Y [label='2.0'];
-    X2 -> Y [label='1.5'];
+    X2 -> Y [style=dashed, color=gray, label='0'];
     X3 -> Y [label='1.0'];
     X4 -> Y [style=dashed, color=gray];
     
@@ -88,17 +88,15 @@ task <- sim_dgp_correlated(n = 500)
 # Check correlation between X1 and X2
 cor(task$data()[, c("x1", "x2")])
 
-# True coefficients: x1=2.0, x2=1.5, x3=1.0, x4=0
+# True coefficients: x1=2.0, x2=0, x3=1.0, x4=0
+# Note: x2 is highly correlated with x1 but has NO causal effect!
 ```
 
 ### Expected Behavior
 
-- **PFI**: Shows high importance for x1 and x2 because permuting either feature breaks the correlation structure, creating unrealistic data combinations that confuse the model
-- **CFI**: Shows low importance for x1 and x2 because conditional sampling preserves the correlation, meaning each feature provides little additional information given the other
-- **Interpretation**: 
-  - PFI measures marginal importance (how much the feature matters on its own)
-  - CFI measures conditional importance (how much the feature matters given other features)
-  - Both x1 and x2 are individually important but redundant with each other
+- **Marginal methods (PFI, Marginal SAGE)**: Will falsely assign high importance to x2 because permuting it breaks the correlation with x1, creating unrealistic data that confuses the model
+- **Conditional methods (CFI, Conditional SAGE)**: Should correctly assign near-zero importance to x2 because conditional sampling preserves the correlation, revealing that x2 adds no information beyond what x1 provides
+- **Key insight**: x2 is a spurious predictor - it appears predictive due to correlation with x1 but has no causal effect on y
 
 ## 2. Mediated Effects DGP
 
@@ -395,4 +393,4 @@ cfi <- CFI$new(task, learner, measure)
 cfi$compute()
 ```
 
-Expected pattern: PFI shows high importance for correlated x1,x2 while CFI shows low importance (they are redundant given each other)
+Expected pattern: PFI falsely shows high importance for spurious x2 while CFI correctly shows near-zero importance for x2

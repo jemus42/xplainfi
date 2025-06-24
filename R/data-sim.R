@@ -69,20 +69,19 @@ NULL
 #' \deqn{X_1 \sim N(0,1)}
 #' \deqn{X_2 = X_1 + \varepsilon_2, \quad \varepsilon_2 \sim N(0, 0.05^2)}
 #' \deqn{X_3 \sim N(0,1), \quad X_4 \sim N(0,1)}
-#' \deqn{Y = 2 \cdot X_1 + 1.5 \cdot X_2 + X_3 + \varepsilon}
+#' \deqn{Y = 2 \cdot X_1 + X_3 + \varepsilon}
 #' where \eqn{\varepsilon \sim N(0, 0.2^2)}.
 #'
 #' **Feature Properties:**
-#' - `x1`: Standard normal, direct effect on y
-#' - `x2`: Nearly perfect copy of x1 (x1 + small noise), with r ≈ 0.999
-#' - `x3`: Independent standard normal, direct effect on y
-#' - `x4`: Independent standard normal, no effect on y
+#' - `x1`: Standard normal, direct causal effect on y (β=2.0)
+#' - `x2`: Nearly perfect copy of x1 (x1 + small noise), NO causal effect on y (β=0)
+#' - `x3`: Independent standard normal, direct causal effect on y (β=1.0)
+#' - `x4`: Independent standard normal, no effect on y (β=0)
 #'
 #' **Expected Behavior:**
-#' - **PFI**: Will show high importance for x1 and x2 (permutation breaks correlation structure)
-#' - **CFI**: Will show low importance for x1 and x2 (they are redundant given each other)
-#' - **Interpretation**: PFI measures marginal importance, CFI measures conditional importance
-#' - **Ground truth**: Both x1 and x2 have causal effects, x3 has effect, x4 has none
+#' - **Marginal methods** (PFI, Marginal SAGE): Will falsely assign importance to x2 due to correlation with x1
+#' - **Conditional methods** (CFI, Conditional SAGE): Should correctly assign near-zero importance to x2
+#' - **Key insight**: x2 is a "spurious predictor" - correlated with causal feature but not causal itself
 #'
 #' @param n (`integer(1)`) Number of samples to generate.
 #' @return A regression task ([mlr3::TaskRegr]) with [data.table][data.table::data.table] backend.
@@ -91,16 +90,18 @@ NULL
 #' task = sim_dgp_correlated(200)
 #' task$data()
 sim_dgp_correlated <- function(n = 500L) {
-  # Two highly correlated features with causal effects
+  # Causal feature
   x1 <- rnorm(n)
+  
+  # Spurious feature: correlated with x1 but no causal effect
   x2 <- x1 + rnorm(n, 0, 0.05) # Nearly perfect copy with small noise
 
   # Independent features
   x3 <- rnorm(n) # Has causal effect
   x4 <- rnorm(n) # No causal effect (noise)
 
-  # Outcome depends on correlated features x1, x2 and independent x3
-  y <- 2 * x1 + 1.5 * x2 + x3 + rnorm(n, 0, 0.2)
+  # Outcome depends only on x1 and x3 (x2 has NO causal effect despite correlation)
+  y <- 2 * x1 + x3 + rnorm(n, 0, 0.2)
 
   data.table::data.table(
     y = y,

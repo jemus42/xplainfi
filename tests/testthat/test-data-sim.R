@@ -51,9 +51,13 @@ test_that("sim_dgp_correlated generates correlated features", {
   expect_lt(abs(cor(data$x1, data$x3)), 0.3)
   expect_lt(abs(cor(data$x1, data$x4)), 0.3)
 
-  # Check that all features contribute to y
+  # Check that x1 and x3 contribute to y (x2 is spurious, x4 is noise)
   lm_fit <- lm(y ~ x1 + x2 + x3 + x4, data = data)
   expect_gt(summary(lm_fit)$r.squared, 0.7) # Should explain most variance
+  
+  # Also check a model with just the true causal features
+  lm_causal <- lm(y ~ x1 + x3, data = data)
+  expect_gt(summary(lm_causal)$r.squared, 0.7) # Causal features alone should explain most variance
 })
 
 test_that("sim_dgp_mediated generates mediation structure", {

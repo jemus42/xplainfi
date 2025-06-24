@@ -44,23 +44,22 @@ conditional contribution.
 \deqn{X_1 \sim N(0,1)}
 \deqn{X_2 = X_1 + \varepsilon_2, \quad \varepsilon_2 \sim N(0, 0.05^2)}
 \deqn{X_3 \sim N(0,1), \quad X_4 \sim N(0,1)}
-\deqn{Y = 2 \cdot X_1 + 1.5 \cdot X_2 + X_3 + \varepsilon}
+\deqn{Y = 2 \cdot X_1 + X_3 + \varepsilon}
 where \eqn{\varepsilon \sim N(0, 0.2^2)}.
 
 \strong{Feature Properties:}
 \itemize{
-\item \code{x1}: Standard normal, direct effect on y
-\item \code{x2}: Nearly perfect copy of x1 (x1 + small noise), with r ≈ 0.999
-\item \code{x3}: Independent standard normal, direct effect on y
-\item \code{x4}: Independent standard normal, no effect on y
+\item \code{x1}: Standard normal, direct causal effect on y (β=2.0)
+\item \code{x2}: Nearly perfect copy of x1 (x1 + small noise), NO causal effect on y (β=0)
+\item \code{x3}: Independent standard normal, direct causal effect on y (β=1.0)
+\item \code{x4}: Independent standard normal, no effect on y (β=0)
 }
 
 \strong{Expected Behavior:}
 \itemize{
-\item \strong{PFI}: Will show high importance for x1 and x2 (permutation breaks correlation structure)
-\item \strong{CFI}: Will show low importance for x1 and x2 (they are redundant given each other)
-\item \strong{Interpretation}: PFI measures marginal importance, CFI measures conditional importance
-\item \strong{Ground truth}: Both x1 and x2 have causal effects, x3 has effect, x4 has none
+\item \strong{Marginal methods} (PFI, Marginal SAGE): Will falsely assign importance to x2 due to correlation with x1
+\item \strong{Conditional methods} (CFI, Conditional SAGE): Should correctly assign near-zero importance to x2
+\item \strong{Key insight}: x2 is a "spurious predictor" - correlated with causal feature but not causal itself
 }
 
 \strong{Mediated Effects DGP:}
