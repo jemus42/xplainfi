@@ -6,10 +6,8 @@
 // ${fileExtname} the current opened file's extension
 // ${cwd} the task runner's current working directory on startup
 {
-    "version": "0.1.0",
+    "version": "2.0.0",
     "command": "bash",
-    "isShellCommand": true,
-    "showOutput": "always",
     "options": {
         "cwd": "${workspaceRoot}"
     },
@@ -18,27 +16,48 @@
     ],
     "tasks": [
         {
-            "taskName": "build",
-            "suppressTaskName": true,
-            "isBuildCommand": true,
-            "args": ["make build"]
+            "label": "build",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "make build"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "_id": "build",
+                "isDefault": false
+            }
         },
         {
-            "taskName": "doc",
-            "suppressTaskName": true,
-            "args": ["make doc"]
+            "label": "doc",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "make doc"
+            ],
+            "problemMatcher": []
         },
         {
-            "taskName": "site",
-            "suppressTaskName": true,
-            "args": ["make site"]
+            "label": "site",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "make site"
+            ],
+            "problemMatcher": []
         },
         {
-            "taskName": "coverage",
-            "suppressTaskName": true,
-            "args": ["make coverage"]
+            "label": "coverage",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "make coverage"
+            ],
+            "problemMatcher": []
         }
-
-
     ]
 }
