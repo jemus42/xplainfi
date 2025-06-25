@@ -211,11 +211,19 @@ SAGE = R6Class(
       # Pre-allocate list for expanded data
       all_expanded_data = vector("list", n_coalitions)
 
-      if (getOption("xplainfi.debug")) {
+      if (xplain_opt("debug")) {
         cli::cli_inform("Evaluating {.val {length(all_coalitions)}} coalitions")
+      }
+
+      if (xplain_opt("progress")) {
+        cli::cli_progress_bar("Preparing coalitions", total = length(all_coalitions))
       }
       for (i in seq_along(all_coalitions)) {
         coalition = all_coalitions[[i]]
+
+        if (xplain_opt("progress")) {
+          cli::cli_progress_update()
+        }
 
         # Create test-reference combinations for this coalition
         test_expanded = test_dt[rep(seq_len(n_test), each = n_reference)]
@@ -236,6 +244,9 @@ SAGE = R6Class(
         }
 
         all_expanded_data[[i]] = test_expanded
+      }
+      if (xplain_opt("progress")) {
+        cli::cli_progress_done()
       }
 
       # Combine ALL data into one big dataset
@@ -278,7 +289,7 @@ SAGE = R6Class(
         }
       } else {
         # Process all at once (original behavior)
-        if (getOption("xplainfi.debug")) {
+        if (xplain_opt("debug")) {
           cli::cli_inform("Predicting on {.val {nrow(combined_data)}} instances at once")
         }
         pred_result = learner$predict_newdata(newdata = combined_data, task = self$task)

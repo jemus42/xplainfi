@@ -265,12 +265,17 @@ ARFSampler = R6Class(
       # Handle empty conditioning set by passing NULL to arf::forge()
       if (length(conditioning_set) == 0) {
         # Equivalent (ish) to marginal permutation
+        if (xplain_opt("debug")) {
+          cli::cli_alert_inform(
+            "{.val conditioning_set} is length 0, passing {.code evidence = NULL} to {.fun arf::forge}"
+          )
+        }
         evidence = NULL
       } else {
         evidence = data[, .SD, .SDcols = conditioning_set]
       }
 
-      if (getOption("xplainfi.debug", default = FALSE)) {
+      if (xplain_opt("debug")) {
         cli::cli_inform(c(
           i = "Feature is {.val {feature}}",
           i = "Conditioning set is {.val {conditioning_set}}"
