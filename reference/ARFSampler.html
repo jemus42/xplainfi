@@ -251,10 +251,14 @@ To fit the ARF in parallel, set <code>arf_args = list(parallel = TRUE)</code> an
 <span class="r-in"><span><span class="va">data</span> <span class="op">=</span> <span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># Will use the stored parameters</span></span></span>
 <span class="r-in"><span><span class="va">sampled_data</span> <span class="op">=</span> <span class="va">sampler</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span><span class="st">"x1"</span>, <span class="va">data</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> opt: <span style="color: #0000BB;">NA</span>, env: <span style="color: #0000BB;">NA</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> opt: , env:</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Example with custom parameters</span></span></span>
 <span class="r-in"><span><span class="va">sampler_custom</span> <span class="op">=</span> <span class="va">ARFSampler</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">task</span>, round <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sampled_custom</span> <span class="op">=</span> <span class="va">sampler_custom</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span><span class="st">"x1"</span>, <span class="va">data</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> opt: <span style="color: #0000BB;">NA</span>, env: <span style="color: #0000BB;">NA</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> opt: , env:</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
