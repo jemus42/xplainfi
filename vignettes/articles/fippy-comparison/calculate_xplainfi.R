@@ -41,7 +41,7 @@ cli_progress_step("Setting up feature importance methods")
 
 # Train model
 cli_progress_step("Training model")
-learner <- lrn("regr.ranger", num.trees = 500)
+learner <- lrn("regr.ranger", num.trees = 500, num.threads = 4)
 learner$train(task, row_ids = resampling$train_set(1))
 
 # Evaluate model
@@ -77,23 +77,22 @@ results$PFI <- list(
 
 # 2. CFI
 cli_progress_step("Computing CFI")
-if (requireNamespace("arf", quietly = TRUE)) {
-  cfi_r <- CFI$new(
-    task = task,
-    learner = learner,
-    measure = msr("regr.mse"),
-    resampling = resampling,
-    iters_perm = 5,
-    sampler = sampler
-  )
+cfi_r <- CFI$new(
+  task = task,
+  learner = learner,
+  measure = msr("regr.mse"),
+  resampling = resampling,
+  iters_perm = 5,
+  sampler = sampler
+)
 
-  cfi_results <- cfi_r$compute()
-  results$CFI <- list(
-    feature = cfi_results$feature,
-    importance = cfi_results$importance
-  )
-  cli_alert_success("CFI completed")
-}
+cfi_results <- cfi_r$compute()
+results$CFI <- list(
+  feature = cfi_results$feature,
+  importance = cfi_results$importance
+)
+cli_alert_success("CFI completed")
+
 
 # 3. RFI
 cli_progress_step("Computing RFI")
@@ -118,7 +117,7 @@ cli_alert_success("RFI completed")
 # 4. Marginal SAGE
 n_perm_sage = 30L
 max_ref_size_sage = 200L
-batch_size_sage = 1000L
+batch_size_sage = 5000L
 
 cli_progress_step("Computing Marginal SAGE")
 sage_marginal_r <- MarginalSAGE$new(
