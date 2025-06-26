@@ -126,6 +126,7 @@ In <em>Advances in Neural Information Processing Systems</em>, volume 33, 17212â
 <span>  features <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n_permutations <span class="op">=</span> <span class="fl">10L</span>,</span>
 <span>  reference_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  batch_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sampler <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  max_reference_size <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
@@ -138,15 +139,21 @@ In <em>Advances in Neural Information Processing Systems</em>, volume 33, 17212â
 
 
 <dt><code>n_permutations</code></dt>
-<dd><p>(<code>integer(1)</code>) Number of permutations to sample for Shapley value estimation.</p></dd>
+<dd><p>(<code>integer(1): 10L</code>) Number of permutations <em>per coalition</em> to sample for Shapley value estimation.
+The total number of evaluated coalitions is <code>1 (empty) + n_permutations * n_features</code>.</p></dd>
 
 
 <dt><code>reference_data</code></dt>
-<dd><p>(<code>data.table | NULL</code>) Optional reference dataset. If <code>NULL</code>, uses training data.</p></dd>
+<dd><p>(<code>data.table | NULL</code>) Optional reference dataset. If <code>NULL</code>, uses training data.
+For each coalition to evaluate, an expanded datasets of size <code>n_test * n_reference</code> is created and evaluted in batches of <code>batch_size</code> if specified.</p></dd>
+
+
+<dt><code>batch_size</code></dt>
+<dd><p>(<code>integer(1) | NULL)</code> Maximum number of observations to process in a single prediction call. If NULL, processes all at once.</p></dd>
 
 
 <dt><code>sampler</code></dt>
-<dd><p>(<a href="FeatureSampler.html">FeatureSampler</a>) Sampler for marginalization.</p></dd>
+<dd><p>(<a href="FeatureSampler.html">FeatureSampler</a>) Sampler for marginalization. Only relevant for <code>ConditionalSAGE</code>.</p></dd>
 
 
 <dt><code>max_reference_size</code></dt>
