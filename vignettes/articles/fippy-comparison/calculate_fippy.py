@@ -152,7 +152,7 @@ def main():
         np.random.seed(123)
         # RFI expects: rfi(G, X_eval, y_eval, ...)
         # G is the conditioning set
-        conditioning_set = ["x1", "x2"]
+        conditioning_set = ["x3"]
         ex_rfi = explainer.rfi(conditioning_set, X_test_small, y_test_small, nr_runs=5)
         rfi_results = extract_fippy_results(ex_rfi, list(X_train.columns))
         if rfi_results:
@@ -174,7 +174,7 @@ def main():
         # Use smaller parameters to speed up computation
         ex_msage, sage_orderings = explainer.msage(
             X_test_small, y_test_small, 
-            nr_runs=2,  # Reduced from 3
+            nr_runs=3,
             detect_convergence=True
         )
         msage_results = extract_fippy_results(ex_msage, list(X_train.columns))
@@ -193,8 +193,8 @@ def main():
         # Use smaller parameters to speed up computation
         ex_csage, sage_orderings = explainer.csage(
             X_test_small, y_test_small, 
-            nr_orderings=10,  # Reduced from 20
-            nr_runs=2         # Reduced from 3
+            nr_runs=3,
+            detect_convergence=True
         )
         csage_results = extract_fippy_results(ex_csage, list(X_train.columns))
         results["SAGE_Conditional"] = csage_results

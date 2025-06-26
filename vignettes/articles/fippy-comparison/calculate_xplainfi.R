@@ -11,6 +11,7 @@ library(data.table)
 library(jsonlite)
 library(cli)
 lgr::get_logger("mlr3")$set_threshold("warn")
+options("xplain.progress" = TRUE)
 
 # Set seed for reproducibility
 set.seed(123)
@@ -101,7 +102,7 @@ rfi_r <- RFI$new(
   learner = learner,
   measure = msr("regr.mse"),
   resampling = resampling,
-  conditioning_set = c("x1", "x2"),
+  conditioning_set = c("x3"),
   iters_perm = 5,
   sampler = sampler
 )
