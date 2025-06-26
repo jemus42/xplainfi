@@ -184,7 +184,21 @@ FeatureImportanceMethod = R6Class(
     #' @param ... Passed to `print()`
     print = function(...) {
       cli::cli_h2(self$label)
-      if (!is.null(self$importance)) print(self$importance, ...)
+      cli::cli_ul()
+      cli::cli_li("Feature{?s} of interest: {.val {self$features}}")
+      cli::cli_li("Parameters:")
+
+      pidx = seq_along(self$param_set$values)
+      sapply(pidx, \(i) {
+        cli::cli_ul("{.code {names(self$param_set$values)[i]}}: {.val {self$param_set$values[i]}}")
+      })
+
+      cli::cli_end()
+      if (!is.null(self$importance)) {
+        print(self$importance, ...)
+      } else {
+        cli::cli_inform("No importances computed yet.")
+      }
     }
   ),
   private = list(
