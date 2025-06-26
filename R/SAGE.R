@@ -97,7 +97,7 @@ SAGE = R6Class(
         n_permutations = paradox::p_int(lower = 1L, default = 10L),
         batch_size = paradox::p_int(lower = 1L, default = 5000L),
         max_reference_size = paradox::p_int(lower = 1L, default = 100L),
-        detect_convergence = paradox::p_lgl(default = FALSE),
+        early_stopping = paradox::p_lgl(default = FALSE),
         convergence_threshold = paradox::p_dbl(lower = 0, upper = 1, default = 0.01),
         min_permutations = paradox::p_int(lower = 5L, default = 10L),
         check_interval = paradox::p_int(lower = 1L, default = 2L)
@@ -112,14 +112,14 @@ SAGE = R6Class(
     #' Compute SAGE values.
     #' @param store_backends (logical(1)) Whether to store backends.
     #' @param batch_size (integer(1): 5000L) Maximum number of observations to process in a single prediction call.
-    #' @param detect_convergence (logical(1)) Whether to check for convergence and stop early.
+    #' @param early_stopping (logical(1)) Whether to check for convergence and stop early.
     #' @param convergence_threshold (numeric(1)) Relative change threshold for convergence detection.
     #' @param min_permutations (integer(1)) Minimum permutations before checking convergence.
     #' @param check_interval (integer(1)) Check convergence every N permutations.
     compute = function(
       store_backends = TRUE,
       batch_size = NULL,
-      detect_convergence = NULL,
+      early_stopping = NULL,
       convergence_threshold = NULL,
       min_permutations = NULL,
       check_interval = NULL
@@ -136,9 +136,9 @@ SAGE = R6Class(
 
       # Resolve parameters using hierarchical resolution
       batch_size = resolve_param(batch_size, self$param_set$values$batch_size, 5000L)
-      detect_convergence = resolve_param(
-        detect_convergence,
-        self$param_set$values$detect_convergence,
+      early_stopping = resolve_param(
+        early_stopping,
+        self$param_set$values$early_stopping,
         FALSE
       )
       convergence_threshold = resolve_param(
@@ -171,7 +171,7 @@ SAGE = R6Class(
         learner = rr$learners[[iter_for_convergence]],
         test_dt = self$task$data(rows = rr$resampling$test_set(iter_for_convergence)),
         batch_size = batch_size,
-        detect_convergence = detect_convergence,
+        early_stopping = early_stopping,
         convergence_threshold = convergence_threshold,
         min_permutations = min_permutations,
         check_interval = check_interval
@@ -191,14 +191,14 @@ SAGE = R6Class(
             learner = rr$learners[[iter]],
             test_dt = self$task$data(rows = rr$resampling$test_set(iter)),
             batch_size = batch_size,
-            detect_convergence = FALSE, # Only track convergence for first iteration
+            early_stopping = FALSE, # Only track convergence for first iteration
             convergence_threshold = convergence_threshold,
             min_permutations = min_permutations,
             check_interval = check_interval
           )
         })
 
-        # Extract scores from all results (handle list structure)
+        # Extract scores from all results (always list format now)
         all_scores = c(list(first_result$scores), lapply(remaining_results, function(x) x$scores))
       } else {
         all_scores = list(first_result$scores)
@@ -287,7 +287,7 @@ SAGE = R6Class(
       learner,
       test_dt,
       batch_size = NULL,
-      detect_convergence = FALSE,
+      early_stopping = FALSE,
       convergence_threshold = 0.01,
       min_permutations = 10L,
       check_interval = 5L
@@ -296,6 +296,11 @@ SAGE = R6Class(
       sage_values = numeric(length(self$features))
       names(sage_values) = self$features
 
+      # Pre-generate ALL permutations upfront to ensure consistent random state
+      all_permutations = replicate(self$n_permutations, sample(self$features), simplify = FALSE)
+
+      # Always use iterative checkpoint-based computation
+      # The only difference is whether we stop early based on convergence
       convergence_history = list()
       n_completed = 0
       converged = FALSE
@@ -316,12 +321,8 @@ SAGE = R6Class(
         checkpoint_size = min(check_interval, self$n_permutations - n_completed)
         checkpoint_perms = (n_completed + 1):(n_completed + checkpoint_size)
 
-        # Generate permutations for this checkpoint
-        checkpoint_permutations = replicate(
-          checkpoint_size,
-          sample(self$features),
-          simplify = FALSE
-        )
+        # Get permutations for this checkpoint from pre-generated list
+        checkpoint_permutations = all_permutations[checkpoint_perms]
 
         # Build coalitions for this checkpoint
         checkpoint_coalitions = list()
@@ -404,9 +405,9 @@ SAGE = R6Class(
         )
         convergence_history[[length(convergence_history) + 1]] = checkpoint_history
 
-        # Check convergence only if enabled
+        # Check convergence only if early stopping is enabled
         if (
-          detect_convergence && n_completed >= min_permutations && length(convergence_history) > 1
+          early_stopping && n_completed >= min_permutations && length(convergence_history) > 1
         ) {
           # Get previous checkpoint values
           prev_checkpoint = convergence_history[[length(convergence_history) - 1]]
