@@ -115,7 +115,7 @@ ggplot(pfi$scores, aes(x = importance, y = reorder(feature, importance))) +
   labs(
     title = "PFI Scores on Friedman1",
     subtitle = "Aggregated over 3-fold CV with 5 permutations per iteration",
-    x = "PFI",
+    x = "Importance",
     y = "Feature"
   ) +
   theme_minimal(base_size = 16) +
@@ -126,3 +126,34 @@ ggplot(pfi$scores, aes(x = importance, y = reorder(feature, importance))) +
 ```
 
 <img src="man/figures/README-pfi-plot-1.png" width="100%" />
+
+If the measure in question needs to be maximized ratehr than minimized
+(like $R^2$), the internal importance calculation takes that into
+account via the `$minimize` property of the measure object and
+calculates importances such that the “performance improvement” -\>
+higher importance score holds:
+
+``` r
+pfi = PFI$new(
+  task = task,
+  learner = learner,
+  measure = msr("regr.rsq"),
+  iters_perm = 1
+)
+#> ℹ No <Resampling> provided, using holdout resampling with default ratio.
+
+pfi$compute()
+#> Key: <feature>
+#>          feature    importance
+#>           <char>         <num>
+#>  1:   important1  0.2461477003
+#>  2:   important2  0.3354065147
+#>  3:   important3  0.0534960678
+#>  4:   important4  0.5744520955
+#>  5:   important5  0.1116336289
+#>  6: unimportant1 -0.0016660726
+#>  7: unimportant2 -0.0031085541
+#>  8: unimportant3 -0.0002086101
+#>  9: unimportant4  0.0037567083
+#> 10: unimportant5 -0.0022176601
+```

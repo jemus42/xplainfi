@@ -7,6 +7,11 @@
 #' @noRd
 #' @param x `character(1)` Name of option to retrieve, e.g. `"debug"`.
 #'   Will be translated to `XPLAIN_DEBUG` and `xplain.debug` respectively.
+#'
+#' @examples
+#' xplain_opt("debug")
+#' xplain_opt("progress")
+#'
 xplain_opt <- function(x) {
   opt <- getOption(paste0("xplain.", tolower(x)), default = NA)
   envvar <- Sys.getenv(toupper(paste0("xplain_", x)), unset = NA)

@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 )
 # Quiet down
 lgr::get_logger("mlr3")$set_threshold("warn")
-
+options("xplain.progress" = interactive())
 set.seed(123)
 ```
 
@@ -87,6 +87,8 @@ While `pfi$importance` contains the means and standard deviations across all ite
 This of course also enables visualization across iterations:
 
 ```{r pfi-plot}
+#| fig-width: 6
+#| fig-height: 5
 library(ggplot2)
 
 ggplot(pfi$scores, aes(x = importance, y = reorder(feature, importance))) +
@@ -94,7 +96,7 @@ ggplot(pfi$scores, aes(x = importance, y = reorder(feature, importance))) +
   labs(
     title = "PFI Scores on Friedman1",
     subtitle = "Aggregated over 3-fold CV with 5 permutations per iteration",
-    x = "PFI",
+    x = "Importance",
     y = "Feature"
   ) +
   theme_minimal(base_size = 16) +
@@ -102,4 +104,17 @@ ggplot(pfi$scores, aes(x = importance, y = reorder(feature, importance))) +
     plot.title.position = "plot",
     panel.grid.major.y = element_blank()
   )
+```
+
+If the measure in question needs to be maximized ratehr than minimized (like $R^2$), the internal importance calculation takes that into account via the `$minimize` property of the measure object and calculates importances such that the "performance improvement" -> higher importance score holds:
+
+```{r pfi-rsq}
+pfi = PFI$new(
+  task = task,
+  learner = learner,
+  measure = msr("regr.rsq"),
+  iters_perm = 1
+)
+
+pfi$compute()
 ```
