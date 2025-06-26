@@ -65,6 +65,7 @@ Creates a new instance of the SAGE class.
   features = NULL,
   n_permutations = 10L,
   reference_data = NULL,
+  batch_size = NULL,
   sampler = NULL,
   max_reference_size = NULL
 )}\if{html}{\out{</div>}}
@@ -75,11 +76,15 @@ Creates a new instance of the SAGE class.
 \describe{
 \item{\code{task, learner, measure, resampling, features}}{Passed to FeatureImportanceMethod.}
 
-\item{\code{n_permutations}}{(\code{integer(1)}) Number of permutations to sample for Shapley value estimation.}
+\item{\code{n_permutations}}{(\code{integer(1): 10L}) Number of permutations \emph{per coalition} to sample for Shapley value estimation.
+The total number of evaluated coalitions is \code{1 (empty) + n_permutations * n_features}.}
 
-\item{\code{reference_data}}{(\code{data.table | NULL}) Optional reference dataset. If \code{NULL}, uses training data.}
+\item{\code{reference_data}}{(\code{data.table | NULL}) Optional reference dataset. If \code{NULL}, uses training data.
+For each coalition to evaluate, an expanded datasets of size \code{n_test * n_reference} is created and evaluted in batches of \code{batch_size} if specified.}
 
-\item{\code{sampler}}{(\link{FeatureSampler}) Sampler for marginalization.}
+\item{\code{batch_size}}{(\verb{integer(1) | NULL)} Maximum number of observations to process in a single prediction call. If NULL, processes all at once.}
+
+\item{\code{sampler}}{(\link{FeatureSampler}) Sampler for marginalization. Only relevant for \code{ConditionalSAGE}.}
 
 \item{\code{max_reference_size}}{(\code{integer(1) | NULL}) Maximum size of reference dataset. If reference is larger, it will be subsampled. If \code{NULL}, no subsampling is performed.}
 }
