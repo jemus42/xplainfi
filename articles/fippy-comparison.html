@@ -130,13 +130,10 @@ marginal and conditional variants</li>
 <p>Both implementations use:</p>
 <ul>
 <li>
-<strong>Dataset</strong>: Ewald et al. simulation with 500
-observations (<code><a href="../reference/sim_dgp_ewald.html">sim_dgp_ewald()</a></code>) - a synthetic regression
-task with known feature importance structure</li>
+<strong>Dataset</strong>: Ewald et al. simulation with 5000
+observations (<code><a href="../reference/sim_dgp_ewald.html">sim_dgp_ewald()</a></code>)</li>
 <li>
-<strong>Model</strong>: Random Forest with 100 trees</li>
-<li>
-<strong>Evaluation</strong>: Same train/test data</li>
+<strong>Evaluation</strong>: Same train/test data (70% train)</li>
 <li>
 <strong>Metrics</strong>: Mean Squared Error for importance
 calculations</li>
@@ -168,13 +165,13 @@ regression task with 5 features (x1-x5) where:</p>
 <ul>
 <li>All features contribute to the target variable, but with different
 weights</li>
-<li>Some features may be correlated, making conditional methods
+<li>Some features are correlated, making conditional methods
 particularly interesting</li>
 <li>The known data generating process allows us to validate whether the
 methods identify sensible patterns</li>
 </ul>
-<p>This provides a better foundation for understanding method
-differences compared to more complex synthetic tasks.</p>
+<p>See <a href="/xplainfi/articles/simulation-settings.html#ewald-et-al--2024-dgp">the
+article for more details on the DGP</a></p>
 </div>
 </div>
 <div class="section level2">
@@ -296,20 +293,11 @@ differences compared to more complex synthetic tasks.</p>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"PFI Correlation: {round(pfi_result$correlation, 3)}"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## PFI Correlation: 0.997</span></span></code></pre>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pfi_result</span><span class="op">$</span><span class="va">correlation</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 0.9972771</span></span></code></pre>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pfi_result</span><span class="op">$</span><span class="va">correlation_spearman</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 1</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="cfi-conditional-feature-importance">CFI (Conditional Feature Importance)<a class="anchor" aria-label="anchor" href="#cfi-conditional-feature-importance"></a>
 </h3>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cfi_result</span> <span class="op">&lt;-</span> <span class="fu">compare_method</span><span class="op">(</span><span class="st">"CFI"</span>, <span class="va">xplainfi_results</span><span class="op">$</span><span class="va">CFI</span>, <span class="va">fippy_results</span><span class="op">$</span><span class="va">CFI</span><span class="op">)</span></span>
 <span><span class="va">cfi_result</span><span class="op">$</span><span class="va">table</span></span></code></pre></div>
 <table class="table">
@@ -347,20 +335,11 @@ differences compared to more complex synthetic tasks.</p>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"CFI Correlation: {round(cfi_result$correlation, 3)}"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## CFI Correlation: 0.995</span></span></code></pre>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cfi_result</span><span class="op">$</span><span class="va">correlation</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 0.9954548</span></span></code></pre>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cfi_result</span><span class="op">$</span><span class="va">correlation_spearman</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 0.9</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="rfi-relative-feature-importance">RFI (Relative Feature Importance)<a class="anchor" aria-label="anchor" href="#rfi-relative-feature-importance"></a>
 </h3>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rfi_result</span> <span class="op">&lt;-</span> <span class="fu">compare_method</span><span class="op">(</span><span class="st">"RFI"</span>, <span class="va">xplainfi_results</span><span class="op">$</span><span class="va">RFI</span>, <span class="va">fippy_results</span><span class="op">$</span><span class="va">RFI</span><span class="op">)</span></span>
 <span><span class="va">rfi_result</span><span class="op">$</span><span class="va">table</span></span></code></pre></div>
 <table class="table">
@@ -398,19 +377,10 @@ differences compared to more complex synthetic tasks.</p>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"RFI Correlation: {round(rfi_result$correlation, 3)}"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## RFI Correlation: 0.989</span></span></code></pre>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rfi_result</span><span class="op">$</span><span class="va">correlation</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 0.9893963</span></span></code></pre>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rfi_result</span><span class="op">$</span><span class="va">correlation_spearman</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 0.9746794</span></span></code></pre>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"xplainfi conditioning set: {paste(xplainfi_results$RFI$conditioning_set, collapse = ', ')}"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## xplainfi conditioning set: x1, x2</span></span></code></pre>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"fippy conditioning set: {paste(fippy_results$RFI$conditioning_set, collapse = ', ')}"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## fippy conditioning set: x1, x2</span></span></code></pre>
 </div>
@@ -420,7 +390,7 @@ differences compared to more complex synthetic tasks.</p>
 <div class="section level4">
 <h4 id="marginal-sage">Marginal SAGE<a class="anchor" aria-label="anchor" href="#marginal-sage"></a>
 </h4>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sage_marginal_result</span> <span class="op">&lt;-</span> <span class="fu">compare_method</span><span class="op">(</span><span class="st">"Marginal SAGE"</span>, <span class="va">xplainfi_results</span><span class="op">$</span><span class="va">SAGE_Marginal</span>, <span class="va">fippy_results</span><span class="op">$</span><span class="va">SAGE_Marginal</span><span class="op">)</span></span>
 <span><span class="va">sage_marginal_result</span><span class="op">$</span><span class="va">table</span></span></code></pre></div>
 <table class="table">
@@ -458,20 +428,11 @@ differences compared to more complex synthetic tasks.</p>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"Marginal SAGE Correlation: {round(sage_marginal_result$correlation, 3)}"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Marginal SAGE Correlation: 0.948</span></span></code></pre>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sage_marginal_result</span><span class="op">$</span><span class="va">correlation</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 0.9475345</span></span></code></pre>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sage_marginal_result</span><span class="op">$</span><span class="va">correlation_spearman</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 1</span></span></code></pre>
 </div>
 <div class="section level4">
 <h4 id="conditional-sage">Conditional SAGE<a class="anchor" aria-label="anchor" href="#conditional-sage"></a>
 </h4>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sage_conditional_result</span> <span class="op">&lt;-</span> <span class="fu">compare_method</span><span class="op">(</span><span class="st">"Conditional SAGE"</span>, <span class="va">xplainfi_results</span><span class="op">$</span><span class="va">SAGE_Conditional</span>, <span class="va">fippy_results</span><span class="op">$</span><span class="va">SAGE_Conditional</span><span class="op">)</span></span>
 <span><span class="va">sage_conditional_result</span><span class="op">$</span><span class="va">table</span></span></code></pre></div>
 <table class="table">
@@ -509,22 +470,13 @@ differences compared to more complex synthetic tasks.</p>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"Conditional SAGE Correlation: {round(sage_conditional_result$correlation, 3)}"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Conditional SAGE Correlation: 0.903</span></span></code></pre>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sage_conditional_result</span><span class="op">$</span><span class="va">correlation</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 0.903223</span></span></code></pre>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sage_conditional_result</span><span class="op">$</span><span class="va">correlation_spearman</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] 1</span></span></code></pre>
 </div>
 </div>
 </div>
 <div class="section level2">
 <h2 id="correlation-summary">Correlation Summary<a class="anchor" aria-label="anchor" href="#correlation-summary"></a>
 </h2>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">correlations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/rbindlist.html" class="external-link">rbindlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  <span class="va">pfi_result</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"method"</span>, <span class="st">"correlation"</span>, <span class="st">"correlation_spearman"</span><span class="op">)</span><span class="op">]</span>,</span>
 <span>  <span class="va">cfi_result</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"method"</span>, <span class="st">"correlation"</span>, <span class="st">"correlation_spearman"</span><span class="op">)</span><span class="op">]</span>,</span>
@@ -535,6 +487,7 @@ differences compared to more complex synthetic tasks.</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
 <span>  <span class="va">correlations</span>, </span>
+<span>  digits <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  caption <span class="op">=</span> <span class="st">"Pearson and Spearman Correlations between xplainfi and fippy"</span>, </span>
 <span>  col.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Method"</span>, <span class="st">"Pearson Corr."</span>, <span class="st">"Spearman Corr."</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -549,32 +502,32 @@ fippy</caption>
 <tbody>
 <tr class="odd">
 <td align="left">PFI</td>
-<td align="right">0.9972771</td>
-<td align="right">1.0000000</td>
+<td align="right">0.9973</td>
+<td align="right">1.0000</td>
 </tr>
 <tr class="even">
 <td align="left">CFI</td>
-<td align="right">0.9954548</td>
-<td align="right">0.9000000</td>
+<td align="right">0.9955</td>
+<td align="right">0.9000</td>
 </tr>
 <tr class="odd">
 <td align="left">RFI</td>
-<td align="right">0.9893963</td>
-<td align="right">0.9746794</td>
+<td align="right">0.9894</td>
+<td align="right">0.9747</td>
 </tr>
 <tr class="even">
 <td align="left">Marginal SAGE</td>
-<td align="right">0.9475345</td>
-<td align="right">1.0000000</td>
+<td align="right">0.9475</td>
+<td align="right">1.0000</td>
 </tr>
 <tr class="odd">
 <td align="left">Conditional SAGE</td>
-<td align="right">0.9032230</td>
-<td align="right">1.0000000</td>
+<td align="right">0.9032</td>
+<td align="right">1.0000</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/melt.data.table.html" class="external-link">melt</a></span><span class="op">(</span><span class="va">correlations</span>, id.vars <span class="op">=</span> <span class="st">"method"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">method</span>, <span class="va">value</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">variable</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">1</span>, labeller <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/as_labeller.html" class="external-link">as_labeller</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>correlation <span class="op">=</span> <span class="st">"Pearson's"</span>, correlation_spearman <span class="op">=</span> <span class="st">"Spearman's"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -598,75 +551,31 @@ fippy</caption>
 </h2>
 <p>The Ewald simulation provides interpretable feature importance
 patterns that help validate both implementations:</p>
-<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Extract feature importance rankings from each method</span></span>
-<span><span class="va">create_ranking_summary</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">results</span>, <span class="va">method_name</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">results</span><span class="op">[[</span><span class="va">method_name</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="cn">NULL</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span></span>
-<span>    method <span class="op">=</span> <span class="va">method_name</span>,</span>
-<span>    feature <span class="op">=</span> <span class="va">results</span><span class="op">[[</span><span class="va">method_name</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">feature</span>,</span>
-<span>    importance <span class="op">=</span> <span class="va">results</span><span class="op">[[</span><span class="va">method_name</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">importance</span>,</span>
-<span>    rank <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rank.html" class="external-link">rank</a></span><span class="op">(</span><span class="op">-</span><span class="va">results</span><span class="op">[[</span><span class="va">method_name</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">importance</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="co"># Combine rankings from both implementations</span></span>
-<span><span class="va">xplainfi_rankings</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/rbindlist.html" class="external-link">rbindlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PFI"</span>, <span class="st">"CFI"</span>, <span class="st">"RFI"</span>, <span class="st">"SAGE_Marginal"</span>, <span class="st">"SAGE_Conditional"</span><span class="op">)</span>,</span>
-<span>  <span class="kw">function</span><span class="op">(</span><span class="va">m</span><span class="op">)</span> <span class="fu">create_ranking_summary</span><span class="op">(</span><span class="va">xplainfi_results</span>, <span class="va">m</span><span class="op">)</span></span>
-<span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">xplainfi_rankings</span><span class="op">[</span>, <span class="va">implementation</span> <span class="op">:=</span> <span class="st">"xplainfi"</span><span class="op">]</span></span>
-<span></span>
-<span><span class="va">fippy_rankings</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/rbindlist.html" class="external-link">rbindlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PFI"</span>, <span class="st">"CFI"</span>, <span class="st">"RFI"</span>, <span class="st">"SAGE_Marginal"</span>, <span class="st">"SAGE_Conditional"</span><span class="op">)</span>,</span>
-<span>  <span class="kw">function</span><span class="op">(</span><span class="va">m</span><span class="op">)</span> <span class="fu">create_ranking_summary</span><span class="op">(</span><span class="va">fippy_results</span>, <span class="va">m</span><span class="op">)</span></span>
-<span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">fippy_rankings</span><span class="op">[</span>, <span class="va">implementation</span> <span class="op">:=</span> <span class="st">"fippy"</span><span class="op">]</span></span>
-<span></span>
-<span><span class="va">all_rankings</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">xplainfi_rankings</span>, <span class="va">fippy_rankings</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Create ranking comparison plot</span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">all_rankings</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">feature</span>, y <span class="op">=</span> <span class="va">rank</span>, fill <span class="op">=</span> <span class="va">implementation</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span>position <span class="op">=</span> <span class="st">"dodge"</span>, alpha <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">method</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_reverse</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Rank (1 = highest importance)"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_fill_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"xplainfi"</span> <span class="op">=</span> <span class="st">"steelblue"</span>, <span class="st">"fippy"</span> <span class="op">=</span> <span class="st">"orange"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    title <span class="op">=</span> <span class="st">"Feature Importance Rankings Comparison"</span>,</span>
-<span>    subtitle <span class="op">=</span> <span class="st">"Ewald Simulation: Lower rank = higher importance"</span>,</span>
-<span>    x <span class="op">=</span> <span class="st">"Feature"</span>,</span>
-<span>    fill <span class="op">=</span> <span class="st">"Implementation"</span></span>
-<span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
-<span>    axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">45</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>    plot.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>hjust <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span>
-<span>    plot.subtitle <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>hjust <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="fippy-comparison_files/figure-html/interpretation-1.png" width="700"></p>
+<p><img src="fippy-comparison_files/figure-html/importancer-plot-1.png" width="700"></p>
 <div class="section level3">
 <h3 id="method-specific-insights">Method-Specific Insights<a class="anchor" aria-label="anchor" href="#method-specific-insights"></a>
 </h3>
-<p><strong>Marginal vs Conditional Methods:</strong> -
-<strong>PFI</strong> and <strong>Marginal SAGE</strong> ignore feature
-correlations - <strong>CFI</strong>, <strong>RFI</strong>, and
-<strong>Conditional SAGE</strong> account for feature dependencies -
-Differences between marginal and conditional variants reveal the impact
-of feature correlations</p>
+<p><strong>Marginal vs Conditional Methods:</strong></p>
+<ul>
+<li>
+<strong>PFI</strong> and <strong>Marginal SAGE</strong> ignore
+feature correlations</li>
+<li>
+<strong>CFI</strong>, <strong>RFI</strong>, and <strong>Conditional
+SAGE</strong> account for feature dependencies</li>
+<li>Differences between marginal and conditional variants reveal the
+impact of feature correlations</li>
+</ul>
 <p><strong>RFI Conditioning:</strong> Both implementations use
-<code>{x1, x2}</code> as the conditioning set, allowing us to see how
-other features’ importance changes when conditioned on these two
-features.</p>
+<code>{x3}</code> as the conditioning set.</p>
 <p><strong>Cross-Implementation Consistency:</strong> High correlations
 indicate that both xplainfi and fippy identify similar underlying
-feature importance patterns despite using different: - Programming
-languages (R vs Python) - Conditional sampling approaches (ARF vs
-Gaussian) - Implementation details</p>
-<p>This cross-validation strengthens confidence in both implementations
-and demonstrates the robustness of these feature importance methods
-across different computational environments.</p>
-<p>```</p>
+feature importance patterns despite using different:</p>
+<ul>
+<li>Programming languages (R vs Python)</li>
+<li>Conditional sampling approaches (ARF vs Gaussian)</li>
+<li>Implementation details</li>
+</ul>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
