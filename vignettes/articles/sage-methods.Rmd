@@ -10,6 +10,7 @@ knitr::opts_chunk$set(
   fig.height = 6
 )
 set.seed(123)
+options("xplain.progress" = interactive())
 ```
 
 ```{r setup}
