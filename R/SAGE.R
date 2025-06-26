@@ -96,13 +96,15 @@ SAGE = R6Class(
       ps = ps(
         n_permutations = paradox::p_int(lower = 1L, default = 10L),
         batch_size = paradox::p_int(lower = 1L, default = 5000L),
+        max_reference_size = paradox::p_int(lower = 1L, default = 100L),
         detect_convergence = paradox::p_lgl(default = FALSE),
         convergence_threshold = paradox::p_dbl(lower = 0, upper = 1, default = 0.01),
         min_permutations = paradox::p_int(lower = 5L, default = 10L),
-        check_interval = paradox::p_int(lower = 1L, default = 5L)
+        check_interval = paradox::p_int(lower = 1L, default = 2L)
       )
       ps$values$n_permutations = n_permutations
       ps$values$batch_size = batch_size
+      ps$values$max_reference_size = max_reference_size
       self$param_set = ps
     },
 
@@ -299,6 +301,15 @@ SAGE = R6Class(
       converged = FALSE
       baseline_loss = NULL
 
+      # Calculate total coalitions for unified progress tracking
+      total_coalitions_expected = 1 + self$n_permutations * length(self$features) # empty + all permutation steps
+      coalitions_processed = 0
+      
+      # Start unified progress bar for entire SAGE computation
+      if (xplain_opt("progress")) {
+        cli::cli_progress_bar("Computing SAGE values", total = total_coalitions_expected)
+      }
+
       # Process permutations in checkpoints
       while (n_completed < self$n_permutations && !converged) {
         # Determine checkpoint size
@@ -336,13 +347,19 @@ SAGE = R6Class(
           }
         }
 
-        # Evaluate coalitions for this checkpoint
+        # Evaluate coalitions for this checkpoint with unified progress updates
         checkpoint_losses = private$.evaluate_coalitions_batch(
           learner,
           test_dt,
           checkpoint_coalitions,
           batch_size
         )
+
+        # Update unified progress (checkpoint completed)
+        coalitions_processed = coalitions_processed + length(checkpoint_coalitions)
+        if (xplain_opt("progress")) {
+          cli::cli_progress_update(set = coalitions_processed)
+        }
 
         # Get baseline loss (from first checkpoint only)
         if (n_completed == 0) {
@@ -413,12 +430,11 @@ SAGE = R6Class(
           }
         }
 
-        # Progress update
-        if (!converged && xplain_opt("progress") && n_completed %% (check_interval * 2) == 0) {
-          cli::cli_inform(
-            "Completed {.val {n_completed}}/{.val {self$n_permutations}} permutations"
-          )
-        }
+      }
+
+      # Close unified progress bar
+      if (xplain_opt("progress")) {
+        cli::cli_progress_done()
       }
 
       # The convergence data will be set at the class level in compute()
@@ -459,15 +475,8 @@ SAGE = R6Class(
         cli::cli_inform("Evaluating {.val {length(all_coalitions)}} coalitions")
       }
 
-      if (xplain_opt("progress")) {
-        cli::cli_progress_bar("Preparing coalitions", total = length(all_coalitions))
-      }
       for (i in seq_along(all_coalitions)) {
         coalition = all_coalitions[[i]]
-
-        if (xplain_opt("progress")) {
-          cli::cli_progress_update()
-        }
 
         # Create test-reference combinations for this coalition
         test_expanded = test_dt[rep(seq_len(n_test), each = n_reference)]
@@ -490,9 +499,6 @@ SAGE = R6Class(
 
         all_expanded_data[[i]] = test_expanded
       }
-      if (xplain_opt("progress")) {
-        cli::cli_progress_done()
-      }
 
       # Combine ALL data into one big dataset
       combined_data = rbindlist(all_expanded_data)
@@ -504,9 +510,6 @@ SAGE = R6Class(
         n_batches = ceiling(total_rows / batch_size)
         all_predictions = vector("list", n_batches)
 
-        cli::cli_inform("Evaluating {.val {n_batches}} batches of size {.val {batch_size}}")
-        cli::cli_progress_bar("Evaluating", total = n_batches)
-
         for (batch_idx in seq_len(n_batches)) {
           start_row = (batch_idx - 1) * batch_size + 1
           end_row = min(batch_idx * batch_size, total_rows)
@@ -515,7 +518,6 @@ SAGE = R6Class(
 
           # Predict for this batch
           pred_result = learner$predict_newdata(newdata = batch_data, task = self$task)
-          cli::cli_progress_update()
 
           # Store predictions
           if (self$task$task_type == "classif") {
@@ -524,7 +526,6 @@ SAGE = R6Class(
             all_predictions[[batch_idx]] = pred_result$response
           }
         }
-        cli::cli_progress_done()
 
         # Combine predictions from all batches
         if (self$task$task_type == "classif") {
