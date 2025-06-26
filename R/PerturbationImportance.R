@@ -366,6 +366,11 @@ RFI = R6Class(
       # Use ARFSampler by default for RFI
       if (is.null(sampler)) {
         sampler = ARFSampler$new(task)
+        cli::cli_alert_info(
+          "No {.cls ConditionalSampler} provided, using {.cls ARFSampler} with default settings."
+        )
+      } else {
+        checkmate::assert_class(sampler, "ConditionalSampler")
       }
 
       super$initialize(
@@ -384,6 +389,9 @@ RFI = R6Class(
         conditioning_set = checkmate::assert_subset(conditioning_set, self$task$feature_names)
       } else {
         # Default to empty set (equivalent to PFI)
+        cli::cli_alert_info(
+          "Using empty conditioning set. Set {.code conditioning_set} to condition on features."
+        )
         conditioning_set = character(0)
       }
 
