@@ -52,7 +52,7 @@ where $\varepsilon \sim N(0, 0.2^2)$.
 
 ```{r data-setup}
 set.seed(123)
-task = sim_dgp_correlated(n = 800)
+task = sim_dgp_correlated(n = 1000)
 
 # Check the correlation structure
 task_data = task$data()
@@ -68,7 +68,7 @@ round(correlation_matrix, 3)
 Let's set up our learner and measure. We'll use a random forest and instantiate a resampling to ensure both methods see the same data:
 
 ```{r learner-setup}
-learner = lrn("regr.ranger", num.trees = 400)
+learner = lrn("regr.ranger")
 measure = msr("regr.mse")
 resampling = rsmp("holdout")
 resampling$instantiate(task)
@@ -86,11 +86,12 @@ marginal_sage = MarginalSAGE$new(
   measure = measure,
   resampling = resampling,
   n_permutations = 30L,  # More permutations for stable results
-  max_reference_size = 100L
+  max_reference_size = 100L,
+  batch_size = 5000L
 )
 
 # Compute SAGE values
-marginal_sage$compute(batch_size = 5000L)
+marginal_sage$compute()
 ```
 
 Let's visualize the results:
@@ -128,6 +129,11 @@ ggplot(marginal_results, aes(x = feature, y = importance)) +
     y = "SAGE Value"
   ) +
   theme_minimal(base_size = 14) 
+```
+
+
+```{r}
+marginal_sage$plot_convergence()
 ```
 
 ## Conditional SAGE
