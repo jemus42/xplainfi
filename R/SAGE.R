@@ -28,9 +28,12 @@ SAGE = R6Class(
     #' @description
     #' Creates a new instance of the SAGE class.
     #' @param task,learner,measure,resampling,features Passed to FeatureImportanceMethod.
-    #' @param n_permutations (`integer(1)`) Number of permutations to sample for Shapley value estimation.
+    #' @param n_permutations (`integer(1): 10L`) Number of permutations _per coalition_ to sample for Shapley value estimation.
+    #'   The total number of evaluated coalitions is `1 (empty) + n_permutations * n_features`.
     #' @param reference_data (`data.table | NULL`) Optional reference dataset. If `NULL`, uses training data.
-    #' @param sampler ([FeatureSampler]) Sampler for marginalization.
+    #'   For each coalition to evaluate, an expanded datasets of size `n_test * n_reference` is created and evaluted in batches of `batch_size` if specified.
+    #' @param batch_size (`integer(1) | NULL)` Maximum number of observations to process in a single prediction call. If NULL, processes all at once.
+    #' @param sampler ([FeatureSampler]) Sampler for marginalization. Only relevant for `ConditionalSAGE`.
     #' @param max_reference_size (`integer(1) | NULL`) Maximum size of reference dataset. If reference is larger, it will be subsampled. If `NULL`, no subsampling is performed.
     initialize = function(
       task,
@@ -40,6 +43,7 @@ SAGE = R6Class(
       features = NULL,
       n_permutations = 10L,
       reference_data = NULL,
+      batch_size = NULL,
       sampler = NULL,
       max_reference_size = NULL
     ) {
@@ -84,7 +88,8 @@ SAGE = R6Class(
 
       # Set parameters
       ps = ps(
-        n_permutations = paradox::p_int(lower = 1L, default = 10L)
+        n_permutations = paradox::p_int(lower = 1L, default = 10L),
+        batch_size = paradox::p_int(lower = 1L, default = NULL, special_vals = list(NULL))
       )
       ps$values$n_permutations = n_permutations
       self$param_set = ps
@@ -100,7 +105,7 @@ SAGE = R6Class(
         return(self$importance)
       }
 
-      # Initial resampling to get trained models
+      # Initial resampling to get trained learners
       rr = resample(
         self$task,
         self$learner,
@@ -114,7 +119,7 @@ SAGE = R6Class(
         private$.compute_sage_scores(
           learner = rr$learners[[iter]],
           test_dt = self$task$data(rows = rr$resampling$test_set(iter)),
-          batch_size = batch_size
+          batch_size = batch_size %||% self$param_set$values$batch_size
         )
       })
 
