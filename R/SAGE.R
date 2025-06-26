@@ -24,6 +24,12 @@ SAGE = R6Class(
     reference_data = NULL,
     #' @field sampler ([FeatureSampler]) Sampler object for marginalization.
     sampler = NULL,
+    #' @field convergence_history ([data.table]) History of SAGE values during computation.
+    convergence_history = NULL,
+    #' @field converged (`logical(1)`) Whether convergence was detected.
+    converged = FALSE,
+    #' @field n_permutations_used (`integer(1)`) Actual number of permutations used.
+    n_permutations_used = NULL,
 
     #' @description
     #' Creates a new instance of the SAGE class.
@@ -31,10 +37,10 @@ SAGE = R6Class(
     #' @param n_permutations (`integer(1): 10L`) Number of permutations _per coalition_ to sample for Shapley value estimation.
     #'   The total number of evaluated coalitions is `1 (empty) + n_permutations * n_features`.
     #' @param reference_data (`data.table | NULL`) Optional reference dataset. If `NULL`, uses training data.
-    #'   For each coalition to evaluate, an expanded datasets of size `n_test * n_reference` is created and evaluted in batches of `batch_size` if specified.
-    #' @param batch_size (`integer(1) | NULL)` Maximum number of observations to process in a single prediction call. If NULL, processes all at once.
+    #'   For each coalition to evaluate, an expanded datasets of size `n_test * n_reference` is created and evaluted in batches of `batch_size`.
+    #' @param batch_size (`integer(1): 5000L`) Maximum number of observations to process in a single prediction call.
     #' @param sampler ([FeatureSampler]) Sampler for marginalization. Only relevant for `ConditionalSAGE`.
-    #' @param max_reference_size (`integer(1) | NULL`) Maximum size of reference dataset. If reference is larger, it will be subsampled. If `NULL`, no subsampling is performed.
+    #' @param max_reference_size (`integer(1): 100L`) Maximum size of reference dataset. If reference is larger, it will be subsampled.
     initialize = function(
       task,
       learner,
@@ -43,9 +49,9 @@ SAGE = R6Class(
       features = NULL,
       n_permutations = 10L,
       reference_data = NULL,
-      batch_size = NULL,
+      batch_size = 5000L,
       sampler = NULL,
-      max_reference_size = NULL
+      max_reference_size = 100L
     ) {
       super$initialize(
         task = task,
@@ -89,21 +95,61 @@ SAGE = R6Class(
       # Set parameters
       ps = ps(
         n_permutations = paradox::p_int(lower = 1L, default = 10L),
-        batch_size = paradox::p_int(lower = 1L, default = NULL, special_vals = list(NULL))
+        batch_size = paradox::p_int(lower = 1L, default = 5000L),
+        detect_convergence = paradox::p_lgl(default = FALSE),
+        convergence_threshold = paradox::p_dbl(lower = 0, upper = 1, default = 0.01),
+        min_permutations = paradox::p_int(lower = 5L, default = 10L),
+        check_interval = paradox::p_int(lower = 1L, default = 5L)
       )
       ps$values$n_permutations = n_permutations
+      ps$values$batch_size = batch_size
       self$param_set = ps
     },
 
     #' @description
     #' Compute SAGE values.
     #' @param store_backends (logical(1)) Whether to store backends.
-    #' @param batch_size (integer(1)) Maximum number of observations to process in a single prediction call. If NULL, processes all at once.
-    compute = function(store_backends = TRUE, batch_size = NULL) {
+    #' @param batch_size (integer(1): 5000L) Maximum number of observations to process in a single prediction call.
+    #' @param detect_convergence (logical(1)) Whether to check for convergence and stop early.
+    #' @param convergence_threshold (numeric(1)) Relative change threshold for convergence detection.
+    #' @param min_permutations (integer(1)) Minimum permutations before checking convergence.
+    #' @param check_interval (integer(1)) Check convergence every N permutations.
+    compute = function(
+      store_backends = TRUE,
+      batch_size = NULL,
+      detect_convergence = NULL,
+      convergence_threshold = NULL,
+      min_permutations = NULL,
+      check_interval = NULL
+    ) {
       # Check if already computed
       if (!is.null(self$importance)) {
         return(self$importance)
       }
+
+      # Reset convergence tracking
+      self$convergence_history = NULL
+      self$converged = FALSE
+      self$n_permutations_used = NULL
+
+      # Resolve parameters using hierarchical resolution
+      batch_size = resolve_param(batch_size, self$param_set$values$batch_size, 5000L)
+      detect_convergence = resolve_param(
+        detect_convergence,
+        self$param_set$values$detect_convergence,
+        FALSE
+      )
+      convergence_threshold = resolve_param(
+        convergence_threshold,
+        self$param_set$values$convergence_threshold,
+        0.01
+      )
+      min_permutations = resolve_param(
+        min_permutations,
+        self$param_set$values$min_permutations,
+        10L
+      )
+      check_interval = resolve_param(check_interval, self$param_set$values$check_interval, 5L)
 
       # Initial resampling to get trained learners
       rr = resample(
@@ -114,17 +160,50 @@ SAGE = R6Class(
         store_backends = store_backends
       )
 
-      # Compute SAGE values for each resampling iteration
-      sage_scores = lapply(seq_len(self$resampling$iters), \(iter) {
-        private$.compute_sage_scores(
-          learner = rr$learners[[iter]],
-          test_dt = self$task$data(rows = rr$resampling$test_set(iter)),
-          batch_size = batch_size %||% self$param_set$values$batch_size
-        )
-      })
+      # For convergence tracking, we'll use the first resampling iteration
+      # (convergence is about permutation count, not resampling)
+      iter_for_convergence = 1L
+
+      # Compute SAGE values for convergence tracking (first iteration)
+      first_result = private$.compute_sage_scores(
+        learner = rr$learners[[iter_for_convergence]],
+        test_dt = self$task$data(rows = rr$resampling$test_set(iter_for_convergence)),
+        batch_size = batch_size,
+        detect_convergence = detect_convergence,
+        convergence_threshold = convergence_threshold,
+        min_permutations = min_permutations,
+        check_interval = check_interval
+      )
+
+      # Extract convergence data from first iteration
+      if (!is.null(first_result$convergence_data)) {
+        self$convergence_history = first_result$convergence_data$convergence_history
+        self$converged = first_result$convergence_data$converged
+        self$n_permutations_used = first_result$convergence_data$n_permutations_used
+      }
+
+      # If we have multiple resampling iterations, compute the rest without convergence tracking
+      if (self$resampling$iters > 1) {
+        remaining_results = lapply(seq_len(self$resampling$iters)[-iter_for_convergence], \(iter) {
+          private$.compute_sage_scores(
+            learner = rr$learners[[iter]],
+            test_dt = self$task$data(rows = rr$resampling$test_set(iter)),
+            batch_size = batch_size,
+            detect_convergence = FALSE, # Only track convergence for first iteration
+            convergence_threshold = convergence_threshold,
+            min_permutations = min_permutations,
+            check_interval = check_interval
+          )
+        })
+
+        # Extract scores from all results (handle list structure)
+        all_scores = c(list(first_result$scores), lapply(remaining_results, function(x) x$scores))
+      } else {
+        all_scores = list(first_result$scores)
+      }
 
       # Combine results across resampling iterations
-      scores = rbindlist(sage_scores, idcol = "iter_rsmp")
+      scores = rbindlist(all_scores, idcol = "iter_rsmp")
 
       # Aggregate by feature
       scores_agg = private$.aggregate_importances(scores)
@@ -135,75 +214,235 @@ SAGE = R6Class(
       self$importance = scores_agg
 
       copy(self$importance)
+    },
+
+    #' @description
+    #' Plot convergence history of SAGE values.
+    #' @param features (`character` | `NULL`) Features to plot. If NULL, plots all features.
+    #' @return A ggplot2 object
+    plot_convergence = function(features = NULL) {
+      if (is.null(self$convergence_history)) {
+        cli::cli_abort("No convergence history available. Run $compute() first.")
+      }
+
+      # Create a copy to avoid modifying the original
+      plot_data = copy(self$convergence_history)
+
+      if (!is.null(features)) {
+        plot_data = plot_data[feature %in% features]
+      }
+
+      require_package("ggplot2")
+
+      p = ggplot2::ggplot(
+        plot_data,
+        ggplot2::aes(x = n_permutations, y = importance, color = feature)
+      ) +
+        ggplot2::geom_line(size = 1) +
+        ggplot2::geom_point(size = 2) +
+        ggplot2::labs(
+          title = "SAGE Value Convergence",
+          subtitle = if (self$converged) {
+            sprintf(
+              "Converged after %d permutations (saved %d)",
+              self$n_permutations_used,
+              self$n_permutations - self$n_permutations_used
+            )
+          } else {
+            sprintf("Completed all %d permutations", self$n_permutations)
+          },
+          x = "Number of Permutations",
+          y = "SAGE Value",
+          color = "Feature"
+        ) +
+        ggplot2::theme_minimal(base_size = 12)
+
+      if (self$converged) {
+        p = p +
+          ggplot2::geom_vline(
+            xintercept = self$n_permutations_used,
+            linetype = "dashed",
+            color = "red",
+            alpha = 0.5
+          ) +
+          ggplot2::annotate(
+            "text",
+            x = self$n_permutations_used,
+            y = Inf,
+            label = "Converged",
+            vjust = 2,
+            hjust = -0.1,
+            color = "red"
+          )
+      }
+
+      p
     }
   ),
 
   private = list(
-    .compute_sage_scores = function(learner, test_dt, batch_size = NULL) {
-      # Initialize SAGE values for each feature
+    .compute_sage_scores = function(
+      learner,
+      test_dt,
+      batch_size = NULL,
+      detect_convergence = FALSE,
+      convergence_threshold = 0.01,
+      min_permutations = 10L,
+      check_interval = 5L
+    ) {
+      # Initialize SAGE values and tracking
       sage_values = numeric(length(self$features))
       names(sage_values) = self$features
 
-      # Pre-generate all permutations for efficiency
-      all_permutations = replicate(self$n_permutations, sample(self$features), simplify = FALSE)
+      convergence_history = list()
+      n_completed = 0
+      converged = FALSE
+      baseline_loss = NULL
 
-      # Pre-allocate lists for coalitions
-      # Total coalitions = 1 (empty) + n_permutations * n_features
-      n_total_coalitions = 1 + self$n_permutations * length(self$features)
-      all_coalitions = vector("list", n_total_coalitions)
-      coalition_map = vector("list", n_total_coalitions)
+      # Process permutations in checkpoints
+      while (n_completed < self$n_permutations && !converged) {
+        # Determine checkpoint size
+        checkpoint_size = min(check_interval, self$n_permutations - n_completed)
+        checkpoint_perms = (n_completed + 1):(n_completed + checkpoint_size)
 
-      # Add empty coalition
-      all_coalitions[[1]] = character(0)
-      coalition_map[[1]] = list(perm_idx = 0, step = 0) # Special case for baseline
+        # Generate permutations for this checkpoint
+        checkpoint_permutations = replicate(
+          checkpoint_size,
+          sample(self$features),
+          simplify = FALSE
+        )
 
-      coalition_idx = 2
-      for (perm_idx in seq_len(self$n_permutations)) {
-        perm_features = all_permutations[[perm_idx]]
+        # Build coalitions for this checkpoint
+        checkpoint_coalitions = list()
+        checkpoint_coalition_map = list()
+        coalition_idx = 1
 
-        for (i in seq_along(perm_features)) {
-          coalition = perm_features[seq_len(i)]
-          all_coalitions[[coalition_idx]] = coalition
-          coalition_map[[coalition_idx]] = list(perm_idx = perm_idx, step = i)
-          coalition_idx = coalition_idx + 1
+        # Add empty coalition only for first checkpoint
+        if (n_completed == 0) {
+          checkpoint_coalitions[[1]] = character(0)
+          checkpoint_coalition_map[[1]] = list(checkpoint_perm_idx = 0, step = 0)
+          coalition_idx = 2
+        }
+
+        # Add coalitions from permutations in this checkpoint
+        for (i in seq_along(checkpoint_permutations)) {
+          perm_features = checkpoint_permutations[[i]]
+
+          for (j in seq_along(perm_features)) {
+            coalition = perm_features[seq_len(j)]
+            checkpoint_coalitions[[coalition_idx]] = coalition
+            checkpoint_coalition_map[[coalition_idx]] = list(checkpoint_perm_idx = i, step = j)
+            coalition_idx = coalition_idx + 1
+          }
+        }
+
+        # Evaluate coalitions for this checkpoint
+        checkpoint_losses = private$.evaluate_coalitions_batch(
+          learner,
+          test_dt,
+          checkpoint_coalitions,
+          batch_size
+        )
+
+        # Get baseline loss (from first checkpoint only)
+        if (n_completed == 0) {
+          baseline_loss = checkpoint_losses[1]
+        }
+
+        # Process checkpoint results
+        for (i in seq_along(checkpoint_permutations)) {
+          perm_features = checkpoint_permutations[[i]]
+          prev_loss = baseline_loss
+
+          for (j in seq_along(perm_features)) {
+            feature = perm_features[j]
+
+            # Find the loss for this coalition in checkpoint results
+            coalition_lookup_idx = which(sapply(checkpoint_coalition_map, function(x) {
+              x$checkpoint_perm_idx == i && x$step == j
+            }))
+
+            # Get the coalition loss directly (no adjustment needed)
+            current_loss = checkpoint_losses[coalition_lookup_idx]
+
+            # Calculate marginal contribution
+            marginal_contribution = prev_loss - current_loss
+
+            sage_values[feature] = sage_values[feature] + marginal_contribution
+
+            prev_loss = current_loss
+          }
+        }
+
+        n_completed = n_completed + checkpoint_size
+
+        # Calculate current averages (careful with data.table reference semantics)
+        current_avg = sage_values / n_completed
+
+        # Store convergence history (always, regardless of detect_convergence)
+        checkpoint_history = data.table(
+          n_permutations = n_completed,
+          feature = names(current_avg),
+          importance = as.numeric(current_avg) # Ensure numeric, not named vector
+        )
+        convergence_history[[length(convergence_history) + 1]] = checkpoint_history
+
+        # Check convergence only if enabled
+        if (
+          detect_convergence && n_completed >= min_permutations && length(convergence_history) > 1
+        ) {
+          # Get previous checkpoint values
+          prev_checkpoint = convergence_history[[length(convergence_history) - 1]]
+          curr_checkpoint = convergence_history[[length(convergence_history)]]
+
+          # Merge by feature to ensure proper comparison (careful with data.table)
+          prev_values = copy(prev_checkpoint)[order(feature)]$importance
+          curr_values = copy(curr_checkpoint)[order(feature)]$importance
+
+          # Calculate maximum relative change
+          rel_changes = abs(curr_values - prev_values) / (abs(prev_values) + 1e-8)
+          max_change = max(rel_changes, na.rm = TRUE)
+
+          if (is.finite(max_change) && max_change < convergence_threshold) {
+            converged = TRUE
+            cli::cli_inform(c(
+              "v" = "SAGE converged after {.val {n_completed}} permutations",
+              "i" = "Maximum relative change: {.val {round(max_change, 4)}}",
+              "i" = "Saved {.val {self$n_permutations - n_completed}} permutations"
+            ))
+          }
+        }
+
+        # Progress update
+        if (!converged && xplain_opt("progress") && n_completed %% (check_interval * 2) == 0) {
+          cli::cli_inform(
+            "Completed {.val {n_completed}}/{.val {self$n_permutations}} permutations"
+          )
         }
       }
 
-      # Batch evaluate ALL coalitions at once
-      all_losses = private$.evaluate_coalitions_batch(learner, test_dt, all_coalitions, batch_size)
+      # The convergence data will be set at the class level in compute()
+      # Return as a list so we can access it from the main compute method
+      convergence_data = list(
+        convergence_history = if (length(convergence_history) > 0) {
+          rbindlist(convergence_history)
+        } else {
+          NULL
+        },
+        converged = converged,
+        n_permutations_used = n_completed
+      )
 
-      # Extract baseline loss
-      baseline_loss = all_losses[1]
+      # Final averages
+      final_sage_values = sage_values / n_completed
 
-      # Process permutations using pre-computed losses
-      for (perm_idx in seq_len(self$n_permutations)) {
-        perm_features = all_permutations[[perm_idx]]
-        prev_loss = baseline_loss
-
-        for (i in seq_along(perm_features)) {
-          feature = perm_features[i]
-
-          # Find the loss for this coalition
-          coalition_lookup_idx = which(sapply(coalition_map, function(x) {
-            x$perm_idx == perm_idx && x$step == i
-          }))
-          current_loss = all_losses[coalition_lookup_idx]
-
-          # Calculate marginal contribution
-          marginal_contribution = prev_loss - current_loss
-          sage_values[feature] = sage_values[feature] + marginal_contribution
-
-          prev_loss = current_loss
-        }
-      }
-
-      # Average over permutations
-      sage_values = sage_values / self$n_permutations
-
-      # Return as data.table
-      data.table(
-        feature = names(sage_values),
-        importance = unname(sage_values)
+      # Return results with convergence data
+      list(
+        scores = data.table(
+          feature = names(final_sage_values),
+          importance = as.numeric(final_sage_values)
+        ),
+        convergence_data = convergence_data
       )
     },
 
@@ -239,6 +478,7 @@ SAGE = R6Class(
         test_expanded[, .test_instance_id := rep(seq_len(n_test), each = n_reference)]
 
         # Marginalize features not in coalition
+        # Mild misnomer since ConditionalSAGE uses conditional sampler here
         marginalize_features = setdiff(self$features, coalition)
         if (length(marginalize_features) > 0) {
           test_expanded = private$.marginalize_features(
@@ -424,6 +664,7 @@ MarginalSAGE = R6Class(
     #' @param n_permutations (integer(1)) Number of permutations to sample.
     #' @param reference_data (data.table) Optional reference dataset.
     #' @param max_reference_size (integer(1)) Maximum size of reference dataset.
+    #' @param batch_size (`integer(1): 5000L`) Maximum number of observations to process in a single prediction call.
     initialize = function(
       task,
       learner,
@@ -432,7 +673,8 @@ MarginalSAGE = R6Class(
       features = NULL,
       n_permutations = 10L,
       reference_data = NULL,
-      max_reference_size = NULL
+      batch_size = 5000L,
+      max_reference_size = 100L
     ) {
       # No need to initialize sampler as marginal sampling is done differently here
       super$initialize(
@@ -443,6 +685,7 @@ MarginalSAGE = R6Class(
         features = features,
         n_permutations = n_permutations,
         reference_data = reference_data,
+        batch_size = batch_size,
         max_reference_size = max_reference_size
       )
 
@@ -491,6 +734,7 @@ ConditionalSAGE = R6Class(
     #' @param reference_data (data.table) Optional reference dataset.
     #' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to ARFSampler.
     #' @param max_reference_size (integer(1)) Maximum size of reference dataset.
+    #' @param batch_size (`integer(1): 5000L`) Maximum number of observations to process in a single prediction call.
     initialize = function(
       task,
       learner,
@@ -500,7 +744,8 @@ ConditionalSAGE = R6Class(
       n_permutations = 10L,
       reference_data = NULL,
       sampler = NULL,
-      max_reference_size = NULL
+      batch_size = 5000L,
+      max_reference_size = 100L
     ) {
       # Use ARFSampler by default
       if (is.null(sampler)) {
@@ -521,6 +766,7 @@ ConditionalSAGE = R6Class(
         n_permutations = n_permutations,
         reference_data = reference_data,
         sampler = sampler,
+        batch_size = batch_size,
         max_reference_size = max_reference_size
       )
 
