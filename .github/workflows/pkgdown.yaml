@@ -19,6 +19,7 @@ jobs:
       group: pkgdown-${{ github.event_name != 'pull_request' || github.run_id }}
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      XPLAIN_PROGRESS: FALSE
     permissions:
       contents: write
     steps:
@@ -34,10 +35,6 @@ jobs:
         with:
           extra-packages: any::pkgdown, local::.
           needs: website
-
-      # Install uv to run fippy for results comparison
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
 
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
