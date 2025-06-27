@@ -107,7 +107,7 @@ Compute SAGE values.
 \if{html}{\out{<div class="r">}}\preformatted{SAGE$compute(
   store_backends = TRUE,
   batch_size = NULL,
-  detect_convergence = NULL,
+  early_stopping = NULL,
   convergence_threshold = NULL,
   min_permutations = NULL,
   check_interval = NULL
@@ -121,7 +121,7 @@ Compute SAGE values.
 
 \item{\code{batch_size}}{(integer(1): 5000L) Maximum number of observations to process in a single prediction call.}
 
-\item{\code{detect_convergence}}{(logical(1)) Whether to check for convergence and stop early.}
+\item{\code{early_stopping}}{(logical(1)) Whether to check for convergence and stop early.}
 
 \item{\code{convergence_threshold}}{(numeric(1)) Relative change threshold for convergence detection.}
 
