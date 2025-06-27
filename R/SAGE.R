@@ -266,15 +266,6 @@ SAGE = R6Class(
             linetype = "dashed",
             color = "red",
             alpha = 0.5
-          ) +
-          ggplot2::annotate(
-            "text",
-            x = self$n_permutations_used,
-            y = Inf,
-            label = "Converged",
-            vjust = 2,
-            hjust = -0.1,
-            color = "red"
           )
       }
 
@@ -306,13 +297,16 @@ SAGE = R6Class(
       converged = FALSE
       baseline_loss = NULL
 
-      # Calculate total coalitions for unified progress tracking
-      total_coalitions_expected = 1 + self$n_permutations * length(self$features) # empty + all permutation steps
-      coalitions_processed = 0
-      
-      # Start unified progress bar for entire SAGE computation
+      # Calculate total checkpoints for progress tracking
+      total_checkpoints = ceiling(self$n_permutations / check_interval)
+      current_checkpoint = 0
+
+      # Start checkpoint-based progress bar
       if (xplain_opt("progress")) {
-        cli::cli_progress_bar("Computing SAGE values", total = total_coalitions_expected)
+        cli::cli_progress_bar(
+          "Computing SAGE values",
+          total = total_checkpoints
+        )
       }
 
       # Process permutations in checkpoints
@@ -348,7 +342,11 @@ SAGE = R6Class(
           }
         }
 
-        # Evaluate coalitions for this checkpoint with unified progress updates
+        # Update progress: starting checkpoint
+        current_checkpoint = current_checkpoint + 1
+        n_coalitions_in_checkpoint = length(checkpoint_coalitions)
+
+        # Evaluate coalitions for this checkpoint
         checkpoint_losses = private$.evaluate_coalitions_batch(
           learner,
           test_dt,
@@ -356,10 +354,9 @@ SAGE = R6Class(
           batch_size
         )
 
-        # Update unified progress (checkpoint completed)
-        coalitions_processed = coalitions_processed + length(checkpoint_coalitions)
+        # Update progress: checkpoint completed
         if (xplain_opt("progress")) {
-          cli::cli_progress_update(set = coalitions_processed)
+          cli::cli_progress_update(inc = 1)
         }
 
         # Get baseline loss (from first checkpoint only)
@@ -406,9 +403,7 @@ SAGE = R6Class(
         convergence_history[[length(convergence_history) + 1]] = checkpoint_history
 
         # Check convergence only if early stopping is enabled
-        if (
-          early_stopping && n_completed >= min_permutations && length(convergence_history) > 1
-        ) {
+        if (early_stopping && n_completed >= min_permutations && length(convergence_history) > 1) {
           # Get previous checkpoint values
           prev_checkpoint = convergence_history[[length(convergence_history) - 1]]
           curr_checkpoint = convergence_history[[length(convergence_history)]]
@@ -430,10 +425,9 @@ SAGE = R6Class(
             ))
           }
         }
-
       }
 
-      # Close unified progress bar
+      # Close checkpoint progress bar
       if (xplain_opt("progress")) {
         cli::cli_progress_done()
       }
@@ -539,6 +533,7 @@ SAGE = R6Class(
         if (xplain_opt("debug")) {
           cli::cli_inform("Predicting on {.val {nrow(combined_data)}} instances at once")
         }
+
         pred_result = learner$predict_newdata(newdata = combined_data, task = self$task)
 
         if (self$task$task_type == "classif") {
