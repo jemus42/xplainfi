@@ -110,7 +110,7 @@ marginal_results$feature = factor(
 
 # Color features by type (causal vs noise)
 marginal_results$feature_type = ifelse(
-  marginal_results$feature %in% c("x1", "x2", "x3"), 
+  marginal_results$feature %in% c("x1", "x3"), 
   "Causal", 
   "Noise"
 )
@@ -124,15 +124,16 @@ ggplot(marginal_results, aes(x = feature, y = importance)) +
   ) +
   labs(
     title = "Marginal SAGE Feature Importance",
-    subtitle = "Correlated features: x1 and x2 are highly correlated (r ≈ 0.999), x2 has no effect on y",
+    subtitle = "Correlated features: x1 and x2 are highly correlated (r ≈ 0.999)\nx2 has no effect on y",
     x = "Features", 
     y = "SAGE Value"
   ) +
   theme_minimal(base_size = 14) 
 ```
 
+We can also keep track of the SAGE value approximation across permutations:
 
-```{r}
+```{r convergance-marginal}
 marginal_sage$plot_convergence()
 ```
 
@@ -181,7 +182,7 @@ conditional_results$feature_type = ifelse(
 ggplot(conditional_results, aes(x = feature, y = importance)) +
   geom_col(aes(fill = feature_type), alpha = 0.8) +
   scale_fill_manual(
-    values = c("Causal" = "darkgreen", "Noise" = "lightcoral"),
+    values = c("Causal" = "steelblue", "Noise" = "lightcoral"),
     name = "Feature type"
   ) +
   labs(
@@ -192,6 +193,11 @@ ggplot(conditional_results, aes(x = feature, y = importance)) +
   ) +
   theme_minimal(base_size = 14) +
   theme(legend.position = "bottom")
+```
+
+
+```{r convergance-conditional}
+conditional_sage$plot_convergence()
 ```
 
 ## Comparison of Methods
@@ -218,7 +224,6 @@ ggplot(combined_results, aes(x = feature, y = importance, fill = method)) +
   scale_fill_manual(values = c("Marginal SAGE" = "steelblue", "Conditional SAGE" = "darkgreen")) +
   labs(
     title = "Marginal vs Conditional SAGE Comparison",
-    subtitle = "Key difference: How x1 and x2 (correlated features) are valued",
     x = "Features", 
     y = "SAGE Value",
     fill = "Method"
