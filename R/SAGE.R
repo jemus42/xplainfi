@@ -223,6 +223,8 @@ SAGE = R6Class(
     #' @param features (`character` | `NULL`) Features to plot. If NULL, plots all features.
     #' @return A ggplot2 object
     plot_convergence = function(features = NULL) {
+      require_package("ggplot2")
+
       if (is.null(self$convergence_history)) {
         cli::cli_abort("No convergence history available. Run $compute() first.")
       }
@@ -233,8 +235,6 @@ SAGE = R6Class(
       if (!is.null(features)) {
         plot_data = plot_data[feature %in% features]
       }
-
-      require_package("ggplot2")
 
       p = ggplot2::ggplot(
         plot_data,
@@ -391,7 +391,7 @@ SAGE = R6Class(
 
         n_completed = n_completed + checkpoint_size
 
-        # Calculate current averages (careful with data.table reference semantics)
+        # Calculate current averages
         current_avg = sage_values / n_completed
 
         # Store convergence history (always, regardless of detect_convergence)
@@ -512,6 +512,11 @@ SAGE = R6Class(
           batch_data = combined_data[start_row:end_row]
 
           # Predict for this batch
+          if (xplain_opt("debug")) {
+            cli::cli_inform(
+              "Predicting on {.val {nrow(batch_data)}} instances in batch {.val {batch_idx}/{n_batches}}"
+            )
+          }
           pred_result = learner$predict_newdata(newdata = batch_data, task = self$task)
 
           # Store predictions
@@ -626,7 +631,7 @@ SAGE = R6Class(
       # Abstract method - must be implemented by subclasses
       cli::cli_abort(c(
         "Abstract method: {.fun marginalize_features} must be implemented by subclasses.",
-        "i" = "Use MarginalSAGE or ConditionalSAGE instead of the abstract SAGE class."
+        "i" = "Use {.cls MarginalSAGE} or {.cls ConditionalSAGE} instead of the abstract {.cls SAGE} class."
       ))
     }
   )
