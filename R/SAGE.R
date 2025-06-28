@@ -68,8 +68,8 @@ SAGE = R6Class(
       if (self$task$task_type == "classif") {
         if (learner$predict_type != "prob") {
           cli::cli_abort(c(
-            "Classification learners must use predict_type = 'prob' for SAGE.",
-            "i" = "Please set learner$predict_type = 'prob' before using SAGE."
+            "Classification learners require probability predictions for SAGE.",
+            "i" = "Please set {.code learner$configure(predict_type = \"prob\")} before using SAGE."
           ))
         }
       }
