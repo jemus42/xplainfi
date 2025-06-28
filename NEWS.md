@@ -10,6 +10,14 @@
 - Add `$obs_loss` and `$predictions` fields to `FeatureImportanceMeasure`, nosw used by `LOCO` and `LOCI`
   - Both get arugments `obs_loss = FALSE` and `aggregation_fun`, defaulting to `median` in case of `obs_loss = TRUE`, to allow for macro-averaged median of absolute differences calculcation as in original LOCO formulation, rather than the micro-averaged approach calculated by default.
 - Fix accidentally marginal `ConditionalSAGE`.
+- `SAGE` methods get convergence tracking if `early_stopping = TRUE`
+  - Permutations are evaluated in steps of `check_interval` at a time, after each convergence is checked
+  - If values change by less than `convergence_threshold`, convergence is assumed
+  - A `$converged` field is set to `TRUE`
+  - At least `min_permutations` are perfomed in any case, and `$n_permutations_used` shows the number of performed permutations
+  - `$convergence_history` tracks convergence history and can be analyzed to see per-feature values after each checkpoint
+  -  `$plot_convergence_history()` plots convergence history per feature
+  -  Convergence is tracked only for first resampling iteration
 
 # xplainfi 0.1.0
 
