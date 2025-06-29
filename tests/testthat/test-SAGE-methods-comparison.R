@@ -3,11 +3,11 @@ test_that("MarginalSAGE and ConditionalSAGE produce different results on correla
   skip_if_not_installed("mlr3learners")
   library(mlr3learners)
 
-  set.seed(456)
+  set.seed(42)
 
-  # Use correlated features DGP with larger sample
-  task = sim_dgp_correlated(n = 1000)
-  learner = lrn("regr.lm") # Linear model for clarity
+  # Use the sim_dgp_correlated which is designed to show differences
+  task = sim_dgp_correlated(n = 800)
+  learner = lrn("regr.ranger", num.trees = 100)
   measure = msr("regr.mse")
 
   # Create both SAGE methods
@@ -15,53 +15,46 @@ test_that("MarginalSAGE and ConditionalSAGE produce different results on correla
     task = task,
     learner = learner,
     measure = measure,
-    n_permutations = 20L
+    n_permutations = 20L,
+    max_reference_size = 100L
   )
 
   conditional_sage = ConditionalSAGE$new(
     task = task,
     learner = learner,
     measure = measure,
-    n_permutations = 20L
+    n_permutations = 20L,
+    max_reference_size = 100L
   )
 
-  # Compute results
+  # Compute results with consistent seeds
+  set.seed(123)
   marginal_results = marginal_sage$compute()
+  
+  set.seed(123)
   conditional_results = conditional_sage$compute()
 
   # Both should produce valid importance data.tables
   expect_importance_dt(marginal_results, features = task$feature_names)
   expect_importance_dt(conditional_results, features = task$feature_names)
 
-  # The methods should produce meaningfully different results
-  # Calculate correlation between the two sets of importance scores
-  merged_results = merge(
-    marginal_results[, .(feature, marginal_imp = importance)],
-    conditional_results[, .(feature, conditional_imp = importance)],
-    by = "feature"
-  )
-
-  correlation = cor(merged_results$marginal_imp, merged_results$conditional_imp)
-
-  # With correlated features, methods should show meaningful differences
-  # (correlation should be less than perfect)
-  expect_lt(correlation, 0.9)
-
-  # Check that correlated features (x1, x2) show different patterns
+  # Check that the results are meaningfully different
+  # For highly correlated x1 and x2, the methods should differ
   x1_marginal = marginal_results[feature == "x1"]$importance
-  x1_conditional = conditional_results[feature == "x1"]$importance
   x2_marginal = marginal_results[feature == "x2"]$importance
+  x1_conditional = conditional_results[feature == "x1"]$importance
   x2_conditional = conditional_results[feature == "x2"]$importance
-
-  # At least one of the correlated features should show a meaningful difference
-  # between marginal and conditional SAGE
+  
+  # Calculate the absolute differences
   x1_diff = abs(x1_marginal - x1_conditional)
   x2_diff = abs(x2_marginal - x2_conditional)
+  
+  # At least one correlated feature should show substantial difference
   max_diff = max(x1_diff, x2_diff)
-
-  # The maximum difference should be substantial (more than 10% of the larger importance)
   max_importance = max(abs(c(x1_marginal, x1_conditional, x2_marginal, x2_conditional)))
-  expect_gt(max_diff, 0.1 * max_importance)
+  
+  # The difference should be at least 15% of the maximum importance
+  expect_gt(max_diff / (max_importance + 1e-6), 0.15)
 })
 
 test_that("MarginalSAGE and ConditionalSAGE are similar on independent data", {

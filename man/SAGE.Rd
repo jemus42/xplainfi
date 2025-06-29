@@ -31,6 +31,12 @@ In \emph{Advances in Neural Information Processing Systems}, volume 33, 17212--1
 \item{\code{reference_data}}{(data.table) Reference dataset for marginalization.}
 
 \item{\code{sampler}}{(\link{FeatureSampler}) Sampler object for marginalization.}
+
+\item{\code{convergence_history}}{(\link{data.table}) History of SAGE values during computation.}
+
+\item{\code{converged}}{(\code{logical(1)}) Whether convergence was detected.}
+
+\item{\code{n_permutations_used}}{(\code{integer(1)}) Actual number of permutations used.}
 }
 \if{html}{\out{</div>}}
 }
@@ -39,6 +45,7 @@ In \emph{Advances in Neural Information Processing Systems}, volume 33, 17212--1
 \itemize{
 \item \href{#method-SAGE-new}{\code{SAGE$new()}}
 \item \href{#method-SAGE-compute}{\code{SAGE$compute()}}
+\item \href{#method-SAGE-plot_convergence}{\code{SAGE$plot_convergence()}}
 \item \href{#method-SAGE-clone}{\code{SAGE$clone()}}
 }
 }
@@ -65,9 +72,9 @@ Creates a new instance of the SAGE class.
   features = NULL,
   n_permutations = 10L,
   reference_data = NULL,
-  batch_size = NULL,
+  batch_size = 5000L,
   sampler = NULL,
-  max_reference_size = NULL
+  max_reference_size = 100L
 )}\if{html}{\out{</div>}}
 }
 
@@ -80,13 +87,13 @@ Creates a new instance of the SAGE class.
 The total number of evaluated coalitions is \code{1 (empty) + n_permutations * n_features}.}
 
 \item{\code{reference_data}}{(\code{data.table | NULL}) Optional reference dataset. If \code{NULL}, uses training data.
-For each coalition to evaluate, an expanded datasets of size \code{n_test * n_reference} is created and evaluted in batches of \code{batch_size} if specified.}
+For each coalition to evaluate, an expanded datasets of size \code{n_test * n_reference} is created and evaluted in batches of \code{batch_size}.}
 
-\item{\code{batch_size}}{(\verb{integer(1) | NULL)} Maximum number of observations to process in a single prediction call. If NULL, processes all at once.}
+\item{\code{batch_size}}{(\code{integer(1): 5000L}) Maximum number of observations to process in a single prediction call.}
 
 \item{\code{sampler}}{(\link{FeatureSampler}) Sampler for marginalization. Only relevant for \code{ConditionalSAGE}.}
 
-\item{\code{max_reference_size}}{(\code{integer(1) | NULL}) Maximum size of reference dataset. If reference is larger, it will be subsampled. If \code{NULL}, no subsampling is performed.}
+\item{\code{max_reference_size}}{(\code{integer(1): 100L}) Maximum size of reference dataset. If reference is larger, it will be subsampled.}
 }
 \if{html}{\out{</div>}}
 }
@@ -97,7 +104,14 @@ For each coalition to evaluate, an expanded datasets of size \code{n_test * n_re
 \subsection{Method \code{compute()}}{
 Compute SAGE values.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SAGE$compute(store_backends = TRUE, batch_size = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{SAGE$compute(
+  store_backends = TRUE,
+  batch_size = NULL,
+  early_stopping = NULL,
+  convergence_threshold = NULL,
+  min_permutations = NULL,
+  check_interval = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -105,9 +119,37 @@ Compute SAGE values.
 \describe{
 \item{\code{store_backends}}{(logical(1)) Whether to store backends.}
 
-\item{\code{batch_size}}{(integer(1)) Maximum number of observations to process in a single prediction call. If NULL, processes all at once.}
+\item{\code{batch_size}}{(integer(1): 5000L) Maximum number of observations to process in a single prediction call.}
+
+\item{\code{early_stopping}}{(logical(1)) Whether to check for convergence and stop early.}
+
+\item{\code{convergence_threshold}}{(numeric(1)) Relative change threshold for convergence detection.}
+
+\item{\code{min_permutations}}{(integer(1)) Minimum permutations before checking convergence.}
+
+\item{\code{check_interval}}{(integer(1)) Check convergence every N permutations.}
 }
 \if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-SAGE-plot_convergence"></a>}}
+\if{latex}{\out{\hypertarget{method-SAGE-plot_convergence}{}}}
+\subsection{Method \code{plot_convergence()}}{
+Plot convergence history of SAGE values.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{SAGE$plot_convergence(features = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{features}}{(\code{character} | \code{NULL}) Features to plot. If NULL, plots all features.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A ggplot2 object
 }
 }
 \if{html}{\out{<hr>}}

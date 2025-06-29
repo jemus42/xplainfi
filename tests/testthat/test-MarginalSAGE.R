@@ -363,7 +363,7 @@ test_that("MarginalSAGE requires predict_type='prob' for classification", {
       learner = learner,
       measure = measure
     ),
-    "Classification learners must use predict_type = 'prob' for SAGE"
+    "Classification learners require probability predictions for SAGE."
   )
 
   # Should work fine for regression

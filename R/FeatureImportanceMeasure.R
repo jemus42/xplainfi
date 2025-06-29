@@ -52,7 +52,7 @@ FeatureImportanceMethod = R6Class(
           "regr" = mlr3::msr("regr.mse")
         )
         cli::cli_alert_info(
-          "No {.cls Measure} provided, using default measure {.val {self$measure$id}}"
+          "No {.cls Measure} provided, using {.code measure = msr({self$measure$id})}"
         )
       } else {
         self$measure = mlr3::assert_measure(measure, task = task, learner = learner)
@@ -64,9 +64,10 @@ FeatureImportanceMethod = R6Class(
       # resampling: default to holdout with default ratio if NULL
       if (is.null(resampling)) {
         resampling = mlr3::rsmp("holdout")$instantiate(task)
-        cli::cli_alert_info(
-          "No {.cls Resampling} provided, using holdout resampling with default ratio."
-        )
+        cli::cli_inform(c(
+          i = "No {.cls Resampling} provided",
+          "Using {.code resampling = rsmp(\"holdout\")} with default {.code ratio = {round(resampling$param_set$values$ratio, 2)}}."
+        ))
       }
       if (!resampling$is_instantiated) {
         resampling$instantiate(task)
@@ -184,7 +185,21 @@ FeatureImportanceMethod = R6Class(
     #' @param ... Passed to `print()`
     print = function(...) {
       cli::cli_h2(self$label)
-      if (!is.null(self$importance)) print(self$importance, ...)
+      cli::cli_ul()
+      cli::cli_li("Feature{?s} of interest: {.val {self$features}}")
+      cli::cli_li("Parameters:")
+
+      pidx = seq_along(self$param_set$values)
+      sapply(pidx, \(i) {
+        cli::cli_ul("{.code {names(self$param_set$values)[i]}}: {.val {self$param_set$values[i]}}")
+      })
+
+      cli::cli_end()
+      if (!is.null(self$importance)) {
+        print(self$importance, ...)
+      } else {
+        cli::cli_inform("No importances computed yet.")
+      }
     }
   ),
   private = list(
