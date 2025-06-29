@@ -100,6 +100,18 @@ In <em>Advances in Neural Information Processing Systems</em>, volume 33, 17212â
 <dd><p>(<a href="FeatureSampler.html">FeatureSampler</a>) Sampler object for marginalization.</p></dd>
 
 
+<dt><code>convergence_history</code></dt>
+<dd><p>(<a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a>) History of SAGE values during computation.</p></dd>
+
+
+<dt><code>converged</code></dt>
+<dd><p>(<code>logical(1)</code>) Whether convergence was detected.</p></dd>
+
+
+<dt><code>n_permutations_used</code></dt>
+<dd><p>(<code>integer(1)</code>) Actual number of permutations used.</p></dd>
+
+
 </dl><p></p></div>
     </div>
     <div class="section level2">
@@ -110,6 +122,7 @@ In <em>Advances in Neural Information Processing Systems</em>, volume 33, 17212â
 
 <ul><li><p><a href="#method-SAGE-new"><code>SAGE$new()</code></a></p></li>
 <li><p><a href="#method-SAGE-compute"><code>SAGE$compute()</code></a></p></li>
+<li><p><a href="#method-SAGE-plot_convergence"><code>SAGE$plot_convergence()</code></a></p></li>
 <li><p><a href="#method-SAGE-clone"><code>SAGE$clone()</code></a></p></li>
 </ul></div><p><details open><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="combine"><a href="FeatureImportanceMethod.html#method-combine"><code>xplainfi::FeatureImportanceMethod$combine()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="print"><a href="FeatureImportanceMethod.html#method-print"><code>xplainfi::FeatureImportanceMethod$print()</code></a></span></li>
@@ -126,9 +139,9 @@ In <em>Advances in Neural Information Processing Systems</em>, volume 33, 17212â
 <span>  features <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n_permutations <span class="op">=</span> <span class="fl">10L</span>,</span>
 <span>  reference_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  batch_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  batch_size <span class="op">=</span> <span class="fl">5000L</span>,</span>
 <span>  sampler <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  max_reference_size <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  max_reference_size <span class="op">=</span> <span class="fl">100L</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -145,11 +158,11 @@ The total number of evaluated coalitions is <code>1 (empty) + n_permutations * n
 
 <dt><code>reference_data</code></dt>
 <dd><p>(<code>data.table | NULL</code>) Optional reference dataset. If <code>NULL</code>, uses training data.
-For each coalition to evaluate, an expanded datasets of size <code>n_test * n_reference</code> is created and evaluted in batches of <code>batch_size</code> if specified.</p></dd>
+For each coalition to evaluate, an expanded datasets of size <code>n_test * n_reference</code> is created and evaluted in batches of <code>batch_size</code>.</p></dd>
 
 
 <dt><code>batch_size</code></dt>
-<dd><p>(<code>integer(1) | NULL)</code> Maximum number of observations to process in a single prediction call. If NULL, processes all at once.</p></dd>
+<dd><p>(<code>integer(1): 5000L</code>) Maximum number of observations to process in a single prediction call.</p></dd>
 
 
 <dt><code>sampler</code></dt>
@@ -157,7 +170,7 @@ For each coalition to evaluate, an expanded datasets of size <code>n_test * n_re
 
 
 <dt><code>max_reference_size</code></dt>
-<dd><p>(<code>integer(1) | NULL</code>) Maximum size of reference dataset. If reference is larger, it will be subsampled. If <code>NULL</code>, no subsampling is performed.</p></dd>
+<dd><p>(<code>integer(1): 100L</code>) Maximum size of reference dataset. If reference is larger, it will be subsampled.</p></dd>
 
 
 </dl><p></p></div>
@@ -167,7 +180,14 @@ For each coalition to evaluate, an expanded datasets of size <code>n_test * n_re
 <h3 id="method-compute-">Method <code>compute()</code><a class="anchor" aria-label="anchor" href="#method-compute-"></a></h3>
 <p>Compute SAGE values.</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">SAGE</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>store_backends <span class="op">=</span> <span class="cn">TRUE</span>, batch_size <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">SAGE</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span></span>
+<span>  store_backends <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  batch_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  early_stopping <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  convergence_threshold <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  min_permutations <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  check_interval <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
@@ -177,21 +197,57 @@ For each coalition to evaluate, an expanded datasets of size <code>n_test * n_re
 
 
 <dt><code>batch_size</code></dt>
-<dd><p>(integer(1)) Maximum number of observations to process in a single prediction call. If NULL, processes all at once.</p></dd>
+<dd><p>(integer(1): 5000L) Maximum number of observations to process in a single prediction call.</p></dd>
+
+
+<dt><code>early_stopping</code></dt>
+<dd><p>(logical(1)) Whether to check for convergence and stop early.</p></dd>
+
+
+<dt><code>convergence_threshold</code></dt>
+<dd><p>(numeric(1)) Relative change threshold for convergence detection.</p></dd>
+
+
+<dt><code>min_permutations</code></dt>
+<dd><p>(integer(1)) Minimum permutations before checking convergence.</p></dd>
+
+
+<dt><code>check_interval</code></dt>
+<dd><p>(integer(1)) Check convergence every N permutations.</p></dd>
 
 
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-SAGE-clone"></a><div class="section">
-<h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
-<p>The objects of this class are cloneable with this method.</p><div class="section">
+</div><p></p><hr><a id="method-SAGE-plot_convergence"></a><div class="section">
+<h3 id="method-plot-convergence-">Method <code>plot_convergence()</code><a class="anchor" aria-label="anchor" href="#method-plot-convergence-"></a></h3>
+<p>Plot convergence history of SAGE values.</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">SAGE</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">SAGE</span><span class="op">$</span><span class="fu">plot_convergence</span><span class="op">(</span>features <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>features</code></dt>
+<dd><p>(<code>character</code> | <code>NULL</code>) Features to plot. If NULL, plots all features.</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p>A ggplot2 object</p>
+</div>
+
+</div><p></p><hr><a id="method-SAGE-clone"></a><div class="section">
+<h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
+<p>The objects of this class are cloneable with this method.</p><div class="section">
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">SAGE</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

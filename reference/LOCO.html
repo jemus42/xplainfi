@@ -178,21 +178,22 @@ ISSN 0162-1459, <a href="https://doi.org/10.1080/01621459.2017.1307116" class="e
 <span class="r-in"><span>  learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span>, obs_loss <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided, using holdout resampling with default ratio.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span>
 <span class="r-in"><span><span class="va">loco</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  2.94732045</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  0.86723577</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.01139204</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  3.64957000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  0.59223158</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.48550724</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 -0.33015697</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.14008650</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.15561077</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.67586552</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  1.77642119</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  0.78483613</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.07920417</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  3.62372184</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  0.61506361</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1  0.12979459</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 -0.01680615</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3  0.15576714</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.12916100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  0.36595416</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Using observation-wise losses to compute the median instead</span></span></span>
 <span class="r-in"><span><span class="va">loco_obsloss</span> <span class="op">=</span> <span class="va">LOCO</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span></span>
@@ -202,48 +203,49 @@ ISSN 0162-1459, <a href="https://doi.org/10.1080/01621459.2017.1307116" class="e
 <span class="r-in"><span>  obs_loss <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>  aggregation_fun <span class="op">=</span> <span class="va">median</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided, using holdout resampling with default ratio.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span>
 <span class="r-in"><span><span class="va">loco_obsloss</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  0.73135175</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  0.22281111</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.03009412</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  0.93552712</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  0.07754968</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.18921770</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 -0.17120105</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.06660810</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.11810734</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.08932307</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          feature   importance</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;        &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  0.443246431</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  0.304168859</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.111510773</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  0.805161323</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  0.097861187</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.020882300</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  0.145543352</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3  0.003488681</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4  0.031361178</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  0.045435103</span>
 <span class="r-in"><span><span class="va">loco_obsloss</span><span class="op">$</span><span class="va">obs_losses</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      row_ids      feature iteration iter_refit     truth response_ref</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        &lt;int&gt;       &lt;char&gt;     &lt;int&gt;      &lt;int&gt;     &lt;num&gt;        &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   1:       1   important1         1          1  5.177457     9.124809</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   2:       1   important2         1          1  5.177457     9.124809</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   3:       1   important3         1          1  5.177457     9.124809</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   4:       1   important4         1          1  5.177457     9.124809</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   5:       1   important5         1          1  5.177457     9.124809</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1:       1   important1         1          1 13.690317    13.820347</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2:       1   important2         1          1 13.690317    13.820347</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   3:       1   important3         1          1 13.690317    13.820347</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   4:       1   important4         1          1 13.690317    13.820347</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   5:       1   important5         1          1 13.690317    13.820347</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                                                 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 666:     197 unimportant1         1          1 20.228495    16.597960</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 667:     197 unimportant2         1          1 20.228495    16.597960</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 668:     197 unimportant3         1          1 20.228495    16.597960</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 669:     197 unimportant4         1          1 20.228495    16.597960</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 670:     197 unimportant5         1          1 20.228495    16.597960</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      response_feature loss_ref loss_feature    obs_diff</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                 &lt;num&gt;    &lt;num&gt;        &lt;num&gt;       &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   1:        10.776419 3.947352     5.598962  1.65160984</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   2:        10.222532 3.947352     5.045075  1.09772321</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   3:         9.142916 3.947352     3.965459  0.01810729</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   4:        11.481945 3.947352     6.304488  2.35713592</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   5:        10.464568 3.947352     5.287111  1.33975936</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 666:        17.042869 3.630535     3.185626 -0.44490956</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 667:        17.047377 3.630535     3.181118 -0.44941741</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 668:        17.722991 3.630535     2.505504 -1.12503138</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 669:        17.227836 3.630535     3.000659 -0.62987634</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 670:        17.080910 3.630535     3.147585 -0.48295066</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 666:     195 unimportant1         1          1  6.371902     9.950791</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 667:     195 unimportant2         1          1  6.371902     9.950791</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 668:     195 unimportant3         1          1  6.371902     9.950791</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 669:     195 unimportant4         1          1  6.371902     9.950791</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 670:     195 unimportant5         1          1  6.371902     9.950791</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      response_feature  loss_ref loss_feature    obs_diff</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 &lt;num&gt;     &lt;num&gt;        &lt;num&gt;       &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1:        13.306309 0.1300299    0.3840078  0.25397785</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2:        13.529533 0.1300299    0.1607837  0.03075379</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   3:        14.141133 0.1300299    0.4508165  0.32078658</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   4:        15.158180 0.1300299    1.4678634  1.33783347</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   5:        12.552168 0.1300299    1.1381483  1.00811837</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                                    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 666:         9.193108 3.5788897    2.8212058 -0.75768388</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 667:         9.066730 3.5788897    2.6948286 -0.88406104</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 668:         9.204020 3.5788897    2.8321183 -0.74677132</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 669:         9.335935 3.5788897    2.9640331 -0.61485659</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 670:         8.895666 3.5788897    2.5237638 -1.05512585</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

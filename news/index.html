@@ -71,6 +71,19 @@
 <ul><li>Both get arugments <code>obs_loss = FALSE</code> and <code>aggregation_fun</code>, defaulting to <code>median</code> in case of <code>obs_loss = TRUE</code>, to allow for macro-averaged median of absolute differences calculcation as in original LOCO formulation, rather than the micro-averaged approach calculated by default.</li>
 </ul></li>
 <li>Fix accidentally marginal <code>ConditionalSAGE</code>.</li>
+<li>
+<code>SAGE</code> methods get convergence tracking if <code>early_stopping = TRUE</code> (<a href="https://github.com/jemus42/xplainfi/pull/29" class="external-link">#29</a>)
+<ul><li>Permutations are evaluated in steps of <code>check_interval</code> at a time, after each convergence is checked</li>
+<li>If values change by less than <code>convergence_threshold</code>, convergence is assumed</li>
+<li>A <code>$converged</code> field is set to <code>TRUE</code>
+</li>
+<li>At least <code>min_permutations</code> are perfomed in any case, and <code>$n_permutations_used</code> shows the number of performed permutations</li>
+<li>
+<code>$convergence_history</code> tracks convergence history and can be analyzed to see per-feature values after each checkpoint</li>
+<li>
+<code>$plot_convergence_history()</code> plots convergence history per feature</li>
+<li>Convergence is tracked only for first resampling iteration</li>
+</ul></li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="xplainfi-010">xplainfi 0.1.0<a class="anchor" aria-label="anchor" href="#xplainfi-010"></a></h2>

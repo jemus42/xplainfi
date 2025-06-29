@@ -171,21 +171,22 @@ feature performs better than the baseline, negative values indicate worse perfor
 <span class="r-in"><span>  learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided, using holdout resampling with default ratio.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span>
 <span class="r-in"><span><span class="va">loci</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          feature importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;      &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1   3.551881</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  -6.699716</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  -4.446604</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4   5.771280</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  -7.030814</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -12.061976</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  -4.970430</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -10.786875</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -11.829766</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  -6.400764</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  -1.615471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2   1.159116</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  -7.230327</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4   5.860099</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  -3.065838</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1  -4.728536</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  -5.626825</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3  -6.667612</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4  -5.255167</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  -3.365825</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

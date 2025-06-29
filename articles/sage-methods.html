@@ -148,17 +148,17 @@ N(0,1)\]</span> <span class="math display">\[X_2 = X_1 + \varepsilon_2,
 </ul>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
-<span><span class="va">task</span> <span class="op">=</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_correlated</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">800</span><span class="op">)</span></span>
+<span><span class="va">task</span> <span class="op">=</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_correlated</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Check the correlation structure</span></span>
 <span><span class="va">task_data</span> <span class="op">=</span> <span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">correlation_matrix</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">task_data</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span>, <span class="st">"x3"</span>, <span class="st">"x4"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">correlation_matrix</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        x1     x2     x3     x4</span></span>
-<span><span class="co">#&gt; x1  1.000  0.999  0.041 -0.024</span></span>
-<span><span class="co">#&gt; x2  0.999  1.000  0.039 -0.020</span></span>
-<span><span class="co">#&gt; x3  0.041  0.039  1.000 -0.031</span></span>
-<span><span class="co">#&gt; x4 -0.024 -0.020 -0.031  1.000</span></span></code></pre></div>
+<span><span class="co">#&gt; x1  1.000  0.999 -0.019 -0.003</span></span>
+<span><span class="co">#&gt; x2  0.999  1.000 -0.018 -0.003</span></span>
+<span><span class="co">#&gt; x3 -0.019 -0.018  1.000  0.051</span></span>
+<span><span class="co">#&gt; x4 -0.003 -0.003  0.051  1.000</span></span></code></pre></div>
 <p><strong>Expected behavior:</strong></p>
 <ul>
 <li>
@@ -173,7 +173,7 @@ predictor)</li>
 <p>Let’s set up our learner and measure. We’ll use a random forest and
 instantiate a resampling to ensure both methods see the same data:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">learner</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">400</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">learner</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span><span class="op">)</span></span>
 <span><span class="va">measure</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span></span>
 <span><span class="va">resampling</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"holdout"</span><span class="op">)</span></span>
 <span><span class="va">resampling</span><span class="op">$</span><span class="fu">instantiate</span><span class="op">(</span><span class="va">task</span><span class="op">)</span></span></code></pre></div>
@@ -192,104 +192,26 @@ implementation described in the original paper.</p>
 <span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
 <span>  n_permutations <span class="op">=</span> <span class="fl">30L</span>,  <span class="co"># More permutations for stable results</span></span>
-<span>  max_reference_size <span class="op">=</span> <span class="fl">100L</span></span>
+<span>  max_reference_size <span class="op">=</span> <span class="fl">100L</span>,</span>
+<span>  batch_size <span class="op">=</span> <span class="fl">5000L</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Compute SAGE values</span></span>
-<span><span class="va">marginal_sage</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>batch_size <span class="op">=</span> <span class="fl">5000L</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #0000BB;">647</span> batches of size <span style="color: #0000BB;">5000</span></span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■                               </span>   1% | ETA:  2m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■                               </span>   2% | ETA:  2m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■                              </span>   4% | ETA:  2m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■                             </span>   6% | ETA:  2m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■                            </span>   9% | ETA:  2m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■                            </span>  12% | ETA:  2m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■                           </span>  14% | ETA:  2m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■                          </span>  17% | ETA:  2m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■                         </span>  19% | ETA:  2m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■                        </span>  22% | ETA:  2m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■                        </span>  24% | ETA:  1m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■                       </span>  27% | ETA:  1m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■                      </span>  29% | ETA:  1m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■                     </span>  32% | ETA:  1m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■                     </span>  34% | ETA:  1m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■                    </span>  37% | ETA:  1m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■                   </span>  39% | ETA:  1m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■                  </span>  42% | ETA:  1m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■                  </span>  44% | ETA:  1m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■                 </span>  47% | ETA:  1m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■                </span>  49% | ETA:  1m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■                </span>  51% | ETA:  1m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■               </span>  54% | ETA:  1m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■              </span>  56% | ETA:  1m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■             </span>  59% | ETA:  1m</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■             </span>  61% | ETA: 47s</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■            </span>  64% | ETA: 44s</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■           </span>  66% | ETA: 41s</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■          </span>  69% | ETA: 37s</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■          </span>  71% | ETA: 34s</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■         </span>  74% | ETA: 31s</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■        </span>  77% | ETA: 28s</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■       </span>  79% | ETA: 25s</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■       </span>  81% | ETA: 22s</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■      </span>  84% | ETA: 19s</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■     </span>  87% | ETA: 16s</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■    </span>  89% | ETA: 13s</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■    </span>  91% | ETA: 10s</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■   </span>  94% | ETA:  7s</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  </span>  96% | ETA:  4s</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ </span>  99% | ETA:  1s</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ </span> 100% | ETA:  0s</span></span>
+<span><span class="va">marginal_sage</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature   importance</span></span>
 <span><span class="co">#&gt;     &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:      x1  2.345195994</span></span>
-<span><span class="co">#&gt; 2:      x2  2.081543369</span></span>
-<span><span class="co">#&gt; 3:      x3  1.092772173</span></span>
-<span><span class="co">#&gt; 4:      x4 -0.001768496</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:      x1  2.337115391</span></span>
+<span><span class="co">#&gt; 2:      x2  1.681811032</span></span>
+<span><span class="co">#&gt; 3:      x3  0.912696736</span></span>
+<span><span class="co">#&gt; 4:      x4 -0.001287703</span></span></code></pre></div>
 <p>Let’s visualize the results:</p>
 <p><img src="sage-methods_files/figure-html/marginal-sage-plot-1.png" width="768"></p>
+<p>We can also keep track of the SAGE value approximation across
+permutations:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">marginal_sage</span><span class="op">$</span><span class="fu">plot_convergence</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="sage-methods_files/figure-html/convergance-marginal-1.png" width="768"></p>
 </div>
 <div class="section level2">
 <h2 id="conditional-sage">Conditional SAGE<a class="anchor" aria-label="anchor" href="#conditional-sage"></a>
@@ -298,7 +220,7 @@ implementation described in the original paper.</p>
 marginalize features while preserving dependencies between the remaining
 features. This can provide different insights, especially when features
 are correlated.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create Conditional SAGE instance</span></span>
 <span><span class="va">conditional_sage</span> <span class="op">=</span> <span class="va"><a href="../reference/ConditionalSAGE.html">ConditionalSAGE</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task</span>,</span>
@@ -312,52 +234,18 @@ are correlated.</p>
 <span></span>
 <span><span class="co"># Compute SAGE values</span></span>
 <span><span class="va">conditional_sage</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>batch_size <span class="op">=</span> <span class="fl">5000L</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #0000BB;">647</span> batches of size <span style="color: #0000BB;">5000</span></span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■                               </span>   1% | ETA:  2m</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■                              </span>   3% | ETA:  2m</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■                             </span>   6% | ETA:  2m</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■                            </span>   9% | ETA:  2m</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■                           </span>  12% | ETA:  2m</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■                           </span>  15% | ETA:  1m</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■                          </span>  18% | ETA:  1m</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■                         </span>  21% | ETA:  1m</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■                        </span>  24% | ETA:  1m</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■                       </span>  26% | ETA:  1m</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■                      </span>  29% | ETA:  1m</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■                     </span>  32% | ETA:  1m</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■                    </span>  35% | ETA:  1m</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■                    </span>  38% | ETA:  1m</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■                   </span>  41% | ETA:  1m</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■                  </span>  44% | ETA:  1m</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■                 </span>  47% | ETA:  1m</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■                </span>  49% | ETA:  1m</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■               </span>  52% | ETA: 50s</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■              </span>  55% | ETA: 47s</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■              </span>  58% | ETA: 44s</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■             </span>  61% | ETA: 41s</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■            </span>  64% | ETA: 38s</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■           </span>  67% | ETA: 35s</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■          </span>  69% | ETA: 32s</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■         </span>  72% | ETA: 29s</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■        </span>  75% | ETA: 26s</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■        </span>  78% | ETA: 23s</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■       </span>  81% | ETA: 20s</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■      </span>  84% | ETA: 17s</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■     </span>  87% | ETA: 14s</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■    </span>  89% | ETA: 11s</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■   </span>  92% | ETA:  8s</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  </span>  95% | ETA:  5s</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  </span>  98% | ETA:  2s</span></span>
-<span><span class="co">#&gt; Evaluating <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ </span> 100% | ETA:  0s</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature importance</span></span>
 <span><span class="co">#&gt;     &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:      x1  4.8350542</span></span>
-<span><span class="co">#&gt; 2:      x2  4.5031386</span></span>
-<span><span class="co">#&gt; 3:      x3  2.1808513</span></span>
-<span><span class="co">#&gt; 4:      x4  0.4859302</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:      x1  2.6082408</span></span>
+<span><span class="co">#&gt; 2:      x2  3.2397583</span></span>
+<span><span class="co">#&gt; 3:      x3  0.3593231</span></span>
+<span><span class="co">#&gt; 4:      x4 -0.4862185</span></span></code></pre></div>
 <p>Let’s visualize the conditional SAGE results:</p>
 <p><img src="sage-methods_files/figure-html/conditional-sage-plot-1.png" width="768"></p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">conditional_sage</span><span class="op">$</span><span class="fu">plot_convergence</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="sage-methods_files/figure-html/convergance-conditional-1.png" width="768"></p>
 </div>
 <div class="section level2">
 <h2 id="comparison-of-methods">Comparison of Methods<a class="anchor" aria-label="anchor" href="#comparison-of-methods"></a>
@@ -399,13 +287,15 @@ unique contribution.</p>
 </h2>
 <p>For reference, let’s compare SAGE methods with the analogous PFI and
 CFI methods on the same data:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Quick PFI and CFI comparison for context</span></span>
 <span><span class="va">pfi</span> <span class="op">=</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">task</span>, <span class="va">learner</span>, <span class="va">measure</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided, using holdout resampling with default ratio.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span></span>
+<span><span class="co">#&gt; Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span></span>
 <span><span class="va">cfi</span> <span class="op">=</span> <span class="va"><a href="../reference/CFI.html">CFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">task</span>, <span class="va">learner</span>, <span class="va">measure</span><span class="op">)</span> </span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;ConditionalSampler&gt;</span> provided, using <span style="color: #0000BB;">&lt;ARFSampler&gt;</span> with default settings.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided, using holdout resampling with default ratio.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span></span>
+<span><span class="co">#&gt; Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span></span>
 <span></span>
 <span><span class="va">pfi_results</span> <span class="op">=</span> <span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">cfi_results</span> <span class="op">=</span> <span class="va">cfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>

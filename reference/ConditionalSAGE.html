@@ -81,6 +81,7 @@ Uses ARF by default for conditional marginalization.</p>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="print"><a href="FeatureImportanceMethod.html#method-print"><code>xplainfi::FeatureImportanceMethod$print()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="reset"><a href="FeatureImportanceMethod.html#method-reset"><code>xplainfi::FeatureImportanceMethod$reset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="SAGE" data-id="compute"><a href="SAGE.html#method-compute"><code>xplainfi::SAGE$compute()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="SAGE" data-id="plot_convergence"><a href="SAGE.html#method-plot_convergence"><code>xplainfi::SAGE$plot_convergence()</code></a></span></li>
 </ul></details></p><hr><a id="method-ConditionalSAGE-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
 <p>Creates a new instance of the ConditionalSAGE class.</p><div class="section">
@@ -94,7 +95,8 @@ Uses ARF by default for conditional marginalization.</p>
 <span>  n_permutations <span class="op">=</span> <span class="fl">10L</span>,</span>
 <span>  reference_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sampler <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  max_reference_size <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  batch_size <span class="op">=</span> <span class="fl">5000L</span>,</span>
+<span>  max_reference_size <span class="op">=</span> <span class="fl">100L</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -114,6 +116,10 @@ Uses ARF by default for conditional marginalization.</p>
 
 <dt><code>sampler</code></dt>
 <dd><p>(<a href="ConditionalSampler.html">ConditionalSampler</a>) Optional custom sampler. Defaults to ARFSampler.</p></dd>
+
+
+<dt><code>batch_size</code></dt>
+<dd><p>(<code>integer(1): 5000L</code>) Maximum number of observations to process in a single prediction call.</p></dd>
 
 
 <dt><code>max_reference_size</code></dt>
@@ -154,7 +160,8 @@ Uses ARF by default for conditional marginalization.</p>
 <span class="r-in"><span>  n_permutations <span class="op">=</span> <span class="fl">3L</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;ConditionalSampler&gt;</span> provided, using <span style="color: #0000BB;">&lt;ARFSampler&gt;</span> with default settings.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided, using holdout resampling with default ratio.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span>
 <span class="r-in"><span><span class="va">sage</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
