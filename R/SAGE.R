@@ -283,25 +283,33 @@ SAGE = R6Class(
       min_permutations = 10L,
       check_interval = 5L
     ) {
-      # Initialize SAGE values and tracking
-      sage_values = numeric(length(self$features))
-      names(sage_values) = self$features
+      # This function computes the SAGE values for a single resampling iteration.
+      # It iterates through permutations of features, evaluates coalitions, and calculates marginal contributions.
 
-      # Pre-generate ALL permutations upfront to ensure consistent random state
+      # Initialize a numeric vector to store the sum of marginal contributions for each feature.
+      # These sums will later be averaged to get the final SAGE values.
+      sage_values = numeric(length(self$features))
+      names(sage_values) = self$features # Name elements by feature names (e.g., c(x1 = 0, x2 = 0, x3 = 0))
+
+      # Pre-generate ALL permutations upfront to ensure consistent random state.
+      # Relevant for reproducibility, especially when using early stopping or parallel processing.
+      # Example: if self$features = c("x1", "x2", "x3") and self$n_permutations = 2,
+      # all_permutations might be list(c("x2", "x1", "x3"), c("x3", "x1", "x2"))
       all_permutations = replicate(self$n_permutations, sample(self$features), simplify = FALSE)
 
-      # Always use iterative checkpoint-based computation
-      # The only difference is whether we stop early based on convergence
-      convergence_history = list()
-      n_completed = 0
-      converged = FALSE
-      baseline_loss = NULL
+      # Initialize variables for iterative checkpoint-based computation.
+      # This allows for early stopping based on convergence and provides progress updates.
+      convergence_history = list() # Stores SAGE values at each checkpoint for convergence tracking
+      n_completed = 0 # Number of permutations processed so far
+      converged = FALSE # Flag to indicate if convergence has been detected
+      baseline_loss = NULL # Loss of the empty coalition (model with no features / all features marginalized)
 
-      # Calculate total checkpoints for progress tracking
+      # Calculate total checkpoints for progress tracking.
+      # A checkpoint is a group of 'check_interval' permutations.
       total_checkpoints = ceiling(self$n_permutations / check_interval)
       current_checkpoint = 0
 
-      # Start checkpoint-based progress bar
+      # Start checkpoint-based progress bar if progress display is enabled.
       if (xplain_opt("progress")) {
         cli::cli_progress_bar(
           "Computing SAGE values",
@@ -309,44 +317,60 @@ SAGE = R6Class(
         )
       }
 
-      # Process permutations in checkpoints
+      # Main loop: Process permutations in checkpoints until all permutations are done or convergence is reached.
       while (n_completed < self$n_permutations && !converged) {
-        # Determine checkpoint size
+        # Determine the size of the current checkpoint.
+        # This ensures that the last checkpoint processes only the remaining permutations.
         checkpoint_size = min(check_interval, self$n_permutations - n_completed)
+        # Define the indices of permutations to be processed in this checkpoint.
         checkpoint_perms = (n_completed + 1):(n_completed + checkpoint_size)
 
-        # Get permutations for this checkpoint from pre-generated list
+        # Get the actual permutation sequences for this checkpoint from the pre-generated list.
         checkpoint_permutations = all_permutations[checkpoint_perms]
 
-        # Build coalitions for this checkpoint
-        checkpoint_coalitions = list()
-        checkpoint_coalition_map = list()
-        coalition_idx = 1
+        # Prepare lists to store unique coalitions and their mapping back to permutations.
+        # This avoids redundant evaluations of the same coalition across different permutations/steps.
+        checkpoint_coalitions = list() # Stores unique feature coalitions (e.g., c("x1", "x2"))
+        checkpoint_coalition_map = list() # Maps coalition index to its permutation and step (e.g., list(checkpoint_perm_idx = 1, step = 2))
+        coalition_idx = 1 # Counter for unique coalitions
 
-        # Add empty coalition only for first checkpoint
+        # Add the empty coalition ({}) only for the very first checkpoint.
+        # The loss of the empty coalition serves as the baseline for marginal contributions.
         if (n_completed == 0) {
-          checkpoint_coalitions[[1]] = character(0)
-          checkpoint_coalition_map[[1]] = list(checkpoint_perm_idx = 0, step = 0)
-          coalition_idx = 2
+          checkpoint_coalitions[[1]] = character(0) # Represents the empty set of features
+          checkpoint_coalition_map[[1]] = list(checkpoint_perm_idx = 0, step = 0) # Special mapping for baseline
+          coalition_idx = 2 # Start next coalition index from 2
         }
 
-        # Add coalitions from permutations in this checkpoint
+        # Iterate through each permutation in the current checkpoint to build all necessary coalitions.
+        # For each permutation (e.g., P = (x2, x1, x3)), we generate coalitions:
+        # {}, {x2}, {x2, x1}, {x2, x1, x3}
         for (i in seq_along(checkpoint_permutations)) {
-          perm_features = checkpoint_permutations[[i]]
+          perm_features = checkpoint_permutations[[i]] # Current permutation (e.g., c("x2", "x1", "x3"))
 
+          # Build growing coalitions for the current permutation.
           for (j in seq_along(perm_features)) {
+            # 'coalition' is the set of features considered up to the current step 'j'.
+            # Example: for P=(x2, x1, x3):
+            # j=1: coalition = c("x2")
+            # j=2: coalition = c("x2", "x1")
+            # j=3: coalition = c("x2", "x1", "x3")
             coalition = perm_features[seq_len(j)]
+
+            # Store the coalition and its mapping. This allows us to retrieve the loss
+            # for this specific coalition later from the batch evaluation results.
             checkpoint_coalitions[[coalition_idx]] = coalition
             checkpoint_coalition_map[[coalition_idx]] = list(checkpoint_perm_idx = i, step = j)
             coalition_idx = coalition_idx + 1
           }
         }
 
-        # Update progress: starting checkpoint
+        # Update progress: indicate that a new checkpoint is starting.
         current_checkpoint = current_checkpoint + 1
-        n_coalitions_in_checkpoint = length(checkpoint_coalitions)
+        n_coalitions_in_checkpoint = length(checkpoint_coalitions) # Total unique coalitions to evaluate in this batch
 
-        # Evaluate coalitions for this checkpoint
+        # Evaluate all unique coalitions collected in this checkpoint in a single batch.
+        # This is a performance optimization to minimize prediction calls to the learner.
         checkpoint_losses = private$.evaluate_coalitions_batch(
           learner,
           test_dt,
@@ -354,47 +378,57 @@ SAGE = R6Class(
           batch_size
         )
 
-        # Update progress: checkpoint completed
+        # Update progress bar.
         if (xplain_opt("progress")) {
           cli::cli_progress_update(inc = 1)
         }
 
-        # Get baseline loss (from first checkpoint only)
+        # Store the baseline loss (loss of the empty coalition) from the first checkpoint.
+        # This is the model's performance when no features are available.
         if (n_completed == 0) {
-          baseline_loss = checkpoint_losses[1]
+          baseline_loss = checkpoint_losses[1] # The first element is always the empty coalition's loss
         }
 
-        # Process checkpoint results
+        # Process the results from the current checkpoint to calculate marginal contributions.
         for (i in seq_along(checkpoint_permutations)) {
-          perm_features = checkpoint_permutations[[i]]
-          prev_loss = baseline_loss
+          perm_features = checkpoint_permutations[[i]] # Current permutation (e.g., c("x2", "x1", "x3"))
+          prev_loss = baseline_loss # Start with baseline loss for the first feature in permutation
 
+          # Iterate through features in the current permutation to calculate their marginal contributions.
           for (j in seq_along(perm_features)) {
-            feature = perm_features[j]
+            feature = perm_features[j] # The feature being added at this step (e.g., "x2", then "x1", then "x3")
 
-            # Find the loss for this coalition in checkpoint results
+            # Find the index of the current coalition's loss in the 'checkpoint_losses' vector.
+            # This uses the 'checkpoint_coalition_map' to link back to the batched results.
             coalition_lookup_idx = which(sapply(checkpoint_coalition_map, function(x) {
               x$checkpoint_perm_idx == i && x$step == j
             }))
 
-            # Get the coalition loss directly (no adjustment needed)
+            # Get the loss for the current coalition (e.g., loss({x2}), then loss({x2, x1}), etc.).
             current_loss = checkpoint_losses[coalition_lookup_idx]
 
-            # Calculate marginal contribution
+            # Calculate the marginal contribution of the 'feature' just added.
+            # Contribution = (Loss without feature) - (Loss with feature)
+            # A smaller loss is better, so a positive contribution means the feature improved performance.
             marginal_contribution = prev_loss - current_loss
 
+            # Add this marginal contribution to the total SAGE value for the 'feature'.
             sage_values[feature] = sage_values[feature] + marginal_contribution
 
+            # Update 'prev_loss' for the next iteration in this permutation.
+            # The current coalition's loss becomes the 'previous' loss for the next feature's contribution.
             prev_loss = current_loss
           }
         }
 
+        # Update the count of completed permutations.
         n_completed = n_completed + checkpoint_size
 
-        # Calculate current averages
+        # Calculate the current average SAGE values based on completed permutations.
         current_avg = sage_values / n_completed
 
-        # Store convergence history (always, regardless of detect_convergence)
+        # Store the current average SAGE values in the convergence history.
+        # Used for plotting and early stopping.
         checkpoint_history = data.table(
           n_permutations = n_completed,
           feature = names(current_avg),
@@ -402,20 +436,22 @@ SAGE = R6Class(
         )
         convergence_history[[length(convergence_history) + 1]] = checkpoint_history
 
-        # Check convergence only if early stopping is enabled
+        # Check for convergence if early stopping is enabled and enough permutations have been processed.
         if (early_stopping && n_completed >= min_permutations && length(convergence_history) > 1) {
-          # Get previous checkpoint values
+          # Get SAGE values from the previous and current checkpoints.
           prev_checkpoint = convergence_history[[length(convergence_history) - 1]]
           curr_checkpoint = convergence_history[[length(convergence_history)]]
 
-          # Merge by feature to ensure proper comparison (careful with data.table)
+          # Ensure features are in the same order for comparison.
           prev_values = copy(prev_checkpoint)[order(feature)]$importance
           curr_values = copy(curr_checkpoint)[order(feature)]$importance
 
-          # Calculate maximum relative change
-          rel_changes = abs(curr_values - prev_values) / (abs(prev_values) + 1e-8)
+          # Calculate the maximum relative change between current and previous SAGE values.
+          # A small max_change indicates convergence.
+          rel_changes = abs(curr_values - prev_values) / (abs(prev_values) + 1e-8) # Add epsilon to avoid division by zero
           max_change = max(rel_changes, na.rm = TRUE)
 
+          # If the maximum relative change is below the threshold, mark as converged.
           if (is.finite(max_change) && max_change < convergence_threshold) {
             converged = TRUE
             cli::cli_inform(c(
@@ -427,64 +463,74 @@ SAGE = R6Class(
         }
       }
 
-      # Close checkpoint progress bar
+      # Close the progress bar.
       if (xplain_opt("progress")) {
         cli::cli_progress_done()
       }
 
-      # The convergence data will be set at the class level in compute()
-      # Return as a list so we can access it from the main compute method
-      convergence_data = list(
-        convergence_history = if (length(convergence_history) > 0) {
-          rbindlist(convergence_history)
-        } else {
-          NULL
-        },
-        converged = converged,
-        n_permutations_used = n_completed
-      )
-
-      # Final averages
+      # Calculate the final average SAGE values based on all completed permutations.
       final_sage_values = sage_values / n_completed
 
-      # Return results with convergence data
+      # Return the computed scores and convergence data.
       list(
         scores = data.table(
           feature = names(final_sage_values),
           importance = as.numeric(final_sage_values)
         ),
-        convergence_data = convergence_data
+        convergence_data = list(
+          convergence_history = if (length(convergence_history) > 0) {
+            rbindlist(convergence_history)
+          } else {
+            NULL
+          },
+          converged = converged,
+          n_permutations_used = n_completed
+        )
       )
     },
 
     .evaluate_coalitions_batch = function(learner, test_dt, all_coalitions, batch_size = NULL) {
-      # Batch evaluate multiple coalitions by creating datasets
+      # This function evaluates the model's performance (loss) for a batch of feature coalitions.
+      # It constructs expanded datasets for each coalition and then processes them in batches for prediction.
+
+      # Get the number of unique coalitions to evaluate in this batch.
       n_coalitions = length(all_coalitions)
+      # Get the number of observations in the test dataset.
       n_test = nrow(test_dt)
+      # Get the number of observations in the reference dataset.
       n_reference = nrow(self$reference_data)
 
-      # Pre-allocate list for expanded data
+      # Pre-allocate a list to store the expanded data for each coalition.
+      # Each element in this list will be a data.table containing test instances combined with reference instances.
       all_expanded_data = vector("list", n_coalitions)
 
+      # Inform about the number of coalitions being evaluated in this batch (for debugging).
       if (xplain_opt("debug")) {
         cli::cli_inform("Evaluating {.val {length(all_coalitions)}} coalitions")
       }
 
+      # Loop through each unique coalition in the current batch.
       for (i in seq_along(all_coalitions)) {
-        coalition = all_coalitions[[i]]
+        coalition = all_coalitions[[i]] # Current coalition of features (e.g., c("x1", "x2"))
 
-        # Create test-reference combinations for this coalition
+        # Create expanded datasets for the current coalition.
+        # This is the core of SAGE's marginalization: for each test instance, we combine it
+        # with every instance from the reference data. This creates a dataset of size
+        # n_test * n_reference. For example, if n_test=100 and n_reference=50, this creates 5000 rows.
         test_expanded = test_dt[rep(seq_len(n_test), each = n_reference)]
         reference_expanded = self$reference_data[rep(seq_len(n_reference), times = n_test)]
 
-        # Add coalition and test instance IDs for tracking
-        test_expanded[, .coalition_id := i]
-        test_expanded[, .test_instance_id := rep(seq_len(n_test), each = n_reference)]
+        # Add unique identifiers to track which original test instance and coalition
+        # each row in the expanded dataset corresponds to. This is crucial for aggregation later.
+        test_expanded[, .coalition_id := i] # Identifies the coalition this row belongs to
+        test_expanded[, .test_instance_id := rep(seq_len(n_test), each = n_reference)] # Identifies the original test instance
 
-        # Marginalize features not in coalition
-        # Mild misnomer since ConditionalSAGE uses conditional sampler here
+        # Determine which features need to be marginalized (i.e., features NOT in the current coalition).
         marginalize_features = setdiff(self$features, coalition)
         if (length(marginalize_features) > 0) {
+          # Call the private .marginalize_features method (implemented by subclasses like MarginalSAGE or ConditionalSAGE).
+          # This method replaces the values of 'marginalize_features' in 'test_expanded'
+          # with values derived from 'reference_expanded' (marginal or conditional sampling).
           test_expanded = private$.marginalize_features(
             test_expanded,
             reference_expanded,
@@ -492,26 +538,34 @@ SAGE = R6Class(
           )
         }
 
+        # Store the processed (marginalized) expanded data for the current coalition.
         all_expanded_data[[i]] = test_expanded
       }
 
-      # Combine ALL data into one big dataset
+      # Combine ALL expanded data.tables from all coalitions in this batch into one large data.table.
+      # This single data.table will be used for prediction, allowing for efficient batch processing by the learner.
+      # Example: if there are 10 coalitions, and each expands to 5000 rows, combined_data will have 50,000 rows.
       combined_data = rbindlist(all_expanded_data)
       total_rows = nrow(combined_data)
 
-      # Process data in batches if batch_size is specified and total rows exceed batch_size
+      # Process data in batches if a batch_size is specified and the total number of rows
+      # exceeds this batch_size. This prevents out-of-memory errors for very large datasets.
       if (!is.null(batch_size) && total_rows > batch_size) {
-        # Split into batches
+        # Calculate the number of batches needed.
         n_batches = ceiling(total_rows / batch_size)
+        # Pre-allocate a list to store predictions from each batch.
         all_predictions = vector("list", n_batches)
 
+        # Loop through each batch.
         for (batch_idx in seq_len(n_batches)) {
+          # Determine the start and end rows for the current batch.
           start_row = (batch_idx - 1) * batch_size + 1
           end_row = min(batch_idx * batch_size, total_rows)
 
+          # Extract the data for the current batch.
           batch_data = combined_data[start_row:end_row]
 
-          # Predict for this batch
+          # Predict on the current batch.
           if (xplain_opt("debug")) {
             cli::cli_inform(
               "Predicting on {.val {nrow(batch_data)}} instances in batch {.val {batch_idx}/{n_batches}}"
@@ -519,7 +573,7 @@ SAGE = R6Class(
           }
           pred_result = learner$predict_newdata(newdata = batch_data, task = self$task)
 
-          # Store predictions
+          # Store the predictions (probabilities for classification, response for regression).
           if (self$task$task_type == "classif") {
             all_predictions[[batch_idx]] = pred_result$prob
           } else {
@@ -527,14 +581,15 @@ SAGE = R6Class(
           }
         }
 
-        # Combine predictions from all batches
+        # Combine predictions from all batches into a single prediction object.
         if (self$task$task_type == "classif") {
           combined_predictions = do.call(rbind, all_predictions)
         } else {
           combined_predictions = do.call(c, all_predictions)
         }
       } else {
-        # Process all at once (original behavior)
+        # If no batching is needed (total_rows <= batch_size or batch_size is NULL),
+        # process all data at once.
         if (xplain_opt("debug")) {
           cli::cli_inform("Predicting on {.val {nrow(combined_data)}} instances at once")
         }
@@ -548,25 +603,29 @@ SAGE = R6Class(
         }
       }
 
-      # Handle any NAs in predictions by replacing with default values
-      if (self$task$task_type == "classif") {
-        # Handle any NAs in probability predictions by replacing with uniform probabilities
-        if (any(is.na(combined_predictions))) {
+      # Handle any NA values in predictions. This can happen if the learner produces NAs.
+      if (any(is.na(combined_predictions))) {
+        cli::cli_warn("Observed {.val {sum(is.na(combined_predictions))} NAs} in prediction")
+
+        # For classification, replace NAs with uniform probabilities across classes.
+        if (self$task$task_type == "classif") {
           n_classes = ncol(combined_predictions)
           uniform_prob = 1 / n_classes
+
           for (j in seq_len(n_classes)) {
             combined_predictions[is.na(combined_predictions[, j]), j] = uniform_prob
           }
+        } else {
+          # For regression, replace NAs with 0.
+          combined_predictions[is.na(combined_predictions)] = 0
         }
-      } else {
-        # Handle NAs in regression predictions
-        combined_predictions[is.na(combined_predictions)] = 0
       }
 
-      # Add predictions and aggregate by coalition and test instance
+      # Add the combined predictions back to the 'combined_data' data.table.
+      # Then, aggregate these predictions by coalition and original test instance.
+      # This step averages the predictions over the reference data for each test instance and coalition.
       if (self$task$task_type == "classif") {
-        # For classification, we need to handle matrix predictions differently
-        # Add each class probability as a separate column
+        # For classification, add each class probability as a separate column.
         n_classes = ncol(combined_predictions)
         class_names = colnames(combined_predictions)
 
@@ -574,7 +633,8 @@ SAGE = R6Class(
           combined_data[, paste0(".pred_class_", j) := combined_predictions[, j]]
         }
 
-        # Aggregate: mean probability per class per test instance per coalition
+        # Aggregate: calculate the mean probability for each class, for each
+        # unique combination of coalition and original test instance.
         agg_cols = paste0(".pred_class_", seq_len(n_classes))
         avg_preds_by_coalition = combined_data[,
           lapply(.SD, function(x) mean(x, na.rm = TRUE)),
@@ -582,13 +642,14 @@ SAGE = R6Class(
           by = .(.coalition_id, .test_instance_id)
         ]
 
-        # Rename columns to class names
+        # Rename the aggregated columns back to their original class names.
         setnames(avg_preds_by_coalition, agg_cols, class_names)
       } else {
-        # For regression, keep the simple approach
+        # For regression, add the single prediction column.
         combined_data[, .prediction := combined_predictions]
 
-        # Aggregate: mean prediction per test instance per coalition
+        # Aggregate: calculate the mean prediction for each unique combination
+        # of coalition and original test instance.
         avg_preds_by_coalition = combined_data[,
           .(
             avg_pred = mean(.prediction, na.rm = TRUE)
@@ -597,14 +658,14 @@ SAGE = R6Class(
         ]
       }
 
-      # Calculate loss for each coalition
+      # Calculate the final loss for each coalition.
+      # This involves creating a prediction object for each coalition and scoring it.
       coalition_losses = numeric(n_coalitions)
       for (i in seq_len(n_coalitions)) {
-        coalition_data = avg_preds_by_coalition[.coalition_id == i]
+        coalition_data = avg_preds_by_coalition[.coalition_id == i] # Get aggregated predictions for this coalition
 
-        # Create prediction object and calculate loss
+        # Create a mlr3 Prediction object (either Classification or Regression) from the aggregated data.
         if (self$task$task_type == "classif") {
-          # For classification, extract the probability matrix
           class_names = self$task$class_names
           prob_matrix = as.matrix(coalition_data[, .SD, .SDcols = class_names])
 
@@ -621,9 +682,11 @@ SAGE = R6Class(
           )
         }
 
+        # Score the prediction object using the specified measure (e.g., MSE, CE).
         coalition_losses[i] = pred_obj$score(self$measure)
       }
 
+      # Return the vector of losses for all coalitions in this batch.
       coalition_losses
     },
 
