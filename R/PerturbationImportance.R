@@ -88,6 +88,16 @@ PerturbationImportance = R6Class(
       scores_orig = rr$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
       setnames(scores_orig, old = self$measure$id, "scores_pre")
 
+      if (xplain_opt("progress")) {
+        # resampling * permutation iters suffices for update speed
+        # Need dedicated env to pass around
+        cli::cli_progress_bar(
+          "Computing importances",
+          total = self$resampling$iters * iters_perm,
+          .envir = .progress_env
+        )
+      }
+
       # Compute permuted scores
       scores = lapply(seq_len(self$resampling$iters), \(iter) {
         test_dt = self$task$data(rows = rr$resampling$test_set(iter))
@@ -98,6 +108,8 @@ PerturbationImportance = R6Class(
               self$features,
               \(feature) {
                 # Sample feature - sampler handles conditioning appropriately
+                # If CFI, ConditionalSampler must use all non-FOI features as conditioning set
+                # If RFI, `conditioning_set` must be pre-configured!
                 perturbed_data = sampler$sample(feature, test_dt)
 
                 # Predict and score
@@ -105,12 +117,18 @@ PerturbationImportance = R6Class(
                   newdata = perturbed_data,
                   task = self$task
                 )
+
                 score = pred$score(self$measure)
                 names(score) = feature
                 score
               },
               FUN.VALUE = numeric(1)
             )
+
+            # Update progress bar.
+            if (xplain_opt("progress")) {
+              cli::cli_progress_update(inc = 1, .envir = .progress_env)
+            }
 
             data.table(
               feature = names(scores_post),
@@ -120,6 +138,11 @@ PerturbationImportance = R6Class(
           })
         )
       })
+
+      # Update progress bar.
+      if (xplain_opt("progress")) {
+        cli::cli_progress_done(.envir = .progress_env)
+      }
 
       # Collect permuted scores, add original scores
       scores = rbindlist(scores, idcol = "iteration")
