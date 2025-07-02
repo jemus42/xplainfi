@@ -248,8 +248,12 @@ SAGE = R6Class(
 
       p = ggplot2::ggplot(
         plot_data,
-        ggplot2::aes(x = n_permutations, y = importance, color = feature)
+        ggplot2::aes(x = n_permutations, y = importance, fill = feature, color = feature)
       ) +
+        ggplot2::geom_ribbon(
+          ggplot2::aes(ymin = importance - se, ymax = importance + se),
+          alpha = 1/3
+        ) +
         ggplot2::geom_line(size = 1) +
         ggplot2::geom_point(size = 2) +
         ggplot2::labs(
