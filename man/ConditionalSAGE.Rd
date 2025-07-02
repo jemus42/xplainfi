@@ -4,8 +4,8 @@
 \alias{ConditionalSAGE}
 \title{Conditional SAGE}
 \description{
-SAGE with conditional sampling (features are marginalized conditionally).
-Uses ARF by default for conditional marginalization.
+\link{SAGE} with conditional sampling (features are "marginalized" conditionally).
+Uses \link{ARFSampler} as default \link{ConditionalSampler}.
 }
 \examples{
 \dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE) && requireNamespace("arf", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
@@ -22,6 +22,9 @@ sage$compute()
 # Use batching for memory efficiency with large datasets
 sage$compute(batch_size = 1000)
 \dontshow{\}) # examplesIf}
+}
+\seealso{
+\link{MarginalSAGE}
 }
 \section{Super classes}{
 \code{\link[xplainfi:FeatureImportanceMethod]{xplainfi::FeatureImportanceMethod}} -> \code{\link[xplainfi:SAGE]{xplainfi::SAGE}} -> \code{ConditionalSAGE}
@@ -60,24 +63,21 @@ Creates a new instance of the ConditionalSAGE class.
   reference_data = NULL,
   sampler = NULL,
   batch_size = 5000L,
-  max_reference_size = 100L
+  max_reference_size = 100L,
+  early_stopping = FALSE,
+  convergence_threshold = 0.01,
+  se_threshold = Inf,
+  min_permutations = 10L,
+  check_interval = 2L
 )}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task, learner, measure, resampling, features}}{Passed to \link{SAGE}.}
+\item{\code{task, learner, measure, resampling, features, n_permutations, reference_data, batch_size, max_reference_size, early_stopping, convergence_threshold, se_threshold, min_permutations, check_interval}}{Passed to \link{SAGE}.}
 
-\item{\code{n_permutations}}{(integer(1)) Number of permutations to sample.}
-
-\item{\code{reference_data}}{(data.table) Optional reference dataset.}
-
-\item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to ARFSampler.}
-
-\item{\code{batch_size}}{(\code{integer(1): 5000L}) Maximum number of observations to process in a single prediction call.}
-
-\item{\code{max_reference_size}}{(integer(1)) Maximum size of reference dataset.}
+\item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to \link{ARFSampler}.}
 }
 \if{html}{\out{</div>}}
 }

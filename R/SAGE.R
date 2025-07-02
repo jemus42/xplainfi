@@ -2,7 +2,7 @@
 #'
 #' @description Base class for SAGE (Shapley Additive Global Importance)
 #' feature importance based on Shapley values with marginalization.
-#' This is an abstract class - use MarginalSAGE or ConditionalSAGE.
+#' This is an abstract class - use [MarginalSAGE] or [ConditionalSAGE].
 #'
 #' @details
 #' SAGE uses Shapley values to fairly distribute the total prediction
@@ -13,18 +13,20 @@
 #' @references
 #' `r print_bib("lundberg_2020")`
 #'
+#' @seealso [MarginalSAGE] [ConditionalSAGE]
+#'
 #' @export
 SAGE = R6Class(
   "SAGE",
   inherit = FeatureImportanceMethod,
   public = list(
-    #' @field n_permutations (integer(1)) Number of permutations to sample.
+    #' @field n_permutations (`integer(1)`) Number of permutations to sample.
     n_permutations = NULL,
-    #' @field reference_data (data.table) Reference dataset for marginalization.
+    #' @field reference_data ([`data.table`][data.table::data.table]) Reference dataset for marginalization.
     reference_data = NULL,
     #' @field sampler ([FeatureSampler]) Sampler object for marginalization.
     sampler = NULL,
-    #' @field convergence_history ([data.table]) History of SAGE values during computation.
+    #' @field convergence_history ([`data.table`][data.table::data.table]) History of SAGE values during computation.
     convergence_history = NULL,
     #' @field converged (`logical(1)`) Whether convergence was detected.
     converged = FALSE,
@@ -36,11 +38,16 @@ SAGE = R6Class(
     #' @param task,learner,measure,resampling,features Passed to FeatureImportanceMethod.
     #' @param n_permutations (`integer(1): 10L`) Number of permutations _per coalition_ to sample for Shapley value estimation.
     #'   The total number of evaluated coalitions is `1 (empty) + n_permutations * n_features`.
-    #' @param reference_data (`data.table | NULL`) Optional reference dataset. If `NULL`, uses training data.
+    #' @param reference_data ([`data.table`][data.table::data.table] | `NULL`) Optional reference dataset. If `NULL`, uses training data.
     #'   For each coalition to evaluate, an expanded datasets of size `n_test * n_reference` is created and evaluted in batches of `batch_size`.
     #' @param batch_size (`integer(1): 5000L`) Maximum number of observations to process in a single prediction call.
     #' @param sampler ([FeatureSampler]) Sampler for marginalization. Only relevant for `ConditionalSAGE`.
     #' @param max_reference_size (`integer(1): 100L`) Maximum size of reference dataset. If reference is larger, it will be subsampled.
+    #' @param early_stopping (`logical(1): FALSE`) Whether to enable early stopping based on convergence detection.
+    #' @param convergence_threshold (`numeric(1): 0.01`) Relative change threshold for convergence detection.
+    #' @param se_threshold (`numeric(1): Inf`) Standard error threshold for convergence detection.
+    #' @param min_permutations (`integer(1): 10L`) Minimum permutations before checking convergence.
+    #' @param check_interval (`integer(1): 2L`) Check convergence every N permutations.
     initialize = function(
       task,
       learner,
@@ -51,7 +58,12 @@ SAGE = R6Class(
       reference_data = NULL,
       batch_size = 5000L,
       sampler = NULL,
-      max_reference_size = 100L
+      max_reference_size = 100L,
+      early_stopping = FALSE,
+      convergence_threshold = 0.01,
+      se_threshold = Inf,
+      min_permutations = 10L,
+      check_interval = 2L
     ) {
       super$initialize(
         task = task,
@@ -106,18 +118,23 @@ SAGE = R6Class(
       ps$values$n_permutations = n_permutations
       ps$values$batch_size = batch_size
       ps$values$max_reference_size = max_reference_size
+      ps$values$early_stopping = early_stopping
+      ps$values$convergence_threshold = convergence_threshold
+      ps$values$se_threshold = se_threshold
+      ps$values$min_permutations = min_permutations
+      ps$values$check_interval = check_interval
       self$param_set = ps
     },
 
     #' @description
     #' Compute SAGE values.
-    #' @param store_backends (logical(1)) Whether to store backends.
-    #' @param batch_size (integer(1): 5000L) Maximum number of observations to process in a single prediction call.
-    #' @param early_stopping (logical(1)) Whether to check for convergence and stop early.
-    #' @param convergence_threshold (numeric(1)) Relative change threshold for convergence detection.
-    #' @param se_threshold (numeric(1)) Standard error threshold for convergence detection.
-    #' @param min_permutations (integer(1)) Minimum permutations before checking convergence.
-    #' @param check_interval (integer(1)) Check convergence every N permutations.
+    #' @param store_backends (`logical(1)`) Whether to store backends.
+    #' @param batch_size (`integer(1)`: `5000L`) Maximum number of observations to process in a single prediction call.
+    #' @param early_stopping (`logical(1)`) Whether to check for convergence and stop early.
+    #' @param convergence_threshold (`numeric(1)`) Relative change threshold for convergence detection.
+    #' @param se_threshold (`numeric(1)`) Standard error threshold for convergence detection.
+    #' @param min_permutations (`integer(1)`) Minimum permutations before checking convergence.
+    #' @param check_interval (`integer(1)`) Check convergence every N permutations.
     compute = function(
       store_backends = TRUE,
       batch_size = NULL,
@@ -231,7 +248,7 @@ SAGE = R6Class(
     #' @description
     #' Plot convergence history of SAGE values.
     #' @param features (`character` | `NULL`) Features to plot. If NULL, plots all features.
-    #' @return A ggplot2 object
+    #' @return A [ggplot2][ggplot2::ggplot] object
     plot_convergence = function(features = NULL) {
       require_package("ggplot2")
 
@@ -753,8 +770,10 @@ SAGE = R6Class(
 
 #' @title Marginal SAGE
 #'
-#' @description SAGE with marginal sampling (features are marginalized independently).
+#' @description [SAGE] with marginal sampling (features are marginalized independently).
 #' This is the standard SAGE implementation.
+#'
+#' @seealso [ConditionalSAGE]
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
 #' library(mlr3)
@@ -776,11 +795,7 @@ MarginalSAGE = R6Class(
   public = list(
     #' @description
     #' Creates a new instance of the MarginalSAGE class.
-    #' @param task,learner,measure,resampling,features Passed to [SAGE].
-    #' @param n_permutations (integer(1)) Number of permutations to sample.
-    #' @param reference_data (data.table) Optional reference dataset.
-    #' @param max_reference_size (integer(1)) Maximum size of reference dataset.
-    #' @param batch_size (`integer(1): 5000L`) Maximum number of observations to process in a single prediction call.
+    #' @param task,learner,measure,resampling,features,n_permutations,reference_data,batch_size,max_reference_size,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
     initialize = function(
       task,
       learner,
@@ -790,7 +805,12 @@ MarginalSAGE = R6Class(
       n_permutations = 10L,
       reference_data = NULL,
       batch_size = 5000L,
-      max_reference_size = 100L
+      max_reference_size = 100L,
+      early_stopping = FALSE,
+      convergence_threshold = 0.01,
+      se_threshold = Inf,
+      min_permutations = 10L,
+      check_interval = 2L
     ) {
       # No need to initialize sampler as marginal sampling is done differently here
       super$initialize(
@@ -802,7 +822,12 @@ MarginalSAGE = R6Class(
         n_permutations = n_permutations,
         reference_data = reference_data,
         batch_size = batch_size,
-        max_reference_size = max_reference_size
+        max_reference_size = max_reference_size,
+        early_stopping = early_stopping,
+        convergence_threshold = convergence_threshold,
+        se_threshold = se_threshold,
+        min_permutations = min_permutations,
+        check_interval = check_interval
       )
 
       self$label = "Marginal SAGE"
@@ -822,8 +847,10 @@ MarginalSAGE = R6Class(
 
 #' @title Conditional SAGE
 #'
-#' @description SAGE with conditional sampling (features are marginalized conditionally).
-#' Uses ARF by default for conditional marginalization.
+#' @description [SAGE] with conditional sampling (features are "marginalized" conditionally).
+#' Uses [ARFSampler] as default [ConditionalSampler].
+#'
+#' @seealso [MarginalSAGE]
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE) && requireNamespace("arf", quietly = TRUE)
 #' library(mlr3)
@@ -845,12 +872,8 @@ ConditionalSAGE = R6Class(
   public = list(
     #' @description
     #' Creates a new instance of the ConditionalSAGE class.
-    #' @param task,learner,measure,resampling,features Passed to [SAGE].
-    #' @param n_permutations (integer(1)) Number of permutations to sample.
-    #' @param reference_data (data.table) Optional reference dataset.
-    #' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to ARFSampler.
-    #' @param max_reference_size (integer(1)) Maximum size of reference dataset.
-    #' @param batch_size (`integer(1): 5000L`) Maximum number of observations to process in a single prediction call.
+    #' @param task,learner,measure,resampling,features,n_permutations,reference_data,batch_size,max_reference_size,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
+    #' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to [ARFSampler].
     initialize = function(
       task,
       learner,
@@ -861,7 +884,12 @@ ConditionalSAGE = R6Class(
       reference_data = NULL,
       sampler = NULL,
       batch_size = 5000L,
-      max_reference_size = 100L
+      max_reference_size = 100L,
+      early_stopping = FALSE,
+      convergence_threshold = 0.01,
+      se_threshold = Inf,
+      min_permutations = 10L,
+      check_interval = 2L
     ) {
       # Use ARFSampler by default
       if (is.null(sampler)) {
@@ -883,7 +911,12 @@ ConditionalSAGE = R6Class(
         reference_data = reference_data,
         sampler = sampler,
         batch_size = batch_size,
-        max_reference_size = max_reference_size
+        max_reference_size = max_reference_size,
+        early_stopping = early_stopping,
+        convergence_threshold = convergence_threshold,
+        se_threshold = se_threshold,
+        min_permutations = min_permutations,
+        check_interval = check_interval
       )
 
       self$label = "Conditional SAGE"
