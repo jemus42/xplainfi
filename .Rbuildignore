@@ -19,3 +19,4 @@
 ^vignettes/articles$
 ^coverage\.html$
 ^lib$
+^TODO\.md$
