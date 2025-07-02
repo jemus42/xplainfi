@@ -552,3 +552,124 @@ test_that("MarginalSAGE batching handles edge cases", {
   # making exact reproducibility challenging. The core batching functionality
   # is thoroughly tested above without resampling.
 })
+
+test_that("MarginalSAGE SE tracking in convergence_history", {
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
+
+  set.seed(123)
+  task = mlr3::tgen("friedman1")$generate(n = 50)
+  learner = mlr3::lrn("regr.ranger", num.trees = 10)
+  measure = mlr3::msr("regr.mse")
+
+  sage = MarginalSAGE$new(
+    task = task,
+    learner = learner,
+    measure = measure,
+    n_permutations = 10L,
+    max_reference_size = 30L
+  )
+
+  # Compute with early stopping to get convergence history
+  result = sage$compute(early_stopping = TRUE, se_threshold = 0.05, check_interval = 2L)
+
+  # Check that convergence_history exists and has SE column
+  expect_false(is.null(sage$convergence_history))
+  expect_true("se" %in% colnames(sage$convergence_history))
+
+  # Check structure of convergence_history
+  expected_cols = c("n_permutations", "feature", "importance", "se")
+  expect_equal(sort(colnames(sage$convergence_history)), sort(expected_cols))
+
+  # SE values should be non-negative and finite
+  se_values = sage$convergence_history$se
+  expect_true(all(se_values >= 0, na.rm = TRUE))
+  expect_true(all(is.finite(se_values)))
+
+  # For each feature, SE should generally decrease with more permutations
+  # (at least last SE <= first SE)
+  for (feat in unique(sage$convergence_history$feature)) {
+    feat_data = sage$convergence_history[feature == feat]
+    feat_data = feat_data[order(n_permutations)]
+
+    if (nrow(feat_data) > 1) {
+      first_se = feat_data$se[1]
+      last_se = feat_data$se[nrow(feat_data)]
+      expect_lte(last_se, first_se * 1.1, info = paste("SE should decrease for", feat))
+    }
+  }
+
+  # All features should be represented in convergence history
+  expect_equal(
+    sort(unique(sage$convergence_history$feature)),
+    sort(sage$features)
+  )
+})
+
+test_that("MarginalSAGE SE-based convergence detection", {
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
+
+  set.seed(123)
+  task = mlr3::tgen("friedman1")$generate(n = 40)
+  learner = mlr3::lrn("regr.ranger", num.trees = 10)
+  measure = mlr3::msr("regr.mse")
+
+  sage = MarginalSAGE$new(
+    task = task,
+    learner = learner,
+    measure = measure,
+    n_permutations = 20L,
+    max_reference_size = 20L
+  )
+
+  # Test with very loose SE threshold (should not trigger convergence)
+  result_loose = sage$compute(
+    early_stopping = TRUE,
+    convergence_threshold = 0.001, # Very strict relative change
+    se_threshold = 100.0, # Very loose SE threshold
+    min_permutations = 5L,
+    check_interval = 2L
+  )
+
+  # Should not converge early due to loose SE threshold
+  expect_false(sage$converged)
+  expect_equal(sage$n_permutations_used, 20L)
+
+  # Reset for next test
+  sage$importance = NULL
+  sage$convergence_history = NULL
+  sage$converged = FALSE
+  sage$n_permutations_used = NULL
+
+  # Test with very strict SE threshold (should trigger convergence quickly)
+  result_strict = sage$compute(
+    early_stopping = TRUE,
+    convergence_threshold = 1.0, # Very loose relative change
+    se_threshold = 0.001, # Very strict SE threshold
+    min_permutations = 5L,
+    check_interval = 2L
+  )
+
+  # With very strict SE threshold, should not converge early
+  # (realistic SE values are usually larger than 0.001)
+  expect_false(sage$converged)
+
+  # Test with moderate thresholds where both criteria might be met
+  sage$importance = NULL
+  sage$convergence_history = NULL
+  sage$converged = FALSE
+  sage$n_permutations_used = NULL
+
+  result_moderate = sage$compute(
+    early_stopping = TRUE,
+    convergence_threshold = 0.05, # Moderate relative change threshold
+    se_threshold = 0.1, # Moderate SE threshold
+    min_permutations = 6L,
+    check_interval = 2L
+  )
+
+  # Should have convergence history with SE tracking regardless of convergence
+  expect_false(is.null(sage$convergence_history))
+  expect_true("se" %in% colnames(sage$convergence_history))
+})

@@ -99,6 +99,7 @@ SAGE = R6Class(
         max_reference_size = paradox::p_int(lower = 1L, default = 100L),
         early_stopping = paradox::p_lgl(default = FALSE),
         convergence_threshold = paradox::p_dbl(lower = 0, upper = 1, default = 0.01),
+        se_threshold = paradox::p_dbl(lower = 0, default = Inf),
         min_permutations = paradox::p_int(lower = 5L, default = 10L),
         check_interval = paradox::p_int(lower = 1L, default = 2L)
       )
@@ -114,6 +115,7 @@ SAGE = R6Class(
     #' @param batch_size (integer(1): 5000L) Maximum number of observations to process in a single prediction call.
     #' @param early_stopping (logical(1)) Whether to check for convergence and stop early.
     #' @param convergence_threshold (numeric(1)) Relative change threshold for convergence detection.
+    #' @param se_threshold (numeric(1)) Standard error threshold for convergence detection.
     #' @param min_permutations (integer(1)) Minimum permutations before checking convergence.
     #' @param check_interval (integer(1)) Check convergence every N permutations.
     compute = function(
@@ -121,6 +123,7 @@ SAGE = R6Class(
       batch_size = NULL,
       early_stopping = NULL,
       convergence_threshold = NULL,
+      se_threshold = NULL,
       min_permutations = NULL,
       check_interval = NULL
     ) {
@@ -145,6 +148,11 @@ SAGE = R6Class(
         convergence_threshold,
         self$param_set$values$convergence_threshold,
         0.01
+      )
+      se_threshold = resolve_param(
+        se_threshold,
+        self$param_set$values$se_threshold,
+        Inf
       )
       min_permutations = resolve_param(
         min_permutations,
@@ -173,6 +181,7 @@ SAGE = R6Class(
         batch_size = batch_size,
         early_stopping = early_stopping,
         convergence_threshold = convergence_threshold,
+        se_threshold = se_threshold,
         min_permutations = min_permutations,
         check_interval = check_interval
       )
@@ -193,6 +202,7 @@ SAGE = R6Class(
             batch_size = batch_size,
             early_stopping = FALSE, # Only track convergence for first iteration
             convergence_threshold = convergence_threshold,
+            se_threshold = se_threshold,
             min_permutations = min_permutations,
             check_interval = check_interval
           )
@@ -280,16 +290,19 @@ SAGE = R6Class(
       batch_size = NULL,
       early_stopping = FALSE,
       convergence_threshold = 0.01,
+      se_threshold = Inf,
       min_permutations = 10L,
       check_interval = 5L
     ) {
       # This function computes the SAGE values for a single resampling iteration.
       # It iterates through permutations of features, evaluates coalitions, and calculates marginal contributions.
 
-      # Initialize a numeric vector to store the sum of marginal contributions for each feature.
-      # These sums will later be averaged to get the final SAGE values.
-      sage_values = numeric(length(self$features))
-      names(sage_values) = self$features # Name elements by feature names (e.g., c(x1 = 0, x2 = 0, x3 = 0))
+      # Initialize numeric vectors to store marginal contributions and their squares for variance calculation.
+      # We track both sum and sum of squares to calculate running variance and standard errors.
+      sage_values = numeric(length(self$features))  # Sum of marginal contributions
+      sage_values_sq = numeric(length(self$features))  # Sum of squared marginal contributions
+      names(sage_values) = self$features
+      names(sage_values_sq) = self$features
 
       # Pre-generate ALL permutations upfront to ensure consistent random state.
       # Relevant for reproducibility, especially when using early stopping or parallel processing.
@@ -413,7 +426,9 @@ SAGE = R6Class(
             marginal_contribution = prev_loss - current_loss
 
             # Add this marginal contribution to the total SAGE value for the 'feature'.
+            # Also track the squared contribution for variance calculation.
             sage_values[feature] = sage_values[feature] + marginal_contribution
+            sage_values_sq[feature] = sage_values_sq[feature] + marginal_contribution^2
 
             # Update 'prev_loss' for the next iteration in this permutation.
             # The current coalition's loss becomes the 'previous' loss for the next feature's contribution.
@@ -424,15 +439,23 @@ SAGE = R6Class(
         # Update the count of completed permutations.
         n_completed = n_completed + checkpoint_size
 
-        # Calculate the current average SAGE values based on completed permutations.
+        # Calculate the current average SAGE values and standard errors based on completed permutations.
         current_avg = sage_values / n_completed
+        
+        # Calculate running variance and standard errors for each feature
+        # Variance = E[X^2] - E[X]^2, SE = sqrt(Var / n)
+        current_variance = (sage_values_sq / n_completed) - (current_avg^2)
+        # Ensure variance is non-negative (numerical precision issues)
+        current_variance[current_variance < 0] = 0
+        current_se = sqrt(current_variance / n_completed)
 
-        # Store the current average SAGE values in the convergence history.
-        # Used for plotting and early stopping.
+        # Store the current average SAGE values and standard errors in the convergence history.
+        # Used for plotting, early stopping, and uncertainty quantification.
         checkpoint_history = data.table(
           n_permutations = n_completed,
           feature = names(current_avg),
-          importance = as.numeric(current_avg) # Ensure numeric, not named vector
+          importance = as.numeric(current_avg),
+          se = as.numeric(current_se)
         )
         convergence_history[[length(convergence_history) + 1]] = checkpoint_history
 
@@ -445,20 +468,43 @@ SAGE = R6Class(
           # Ensure features are in the same order for comparison.
           prev_values = copy(prev_checkpoint)[order(feature)]$importance
           curr_values = copy(curr_checkpoint)[order(feature)]$importance
+          curr_se_values = copy(curr_checkpoint)[order(feature)]$se
 
           # Calculate the maximum relative change between current and previous SAGE values.
           # A small max_change indicates convergence.
           rel_changes = abs(curr_values - prev_values) / (abs(prev_values) + 1e-8) # Add epsilon to avoid division by zero
           max_change = max(rel_changes, na.rm = TRUE)
 
-          # If the maximum relative change is below the threshold, mark as converged.
-          if (is.finite(max_change) && max_change < convergence_threshold) {
-            converged = TRUE
-            cli::cli_inform(c(
+          # Calculate maximum standard error across features.
+          max_se = max(curr_se_values, na.rm = TRUE)
+
+          # SE threshold is already resolved as a parameter to this function
+
+          # Check both relative change and standard error convergence criteria.
+          rel_change_converged = is.finite(max_change) && max_change < convergence_threshold
+          se_converged = is.finite(max_se) && max_se < se_threshold
+
+          # Convergence requires both criteria to be met (when SE threshold is finite)
+          if (is.finite(se_threshold)) {
+            converged = rel_change_converged && se_converged
+            convergence_msg = c(
+              "v" = "SAGE converged after {.val {n_completed}} permutations",
+              "i" = "Maximum relative change: {.val {round(max_change, 4)}} (threshold: {.val {convergence_threshold}})",
+              "i" = "Maximum standard error: {.val {round(max_se, 4)}} (threshold: {.val {se_threshold}})",
+              "i" = "Saved {.val {self$n_permutations - n_completed}} permutations"
+            )
+          } else {
+            # If SE threshold is infinite, only check relative change
+            converged = rel_change_converged
+            convergence_msg = c(
               "v" = "SAGE converged after {.val {n_completed}} permutations",
               "i" = "Maximum relative change: {.val {round(max_change, 4)}}",
               "i" = "Saved {.val {self$n_permutations - n_completed}} permutations"
-            ))
+            )
+          }
+
+          if (converged) {
+            cli::cli_inform(convergence_msg)
           }
         }
       }

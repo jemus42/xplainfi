@@ -421,3 +421,58 @@ test_that("ConditionalSAGE batching with custom sampler", {
     info = "ConditionalSAGE with custom sampler should produce identical results with batching"
   )
 })
+
+test_that("ConditionalSAGE SE tracking in convergence_history", {
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
+  skip_if_not_installed("arf")
+
+  set.seed(123)
+  task = mlr3::tgen("friedman1")$generate(n = 50)
+  learner = mlr3::lrn("regr.ranger", num.trees = 10)
+  measure = mlr3::msr("regr.mse")
+
+  sage = ConditionalSAGE$new(
+    task = task,
+    learner = learner,
+    measure = measure,
+    n_permutations = 10L,
+    max_reference_size = 30L
+  )
+
+  # Compute with early stopping to get convergence history
+  result = sage$compute(early_stopping = TRUE, se_threshold = 0.05, check_interval = 2L)
+
+  # Check that convergence_history exists and has SE column
+  expect_false(is.null(sage$convergence_history))
+  expect_true("se" %in% colnames(sage$convergence_history))
+
+  # Check structure of convergence_history
+  expected_cols = c("n_permutations", "feature", "importance", "se")
+  expect_equal(sort(colnames(sage$convergence_history)), sort(expected_cols))
+
+  # SE values should be non-negative and finite
+  se_values = sage$convergence_history$se
+  expect_true(all(se_values >= 0, na.rm = TRUE))
+  expect_true(all(is.finite(se_values)))
+
+  # For each feature, SE should generally decrease with more permutations
+  # (at least last SE <= first SE * tolerance for stochastic conditional sampling)
+  for (feat in unique(sage$convergence_history$feature)) {
+    feat_data = sage$convergence_history[feature == feat]
+    feat_data = feat_data[order(n_permutations)]
+
+    if (nrow(feat_data) > 1) {
+      first_se = feat_data$se[1]
+      last_se = feat_data$se[nrow(feat_data)]
+      # More generous tolerance for conditional sampling due to ARF stochasticity
+      expect_lte(last_se, first_se * 1.5, info = paste("SE should generally decrease for", feat))
+    }
+  }
+
+  # All features should be represented in convergence history
+  expect_equal(
+    sort(unique(sage$convergence_history$feature)),
+    sort(sage$features)
+  )
+})
