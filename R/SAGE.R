@@ -252,7 +252,7 @@ SAGE = R6Class(
       ) +
         ggplot2::geom_ribbon(
           ggplot2::aes(ymin = importance - se, ymax = importance + se),
-          alpha = 1/3
+          alpha = 1 / 3
         ) +
         ggplot2::geom_line(size = 1) +
         ggplot2::geom_point(size = 2) +
@@ -269,9 +269,10 @@ SAGE = R6Class(
           },
           x = "Number of Permutations",
           y = "SAGE Value",
-          color = "Feature"
+          color = "Feature",
+          fill = "Feature"
         ) +
-        ggplot2::theme_minimal(base_size = 12)
+        ggplot2::theme_minimal(base_size = 14)
 
       if (self$converged) {
         p = p +
@@ -303,8 +304,8 @@ SAGE = R6Class(
 
       # Initialize numeric vectors to store marginal contributions and their squares for variance calculation.
       # We track both sum and sum of squares to calculate running variance and standard errors.
-      sage_values = numeric(length(self$features))  # Sum of marginal contributions
-      sage_values_sq = numeric(length(self$features))  # Sum of squared marginal contributions
+      sage_values = numeric(length(self$features)) # Sum of marginal contributions
+      sage_values_sq = numeric(length(self$features)) # Sum of squared marginal contributions
       names(sage_values) = self$features
       names(sage_values_sq) = self$features
 
@@ -445,7 +446,7 @@ SAGE = R6Class(
 
         # Calculate the current average SAGE values and standard errors based on completed permutations.
         current_avg = sage_values / n_completed
-        
+
         # Calculate running variance and standard errors for each feature
         # Variance = E[X^2] - E[X]^2, SE = sqrt(Var / n)
         current_variance = (sage_values_sq / n_completed) - (current_avg^2)
@@ -895,19 +896,19 @@ ConditionalSAGE = R6Class(
       n_coalitions = length(all_coalitions)
       n_test = nrow(test_dt)
       n_reference = nrow(self$reference_data)
-      
+
       if (xplain_opt("debug")) {
         cli::cli_inform("Evaluating {.val {length(all_coalitions)}} coalitions (ConditionalSAGE)")
       }
-      
+
       # Pre-allocate list for expanded data
       all_expanded_data = vector("list", n_coalitions)
-      
+
       # For each coalition, do conditional sampling BEFORE expansion
       for (i in seq_along(all_coalitions)) {
         coalition = all_coalitions[[i]]
         marginalize_features = setdiff(self$features, coalition)
-        
+
         if (length(marginalize_features) > 0) {
           # Sample conditionally for unique test instances
           conditioning_set = coalition
@@ -916,55 +917,57 @@ ConditionalSAGE = R6Class(
             data = test_dt,
             conditioning_set = conditioning_set
           )
-          
+
           # Create the marginalized test data
           marginalized_test = copy(test_dt)
-          marginalized_test[, (marginalize_features) := sampled_data[, marginalize_features, with = FALSE]]
+          marginalized_test[,
+            (marginalize_features) := sampled_data[, marginalize_features, with = FALSE]
+          ]
         } else {
           # No marginalization needed
           marginalized_test = copy(test_dt)
         }
-        
+
         # NOW expand with reference data (only once, with correct values)
         test_expanded = marginalized_test[rep(seq_len(n_test), each = n_reference)]
         reference_expanded = self$reference_data[rep(seq_len(n_reference), times = n_test)]
-        
+
         # Add tracking IDs
         test_expanded[, .coalition_id := i]
         test_expanded[, .test_instance_id := rep(seq_len(n_test), each = n_reference)]
-        
+
         all_expanded_data[[i]] = test_expanded
       }
-      
+
       # Rest of the method is the same as base implementation
       combined_data = rbindlist(all_expanded_data)
       total_rows = nrow(combined_data)
-      
+
       # Process data in batches if needed
       if (!is.null(batch_size) && total_rows > batch_size) {
         n_batches = ceiling(total_rows / batch_size)
         all_predictions = vector("list", n_batches)
-        
+
         for (batch_idx in seq_len(n_batches)) {
           start_row = (batch_idx - 1) * batch_size + 1
           end_row = min(batch_idx * batch_size, total_rows)
           batch_data = combined_data[start_row:end_row]
-          
+
           if (xplain_opt("debug")) {
             cli::cli_inform(
               "Predicting on {.val {nrow(batch_data)}} instances in batch {.val {batch_idx}/{n_batches}}"
             )
           }
-          
+
           pred_result = learner$predict_newdata(newdata = batch_data, task = self$task)
-          
+
           if (self$task$task_type == "classif") {
             all_predictions[[batch_idx]] = pred_result$prob
           } else {
             all_predictions[[batch_idx]] = pred_result$response
           }
         }
-        
+
         # Combine predictions
         if (self$task$task_type == "classif") {
           combined_predictions = do.call(rbind, all_predictions)
@@ -976,16 +979,16 @@ ConditionalSAGE = R6Class(
         if (xplain_opt("debug")) {
           cli::cli_inform("Predicting on {.val {nrow(combined_data)}} instances at once")
         }
-        
+
         pred_result = learner$predict_newdata(newdata = combined_data, task = self$task)
-        
+
         if (self$task$task_type == "classif") {
           combined_predictions = pred_result$prob
         } else {
           combined_predictions = pred_result$response
         }
       }
-      
+
       # Handle NAs in predictions
       if (self$task$task_type == "classif") {
         if (any(is.na(combined_predictions))) {
@@ -998,27 +1001,27 @@ ConditionalSAGE = R6Class(
       } else {
         combined_predictions[is.na(combined_predictions)] = 0
       }
-      
+
       # Aggregate predictions by coalition and test instance
       if (self$task$task_type == "classif") {
         n_classes = ncol(combined_predictions)
         class_names = colnames(combined_predictions)
-        
+
         for (j in seq_len(n_classes)) {
           combined_data[, paste0(".pred_class_", j) := combined_predictions[, j]]
         }
-        
+
         agg_cols = paste0(".pred_class_", seq_len(n_classes))
         avg_preds_by_coalition = combined_data[,
           lapply(.SD, function(x) mean(x, na.rm = TRUE)),
           .SDcols = agg_cols,
           by = .(.coalition_id, .test_instance_id)
         ]
-        
+
         setnames(avg_preds_by_coalition, agg_cols, class_names)
       } else {
         combined_data[, .prediction := combined_predictions]
-        
+
         avg_preds_by_coalition = combined_data[,
           .(
             avg_pred = mean(.prediction, na.rm = TRUE)
@@ -1026,16 +1029,16 @@ ConditionalSAGE = R6Class(
           by = .(.coalition_id, .test_instance_id)
         ]
       }
-      
+
       # Calculate loss for each coalition
       coalition_losses = numeric(n_coalitions)
       for (i in seq_len(n_coalitions)) {
         coalition_data = avg_preds_by_coalition[.coalition_id == i]
-        
+
         if (self$task$task_type == "classif") {
           class_names = self$task$class_names
           prob_matrix = as.matrix(coalition_data[, .SD, .SDcols = class_names])
-          
+
           pred_obj = PredictionClassif$new(
             row_ids = seq_len(n_test),
             truth = test_dt[[self$task$target_names]],
@@ -1048,10 +1051,10 @@ ConditionalSAGE = R6Class(
             response = coalition_data$avg_pred
           )
         }
-        
+
         coalition_losses[i] = pred_obj$score(self$measure)
       }
-      
+
       coalition_losses
     }
   )
