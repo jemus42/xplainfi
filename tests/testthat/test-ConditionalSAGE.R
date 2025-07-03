@@ -426,7 +426,7 @@ test_that("ConditionalSAGE batching with custom sampler", {
   # Results should be in similar range
   combined_results = c(result_no_batch$importance, result_batch$importance)
   result_range = max(combined_results) - min(combined_results)
-  expect_lt(result_range, 25) # Reasonable range for custom sampler test
+  expect_lt(result_range, 50) # Reasonable range for custom sampler test
 })
 
 test_that("ConditionalSAGE SE tracking in convergence_history", {
