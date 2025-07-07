@@ -168,6 +168,13 @@ individual feature and comparing their performance to a featureless
 (baseline) model. This shows how much predictive power each feature
 provides on its own, above and beyond the optimal constant
 prediction.</p>
+<div class="callout-warning">
+<p>Since this method only measures univariate associations, it is not
+recommend to use as a “real” feature importance method, but rather
+exists as a special case of a broader class of refitting-based
+importances methods. We illustrate it here for completeness and to
+highlight its limitation.</p>
+</div>
 <p>For feature <span class="math inline">\(j\)</span>, LOCI is
 calculated as the difference in expected loss of the featureless learner
 or constant model and the model including only the feature: <span class="math display">\[\text{LOCI}_j = \mathbb{E}(L(Y, f_{\emptyset})) -
@@ -419,18 +426,20 @@ baseline</li>
 <p><img src="loco-loci_files/figure-html/plot-1.png" width="672"></p>
 </div>
 <div class="section level2">
-<h2 id="micro-averaged-vs-macro-averaged-loco">Micro-averaged vs Macro-averaged LOCO<a class="anchor" aria-label="anchor" href="#micro-averaged-vs-macro-averaged-loco"></a>
+<h2 id="different-aggregation-methods-in-loco">Different aggregation methods in LOCO<a class="anchor" aria-label="anchor" href="#different-aggregation-methods-in-loco"></a>
 </h2>
-<p>The examples above use the <strong>micro-averaged</strong> approach
+<p>The examples above aggregates predictions on each test set
 (<code>obs_loss = FALSE</code>), computing importance as the difference
-of expected losses using the measure’s default aggregation: <span class="math inline">\(\mathbb{E}(L(Y, f_{-j}(X_{-j}))) - \mathbb{E}(L(Y,
-f(X)))\)</span>.</p>
-<p>LOCO can also be computed using the <strong>macro-averaged</strong>
-approach (<code>obs_loss = TRUE</code>), which follows the original
-paper formulation by aggregating observation-wise differences with the
-median of absolute differences: <span class="math inline">\(\mathrm{median}(\{|L(y_i, f_{-j}(x_{i,-j}))| -
-|L(y_i, f(x_i))|\}_{i=1}^n)\)</span>.</p>
-<p>The macro-averaged approach provides access to individual
+of average losses using the measure’s default aggregation: <span class="math inline">\(\mathrm{mean}(L(Y, f_{-j}(X_{-j}))) -
+\mathrm{mean}(L(Y, f(X)))\)</span>.</p>
+<p>LOCO can also be computed using the alternative approach
+(<code>obs_loss = TRUE</code>), which follows the original paper
+formulation by aggregating observation-wise differences with the median
+of absolute differences: <span class="math inline">\(\mathrm{median}(\{|L(y_i, f_{-j}(x_{i,-j}))| -
+|L(y_i, f(x_i))|\}_{i=1}^n)\)</span>, where we need to select an mlr3
+measure where the <span class="math inline">\(L_1\)</span> loss is used
+on the observation level, e.g <code>regr.mae</code>.</p>
+<p>Setting <code>obs_loss = TRUE</code> provides access to individual
 observation-level differences:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Use macro-averaged approach with median aggregation</span></span>
@@ -439,7 +448,7 @@ observation-level differences:</p>
 <span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mae"</span><span class="op">)</span>,  <span class="co"># MAE supports obs_loss</span></span>
 <span>  obs_loss <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  aggregation_fun <span class="op">=</span> <span class="va">median</span></span>
+<span>  aggregation_fun <span class="op">=</span> <span class="va">median</span> <span class="co"># for the "outer" aggregation</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span></span>
 <span><span class="co">#&gt; Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span></span>
@@ -456,8 +465,8 @@ observation-level differences:</p>
 <span></span>
 <span><span class="co"># Compare aggregated results</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
-<span>  <span class="va">loco</span><span class="op">$</span><span class="va">importance</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"Micro-averaged (measure default)"</span><span class="op">]</span>,</span>
-<span>  <span class="va">loco_obs</span><span class="op">$</span><span class="va">importance</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"Macro-averaged (median of diffs)"</span><span class="op">]</span></span>
+<span>  <span class="va">loco</span><span class="op">$</span><span class="va">importance</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"Set-wise MSE (measure default)"</span><span class="op">]</span>,</span>
+<span>  <span class="va">loco_obs</span><span class="op">$</span><span class="va">importance</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"Observation-wise (median of diffs)"</span><span class="op">]</span></span>
 <span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/dcast.data.table.html" class="external-link">dcast</a></span><span class="op">(</span><span class="va">feature</span> <span class="op">~</span> <span class="va">method</span>, value.var <span class="op">=</span> <span class="st">"importance"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"Comparison of LOCO aggregation approaches"</span><span class="op">)</span></span></code></pre></div>
@@ -465,13 +474,13 @@ observation-level differences:</p>
 <caption>Comparison of LOCO aggregation approaches</caption>
 <colgroup>
 <col width="10%">
-<col width="44%">
-<col width="44%">
+<col width="47%">
+<col width="41%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">feature</th>
-<th align="right">Macro-averaged (median of diffs)</th>
-<th align="right">Micro-averaged (measure default)</th>
+<th align="right">Observation-wise (median of diffs)</th>
+<th align="right">Set-wise MSE (measure default)</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
@@ -670,18 +679,18 @@ slightly different ways:</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
-<span>  <span class="va">loco_orig</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"micro-averaged"</span><span class="op">]</span>,</span>
-<span>  <span class="va">loco_obsloss</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"macro-averaged"</span><span class="op">]</span></span>
+<span>  <span class="va">loco_orig</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"Set-wise"</span><span class="op">]</span>,</span>
+<span>  <span class="va">loco_obsloss</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"Observation-wise"</span><span class="op">]</span></span>
 <span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/dcast.data.table.html" class="external-link">dcast</a></span><span class="op">(</span><span class="va">feature</span> <span class="op">~</span> <span class="va">method</span>, value.var <span class="op">=</span> <span class="st">"importance"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;    feature macro-averaged micro-averaged</span></span>
-<span><span class="co">#&gt;     &lt;char&gt;          &lt;num&gt;          &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  noise1    -0.06116845    -0.06116845</span></span>
-<span><span class="co">#&gt; 2:  noise2    -0.03037297    -0.03037297</span></span>
-<span><span class="co">#&gt; 3:      x1    -0.04521521    -0.04521521</span></span>
-<span><span class="co">#&gt; 4:      x2     0.02801885     0.02801885</span></span>
-<span><span class="co">#&gt; 5:      x3     1.10230314     1.10230314</span></span></code></pre></div>
+<span><span class="co">#&gt;    feature Observation-wise    Set-wise</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;            &lt;num&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:  noise1      -0.06116845 -0.06116845</span></span>
+<span><span class="co">#&gt; 2:  noise2      -0.03037297 -0.03037297</span></span>
+<span><span class="co">#&gt; 3:      x1      -0.04521521 -0.04521521</span></span>
+<span><span class="co">#&gt; 4:      x2       0.02801885  0.02801885</span></span>
+<span><span class="co">#&gt; 5:      x3       1.10230314  1.10230314</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="classification-example-with-probability-access">Classification Example with Probability Access<a class="anchor" aria-label="anchor" href="#classification-example-with-probability-access"></a>
