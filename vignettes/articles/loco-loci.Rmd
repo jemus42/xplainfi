@@ -67,6 +67,12 @@ loco$compute()
 
 LOCI measures feature importance by training models with only each individual feature and comparing their performance to a featureless (baseline) model. This shows how much predictive power each feature provides on its own, above and beyond the optimal constant prediction.
 
+::: {.callout-warning}
+Since this method only measures univariate associations, it is not recommend to use as a "real" feature importance method, but rather exists as a special case of a broader class of refitting-based importances methods.
+We illustrate it here for completeness and to highlight its limitation.
+
+:::
+
 For feature $j$, LOCI is calculated as the difference in expected loss of the featureless learner or constant model and the model including only the feature:
 $$\text{LOCI}_j = \mathbb{E}(L(Y, f_{\emptyset})) - \mathbb{E}(L(Y, f_j(X_{j})))$$
 
@@ -168,13 +174,13 @@ importance_combined |>
   ) 
 ```
 
-## Micro-averaged vs Macro-averaged LOCO
+## Different aggregation methods in LOCO
 
-The examples above use the **micro-averaged** approach (`obs_loss = FALSE`), computing importance as the difference of expected losses using the measure's default aggregation: $\mathbb{E}(L(Y, f_{-j}(X_{-j}))) - \mathbb{E}(L(Y, f(X)))$. 
+The examples above aggregates predictions on each test set (`obs_loss = FALSE`), computing importance as the difference of average losses using the measure's default aggregation: $\mathrm{mean}(L(Y, f_{-j}(X_{-j}))) - \mathrm{mean}(L(Y, f(X)))$. 
 
-LOCO can also be computed using the **macro-averaged** approach (`obs_loss = TRUE`), which follows the original paper formulation by aggregating observation-wise differences with the median of absolute differences: $\mathrm{median}(\{|L(y_i, f_{-j}(x_{i,-j}))| - |L(y_i, f(x_i))|\}_{i=1}^n)$.
+LOCO can also be computed using the alternative approach (`obs_loss = TRUE`), which follows the original paper formulation by aggregating observation-wise differences with the median of absolute differences: $\mathrm{median}(\{|L(y_i, f_{-j}(x_{i,-j}))| - |L(y_i, f(x_i))|\}_{i=1}^n)$, where we need to select an mlr3 measure where the $L_1$ loss is used on the observation level, e.g `regr.mae`.
 
-The macro-averaged approach provides access to individual observation-level differences:
+Setting `obs_loss = TRUE` provides access to individual observation-level differences:
 
 ```{r obs-loss-regression}
 # Use macro-averaged approach with median aggregation
@@ -183,15 +189,15 @@ loco_obs <- LOCO$new(
   learner = learner,
   measure = msr("regr.mae"),  # MAE supports obs_loss
   obs_loss = TRUE,
-  aggregation_fun = median
+  aggregation_fun = median # for the "outer" aggregation
 )
 
 loco_obs$compute()
 
 # Compare aggregated results
 rbind(
-  loco$importance[, method := "Micro-averaged (measure default)"],
-  loco_obs$importance[, method := "Macro-averaged (median of diffs)"]
+  loco$importance[, method := "Set-wise MSE (measure default)"],
+  loco_obs$importance[, method := "Observation-wise (median of diffs)"]
 ) |>
   dcast(feature ~ method, value.var = "importance") |>
   knitr::kable(digits = 4, caption = "Comparison of LOCO aggregation approaches")
@@ -244,8 +250,8 @@ loco_obsloss <- LOCO$new(
 )
 
 rbind(
-  loco_orig$compute()[, method := "micro-averaged"],
-  loco_obsloss$compute()[, method := "macro-averaged"]
+  loco_orig$compute()[, method := "Set-wise"],
+  loco_obsloss$compute()[, method := "Observation-wise"]
 ) |>
   dcast(feature ~ method, value.var = "importance")
 ```
