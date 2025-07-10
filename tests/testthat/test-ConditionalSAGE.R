@@ -226,7 +226,7 @@ test_that("ConditionalSAGE works with multiclass classification", {
   expect_equal(length(task$class_names), 4L)
 })
 
-test_that("ConditionalSAGE batching produces consistent results", {
+test_that("ConditionalSAGE batching produces identical results", {
   skip_if_not_installed("ranger")
   skip_if_not_installed("mlr3learners")
   skip_if_not_installed("arf")
@@ -303,25 +303,26 @@ test_that("ConditionalSAGE batching produces consistent results", {
       sage$compute(batch_size = 10)
     })
 
-    # ConditionalSAGE with ARF sampling has inherent stochasticity that can be affected by batching
-    # Rather than expecting identical results, we test that results are reasonable and consistent
-    
-    # All results should have the same structure
-    expect_equal(nrow(result_no_batch), nrow(result_large_batch))
-    expect_equal(nrow(result_large_batch), nrow(result_small_batch))
-    expect_equal(nrow(result_small_batch), nrow(result_tiny_batch))
-    
-    # All importance values should be finite
-    expect_true(all(is.finite(result_no_batch$importance)))
-    expect_true(all(is.finite(result_large_batch$importance)))
-    expect_true(all(is.finite(result_small_batch$importance)))
-    expect_true(all(is.finite(result_tiny_batch$importance)))
-    
-    # Results should be in a reasonable range (not wildly different)
-    all_results = c(result_no_batch$importance, result_large_batch$importance, 
-                   result_small_batch$importance, result_tiny_batch$importance)
-    result_range = max(all_results) - min(all_results)
-    expect_lt(result_range, 50)
+    # Results should be similar (but not identical due to ARF stochasticity)
+    # Use more reasonable tolerance for stochastic conditional sampling
+    expect_equal(
+      result_no_batch$importance,
+      result_large_batch$importance,
+      tolerance = 0.05,
+      info = paste("ConditionalSAGE", config$type, "- no batch vs large batch")
+    )
+    expect_equal(
+      result_large_batch$importance,
+      result_small_batch$importance,
+      tolerance = 0.05,
+      info = paste("ConditionalSAGE", config$type, "- large batch vs small batch")
+    )
+    expect_equal(
+      result_small_batch$importance,
+      result_tiny_batch$importance,
+      tolerance = 0.05,
+      info = paste("ConditionalSAGE", config$type, "- small batch vs tiny batch")
+    )
   }
 })
 
@@ -360,16 +361,12 @@ test_that("ConditionalSAGE batching handles edge cases", {
     sage$compute()
   })
 
-  # ConditionalSAGE results may vary due to ARF stochasticity even with same seed
-  # Test that results are reasonable and both complete successfully
-  expect_true(all(is.finite(result_batch_1$importance)))
-  expect_true(all(is.finite(result_normal$importance)))
-  expect_equal(nrow(result_batch_1), nrow(result_normal))
-  
-  # Results should be in similar range
-  combined_results = c(result_batch_1$importance, result_normal$importance)
-  result_range = max(combined_results) - min(combined_results)
-  expect_lt(result_range, 20) # Reasonable range for small dataset
+  expect_equal(
+    result_batch_1$importance,
+    result_normal$importance,
+    tolerance = 1e-10,
+    info = "ConditionalSAGE batch_size=1 should produce identical results"
+  )
 
   # Note: Resampling tests are omitted here because mlr3's internal random state
   # management during resampling may interact differently with batching,
@@ -417,11 +414,12 @@ test_that("ConditionalSAGE batching with custom sampler", {
     sage$compute(batch_size = 30)
   })
 
-  # Even with custom sampler, ARF introduces stochasticity
-  # Test that results are reasonable and both complete successfully
-  expect_true(all(is.finite(result_no_batch$importance)))
-  expect_true(all(is.finite(result_batch$importance)))
-  expect_equal(nrow(result_no_batch), nrow(result_batch))
+  expect_equal(
+    result_no_batch$importance,
+    result_batch$importance,
+    tolerance = 1e-10,
+    info = "ConditionalSAGE with custom sampler should produce identical results with batching"
+  )
 })
 
 test_that("ConditionalSAGE SE tracking in convergence_history", {
