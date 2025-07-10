@@ -18,6 +18,7 @@
   - `$convergence_history` tracks convergence history and can be analyzed to see per-feature values after each checkpoint
   -  `$plot_convergence_history()` plots convergence history per feature
   -  Convergence is tracked only for first resampling iteration
+  -  Also add standard error tracking as part of the convergence history ([#33](https://github.com/jemus42/xplainfi/pull/33))
 
 # xplainfi 0.1.0
 

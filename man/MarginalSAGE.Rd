@@ -4,7 +4,7 @@
 \alias{MarginalSAGE}
 \title{Marginal SAGE}
 \description{
-SAGE with marginal sampling (features are marginalized independently).
+\link{SAGE} with marginal sampling (features are marginalized independently).
 This is the standard SAGE implementation.
 }
 \examples{
@@ -22,6 +22,9 @@ sage$compute()
 # Use batching for memory efficiency with large datasets
 sage$compute(batch_size = 1000)
 \dontshow{\}) # examplesIf}
+}
+\seealso{
+\link{ConditionalSAGE}
 }
 \section{Super classes}{
 \code{\link[xplainfi:FeatureImportanceMethod]{xplainfi::FeatureImportanceMethod}} -> \code{\link[xplainfi:SAGE]{xplainfi::SAGE}} -> \code{MarginalSAGE}
@@ -59,22 +62,19 @@ Creates a new instance of the MarginalSAGE class.
   n_permutations = 10L,
   reference_data = NULL,
   batch_size = 5000L,
-  max_reference_size = 100L
+  max_reference_size = 100L,
+  early_stopping = FALSE,
+  convergence_threshold = 0.01,
+  se_threshold = Inf,
+  min_permutations = 10L,
+  check_interval = 2L
 )}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task, learner, measure, resampling, features}}{Passed to \link{SAGE}.}
-
-\item{\code{n_permutations}}{(integer(1)) Number of permutations to sample.}
-
-\item{\code{reference_data}}{(data.table) Optional reference dataset.}
-
-\item{\code{batch_size}}{(\code{integer(1): 5000L}) Maximum number of observations to process in a single prediction call.}
-
-\item{\code{max_reference_size}}{(integer(1)) Maximum size of reference dataset.}
+\item{\code{task, learner, measure, resampling, features, n_permutations, reference_data, batch_size, max_reference_size, early_stopping, convergence_threshold, se_threshold, min_permutations, check_interval}}{Passed to \link{SAGE}.}
 }
 \if{html}{\out{</div>}}
 }
