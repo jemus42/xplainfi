@@ -518,7 +518,184 @@ In the confounding scenario, we observed:
 
 4. **CFI partially accounts for confounding**: Through its conditional sampling, CFI captures some of the confounding structure but cannot target specific confounders like RFI can.
 
-## Scenario 3: Independent Features (Baseline)
+## Scenario 3: Correlated Features
+
+This scenario demonstrates the fundamental difference between marginal and conditional methods when features are highly correlated:
+
+```{r setup-correlated}
+# Generate correlated features scenario
+task_cor <- sim_dgp_correlated(n = 1000)
+data_cor <- task_cor$data()
+```
+
+**Causal Structure:**
+
+```{r dag-correlated, fig.width=6, fig.height=4, echo=FALSE}
+grViz("
+digraph correlated_dag {
+  rankdir=TB;
+  node [shape=circle, style=filled, fontname='Arial', fontsize=12];
+  
+  # Feature nodes
+  x1 [fillcolor='lightblue', label='x1'];
+  x2 [fillcolor='lightblue', label='x2'];
+  x3 [fillcolor='lightblue', label='x3'];
+  x4 [fillcolor='lightgray', label='x4'];
+  
+  # Outcome
+  y [fillcolor='greenyellow', label='y'];
+  
+  # Direct effects
+  x1 -> y [label='2.0', color='blue'];
+  x3 -> y [label='1.0', color='blue'];
+  # x2 has NO direct effect on y despite high correlation with x1
+  
+  # Correlation between x1 and x2 (bidirectional dashed line)
+  x1 -> x2 [dir=both, style=dashed, color='purple', label='r≈0.999'];
+  
+  # Layout
+  {rank=same; x1, x2, x3, x4}
+}
+")
+```
+
+**Key feature**: x1 and x2 are nearly identical (correlation ≈ 0.999) but only x1 has a causal effect on y. x2 is a spurious predictor - highly correlated with the causal feature but not causal itself.
+
+### Analysis
+
+Let's analyze how different methods handle highly correlated features:
+
+#### PFI on Correlated Features
+
+```{r pfi-correlated}
+#| cache: true
+pfi_cor <- PFI$new(
+  task = task_cor,
+  learner = learner,
+  measure = measure,
+  resampling = resampling,
+  iters_perm = 5
+)
+
+pfi_cor_results <- pfi_cor$compute(relation = "difference")
+pfi_cor_results
+```
+
+Expected: PFI will show high importance for BOTH x1 and x2, even though only x1 has a true causal effect. This happens because x2 is highly correlated with x1, so permuting x2 destroys predictive information about x1.
+
+#### CFI on Correlated Features
+
+```{r cfi-correlated}
+#| cache: true
+# Create ARF sampler for correlated task
+sampler_cor = ARFSampler$new(task = task_cor, finite_bounds = "local")
+
+cfi_cor <- CFI$new(
+  task = task_cor,
+  learner = learner,
+  measure = measure,
+  resampling = resampling,
+  iters_perm = 5,
+  sampler = sampler_cor
+)
+
+cfi_cor_results <- cfi_cor$compute(relation = "difference")
+cfi_cor_results
+```
+
+Expected: CFI should show high importance for x1 (the true causal feature) but near-zero importance for x2 (the spurious correlated feature) because conditional sampling preserves the correlation structure and can distinguish between causal and spurious predictors.
+
+#### RFI to Answer Conditional Questions
+
+```{r rfi-correlated}
+#| cache: true
+# RFI conditioning on x1: "How important is x2 given we know x1?"
+rfi_cor_x1 <- RFI$new(
+  task = task_cor,
+  learner = learner,
+  measure = measure,
+  resampling = resampling,
+  conditioning_set = "x1",
+  iters_perm = 5,
+  sampler = sampler_cor
+)
+rfi_cor_x1_results <- rfi_cor_x1$compute(relation = "difference")
+
+# RFI conditioning on x2: "How important is x1 given we know x2?"
+rfi_cor_x2 <- RFI$new(
+  task = task_cor,
+  learner = learner,
+  measure = measure,
+  resampling = resampling,
+  conditioning_set = "x2",
+  iters_perm = 5,
+  sampler = sampler_cor
+)
+rfi_cor_x2_results <- rfi_cor_x2$compute(relation = "difference")
+```
+
+**RFI Results:**
+- **x2 given x1**: `r sprintf("%.3f", rfi_cor_x1_results[feature == "x2", importance])` (How much does x2 add when we already know x1?)
+- **x1 given x2**: `r sprintf("%.3f", rfi_cor_x2_results[feature == "x1", importance])` (How much does x1 add when we already know x2?)
+
+Expected: When conditioning on x1, the importance of x2 should be near zero (and vice versa) because they're almost identical - knowing one tells you almost everything about the other.
+
+#### Comparing Methods on Correlated Features
+
+```{r compare-correlated}
+#| echo: false
+# Combine results
+comp_cor_long <- rbindlist(list(
+  pfi_cor_results[, .(feature, importance, method = "PFI")],
+  cfi_cor_results[, .(feature, importance, method = "CFI")]
+))
+
+# Add selected RFI results
+comp_cor_rfi <- rbindlist(list(
+  rfi_cor_x1_results[feature == "x2", .(feature = "x2|x1", importance, method = "RFI")],
+  rfi_cor_x2_results[feature == "x1", .(feature = "x1|x2", importance, method = "RFI")]
+))
+
+ggplot(comp_cor_long, aes(x = feature, y = importance, fill = method)) +
+  geom_col(position = "dodge", alpha = 0.8) +
+  scale_fill_manual(values = c("PFI" = "steelblue", "CFI" = "darkgreen")) +
+  labs(
+    title = "PFI vs CFI on Highly Correlated Features",
+    subtitle = "x1 and x2 have correlation ≈ 0.999 but both have true causal effects",
+    y = "Importance Score",
+    x = "Feature",
+    fill = "Method"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+# Calculate the ratio of CFI to PFI for correlated features
+cor_ratio <- dcast(comp_cor_long[feature %in% c("x1", "x2")], 
+                   feature ~ method, value.var = "importance")
+cor_ratio[, cfi_pfi_ratio := CFI / PFI]
+```
+
+### Key Insights: Correlated Features
+
+```{r summary-correlated}
+cor_ratio |> 
+  knitr::kable(
+    digits = 3,
+    caption = "CFI vs PFI for Highly Correlated Features"
+  )
+```
+
+In the correlated features scenario:
+
+1. **PFI overestimates importance of spurious features**: PFI assigns high importance to BOTH x1 (causal) and x2 (spurious) because they're highly correlated. Permuting x2 destroys information about x1, making x2 appear important even though it has no causal effect.
+
+2. **CFI correctly identifies causal features**: By preserving the correlation structure during conditional sampling, CFI can distinguish between x1 (truly causal) and x2 (merely correlated), assigning high importance only to x1.
+
+3. **RFI reveals redundancy**: When conditioning on x1, the additional importance of x2 is near zero (and vice versa), correctly identifying their redundancy for prediction.
+
+4. **Practical implication**: PFI would mislead you to think both features are important. CFI correctly shows that only x1 is truly important, while x2 is just along for the ride due to correlation.
+
+## Scenario 4: Independent Features (Baseline)
 
 To provide a baseline comparison, let's examine a scenario where all feature importance methods should produce similar results:
 
@@ -672,17 +849,17 @@ In the baseline scenario with independent features:
 
 ## Key Takeaways
 
-Through these three scenarios, we've demonstrated:
+Through these four scenarios, we've demonstrated:
 
 1. **Method choice matters**: 
-   - **PFI** is simple and fast but can miss interaction effects and be affected by confounding
-   - **CFI** captures feature dependencies and interactions through conditional sampling
-   - **RFI** allows targeted conditioning to isolate specific relationships
+   - **PFI** is simple and fast but can miss interaction effects, underestimate importance of correlated features, and be affected by confounding
+   - **CFI** captures feature dependencies and interactions through conditional sampling, correctly handling correlated features
+   - **RFI** allows targeted conditioning to isolate specific relationships and reveal redundancy
 
 2. **When to use each method**:
-   - Use **PFI** when features are believed to be independent (as in Scenario 3) and you want a quick baseline importance ranking
-   - Use **CFI** when you suspect feature interactions or dependencies (as in Scenario 1) and want a sophisticated analysis that respects feature relationships
-   - Use **RFI** when you have specific conditional questions: "How important is feature X given I already know feature Y?" (as in Scenarios 1 & 2). Essential for feature selection and understanding incremental value.
+   - Use **PFI** when features are believed to be independent (as in Scenario 4) and you want a quick baseline importance ranking
+   - Use **CFI** when you suspect feature interactions, correlations, or dependencies (as in Scenarios 1 & 3) and want a sophisticated analysis that respects feature relationships
+   - Use **RFI** when you have specific conditional questions: "How important is feature X given I already know feature Y?" (as in Scenarios 1, 2 & 3). Essential for feature selection and understanding incremental value.
 
 3. **Practical considerations**:
    - All methods benefit from cross-validation and multiple permutation iterations for stability
