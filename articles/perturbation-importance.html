@@ -574,24 +574,195 @@ but cannot target specific confounders like RFI can.</p></li>
 </div>
 </div>
 <div class="section level2">
-<h2 id="scenario-3-independent-features-baseline">Scenario 3: Independent Features (Baseline)<a class="anchor" aria-label="anchor" href="#scenario-3-independent-features-baseline"></a>
+<h2 id="scenario-3-correlated-features">Scenario 3: Correlated Features<a class="anchor" aria-label="anchor" href="#scenario-3-correlated-features"></a>
+</h2>
+<p>This scenario demonstrates the fundamental difference between
+marginal and conditional methods when features are highly
+correlated:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Generate correlated features scenario</span></span>
+<span><span class="va">task_cor</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_correlated</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
+<span><span class="va">data_cor</span> <span class="op">&lt;-</span> <span class="va">task_cor</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><strong>Causal Structure:</strong></p>
+<div class="grViz html-widget html-fill-item" id="htmlwidget-36aa3d2a04d42bbc2145" style="width:576px;height:384px;"></div>
+<script type="application/json" data-for="htmlwidget-36aa3d2a04d42bbc2145">{"x":{"diagram":"\ndigraph correlated_dag {\n  rankdir=TB;\n  node [shape=circle, style=filled, fontname=\"Arial\", fontsize=12];\n  \n  # Feature nodes\n  x1 [fillcolor=\"lightblue\", label=\"x1\"];\n  x2 [fillcolor=\"lightblue\", label=\"x2\"];\n  x3 [fillcolor=\"lightblue\", label=\"x3\"];\n  x4 [fillcolor=\"lightgray\", label=\"x4\"];\n  \n  # Outcome\n  y [fillcolor=\"greenyellow\", label=\"y\"];\n  \n  # Direct effects\n  x1 -> y [label=\"2.0\", color=\"blue\"];\n  x3 -> y [label=\"1.0\", color=\"blue\"];\n  # x2 has NO direct effect on y despite high correlation with x1\n  \n  # Correlation between x1 and x2 (bidirectional dashed line)\n  x1 -> x2 [dir=both, style=dashed, color=\"purple\", label=\"r≈0.999\"];\n  \n  # Layout\n  {rank=same; x1, x2, x3, x4}\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p><strong>Key feature</strong>: x1 and x2 are nearly identical
+(correlation ≈ 0.999) but only x1 has a causal effect on y. x2 is a
+spurious predictor - highly correlated with the causal feature but not
+causal itself.</p>
+<div class="section level3">
+<h3 id="analysis-2">Analysis<a class="anchor" aria-label="anchor" href="#analysis-2"></a>
+</h3>
+<p>Let’s analyze how different methods handle highly correlated
+features:</p>
+<div class="section level4">
+<h4 id="pfi-on-correlated-features">PFI on Correlated Features<a class="anchor" aria-label="anchor" href="#pfi-on-correlated-features"></a>
+</h4>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pfi_cor</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_cor</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  iters_perm <span class="op">=</span> <span class="fl">5</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">pfi_cor_results</span> <span class="op">&lt;-</span> <span class="va">pfi_cor</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span><span class="va">pfi_cor_results</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;    feature    importance          sd</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;         &lt;num&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      x1  2.6153147412 0.314095423</span></span>
+<span><span class="co">#&gt; 2:      x2  1.7406419236 0.186699236</span></span>
+<span><span class="co">#&gt; 3:      x3  1.6022695961 0.148962767</span></span>
+<span><span class="co">#&gt; 4:      x4 -0.0002146506 0.001726942</span></span></code></pre></div>
+<p>Expected: PFI will show high importance for BOTH x1 and x2, even
+though only x1 has a true causal effect. This happens because x2 is
+highly correlated with x1, so permuting x2 destroys predictive
+information about x1.</p>
+</div>
+<div class="section level4">
+<h4 id="cfi-on-correlated-features">CFI on Correlated Features<a class="anchor" aria-label="anchor" href="#cfi-on-correlated-features"></a>
+</h4>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Create ARF sampler for correlated task</span></span>
+<span><span class="va">sampler_cor</span> <span class="op">=</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>task <span class="op">=</span> <span class="va">task_cor</span>, finite_bounds <span class="op">=</span> <span class="st">"local"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">cfi_cor</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/CFI.html">CFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_cor</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  sampler <span class="op">=</span> <span class="va">sampler_cor</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">cfi_cor_results</span> <span class="op">&lt;-</span> <span class="va">cfi_cor</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span><span class="va">cfi_cor_results</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;    feature   importance          sd</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;        &lt;num&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      x1  0.138252296 0.039126754</span></span>
+<span><span class="co">#&gt; 2:      x2  0.100258615 0.022697687</span></span>
+<span><span class="co">#&gt; 3:      x3  1.138774915 0.105238356</span></span>
+<span><span class="co">#&gt; 4:      x4 -0.001959176 0.001837566</span></span></code></pre></div>
+<p>Expected: CFI should show high importance for x1 (the true causal
+feature) but near-zero importance for x2 (the spurious correlated
+feature) because conditional sampling preserves the correlation
+structure and can distinguish between causal and spurious
+predictors.</p>
+</div>
+<div class="section level4">
+<h4 id="rfi-to-answer-conditional-questions">RFI to Answer Conditional Questions<a class="anchor" aria-label="anchor" href="#rfi-to-answer-conditional-questions"></a>
+</h4>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># RFI conditioning on x1: "How important is x2 given we know x1?"</span></span>
+<span><span class="va">rfi_cor_x1</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/RFI.html">RFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_cor</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  conditioning_set <span class="op">=</span> <span class="st">"x1"</span>,</span>
+<span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  sampler <span class="op">=</span> <span class="va">sampler_cor</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">rfi_cor_x1_results</span> <span class="op">&lt;-</span> <span class="va">rfi_cor_x1</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># RFI conditioning on x2: "How important is x1 given we know x2?"</span></span>
+<span><span class="va">rfi_cor_x2</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/RFI.html">RFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_cor</span>,</span>
+<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>  conditioning_set <span class="op">=</span> <span class="st">"x2"</span>,</span>
+<span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  sampler <span class="op">=</span> <span class="va">sampler_cor</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">rfi_cor_x2_results</span> <span class="op">&lt;-</span> <span class="va">rfi_cor_x2</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
+<p><strong>RFI Results:</strong> - <strong>x2 given x1</strong>: 0.078
+(How much does x2 add when we already know x1?) - <strong>x1 given
+x2</strong>: 0.134 (How much does x1 add when we already know x2?)</p>
+<p>Expected: When conditioning on x1, the importance of x2 should be
+near zero (and vice versa) because they’re almost identical - knowing
+one tells you almost everything about the other.</p>
+</div>
+<div class="section level4">
+<h4 id="comparing-methods-on-correlated-features">Comparing Methods on Correlated Features<a class="anchor" aria-label="anchor" href="#comparing-methods-on-correlated-features"></a>
+</h4>
+<p><img src="perturbation-importance_files/figure-html/compare-correlated-1.png" width="768"></p>
+</div>
+</div>
+<div class="section level3">
+<h3 id="key-insights-correlated-features">Key Insights: Correlated Features<a class="anchor" aria-label="anchor" href="#key-insights-correlated-features"></a>
+</h3>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cor_ratio</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
+<span>    digits <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>    caption <span class="op">=</span> <span class="st">"CFI vs PFI for Highly Correlated Features"</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>CFI vs PFI for Highly Correlated Features</caption>
+<thead><tr class="header">
+<th align="left">feature</th>
+<th align="right">CFI</th>
+<th align="right">PFI</th>
+<th align="right">cfi_pfi_ratio</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">x1</td>
+<td align="right">0.138</td>
+<td align="right">2.615</td>
+<td align="right">0.053</td>
+</tr>
+<tr class="even">
+<td align="left">x2</td>
+<td align="right">0.100</td>
+<td align="right">1.741</td>
+<td align="right">0.058</td>
+</tr>
+</tbody>
+</table>
+<p>In the correlated features scenario:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>PFI overestimates importance of spurious
+features</strong>: PFI assigns high importance to BOTH x1 (causal) and
+x2 (spurious) because they’re highly correlated. Permuting x2 destroys
+information about x1, making x2 appear important even though it has no
+causal effect.</p></li>
+<li><p><strong>CFI correctly identifies causal features</strong>: By
+preserving the correlation structure during conditional sampling, CFI
+can distinguish between x1 (truly causal) and x2 (merely correlated),
+assigning high importance only to x1.</p></li>
+<li><p><strong>RFI reveals redundancy</strong>: When conditioning on x1,
+the additional importance of x2 is near zero (and vice versa), correctly
+identifying their redundancy for prediction.</p></li>
+<li><p><strong>Practical implication</strong>: PFI would mislead you to
+think both features are important. CFI correctly shows that only x1 is
+truly important, while x2 is just along for the ride due to
+correlation.</p></li>
+</ol>
+</div>
+</div>
+<div class="section level2">
+<h2 id="scenario-4-independent-features-baseline">Scenario 4: Independent Features (Baseline)<a class="anchor" aria-label="anchor" href="#scenario-4-independent-features-baseline"></a>
 </h2>
 <p>To provide a baseline comparison, let’s examine a scenario where all
 feature importance methods should produce similar results:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Generate independent features scenario</span></span>
 <span><span class="va">task_ind</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_independent</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
 <span><span class="va">data_ind</span> <span class="op">&lt;-</span> <span class="va">task_ind</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Causal Structure:</strong></p>
-<div class="grViz html-widget html-fill-item" id="htmlwidget-36aa3d2a04d42bbc2145" style="width:576px;height:384px;"></div>
-<script type="application/json" data-for="htmlwidget-36aa3d2a04d42bbc2145">{"x":{"diagram":"\ndigraph independent_dag {\n  rankdir=TB;\n  node [shape=circle, style=filled, fontname=\"Arial\", fontsize=12];\n  \n  # Feature nodes\n  important1 [fillcolor=\"lightblue\", label=\"important1\"];\n  important2 [fillcolor=\"lightblue\", label=\"important2\"];\n  important3 [fillcolor=\"lightblue\", label=\"important3\"];\n  unimportant1 [fillcolor=\"lightgray\", label=\"unimportant1\"];\n  unimportant2 [fillcolor=\"lightgray\", label=\"unimportant2\"];\n  \n  # Outcome\n  y [fillcolor=\"greenyellow\", label=\"y\"];\n  \n  # Direct effects only - no interactions or confounding\n  important1 -> y [label=\"2.0\", color=\"blue\"];\n  important2 -> y [label=\"1.0\", color=\"blue\"];\n  important3 -> y [label=\"0.5\", color=\"blue\"];\n  \n  # No edge from unimportant features to y\n  \n  # Layout\n  {rank=same; important1, important2, important3, unimportant1, unimportant2}\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>This is the <strong>simplest scenario</strong>: all features are
+<div class="grViz html-widget html-fill-item" id="htmlwidget-febe03efa1a2d8d52a86" style="width:576px;height:384px;"></div>
+<script type="application/json" data-for="htmlwidget-febe03efa1a2d8d52a86">{"x":{"diagram":"\ndigraph independent_dag {\n  rankdir=TB;\n  node [shape=circle, style=filled, fontname=\"Arial\", fontsize=12];\n  \n  # Feature nodes\n  important1 [fillcolor=\"lightblue\", label=\"important1\"];\n  important2 [fillcolor=\"lightblue\", label=\"important2\"];\n  important3 [fillcolor=\"lightblue\", label=\"important3\"];\n  unimportant1 [fillcolor=\"lightgray\", label=\"unimportant1\"];\n  unimportant2 [fillcolor=\"lightgray\", label=\"unimportant2\"];\n  \n  # Outcome\n  y [fillcolor=\"greenyellow\", label=\"y\"];\n  \n  # Direct effects only - no interactions or confounding\n  important1 -> y [label=\"2.0\", color=\"blue\"];\n  important2 -> y [label=\"1.0\", color=\"blue\"];\n  important3 -> y [label=\"0.5\", color=\"blue\"];\n  \n  # No edge from unimportant features to y\n  \n  # Layout\n  {rank=same; important1, important2, important3, unimportant1, unimportant2}\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p>This is the <strong>simplest scenario</strong>: all features are
 independent, there are no interactions, and no confounding. Each feature
 has only a direct effect on y (or no effect in the case of noise).</p>
 <div class="section level3">
 <h3 id="running-all-methods-on-independent-features">Running All Methods on Independent Features<a class="anchor" aria-label="anchor" href="#running-all-methods-on-independent-features"></a>
 </h3>
 <p>First PFI:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># PFI</span></span>
 <span><span class="va">pfi_ind</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task_ind</span>,</span>
@@ -602,7 +773,7 @@ has only a direct effect on y (or no effect in the case of noise).</p>
 <span><span class="op">)</span></span>
 <span><span class="va">pfi_ind_results</span> <span class="op">&lt;-</span> <span class="va">pfi_ind</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
 <p>Now CFI with the ARF sampler:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sampler_ind</span> <span class="op">=</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>task <span class="op">=</span> <span class="va">task_ind</span>, finite_bounds <span class="op">=</span> <span class="st">"local"</span><span class="op">)</span></span>
 <span><span class="va">cfi_ind</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/CFI.html">CFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task_ind</span>,</span>
@@ -615,7 +786,7 @@ has only a direct effect on y (or no effect in the case of noise).</p>
 <span><span class="va">cfi_ind_results</span> <span class="op">&lt;-</span> <span class="va">cfi_ind</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
 <p>RFI with empty conditioning set, basically equivalent to PFI with a
 different sampler:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rfi_ind</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/RFI.html">RFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task_ind</span>,</span>
 <span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
@@ -632,7 +803,7 @@ different sampler:</p>
 <div class="section level3">
 <h3 id="agreement-between-methods">Agreement Between Methods<a class="anchor" aria-label="anchor" href="#agreement-between-methods"></a>
 </h3>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Calculate coefficient of variation for each feature across methods</span></span>
 <span><span class="va">comp_ind_wide</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/dcast.data.table.html" class="external-link">dcast</a></span><span class="op">(</span><span class="va">comp_ind_long</span>, <span class="va">feature</span> <span class="op">~</span> <span class="va">method</span>, value.var <span class="op">=</span> <span class="st">"importance"</span><span class="op">)</span></span>
 <span><span class="va">comp_ind_wide</span><span class="op">[</span>, <span class="fu">`:=`</span><span class="op">(</span></span>
@@ -662,32 +833,32 @@ different sampler:</p>
 <tbody>
 <tr class="odd">
 <td align="left">important1</td>
-<td align="right">5.669</td>
-<td align="right">0.324</td>
+<td align="right">6.080</td>
+<td align="right">0.357</td>
 <td align="left">Low</td>
 </tr>
 <tr class="even">
 <td align="left">important2</td>
-<td align="right">1.212</td>
-<td align="right">0.345</td>
+<td align="right">1.312</td>
+<td align="right">0.341</td>
 <td align="left">Low</td>
 </tr>
 <tr class="odd">
 <td align="left">important3</td>
-<td align="right">0.279</td>
-<td align="right">0.299</td>
+<td align="right">0.252</td>
+<td align="right">0.334</td>
 <td align="left">Low</td>
 </tr>
 <tr class="even">
 <td align="left">unimportant1</td>
 <td align="right">0.003</td>
-<td align="right">3.755</td>
+<td align="right">2.161</td>
 <td align="left">Low</td>
 </tr>
 <tr class="odd">
 <td align="left">unimportant2</td>
-<td align="right">-0.003</td>
-<td align="right">-1.439</td>
+<td align="right">-0.001</td>
+<td align="right">-1.763</td>
 <td align="left">High</td>
 </tr>
 </tbody>
@@ -717,34 +888,36 @@ correctly assign near-zero importance to the noise features.</p></li>
 <div class="section level2">
 <h2 id="key-takeaways">Key Takeaways<a class="anchor" aria-label="anchor" href="#key-takeaways"></a>
 </h2>
-<p>Through these three scenarios, we’ve demonstrated:</p>
+<p>Through these four scenarios, we’ve demonstrated:</p>
 <ol style="list-style-type: decimal">
 <li>
 <strong>Method choice matters</strong>:
 <ul>
 <li>
 <strong>PFI</strong> is simple and fast but can miss interaction
-effects and be affected by confounding</li>
+effects, underestimate importance of correlated features, and be
+affected by confounding</li>
 <li>
 <strong>CFI</strong> captures feature dependencies and interactions
-through conditional sampling</li>
+through conditional sampling, correctly handling correlated
+features</li>
 <li>
 <strong>RFI</strong> allows targeted conditioning to isolate
-specific relationships</li>
+specific relationships and reveal redundancy</li>
 </ul>
 </li>
 <li>
 <strong>When to use each method</strong>:
 <ul>
 <li>Use <strong>PFI</strong> when features are believed to be
-independent (as in Scenario 3) and you want a quick baseline importance
+independent (as in Scenario 4) and you want a quick baseline importance
 ranking</li>
-<li>Use <strong>CFI</strong> when you suspect feature interactions or
-dependencies (as in Scenario 1) and want a sophisticated analysis that
-respects feature relationships</li>
+<li>Use <strong>CFI</strong> when you suspect feature interactions,
+correlations, or dependencies (as in Scenarios 1 &amp; 3) and want a
+sophisticated analysis that respects feature relationships</li>
 <li>Use <strong>RFI</strong> when you have specific conditional
 questions: “How important is feature X given I already know feature Y?”
-(as in Scenarios 1 &amp; 2). Essential for feature selection and
+(as in Scenarios 1, 2 &amp; 3). Essential for feature selection and
 understanding incremental value.</li>
 </ul>
 </li>
