@@ -9,6 +9,14 @@
 #' performance among all features. Unlike perturbation-based methods,
 #' SAGE marginalizes features by integrating over their distribution.
 #' This is approximated by averaging predictions over a reference dataset.
+#' 
+#' **Standard Error Calculation**: The standard errors (SE) reported in 
+#' `$convergence_history` reflect the uncertainty in Shapley value estimation
+#' across different random permutations within a single resampling iteration.
+#' These SEs quantify the Monte Carlo sampling error for a fixed trained model
+#' and are only valid for inference about the importance of features for that
+#' specific model. They do not capture broader uncertainty from model variability
+#' across different train/test splits or resampling iterations.
 #'
 #' @references
 #' `r print_bib("lundberg_2020")`
