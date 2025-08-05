@@ -5,9 +5,9 @@
       fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
     }
   };
-</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet"><link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet"><link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Conditional SAGE — ConditionalSAGE"><meta name="description" content="SAGE with conditional sampling (features are marginalized conditionally).
-Uses ARF by default for conditional marginalization."><meta property="og:description" content="SAGE with conditional sampling (features are marginalized conditionally).
-Uses ARF by default for conditional marginalization."><script defer src="https://umami.jemu.name/script.js" data-website-id="248c8668-4908-4c63-86f7-db0a1b19758a"></script></head><body>
+</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.10/font.css" rel="stylesheet"><link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet"><link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Conditional SAGE — ConditionalSAGE"><meta name="description" content='SAGE with conditional sampling (features are "marginalized" conditionally).
+Uses ARFSampler as default ConditionalSampler.'><meta property="og:description" content='SAGE with conditional sampling (features are "marginalized" conditionally).
+Uses ARFSampler as default ConditionalSampler.'><script defer src="https://umami.jemu.name/script.js" data-website-id="248c8668-4908-4c63-86f7-db0a1b19758a"></script></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -60,11 +60,15 @@ Uses ARF by default for conditional marginalization."><script defer src="https:/
     </div>
 
     <div class="ref-description section level2">
-    <p>SAGE with conditional sampling (features are marginalized conditionally).
-Uses ARF by default for conditional marginalization.</p>
+    <p><a href="SAGE.html">SAGE</a> with conditional sampling (features are "marginalized" conditionally).
+Uses <a href="ARFSampler.html">ARFSampler</a> as default <a href="ConditionalSampler.html">ConditionalSampler</a>.</p>
     </div>
 
 
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><a href="MarginalSAGE.html">MarginalSAGE</a></p></div>
+    </div>
     <div class="section level2">
     <h2 id="super-classes">Super classes<a class="anchor" aria-label="anchor" href="#super-classes"></a></h2>
     <p><code><a href="FeatureImportanceMethod.html">xplainfi::FeatureImportanceMethod</a></code> -&gt; <code><a href="SAGE.html">xplainfi::SAGE</a></code> -&gt; <code>ConditionalSAGE</code></p>
@@ -96,34 +100,23 @@ Uses ARF by default for conditional marginalization.</p>
 <span>  reference_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sampler <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  batch_size <span class="op">=</span> <span class="fl">5000L</span>,</span>
-<span>  max_reference_size <span class="op">=</span> <span class="fl">100L</span></span>
+<span>  max_reference_size <span class="op">=</span> <span class="fl">100L</span>,</span>
+<span>  early_stopping <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  convergence_threshold <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  se_threshold <span class="op">=</span> <span class="cn">Inf</span>,</span>
+<span>  min_permutations <span class="op">=</span> <span class="fl">10L</span>,</span>
+<span>  check_interval <span class="op">=</span> <span class="fl">2L</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>task, learner, measure, resampling, features</code></dt>
+<p></p><div class="arguments"><dl><dt><code>task, learner, measure, resampling, features, n_permutations, reference_data, batch_size, max_reference_size, early_stopping, convergence_threshold, se_threshold, min_permutations, check_interval</code></dt>
 <dd><p>Passed to <a href="SAGE.html">SAGE</a>.</p></dd>
 
 
-<dt><code>n_permutations</code></dt>
-<dd><p>(integer(1)) Number of permutations to sample.</p></dd>
-
-
-<dt><code>reference_data</code></dt>
-<dd><p>(data.table) Optional reference dataset.</p></dd>
-
-
 <dt><code>sampler</code></dt>
-<dd><p>(<a href="ConditionalSampler.html">ConditionalSampler</a>) Optional custom sampler. Defaults to ARFSampler.</p></dd>
-
-
-<dt><code>batch_size</code></dt>
-<dd><p>(<code>integer(1): 5000L</code>) Maximum number of observations to process in a single prediction call.</p></dd>
-
-
-<dt><code>max_reference_size</code></dt>
-<dd><p>(integer(1)) Maximum size of reference dataset.</p></dd>
+<dd><p>(<a href="ConditionalSampler.html">ConditionalSampler</a>) Optional custom sampler. Defaults to <a href="ARFSampler.html">ARFSampler</a>.</p></dd>
 
 
 </dl><p></p></div>
@@ -166,32 +159,32 @@ Uses ARF by default for conditional marginalization.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  4.58861248</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2 -0.10848016</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.08622897</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  4.78590789</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  2.26613012</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.51814805</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  0.28900725</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.69336275</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.05010833</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.14724626</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  4.73909636</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  1.21650574</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3 -1.48288546</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  3.60014787</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  2.06748164</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1  0.99989360</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  0.45812331</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.92339654</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.09594606</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.08047931</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Use batching for memory efficiency with large datasets</span></span></span>
 <span class="r-in"><span><span class="va">sage</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>batch_size <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  4.58861248</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2 -0.10848016</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.08622897</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  4.78590789</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  2.26613012</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.51814805</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  0.28900725</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.69336275</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.05010833</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.14724626</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  4.73909636</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  1.21650574</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3 -1.48288546</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  3.60014787</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  2.06748164</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1  0.99989360</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  0.45812331</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.92339654</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 -0.09594606</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 -0.08047931</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

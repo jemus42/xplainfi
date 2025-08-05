@@ -60,11 +60,15 @@ This is the standard SAGE implementation."><script defer src="https://umami.jemu
     </div>
 
     <div class="ref-description section level2">
-    <p>SAGE with marginal sampling (features are marginalized independently).
+    <p><a href="SAGE.html">SAGE</a> with marginal sampling (features are marginalized independently).
 This is the standard SAGE implementation.</p>
     </div>
 
 
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><a href="ConditionalSAGE.html">ConditionalSAGE</a></p></div>
+    </div>
     <div class="section level2">
     <h2 id="super-classes">Super classes<a class="anchor" aria-label="anchor" href="#super-classes"></a></h2>
     <p><code><a href="FeatureImportanceMethod.html">xplainfi::FeatureImportanceMethod</a></code> -&gt; <code><a href="SAGE.html">xplainfi::SAGE</a></code> -&gt; <code>MarginalSAGE</code></p>
@@ -95,30 +99,19 @@ This is the standard SAGE implementation.</p>
 <span>  n_permutations <span class="op">=</span> <span class="fl">10L</span>,</span>
 <span>  reference_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  batch_size <span class="op">=</span> <span class="fl">5000L</span>,</span>
-<span>  max_reference_size <span class="op">=</span> <span class="fl">100L</span></span>
+<span>  max_reference_size <span class="op">=</span> <span class="fl">100L</span>,</span>
+<span>  early_stopping <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  convergence_threshold <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  se_threshold <span class="op">=</span> <span class="cn">Inf</span>,</span>
+<span>  min_permutations <span class="op">=</span> <span class="fl">10L</span>,</span>
+<span>  check_interval <span class="op">=</span> <span class="fl">2L</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>task, learner, measure, resampling, features</code></dt>
+<p></p><div class="arguments"><dl><dt><code>task, learner, measure, resampling, features, n_permutations, reference_data, batch_size, max_reference_size, early_stopping, convergence_threshold, se_threshold, min_permutations, check_interval</code></dt>
 <dd><p>Passed to <a href="SAGE.html">SAGE</a>.</p></dd>
-
-
-<dt><code>n_permutations</code></dt>
-<dd><p>(integer(1)) Number of permutations to sample.</p></dd>
-
-
-<dt><code>reference_data</code></dt>
-<dd><p>(data.table) Optional reference dataset.</p></dd>
-
-
-<dt><code>batch_size</code></dt>
-<dd><p>(<code>integer(1): 5000L</code>) Maximum number of observations to process in a single prediction call.</p></dd>
-
-
-<dt><code>max_reference_size</code></dt>
-<dd><p>(integer(1)) Maximum size of reference dataset.</p></dd>
 
 
 </dl><p></p></div>

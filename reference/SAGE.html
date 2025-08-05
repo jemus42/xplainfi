@@ -64,7 +64,7 @@ This is an abstract class - use MarginalSAGE or ConditionalSAGE."><script defer 
     <div class="ref-description section level2">
     <p>Base class for SAGE (Shapley Additive Global Importance)
 feature importance based on Shapley values with marginalization.
-This is an abstract class - use MarginalSAGE or ConditionalSAGE.</p>
+This is an abstract class - use <a href="MarginalSAGE.html">MarginalSAGE</a> or <a href="ConditionalSAGE.html">ConditionalSAGE</a>.</p>
     </div>
 
 
@@ -74,6 +74,13 @@ This is an abstract class - use MarginalSAGE or ConditionalSAGE.</p>
 performance among all features. Unlike perturbation-based methods,
 SAGE marginalizes features by integrating over their distribution.
 This is approximated by averaging predictions over a reference dataset.</p>
+<p><strong>Standard Error Calculation</strong>: The standard errors (SE) reported in
+<code>$convergence_history</code> reflect the uncertainty in Shapley value estimation
+across different random permutations within a single resampling iteration.
+These SEs quantify the Monte Carlo sampling error for a fixed trained model
+and are only valid for inference about the importance of features for that
+specific model. They do not capture broader uncertainty from model variability
+across different train/test splits or resampling iterations.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -83,17 +90,21 @@ In <em>Advances in Neural Information Processing Systems</em>, volume 33, 17212â
 <a href="https://proceedings.neurips.cc/paper/2020/hash/c7bf0b7c1a86d5eb3be2c722cf2cf746-Abstract.html" class="external-link">https://proceedings.neurips.cc/paper/2020/hash/c7bf0b7c1a86d5eb3be2c722cf2cf746-Abstract.html</a>.</p>
     </div>
     <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><a href="MarginalSAGE.html">MarginalSAGE</a> <a href="ConditionalSAGE.html">ConditionalSAGE</a></p></div>
+    </div>
+    <div class="section level2">
     <h2 id="super-class">Super class<a class="anchor" aria-label="anchor" href="#super-class"></a></h2>
     <p><code><a href="FeatureImportanceMethod.html">xplainfi::FeatureImportanceMethod</a></code> -&gt; <code>SAGE</code></p>
     </div>
     <div class="section level2">
     <h2 id="public-fields">Public fields<a class="anchor" aria-label="anchor" href="#public-fields"></a></h2>
     <p></p><div class="r6-fields"><dl><dt><code>n_permutations</code></dt>
-<dd><p>(integer(1)) Number of permutations to sample.</p></dd>
+<dd><p>(<code>integer(1)</code>) Number of permutations to sample.</p></dd>
 
 
 <dt><code>reference_data</code></dt>
-<dd><p>(data.table) Reference dataset for marginalization.</p></dd>
+<dd><p>(<code><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></code>) Reference dataset for marginalization.</p></dd>
 
 
 <dt><code>sampler</code></dt>
@@ -101,7 +112,7 @@ In <em>Advances in Neural Information Processing Systems</em>, volume 33, 17212â
 
 
 <dt><code>convergence_history</code></dt>
-<dd><p>(<a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a>) History of SAGE values during computation.</p></dd>
+<dd><p>(<code><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></code>) History of SAGE values during computation.</p></dd>
 
 
 <dt><code>converged</code></dt>
@@ -141,7 +152,12 @@ In <em>Advances in Neural Information Processing Systems</em>, volume 33, 17212â
 <span>  reference_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  batch_size <span class="op">=</span> <span class="fl">5000L</span>,</span>
 <span>  sampler <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  max_reference_size <span class="op">=</span> <span class="fl">100L</span></span>
+<span>  max_reference_size <span class="op">=</span> <span class="fl">100L</span>,</span>
+<span>  early_stopping <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  convergence_threshold <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  se_threshold <span class="op">=</span> <span class="cn">Inf</span>,</span>
+<span>  min_permutations <span class="op">=</span> <span class="fl">10L</span>,</span>
+<span>  check_interval <span class="op">=</span> <span class="fl">2L</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -157,7 +173,7 @@ The total number of evaluated coalitions is <code>1 (empty) + n_permutations * n
 
 
 <dt><code>reference_data</code></dt>
-<dd><p>(<code>data.table | NULL</code>) Optional reference dataset. If <code>NULL</code>, uses training data.
+<dd><p>(<code><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></code> | <code>NULL</code>) Optional reference dataset. If <code>NULL</code>, uses training data.
 For each coalition to evaluate, an expanded datasets of size <code>n_test * n_reference</code> is created and evaluted in batches of <code>batch_size</code>.</p></dd>
 
 
@@ -173,6 +189,26 @@ For each coalition to evaluate, an expanded datasets of size <code>n_test * n_re
 <dd><p>(<code>integer(1): 100L</code>) Maximum size of reference dataset. If reference is larger, it will be subsampled.</p></dd>
 
 
+<dt><code>early_stopping</code></dt>
+<dd><p>(<code>logical(1): FALSE</code>) Whether to enable early stopping based on convergence detection.</p></dd>
+
+
+<dt><code>convergence_threshold</code></dt>
+<dd><p>(<code>numeric(1): 0.01</code>) Relative change threshold for convergence detection.</p></dd>
+
+
+<dt><code>se_threshold</code></dt>
+<dd><p>(<code>numeric(1): Inf</code>) Standard error threshold for convergence detection.</p></dd>
+
+
+<dt><code>min_permutations</code></dt>
+<dd><p>(<code>integer(1): 10L</code>) Minimum permutations before checking convergence.</p></dd>
+
+
+<dt><code>check_interval</code></dt>
+<dd><p>(<code>integer(1): 2L</code>) Check convergence every N permutations.</p></dd>
+
+
 </dl><p></p></div>
 </div>
 
@@ -185,6 +221,7 @@ For each coalition to evaluate, an expanded datasets of size <code>n_test * n_re
 <span>  batch_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  early_stopping <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  convergence_threshold <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  se_threshold <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  min_permutations <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  check_interval <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
@@ -193,27 +230,31 @@ For each coalition to evaluate, an expanded datasets of size <code>n_test * n_re
 <div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>store_backends</code></dt>
-<dd><p>(logical(1)) Whether to store backends.</p></dd>
+<dd><p>(<code>logical(1)</code>) Whether to store backends.</p></dd>
 
 
 <dt><code>batch_size</code></dt>
-<dd><p>(integer(1): 5000L) Maximum number of observations to process in a single prediction call.</p></dd>
+<dd><p>(<code>integer(1)</code>: <code>5000L</code>) Maximum number of observations to process in a single prediction call.</p></dd>
 
 
 <dt><code>early_stopping</code></dt>
-<dd><p>(logical(1)) Whether to check for convergence and stop early.</p></dd>
+<dd><p>(<code>logical(1)</code>) Whether to check for convergence and stop early.</p></dd>
 
 
 <dt><code>convergence_threshold</code></dt>
-<dd><p>(numeric(1)) Relative change threshold for convergence detection.</p></dd>
+<dd><p>(<code>numeric(1)</code>) Relative change threshold for convergence detection.</p></dd>
+
+
+<dt><code>se_threshold</code></dt>
+<dd><p>(<code>numeric(1)</code>) Standard error threshold for convergence detection.</p></dd>
 
 
 <dt><code>min_permutations</code></dt>
-<dd><p>(integer(1)) Minimum permutations before checking convergence.</p></dd>
+<dd><p>(<code>integer(1)</code>) Minimum permutations before checking convergence.</p></dd>
 
 
 <dt><code>check_interval</code></dt>
-<dd><p>(integer(1)) Check convergence every N permutations.</p></dd>
+<dd><p>(<code>integer(1)</code>) Check convergence every N permutations.</p></dd>
 
 
 </dl><p></p></div>
@@ -236,7 +277,7 @@ For each coalition to evaluate, an expanded datasets of size <code>n_test * n_re
 </div>
 <div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
-<p>A ggplot2 object</p>
+<p>A <a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot2</a> object</p>
 </div>
 
 </div><p></p><hr><a id="method-SAGE-clone"></a><div class="section">
