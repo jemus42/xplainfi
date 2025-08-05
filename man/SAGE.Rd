@@ -6,13 +6,21 @@
 \description{
 Base class for SAGE (Shapley Additive Global Importance)
 feature importance based on Shapley values with marginalization.
-This is an abstract class - use MarginalSAGE or ConditionalSAGE.
+This is an abstract class - use \link{MarginalSAGE} or \link{ConditionalSAGE}.
 }
 \details{
 SAGE uses Shapley values to fairly distribute the total prediction
 performance among all features. Unlike perturbation-based methods,
 SAGE marginalizes features by integrating over their distribution.
 This is approximated by averaging predictions over a reference dataset.
+
+\strong{Standard Error Calculation}: The standard errors (SE) reported in
+\verb{$convergence_history} reflect the uncertainty in Shapley value estimation
+across different random permutations within a single resampling iteration.
+These SEs quantify the Monte Carlo sampling error for a fixed trained model
+and are only valid for inference about the importance of features for that
+specific model. They do not capture broader uncertainty from model variability
+across different train/test splits or resampling iterations.
 }
 \references{
 Covert, Ian, Lundberg, M S, Lee, Su-In (2020).
@@ -20,19 +28,22 @@ Covert, Ian, Lundberg, M S, Lee, Su-In (2020).
 In \emph{Advances in Neural Information Processing Systems}, volume 33, 17212--17223.
 \url{https://proceedings.neurips.cc/paper/2020/hash/c7bf0b7c1a86d5eb3be2c722cf2cf746-Abstract.html}.
 }
+\seealso{
+\link{MarginalSAGE} \link{ConditionalSAGE}
+}
 \section{Super class}{
 \code{\link[xplainfi:FeatureImportanceMethod]{xplainfi::FeatureImportanceMethod}} -> \code{SAGE}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{n_permutations}}{(integer(1)) Number of permutations to sample.}
+\item{\code{n_permutations}}{(\code{integer(1)}) Number of permutations to sample.}
 
-\item{\code{reference_data}}{(data.table) Reference dataset for marginalization.}
+\item{\code{reference_data}}{(\code{\link[data.table:data.table]{data.table}}) Reference dataset for marginalization.}
 
 \item{\code{sampler}}{(\link{FeatureSampler}) Sampler object for marginalization.}
 
-\item{\code{convergence_history}}{(\link{data.table}) History of SAGE values during computation.}
+\item{\code{convergence_history}}{(\code{\link[data.table:data.table]{data.table}}) History of SAGE values during computation.}
 
 \item{\code{converged}}{(\code{logical(1)}) Whether convergence was detected.}
 
@@ -74,7 +85,12 @@ Creates a new instance of the SAGE class.
   reference_data = NULL,
   batch_size = 5000L,
   sampler = NULL,
-  max_reference_size = 100L
+  max_reference_size = 100L,
+  early_stopping = FALSE,
+  convergence_threshold = 0.01,
+  se_threshold = Inf,
+  min_permutations = 10L,
+  check_interval = 2L
 )}\if{html}{\out{</div>}}
 }
 
@@ -86,7 +102,7 @@ Creates a new instance of the SAGE class.
 \item{\code{n_permutations}}{(\code{integer(1): 10L}) Number of permutations \emph{per coalition} to sample for Shapley value estimation.
 The total number of evaluated coalitions is \code{1 (empty) + n_permutations * n_features}.}
 
-\item{\code{reference_data}}{(\code{data.table | NULL}) Optional reference dataset. If \code{NULL}, uses training data.
+\item{\code{reference_data}}{(\code{\link[data.table:data.table]{data.table}} | \code{NULL}) Optional reference dataset. If \code{NULL}, uses training data.
 For each coalition to evaluate, an expanded datasets of size \code{n_test * n_reference} is created and evaluted in batches of \code{batch_size}.}
 
 \item{\code{batch_size}}{(\code{integer(1): 5000L}) Maximum number of observations to process in a single prediction call.}
@@ -94,6 +110,16 @@ For each coalition to evaluate, an expanded datasets of size \code{n_test * n_re
 \item{\code{sampler}}{(\link{FeatureSampler}) Sampler for marginalization. Only relevant for \code{ConditionalSAGE}.}
 
 \item{\code{max_reference_size}}{(\code{integer(1): 100L}) Maximum size of reference dataset. If reference is larger, it will be subsampled.}
+
+\item{\code{early_stopping}}{(\code{logical(1): FALSE}) Whether to enable early stopping based on convergence detection.}
+
+\item{\code{convergence_threshold}}{(\code{numeric(1): 0.01}) Relative change threshold for convergence detection.}
+
+\item{\code{se_threshold}}{(\code{numeric(1): Inf}) Standard error threshold for convergence detection.}
+
+\item{\code{min_permutations}}{(\code{integer(1): 10L}) Minimum permutations before checking convergence.}
+
+\item{\code{check_interval}}{(\code{integer(1): 2L}) Check convergence every N permutations.}
 }
 \if{html}{\out{</div>}}
 }
@@ -109,6 +135,7 @@ Compute SAGE values.
   batch_size = NULL,
   early_stopping = NULL,
   convergence_threshold = NULL,
+  se_threshold = NULL,
   min_permutations = NULL,
   check_interval = NULL
 )}\if{html}{\out{</div>}}
@@ -117,17 +144,19 @@ Compute SAGE values.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{store_backends}}{(logical(1)) Whether to store backends.}
+\item{\code{store_backends}}{(\code{logical(1)}) Whether to store backends.}
 
-\item{\code{batch_size}}{(integer(1): 5000L) Maximum number of observations to process in a single prediction call.}
+\item{\code{batch_size}}{(\code{integer(1)}: \code{5000L}) Maximum number of observations to process in a single prediction call.}
 
-\item{\code{early_stopping}}{(logical(1)) Whether to check for convergence and stop early.}
+\item{\code{early_stopping}}{(\code{logical(1)}) Whether to check for convergence and stop early.}
 
-\item{\code{convergence_threshold}}{(numeric(1)) Relative change threshold for convergence detection.}
+\item{\code{convergence_threshold}}{(\code{numeric(1)}) Relative change threshold for convergence detection.}
 
-\item{\code{min_permutations}}{(integer(1)) Minimum permutations before checking convergence.}
+\item{\code{se_threshold}}{(\code{numeric(1)}) Standard error threshold for convergence detection.}
 
-\item{\code{check_interval}}{(integer(1)) Check convergence every N permutations.}
+\item{\code{min_permutations}}{(\code{integer(1)}) Minimum permutations before checking convergence.}
+
+\item{\code{check_interval}}{(\code{integer(1)}) Check convergence every N permutations.}
 }
 \if{html}{\out{</div>}}
 }
@@ -149,7 +178,7 @@ Plot convergence history of SAGE values.
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A ggplot2 object
+A \link[ggplot2:ggplot]{ggplot2} object
 }
 }
 \if{html}{\out{<hr>}}

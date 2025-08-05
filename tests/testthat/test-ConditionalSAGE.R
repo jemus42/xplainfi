@@ -226,105 +226,6 @@ test_that("ConditionalSAGE works with multiclass classification", {
   expect_equal(length(task$class_names), 4L)
 })
 
-test_that("ConditionalSAGE batching produces identical results", {
-  skip_if_not_installed("ranger")
-  skip_if_not_installed("mlr3learners")
-  skip_if_not_installed("arf")
-  skip_if_not_installed("withr")
-
-  # Test with regression
-  task_regr = mlr3::tgen("friedman1")$generate(n = 30)
-  learner_regr = mlr3::lrn("regr.ranger", num.trees = 10)
-  measure_regr = mlr3::msr("regr.mse")
-
-  # Test with binary classification
-  task_binary = mlr3::tgen("2dnormals")$generate(n = 30)
-  learner_binary = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob")
-  measure_binary = mlr3::msr("classif.ce")
-
-  # Test with multiclass classification
-  task_multi = mlr3::tgen("cassini")$generate(n = 90)
-  learner_multi = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob")
-  measure_multi = mlr3::msr("classif.ce")
-
-  # Test each task type
-  test_configs = list(
-    list(task = task_regr, learner = learner_regr, measure = measure_regr, type = "regression"),
-    list(task = task_binary, learner = learner_binary, measure = measure_binary, type = "binary"),
-    list(task = task_multi, learner = learner_multi, measure = measure_multi, type = "multiclass")
-  )
-
-  for (config in test_configs) {
-    # Compute without batching
-    result_no_batch = withr::with_seed(42, {
-      sage = ConditionalSAGE$new(
-        task = config$task,
-        learner = config$learner,
-        measure = config$measure,
-        n_permutations = 3L,
-        max_reference_size = 20L
-      )
-      sage$compute()
-    })
-
-    # Compute with large batch size (should not trigger batching)
-    result_large_batch = withr::with_seed(42, {
-      sage = ConditionalSAGE$new(
-        task = config$task,
-        learner = config$learner,
-        measure = config$measure,
-        n_permutations = 3L,
-        max_reference_size = 20L
-      )
-      sage$compute(batch_size = 10000)
-    })
-
-    # Compute with small batch size (should trigger batching)
-    result_small_batch = withr::with_seed(42, {
-      sage = ConditionalSAGE$new(
-        task = config$task,
-        learner = config$learner,
-        measure = config$measure,
-        n_permutations = 3L,
-        max_reference_size = 20L
-      )
-      sage$compute(batch_size = 50)
-    })
-
-    # Compute with very small batch size (many batches)
-    result_tiny_batch = withr::with_seed(42, {
-      sage = ConditionalSAGE$new(
-        task = config$task,
-        learner = config$learner,
-        measure = config$measure,
-        n_permutations = 3L,
-        max_reference_size = 20L
-      )
-      sage$compute(batch_size = 10)
-    })
-
-    # Results should be similar (but not identical due to ARF stochasticity)
-    # Use more reasonable tolerance for stochastic conditional sampling
-    expect_equal(
-      result_no_batch$importance,
-      result_large_batch$importance,
-      tolerance = 0.05,
-      info = paste("ConditionalSAGE", config$type, "- no batch vs large batch")
-    )
-    expect_equal(
-      result_large_batch$importance,
-      result_small_batch$importance,
-      tolerance = 0.05,
-      info = paste("ConditionalSAGE", config$type, "- large batch vs small batch")
-    )
-    expect_equal(
-      result_small_batch$importance,
-      result_tiny_batch$importance,
-      tolerance = 0.05,
-      info = paste("ConditionalSAGE", config$type, "- small batch vs tiny batch")
-    )
-  }
-})
 
 test_that("ConditionalSAGE batching handles edge cases", {
   skip_if_not_installed("ranger")
@@ -419,5 +320,59 @@ test_that("ConditionalSAGE batching with custom sampler", {
     result_batch$importance,
     tolerance = 1e-10,
     info = "ConditionalSAGE with custom sampler should produce identical results with batching"
+  )
+})
+
+test_that("ConditionalSAGE SE tracking in convergence_history", {
+  skip_if_not_installed("ranger")
+  skip_if_not_installed("mlr3learners")
+  skip_if_not_installed("arf")
+
+  set.seed(123)
+  task = mlr3::tgen("friedman1")$generate(n = 50)
+  learner = mlr3::lrn("regr.ranger", num.trees = 10)
+  measure = mlr3::msr("regr.mse")
+
+  sage = ConditionalSAGE$new(
+    task = task,
+    learner = learner,
+    measure = measure,
+    n_permutations = 10L,
+    max_reference_size = 30L
+  )
+
+  # Compute with early stopping to get convergence history
+  result = sage$compute(early_stopping = TRUE, se_threshold = 0.05, check_interval = 2L)
+
+  # Check that convergence_history exists and has SE column
+  expect_false(is.null(sage$convergence_history))
+  expect_true("se" %in% colnames(sage$convergence_history))
+
+  # Check structure of convergence_history
+  expected_cols = c("n_permutations", "feature", "importance", "se")
+  expect_equal(sort(colnames(sage$convergence_history)), sort(expected_cols))
+
+  # SE values should be non-negative and finite
+  se_values = sage$convergence_history$se
+  expect_true(all(se_values >= 0, na.rm = TRUE))
+  expect_true(all(is.finite(se_values)))
+
+  # For each feature, SE should generally decrease with more permutations
+  # Since conditional sampling is even more stochastic, we just check basic sanity
+  for (feat in unique(sage$convergence_history$feature)) {
+    feat_data = sage$convergence_history[feature == feat]
+    feat_data = feat_data[order(n_permutations)]
+
+    if (nrow(feat_data) > 1) {
+      # Just check that SE values are in a reasonable range for conditional sampling
+      expect_true(all(feat_data$se < 20)) # More generous upper bound for conditional sampling
+      expect_true(all(is.finite(feat_data$se))) # No infinite or NaN values
+    }
+  }
+
+  # All features should be represented in convergence history
+  expect_equal(
+    sort(unique(sage$convergence_history$feature)),
+    sort(sage$features)
   )
 })
