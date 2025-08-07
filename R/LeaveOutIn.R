@@ -343,9 +343,6 @@ LeaveOutIn = R6Class(
       setnames(scores, old = "iteration", new = "iter_rsmp")
       setkeyv(scores, c("feature", "iter_rsmp"))
 
-      # Store scores and compute aggregated importance
-      scores_agg = private$.aggregate_importances(scores)
-
       # Prepare observation-wise losses for storage
       # Include all relevant columns for user analysis
       obs_losses_stored = obs_losses[, list(
