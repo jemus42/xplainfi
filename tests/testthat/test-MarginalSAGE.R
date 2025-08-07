@@ -325,7 +325,7 @@ test_that("MarginalSAGE reproducibility with same seed", {
   result2 = sage2$importance()
 
   # Results should be identical with same seed
-  expect_equal(result1$importance(), result2$importance(), tolerance = 1e-10)
+  expect_equal(result1$importance, result2$importance, tolerance = 1e-10)
 })
 
 test_that("MarginalSAGE parameter validation", {
@@ -452,13 +452,6 @@ test_that("MarginalSAGE batching produces consistent results", {
         n_permutations = 3L,
         max_reference_size = 20L
       )
-      sage_large_batch = MarginalSAGE$new(
-        task = config$task,
-        learner = config$learner,
-        measure = config$measure,
-        n_permutations = 3L,
-        max_reference_size = 20L
-      )
       sage_small_batch = MarginalSAGE$new(
         task = config$task,
         learner = config$learner,
@@ -476,27 +469,29 @@ test_that("MarginalSAGE batching produces consistent results", {
     })
 
     # Now compute with same seed for each
-    result_no_batch = withr::with_seed(42, sage_no_batch$compute())
-    result_large_batch = withr::with_seed(42, sage_large_batch$compute(batch_size = 10000))
-    result_small_batch = withr::with_seed(42, sage_small_batch$compute(batch_size = 50))
-    result_tiny_batch = withr::with_seed(42, sage_tiny_batch$compute(batch_size = 10))
+    result_no_batch = withr::with_seed(42, {
+      sage_no_batch$compute()
+      sage_no_batch$importance()
+    })
+    result_small_batch = withr::with_seed(42, {
+      sage_small_batch$compute(batch_size = 50)
+      sage_small_batch$importance()
+    })
+    result_tiny_batch = withr::with_seed(42, {
+      sage_tiny_batch$compute(batch_size = 10)
+      sage_tiny_batch$importance()
+    })
 
     # MarginalSAGE batching should produce similar results
-    # Large differences are expected due to random seed interaction with batch processing
     expect_equal(
-      result_no_batch$importance(),
-      result_large_batch$importance(),
-      tolerance = 5.0
+      result_no_batch$importance,
+      result_tiny_batch$importance,
+      tolerance = 0.5
     )
     expect_equal(
-      result_large_batch$importance(),
-      result_small_batch$importance(),
-      tolerance = 5.0
-    )
-    expect_equal(
-      result_small_batch$importance(),
-      result_tiny_batch$importance(),
-      tolerance = 5.0
+      result_small_batch$importance,
+      result_tiny_batch$importance,
+      tolerance = 0.5
     )
   }
 })
@@ -531,20 +526,21 @@ test_that("MarginalSAGE batching handles edge cases", {
   })
 
   # Compute with same seed
-  result_batch_1 = withr::with_seed(42, sage_batch_1$compute(batch_size = 1))
-  result_normal = withr::with_seed(42, sage_normal$compute())
+  result_batch_1 = withr::with_seed(42, {
+    sage_batch_1$compute(batch_size = 1)
+    sage_batch_1$importance()
+  })
+  result_normal = withr::with_seed(42, {
+    sage_normal$compute()
+    sage_normal$importance()
+  })
 
   # MarginalSAGE batching should produce similar results
   expect_equal(
-    result_batch_1$importance(),
-    result_normal$importance(),
-    tolerance = 5.0
+    result_batch_1$importance,
+    result_normal$importance,
+    tolerance = 0.5
   )
-
-  # Note: Resampling tests are omitted here because mlr3's internal random state
-  # management during resampling may interact differently with batching,
-  # making exact reproducibility challenging. The core batching functionality
-  # is thoroughly tested above without resampling.
 })
 
 test_that("MarginalSAGE SE tracking in convergence_history", {
@@ -631,9 +627,7 @@ test_that("MarginalSAGE SE-based convergence detection", {
   expect_equal(sage$n_permutations_used, 20L)
 
   # Reset for next test
-  sage$importance() = NULL
-  sage$convergence_history = NULL
-  sage$converged = FALSE
+  sage$reset()
   sage$n_permutations_used = NULL
 
   # Test with very strict SE threshold (should trigger convergence quickly)
@@ -650,9 +644,7 @@ test_that("MarginalSAGE SE-based convergence detection", {
   expect_false(sage$converged)
 
   # Test with moderate thresholds where both criteria might be met
-  sage$importance() = NULL
-  sage$convergence_history = NULL
-  sage$converged = FALSE
+  sage$reset()
   sage$n_permutations_used = NULL
 
   result_moderate = sage$compute(

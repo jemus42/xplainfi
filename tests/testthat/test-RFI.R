@@ -464,6 +464,6 @@ test_that("RFI different conditioning sets produce different results", {
 
   # Results should generally be different (allowing for some tolerance due to randomness)
   # We don't expect exact differences but the conditioning should have some effect
-  expect_false(all(abs(result_empty$importance() - result_one$importance()) < 1e-10))
-  expect_false(all(abs(result_one$importance() - result_multi$importance()) < 1e-10))
+  expect_false(all(abs(result_empty$importance - result_one$importance) < 1e-10))
+  expect_false(all(abs(result_one$importance - result_multi$importance) < 1e-10))
 })

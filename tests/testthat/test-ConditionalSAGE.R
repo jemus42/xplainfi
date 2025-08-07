@@ -234,7 +234,6 @@ test_that("ConditionalSAGE works with multiclass classification", {
 
 test_that("ConditionalSAGE batching handles edge cases", {
   skip_if_not_installed("ranger")
-  skip_if_not_installed("mlr3learners")
   skip_if_not_installed("arf")
   skip_if_not_installed("withr")
 
@@ -253,6 +252,7 @@ test_that("ConditionalSAGE batching handles edge cases", {
       max_reference_size = 10L
     )
     sage$compute(batch_size = 1)
+    sage$importance()
   })
 
   # Compare with normal result
@@ -265,13 +265,13 @@ test_that("ConditionalSAGE batching handles edge cases", {
       max_reference_size = 10L
     )
     sage$compute()
+    sage$importance()
   })
 
   expect_equal(
-    result_batch_1$importance(),
-    result_normal$importance(),
-    tolerance = 1e-10,
-    info = "ConditionalSAGE batch_size=1 should produce identical results"
+    result_batch_1$importance,
+    result_normal$importance,
+    tolerance = 1e-10
   )
 
   # Note: Resampling tests are omitted here because mlr3's internal random state
@@ -305,6 +305,7 @@ test_that("ConditionalSAGE batching with custom sampler", {
       max_reference_size = 15L
     )
     sage$compute()
+    sage$importance()
   })
 
   # Test with custom sampler - with batching
@@ -318,11 +319,12 @@ test_that("ConditionalSAGE batching with custom sampler", {
       max_reference_size = 15L
     )
     sage$compute(batch_size = 30)
+    sage$importance()
   })
 
   expect_equal(
-    result_no_batch$importance(),
-    result_batch$importance(),
+    result_no_batch$importance,
+    result_batch$importance,
     tolerance = 1e-10,
     info = "ConditionalSAGE with custom sampler should produce identical results with batching"
   )
