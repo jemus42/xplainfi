@@ -41,7 +41,9 @@ Feature importance methods in xplainfi answer different but related questions:
 - **How much does each feature contribute individually?** (Leave-One-Covariate-In)
 - **How do features depend on each other?** (Conditional and Relative methods)
 
-All methods share a common interface built on [mlr3](https://mlr3.mlr-org.com/), making them easy to use with any task, learner, measure, and resampling strategy.
+All methods share a common interface built on [mlr3](https://mlr3.mlr-org.com/), making them easy to use with any task, learner, measure, and resampling strategy. 
+
+The general pattern is to call `$compute()` to calculate importance (which _always re-computes_), then `$importance()` to retrieve the aggregated results, with intermediate results available in `$scores`.
 
 ## Basic Example
 
@@ -99,6 +101,8 @@ pfi_stable$compute(relation = "ratio")
 pfi_stable$importance()
 ```
 
+**Note**: This API will most likely change in an upcoming version to enable changing the `"ratio"` without having to re-compute everything.
+
 ## Leave-One-Covariate-Out (LOCO)
 
 LOCO measures importance by retraining the model without each feature and comparing performance to the full model. This shows the contribution of each feature when all other features are present.
@@ -134,7 +138,7 @@ Now we'll conditionally sample the `important1` feature given the values of `imp
 
 ```{r conditional-sampling}
 sampled_conditional <- arf_sampler$sample(
-  feature = "important1", 
+  feature = "important1",
   data = sample_data,
   conditioning_set = c("important2", "important3")
 )
@@ -170,7 +174,7 @@ We can also summarize the scoring structure:
 ```{r scoring-summary}
 pfi$scores[, .(
   features = uniqueN(feature),
-  resampling_folds = uniqueN(iter_rsmp), 
+  resampling_folds = uniqueN(iter_rsmp),
   permutation_iters = uniqueN(iter_perm),
   total_scores = .N
 )]

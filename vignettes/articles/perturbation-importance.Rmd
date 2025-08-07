@@ -106,8 +106,8 @@ pfi_int <- PFI$new(
 )
 
 # Compute importance scores
-pfi_int_results <- pfi_int$compute(relation = "difference")
-pfi_int_results
+pfi_int$compute(relation = "difference")
+pfi_int$importance()
 ```
 
 Expected: x1 and x2 will show high importance with PFI because permuting either feature destroys the interaction term x1×x2, which is crucial for prediction. This demonstrates a key limitation of PFI with interactions.
@@ -131,8 +131,8 @@ cfi_int <- CFI$new(
 )
 
 # Compute importance scores
-cfi_int_results <- cfi_int$compute(relation = "difference")
-cfi_int_results
+cfi_int$compute(relation = "difference")
+cfi_int$importance()
 ```
 
 Expected: CFI should show somewhat lower importance for x1 and x2 compared to PFI because it better preserves the interaction structure during conditional sampling, providing a more nuanced importance estimate.
@@ -153,7 +153,7 @@ rfi_int_x2 <- RFI$new(
   iters_perm = 5,
   sampler = sampler_int
 )
-rfi_int_x2_results <- rfi_int_x2$compute(relation = "difference")
+rfi_int_x2$compute(relation = "difference")
 
 # RFI conditioning on x1: "How important is x2 given we know x1?"  
 rfi_int_x1 <- RFI$new(
@@ -165,14 +165,14 @@ rfi_int_x1 <- RFI$new(
   iters_perm = 5,
   sampler = sampler_int
 )
-rfi_int_x1_results <- rfi_int_x1$compute(relation = "difference")
+rfi_int_x1$compute(relation = "difference")
 ```
 
 **RFI Results:**
 
-- **x1 given x2**: `r sprintf("%.3f", rfi_int_x2_results[feature == "x1", importance])` (How important is x1 when we condition on x2)
-- **x2 given x1**: `r sprintf("%.3f", rfi_int_x1_results[feature == "x2", importance])` (How important is x2 when we condition on x1)  
-- **x3 given x2**: `r sprintf("%.3f", rfi_int_x2_results[feature == "x3", importance])` (How important is x3 when we condition on x2)
+- **x1 given x2**: `r sprintf("%.3f", rfi_int_x2$importance()[feature == "x1", importance])` (How important is x1 when we condition on x2)
+- **x2 given x1**: `r sprintf("%.3f", rfi_int_x1$importance()[feature == "x2", importance])` (How important is x2 when we condition on x1)  
+- **x3 given x2**: `r sprintf("%.3f", rfi_int_x2$importance()[feature == "x3", importance])` (How important is x3 when we condition on x2)
 
 **Key insight**: In the pure interaction case (y = 2·x1·x2 + x3), when we condition on one interacting feature, the other becomes extremely important because they only matter together. This demonstrates RFI's power to answer targeted questions like "Given I already know x2, how much does x1 add?"
 
@@ -186,14 +186,14 @@ Let's compare how the methods handle the interaction:
 # Create comprehensive comparison including all methods
 comp_all <- rbindlist(list(
   # PFI and CFI for all features
-  pfi_int_results[, .(feature, importance, method = "PFI")],
-  cfi_int_results[, .(feature, importance, method = "CFI")],
+  pfi_int$importance()[, .(feature, importance, method = "PFI")],
+  cfi_int$importance()[, .(feature, importance, method = "CFI")],
   # Selected RFI conditional results
-  rfi_int_x2_results[feature == "x1", .(feature, importance, method = "RFI|x2")],
-  rfi_int_x1_results[feature == "x2", .(feature, importance, method = "RFI|x1")],
-  rfi_int_x2_results[feature == "x3", .(feature, importance, method = "RFI|x2")],
+  rfi_int_x2$importance()[feature == "x1", .(feature, importance, method = "RFI|x2")],
+  rfi_int_x1$importance()[feature == "x2", .(feature, importance, method = "RFI|x1")],
+  rfi_int_x2$importance()[feature == "x3", .(feature, importance, method = "RFI|x2")],
   # Add some noise features for completeness
-  rfi_int_x2_results[feature %in% c("noise1", "noise2"), .(feature, importance, method = "RFI|x2")]
+  rfi_int_x2$importance()[feature %in% c("noise1", "noise2"), .(feature, importance, method = "RFI|x2")]
 ))
 
 # Create comprehensive comparison plot
@@ -226,9 +226,9 @@ p1
 p2
 
 # Store RFI results for inline text
-rfi_x1_given_x2 <- rfi_int_x2_results[feature == "x1", importance]
-rfi_x2_given_x1 <- rfi_int_x1_results[feature == "x2", importance]
-rfi_x3_given_x2 <- rfi_int_x2_results[feature == "x3", importance]
+rfi_x1_given_x2 <- rfi_int_x2$importance()[feature == "x1", importance]
+rfi_x2_given_x1 <- rfi_int_x1$importance()[feature == "x2", importance]
+rfi_x3_given_x2 <- rfi_int_x2$importance()[feature == "x3", importance]
 ```
 
 **RFI Conditional Summary**: x1 given x2 has importance `r sprintf("%.3f", rfi_x1_given_x2)`, x2 given x1 has importance `r sprintf("%.3f", rfi_x2_given_x1)`, and x3 given x2 has importance `r sprintf("%.3f", rfi_x3_given_x2)`. This shows how RFI reveals the conditional dependencies that pure marginal methods miss.
@@ -238,8 +238,8 @@ rfi_x3_given_x2 <- rfi_int_x2_results[feature == "x3", importance]
 ```{r summary-interactions}
 # Combine results and calculate ratios
 comp_int <- rbindlist(list(
-  pfi_int_results[, .(feature, importance, method = "PFI")],
-  cfi_int_results[, .(feature, importance, method = "CFI")]
+  pfi_int$importance()[, .(feature, importance, method = "PFI")],
+  cfi_int$importance()[, .(feature, importance, method = "CFI")]
 ))
 
 # Calculate the ratio of CFI to PFI importance for interacting features
@@ -349,8 +349,8 @@ pfi_conf <- PFI$new(
   iters_perm = 5
 )
 
-pfi_conf_results <- pfi_conf$compute(relation = "difference")
-pfi_conf_results
+pfi_conf$compute(relation = "difference")
+pfi_conf$importance()
 ```
 
 #### RFI Conditioning on Proxy
@@ -377,8 +377,8 @@ rfi_conf <- RFI$new(
   sampler = sampler_conf
 )
 
-rfi_conf_results <- rfi_conf$compute(relation = "difference")
-rfi_conf_results
+rfi_conf$compute(relation = "difference")
+rfi_conf$importance()
 ```
 
 #### Also trying CFI for comparison
@@ -394,8 +394,8 @@ cfi_conf <- CFI$new(
   sampler = sampler_conf
 )
 
-cfi_conf_results <- cfi_conf$compute(relation = "difference")
-cfi_conf_results
+cfi_conf$compute(relation = "difference")
+cfi_conf$importance()
 ```
 
 #### Observable Confounder Scenario
@@ -425,7 +425,7 @@ rfi_conf_obs <- RFI$new(
   sampler = sampler_conf_obs
 )
 
-rfi_conf_obs_results <- rfi_conf_obs$compute(relation = "difference")
+rfi_conf_obs$compute(relation = "difference")
 
 # Compare with PFI on the same data
 pfi_conf_obs <- PFI$new(
@@ -435,14 +435,14 @@ pfi_conf_obs <- PFI$new(
   resampling = resampling,
   iters_perm = 5
 )
-pfi_conf_obs_results <- pfi_conf_obs$compute(relation = "difference")
+pfi_conf_obs$compute(relation = "difference")
 ```
 
 **Key Results:**
 
-- **x1 importance**: PFI = `r sprintf("%.3f", pfi_conf_obs_results[feature == "x1", importance])`, RFI|confounder = `r sprintf("%.3f", rfi_conf_obs_results[feature == "x1", importance])`
-- **x2 importance**: PFI = `r sprintf("%.3f", pfi_conf_obs_results[feature == "x2", importance])`, RFI|confounder = `r sprintf("%.3f", rfi_conf_obs_results[feature == "x2", importance])`  
-- **independent importance**: PFI = `r sprintf("%.3f", pfi_conf_obs_results[feature == "independent", importance])`, RFI|confounder = `r sprintf("%.3f", rfi_conf_obs_results[feature == "independent", importance])`
+- **x1 importance**: PFI = `r sprintf("%.3f", pfi_conf_obs$importance()[feature == "x1", importance])`, RFI|confounder = `r sprintf("%.3f", rfi_conf_obs$importance()[feature == "x1", importance])`
+- **x2 importance**: PFI = `r sprintf("%.3f", pfi_conf_obs$importance()[feature == "x2", importance])`, RFI|confounder = `r sprintf("%.3f", rfi_conf_obs$importance()[feature == "x2", importance])`  
+- **independent importance**: PFI = `r sprintf("%.3f", pfi_conf_obs$importance()[feature == "independent", importance])`, RFI|confounder = `r sprintf("%.3f", rfi_conf_obs$importance()[feature == "independent", importance])`
 
 **Insight**: When conditioning on the true confounder, RFI should show reduced importance for x1 and x2 (since much of their apparent importance was due to confounding) while independent maintains its importance (since it's truly causally related to y).
 
@@ -452,9 +452,9 @@ pfi_conf_obs_results <- pfi_conf_obs$compute(relation = "difference")
 #| echo: false
 # Combine all results
 comp_conf_long <- rbindlist(list(
-  pfi_conf_results[, .(feature, importance, method = "PFI")],
-  cfi_conf_results[, .(feature, importance, method = "CFI")],
-  rfi_conf_results[, .(feature, importance, method = "RFI")]
+  pfi_conf$importance()[, .(feature, importance, method = "PFI")],
+  cfi_conf$importance()[, .(feature, importance, method = "CFI")],
+  rfi_conf$importance()[, .(feature, importance, method = "RFI")]
 ))
 
 ggplot(comp_conf_long, aes(x = feature, y = importance, fill = method)) +
@@ -471,8 +471,8 @@ ggplot(comp_conf_long, aes(x = feature, y = importance, fill = method)) +
   theme(legend.position = "bottom")
 
 comp_conf_obs_long <- rbindlist(list(
-  pfi_conf_obs_results[, .(feature, importance, method = "PFI")],
-  rfi_conf_obs_results[, .(feature, importance, method = "RFI")]
+  pfi_conf_obs$importance()[, .(feature, importance, method = "PFI")],
+  rfi_conf_obs$importance()[, .(feature, importance, method = "RFI")]
 ))
 
 ggplot(comp_conf_obs_long, aes(x = feature, y = importance, fill = method)) +
@@ -577,8 +577,8 @@ pfi_cor <- PFI$new(
   iters_perm = 5
 )
 
-pfi_cor_results <- pfi_cor$compute(relation = "difference")
-pfi_cor_results
+pfi_cor$compute(relation = "difference")
+pfi_cor$importance()
 ```
 
 Expected: PFI will show high importance for BOTH x1 and x2, even though only x1 has a true causal effect. This happens because x2 is highly correlated with x1, so permuting x2 destroys predictive information about x1.
@@ -599,8 +599,8 @@ cfi_cor <- CFI$new(
   sampler = sampler_cor
 )
 
-cfi_cor_results <- cfi_cor$compute(relation = "difference")
-cfi_cor_results
+cfi_cor$compute(relation = "difference")
+cfi_cor$importance()
 ```
 
 Expected: CFI should show high importance for x1 (the true causal feature) but near-zero importance for x2 (the spurious correlated feature) because conditional sampling preserves the correlation structure and can distinguish between causal and spurious predictors.
@@ -619,7 +619,7 @@ rfi_cor_x1 <- RFI$new(
   iters_perm = 5,
   sampler = sampler_cor
 )
-rfi_cor_x1_results <- rfi_cor_x1$compute(relation = "difference")
+rfi_cor_x1$compute(relation = "difference")
 
 # RFI conditioning on x2: "How important is x1 given we know x2?"
 rfi_cor_x2 <- RFI$new(
@@ -631,12 +631,12 @@ rfi_cor_x2 <- RFI$new(
   iters_perm = 5,
   sampler = sampler_cor
 )
-rfi_cor_x2_results <- rfi_cor_x2$compute(relation = "difference")
+rfi_cor_x2$compute(relation = "difference")
 ```
 
 **RFI Results:**
-- **x2 given x1**: `r sprintf("%.3f", rfi_cor_x1_results[feature == "x2", importance])` (How much does x2 add when we already know x1?)
-- **x1 given x2**: `r sprintf("%.3f", rfi_cor_x2_results[feature == "x1", importance])` (How much does x1 add when we already know x2?)
+- **x2 given x1**: `r sprintf("%.3f", rfi_cor_x1$importance()[feature == "x2", importance])` (How much does x2 add when we already know x1?)
+- **x1 given x2**: `r sprintf("%.3f", rfi_cor_x2$importance()[feature == "x1", importance])` (How much does x1 add when we already know x2?)
 
 Expected: When conditioning on x1, the importance of x2 should be near zero (and vice versa) because they're almost identical - knowing one tells you almost everything about the other.
 
@@ -646,14 +646,14 @@ Expected: When conditioning on x1, the importance of x2 should be near zero (and
 #| echo: false
 # Combine results
 comp_cor_long <- rbindlist(list(
-  pfi_cor_results[, .(feature, importance, method = "PFI")],
-  cfi_cor_results[, .(feature, importance, method = "CFI")]
+  pfi_cor$importance()[, .(feature, importance, method = "PFI")],
+  cfi_cor$importance()[, .(feature, importance, method = "CFI")]
 ))
 
 # Add selected RFI results
 comp_cor_rfi <- rbindlist(list(
-  rfi_cor_x1_results[feature == "x2", .(feature = "x2|x1", importance, method = "RFI")],
-  rfi_cor_x2_results[feature == "x1", .(feature = "x1|x2", importance, method = "RFI")]
+  rfi_cor_x1$importance()[feature == "x2", .(feature = "x2|x1", importance, method = "RFI")],
+  rfi_cor_x2$importance()[feature == "x1", .(feature = "x1|x2", importance, method = "RFI")]
 ))
 
 ggplot(comp_cor_long, aes(x = feature, y = importance, fill = method)) +
@@ -752,7 +752,7 @@ pfi_ind <- PFI$new(
   resampling = resampling,
   iters_perm = 5
 )
-pfi_ind_results <- pfi_ind$compute(relation = "difference")
+pfi_ind$compute(relation = "difference")
 ```
 
 Now CFI  with the ARF sampler:
@@ -768,7 +768,7 @@ cfi_ind <- CFI$new(
   iters_perm = 5,
   sampler = sampler_ind
 )
-cfi_ind_results <- cfi_ind$compute(relation = "difference")
+cfi_ind$compute(relation = "difference")
 ```
 
 RFI with empty conditioning set, basically equivalent to PFI with a different sampler:
@@ -784,7 +784,7 @@ rfi_ind <- RFI$new(
   iters_perm = 5,
   sampler = sampler_ind
 )
-rfi_ind_results <- rfi_ind$compute(relation = "difference")
+rfi_ind$compute(relation = "difference")
 ```
 
 And now we visualize:
@@ -793,9 +793,9 @@ And now we visualize:
 #| echo: false
 # Combine results using rbindlist
 comp_ind_long <- rbindlist(list(
-  pfi_ind_results[, .(feature, importance, method = "PFI")],
-  cfi_ind_results[, .(feature, importance, method = "CFI")],
-  rfi_ind_results[, .(feature, importance, method = "RFI")]
+  pfi_ind$importance()[, .(feature, importance, method = "PFI")],
+  cfi_ind$importance()[, .(feature, importance, method = "CFI")],
+  rfi_ind$importance()[, .(feature, importance, method = "RFI")]
 ))
 
 ggplot(comp_ind_long, aes(x = feature, y = importance, fill = method)) +
