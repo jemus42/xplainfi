@@ -297,8 +297,24 @@ CFI methods on the same data:</p>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span></span>
 <span><span class="co">#&gt; Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span></span>
 <span></span>
-<span><span class="va">pfi_results</span> <span class="op">=</span> <span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">cfi_results</span> <span class="op">=</span> <span class="va">cfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;    feature   importance</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;        &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      x1  2.243475046</span></span>
+<span><span class="co">#&gt; 2:      x2  1.671303834</span></span>
+<span><span class="co">#&gt; 3:      x3  1.610934581</span></span>
+<span><span class="co">#&gt; 4:      x4 -0.003591173</span></span>
+<span><span class="va">cfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;    feature   importance</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;        &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      x1  0.099988575</span></span>
+<span><span class="co">#&gt; 2:      x2  0.103739783</span></span>
+<span><span class="co">#&gt; 3:      x3  1.382291799</span></span>
+<span><span class="co">#&gt; 4:      x4 -0.001757416</span></span>
+<span><span class="va">pfi_results</span> <span class="op">=</span> <span class="va">pfi</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">cfi_results</span> <span class="op">=</span> <span class="va">cfi</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Create comparison data frame</span></span>
 <span><span class="va">method_comparison</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
