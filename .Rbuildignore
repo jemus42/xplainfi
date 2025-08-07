@@ -19,3 +19,5 @@
 ^lib$
 ^TODO\.md$
 ^\.vscode$
+^CLAUDE\.md$
+^CLAUDE\.local\.md$
