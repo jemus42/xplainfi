@@ -172,8 +172,9 @@ FeatureImportanceMethod = R6Class(
     #' Get aggregated importance scores.
     #' The stored [`measure`][mlr::Measure] object's `aggregator` (default: `mean`) will be used to aggregated importance scores
     #' across resampling iterations and, depending on the method use, permutations ([PerturbationImportance] or refits [LOCO]).
+    #' @param standardize (`logical(1)`: `FALSE`) If `TRUE`, importances are standardized by the highest score so all scores fall in `[-1, 1]`.
     #' @return ([data.table][data.table::data.table]) Aggregated importance scores.
-    importance = function() {
+    importance = function(standardize = FALSE) {
       if (is.null(self$scores)) {
         return(NULL)
       }
@@ -192,8 +193,12 @@ FeatureImportanceMethod = R6Class(
 
       res = xdf[, list(importance = aggregator(importance)), by = feature]
 
+      if (standardize) {
+        res[, importance := importance / max(importance, na.rm = TRUE)]
+      }
+
       setkeyv(res, "feature")
-      res
+      res[]
     },
 
     #' @description

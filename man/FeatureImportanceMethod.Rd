@@ -102,9 +102,16 @@ Get aggregated importance scores.
 The stored \code{\link[mlr:makeMeasure]{measure}} object's \code{aggregator} (default: \code{mean}) will be used to aggregated importance scores
 across resampling iterations and, depending on the method use, permutations (\link{PerturbationImportance} or refits \link{LOCO}).
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$importance()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$importance(standardize = FALSE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{standardize}}{(\code{logical(1)}: \code{FALSE}) If \code{TRUE}, importances are standardized by the highest score so all scores fall in \verb{[-1, 1]}.}
+}
+\if{html}{\out{</div>}}
+}
 \subsection{Returns}{
 (\link[data.table:data.table]{data.table}) Aggregated importance scores.
 }
