@@ -90,7 +90,7 @@ Sample values for feature(s) conditionally on other features using Knockoffs
 \describe{
 \item{\code{feature}}{(\code{character}) Feature(s) of interest to sample (can be single or multiple)}
 
-\item{\code{data}}{(\code{\link[data.table:data.table]{data.table}}) Data containing conditioning features. Defaults to \verb{$task$data()}, but typically a dedicated test set is provided.}
+\item{\code{data}}{(\code{\link[data.table:data.table]{data.table}}) Data containing conditioning features. Defaults to \verb{$task$data()}, but typically a dedicated test set is provided. Currently \code{KnockoffSampler} does not support this, use \link{ARFSampler} instead.}
 }
 \if{html}{\out{</div>}}
 }

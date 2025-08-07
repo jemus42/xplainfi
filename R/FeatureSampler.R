@@ -379,7 +379,7 @@ KnockoffSampler = R6Class(
     #' @description
     #' Sample values for feature(s) conditionally on other features using Knockoffs
     #' @param feature (`character`) Feature(s) of interest to sample (can be single or multiple)
-    #' @param data ([`data.table`][data.table::data.table]) Data containing conditioning features. Defaults to `$task$data()`, but typically a dedicated test set is provided.
+    #' @param data ([`data.table`][data.table::data.table]) Data containing conditioning features. Defaults to `$task$data()`, but typically a dedicated test set is provided. Currently `KnockoffSampler` does not support this, use [ARFSampler] instead.
     #' @return Modified copy of the input data with the feature(s) sampled conditionally
     sample = function(
       feature,
