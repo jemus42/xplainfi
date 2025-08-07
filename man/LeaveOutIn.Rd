@@ -50,8 +50,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   direction,
   label,
   iters_refit = 1L,
-  obs_loss = FALSE,
-  aggregation_fun = median
+  obs_loss = FALSE
 )}\if{html}{\out{</div>}}
 }
 
@@ -66,9 +65,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 
 \item{\code{iters_refit}}{(\code{integer(1)}) Number of refit iterations per resampling iteration.}
 
-\item{\code{obs_loss}}{(\code{logical(1)}) Whether to use observation-wise loss calculation (original LOCO formulation) when supported by the measure. If \code{FALSE} (default), uses aggregated scores.}
-
-\item{\code{aggregation_fun}}{(\code{function}) Function to aggregate observation-wise losses when \code{obs_loss = TRUE}. Defaults to \code{median} for original LOCO formulation.}
+\item{\code{obs_loss}}{(\code{logical(1)}) Whether to use observation-wise loss calculation (original LOCO formulation) when supported by the measure. If \code{FALSE} (default), uses aggregated scores. When \code{TRUE}, uses the measure's aggregation function (default: \code{mean}).}
 }
 \if{html}{\out{</div>}}
 }

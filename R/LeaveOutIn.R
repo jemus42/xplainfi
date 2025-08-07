@@ -437,10 +437,12 @@ LeaveOutIn = R6Class(
 #' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
 #' library(mlr3learners)
 #' task = tgen("friedman1")$generate(n = 200)
+#' 
+#' # Standard LOCO with aggregated scores
 #' loco = LOCO$new(
 #'   task = task,
 #'   learner = lrn("regr.ranger", num.trees = 50),
-#'   measure = msr("regr.mse"), obs_loss = TRUE
+#'   measure = msr("regr.mse")
 #' )
 #' loco$compute()
 #'
@@ -519,13 +521,37 @@ LOCO = R6Class(
 #'
 #' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
 #' library(mlr3)
+#' library(mlr3learners)
 #' task = tgen("friedman1")$generate(n = 200)
+#' 
+#' # Standard LOCI with aggregated scores
 #' loci = LOCI$new(
 #'   task = task,
 #'   learner = lrn("regr.ranger", num.trees = 50),
 #'   measure = msr("regr.mse")
 #' )
 #' loci$compute()
+#'
+#' # Using observation-wise losses with measure's aggregation function
+#' loci_obsloss = LOCI$new(
+#'   task = task,
+#'   learner = lrn("regr.ranger", num.trees = 50),
+#'   measure = msr("regr.mae"), # uses MAE's aggregation function (mean) internally
+#'   obs_loss = TRUE
+#' )
+#' loci_obsloss$compute()
+#' loci_obsloss$obs_losses
+#'
+#' # LOCI with median aggregation (analogous to original LOCO)
+#' mae_median = msr("regr.mae")
+#' mae_median$aggregator = median
+#' loci_median = LOCI$new(
+#'   task = task,
+#'   learner = lrn("regr.ranger", num.trees = 50),
+#'   measure = mae_median,
+#'   obs_loss = TRUE
+#' )
+#' loci_median$compute()
 #' @export
 LOCI = R6Class(
   "LOCI",

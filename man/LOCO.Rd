@@ -17,23 +17,35 @@ feature's importance. Higher values indicate more important features.
 \dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 library(mlr3learners)
 task = tgen("friedman1")$generate(n = 200)
+
+# Standard LOCO with aggregated scores
 loco = LOCO$new(
   task = task,
   learner = lrn("regr.ranger", num.trees = 50),
-  measure = msr("regr.mse"), obs_loss = TRUE
+  measure = msr("regr.mse")
 )
 loco$compute()
 
-# Using observation-wise losses to compute the median instead
+# Using observation-wise losses with measure's aggregation function
 loco_obsloss = LOCO$new(
   task = task,
   learner = lrn("regr.ranger", num.trees = 50),
-  measure = msr("regr.mae"), # to use absolute differences observation-wise
-  obs_loss = TRUE,
-  aggregation_fun = median
+  measure = msr("regr.mae"), # uses MAE's aggregation function (mean) internally
+  obs_loss = TRUE
 )
 loco_obsloss$compute()
 loco_obsloss$obs_losses
+
+# Original LOCO formulation using median aggregation
+mae_median = msr("regr.mae")
+mae_median$aggregator = median
+loco_original = LOCO$new(
+  task = task,
+  learner = lrn("regr.ranger", num.trees = 50),
+  measure = mae_median,
+  obs_loss = TRUE
+)
+loco_original$compute()
 \dontshow{\}) # examplesIf}
 }
 \references{
@@ -75,8 +87,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   resampling = NULL,
   features = NULL,
   iters_refit = 1L,
-  obs_loss = FALSE,
-  aggregation_fun = median
+  obs_loss = FALSE
 )}\if{html}{\out{</div>}}
 }
 
@@ -95,9 +106,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 
 \item{\code{iters_refit}}{(\code{integer(1)}: \code{1L}) Number of refit iterations per resampling iteration.}
 
-\item{\code{obs_loss}}{(\code{logical(1)}: \code{FALSE}) Whether to use observation-wise loss calculation (original LOCO formulation). If \code{FALSE}, uses aggregated scores.}
-
-\item{\code{aggregation_fun}}{(\code{function}) Function to aggregate observation-wise losses when \code{obs_loss = TRUE}. Defaults to \code{median} for original LOCO formulation.}
+\item{\code{obs_loss}}{(\code{logical(1)}: \code{FALSE}) Whether to use observation-wise loss calculation (original LOCO formulation). If \code{FALSE}, uses aggregated scores. When \code{TRUE}, uses the measure's aggregation function or \code{mean} as fallback.}
 }
 \if{html}{\out{</div>}}
 }
