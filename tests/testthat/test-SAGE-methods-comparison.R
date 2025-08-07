@@ -29,10 +29,12 @@ test_that("MarginalSAGE and ConditionalSAGE produce different results on correla
 
   # Compute results with consistent seeds
   set.seed(123)
-  marginal_results = marginal_sage$compute()
+  marginal_sage$compute()
+  marginal_results = marginal_sage$importance()
   
   set.seed(123)
-  conditional_results = conditional_sage$compute()
+  conditional_sage$compute()
+  conditional_results = conditional_sage$importance()
 
   # Both should produce valid importance data.tables
   expect_importance_dt(marginal_results, features = task$feature_names)
@@ -85,8 +87,10 @@ test_that("MarginalSAGE and ConditionalSAGE are similar on independent data", {
   )
 
   # Compute results
-  marginal_results = marginal_sage$compute()
-  conditional_results = conditional_sage$compute()
+  marginal_sage$compute()
+  marginal_results = marginal_sage$importance()
+  conditional_sage$compute()
+  conditional_results = conditional_sage$importance()
 
   # Both should produce valid importance data.tables
   expect_importance_dt(marginal_results, features = task$feature_names)

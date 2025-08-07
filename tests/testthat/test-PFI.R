@@ -17,8 +17,10 @@ test_that("can be constructed with simple objects", {
 
   checkmate::expect_r6(pfi, c("FeatureImportanceMethod", "PFI"))
 
-  expect_importance_dt(pfi$compute(), features = pfi$features)
-  expect_importance_dt(pfi$compute(relation = "difference"), features = pfi$features)
+  pfi$compute()
+  expect_importance_dt(pfi$importance(), features = pfi$features)
+  pfi$compute(relation = "difference")
+  expect_importance_dt(pfi$importance(), features = pfi$features)
 })
 
 test_that("null result for featureless learner", {
@@ -39,7 +41,7 @@ test_that("null result for featureless learner", {
     key = "feature"
   )
 
-  expect_identical(pfi$importance, expected)
+  expect_identical(pfi$importance(), expected)
 })
 
 test_that("multiple perms", {
@@ -59,7 +61,7 @@ test_that("multiple perms", {
 
   pfi$compute()
 
-  expect_importance_dt(pfi$importance, features = pfi$features)
+  expect_importance_dt(pfi$importance(), features = pfi$features)
 
   checkmate::expect_data_table(
     pfi$scores,
@@ -91,7 +93,7 @@ test_that("only one feature", {
 
   pfi$compute()
 
-  expect_importance_dt(pfi$importance, features = "important4")
+  expect_importance_dt(pfi$importance(), features = "important4")
 
   checkmate::expect_data_table(
     pfi$scores,
@@ -119,17 +121,22 @@ test_that("PFI different relations (difference vs ratio)", {
   )
 
   # Default behavior should be sane
-  res_1 = pfi$compute()
+  pfi$compute()
+  res_1 = pfi$importance()
   expect_importance_dt(res_1, pfi$features)
 
-  res_2 = pfi$compute()
+  pfi$compute()
+  res_2 = pfi$importance()
   expect_identical(res_1, res_2)
 
-  res_3 = pfi$compute("difference")
+  pfi$compute("difference")
+  res_3 = pfi$importance()
   expect_identical(res_1, res_3)
 
-  res_4 = pfi$compute("ratio")
-  res_5 = pfi$compute("difference")
+  pfi$compute("ratio")
+  res_4 = pfi$importance()
+  pfi$compute("difference")
+  res_5 = pfi$importance()
 
   expect_error(expect_equal(res_4, res_5))
 
@@ -157,11 +164,13 @@ test_that("PFI with resampling", {
     iters_perm = 2
   )
 
-  res_1 = pfi$compute()
-  expect_importance_dt(pfi$importance, pfi$features)
+  pfi$compute()
+  res_1 = pfi$importance()
+  expect_importance_dt(res_1, pfi$features)
 
-  res_2 = pfi$compute("ratio")
-  expect_importance_dt(pfi$importance, pfi$features)
+  pfi$compute("ratio")
+  res_2 = pfi$importance()
+  expect_importance_dt(res_2, pfi$features)
 
   expect_error(expect_equal(res_1, res_2))
 })

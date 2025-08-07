@@ -27,8 +27,6 @@ Feature Importance Method Class
 
 \item{\code{param_set}}{(\code{\link[paradox:ps]{paradox::ps()}})}
 
-\item{\code{importance}}{(\link[data.table:data.table]{data.table}) Aggregated importance scores}
-
 \item{\code{scores}}{(\link[data.table:data.table]{data.table}) Individual performance scores used to compute \verb{$importance} per resampling iteration and permutation iteration.}
 
 \item{\code{obs_losses}}{(\link[data.table:data.table]{data.table}) Observation-wise losses when available (e.g., when using obs_loss = TRUE). Contains columns for row_ids, feature, iteration indices, individual loss values, and both reference and feature-specific predictions.}
@@ -42,7 +40,7 @@ Feature Importance Method Class
 \itemize{
 \item \href{#method-FeatureImportanceMethod-new}{\code{FeatureImportanceMethod$new()}}
 \item \href{#method-FeatureImportanceMethod-compute}{\code{FeatureImportanceMethod$compute()}}
-\item \href{#method-FeatureImportanceMethod-combine}{\code{FeatureImportanceMethod$combine()}}
+\item \href{#method-FeatureImportanceMethod-importance}{\code{FeatureImportanceMethod$importance()}}
 \item \href{#method-FeatureImportanceMethod-reset}{\code{FeatureImportanceMethod$reset()}}
 \item \href{#method-FeatureImportanceMethod-print}{\code{FeatureImportanceMethod$print()}}
 \item \href{#method-FeatureImportanceMethod-clone}{\code{FeatureImportanceMethod$clone()}}
@@ -97,39 +95,23 @@ Compute feature importance scores
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-FeatureImportanceMethod-combine"></a>}}
-\if{latex}{\out{\hypertarget{method-FeatureImportanceMethod-combine}{}}}
-\subsection{Method \code{combine()}}{
-Combine two \code{FeatureImportanceMethod} objects with computed scores.
+\if{html}{\out{<a id="method-FeatureImportanceMethod-importance"></a>}}
+\if{latex}{\out{\hypertarget{method-FeatureImportanceMethod-importance}{}}}
+\subsection{Method \code{importance()}}{
+Get aggregated importance scores.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$combine(y, ...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$importance()}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{y}}{(\link{FeatureImportanceMethod}) Object to combine. Must have computed scores.}
-
-\item{\code{...}}{(any) Unused.}
-}
-\if{html}{\out{</div>}}
-}
 \subsection{Returns}{
-A new \link{FeatureImportanceMethod} of the same subclass as \code{x} and \code{y}.
-Currently this method merges the following:
-\itemize{
-\item \verb{$scores} is combined, with \code{iter_rsmp} increased for \code{y}.
-\item \verb{$importance} is re-computed from the combined \verb{$scores}.
-\item \verb{$resample_result} is combined to a \link[mlr3:BenchmarkResult]{mlr3::BenchmarkResult}
-\item \verb{$resampling} is combined into a \link[mlr3:mlr_resamplings_custom]{mlr3::ResamplingCustom}, again continuing te \code{iteration} count from \code{x} with that of \code{y}.
-}
+(\link[data.table:data.table]{data.table}) Aggregated importance scores.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-FeatureImportanceMethod-reset"></a>}}
 \if{latex}{\out{\hypertarget{method-FeatureImportanceMethod-reset}{}}}
 \subsection{Method \code{reset()}}{
-Resets all stored fields populated by \verb{$compute}: \verb{$resample_result}, \verb{$importance}, \verb{$scores}, \verb{$obs_losses}, and \verb{$predictions}.
+Resets all stored fields populated by \verb{$compute}: \verb{$resample_result}, \verb{$scores}, \verb{$obs_losses}, and \verb{$predictions}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$reset()}\if{html}{\out{</div>}}
 }

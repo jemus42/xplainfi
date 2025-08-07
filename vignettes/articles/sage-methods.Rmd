@@ -99,7 +99,7 @@ Let's visualize the results:
 ```{r marginal-sage-plot}
 #| echo: false
 # Extract importance scores
-marginal_results = marginal_sage$importance
+marginal_results = marginal_sage$importance()
 marginal_results$method = "Marginal SAGE"
 
 # Create a factor with proper ordering
@@ -162,7 +162,7 @@ Let's visualize the conditional SAGE results:
 #| echo: false
 
 # Extract importance scores
-conditional_results = conditional_sage$importance
+conditional_results = conditional_sage$importance()
 conditional_results$method = "Conditional SAGE"
 
 # Create a factor with proper ordering
@@ -289,8 +289,10 @@ For reference, let's compare SAGE methods with the analogous PFI and CFI methods
 pfi = PFI$new(task, learner, measure)
 cfi = CFI$new(task, learner, measure) 
 
-pfi_results = pfi$compute()
-cfi_results = cfi$compute()
+pfi$compute()
+cfi$compute()
+pfi_results = pfi$importance()
+cfi_results = cfi$importance()
 
 # Create comparison data frame
 method_comparison = data.frame(

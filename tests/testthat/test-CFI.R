@@ -18,8 +18,10 @@ test_that("CFI can be constructed with simple objects", {
 
   checkmate::expect_r6(cfi, c("FeatureImportanceMethod", "PerturbationImportance", "CFI"))
 
-  expect_importance_dt(cfi$compute(), features = cfi$features)
-  expect_importance_dt(cfi$compute(relation = "difference"), features = cfi$features)
+  cfi$compute()
+  expect_importance_dt(cfi$importance(), features = cfi$features)
+  cfi$compute(relation = "difference")
+  expect_importance_dt(cfi$importance(), features = cfi$features)
 })
 
 test_that("CFI uses ARFSampler by default", {
@@ -60,7 +62,7 @@ test_that("CFI with custom ARF sampler", {
   # Should use the custom sampler
   checkmate::expect_r6(cfi$sampler, "ARFSampler")
   cfi$compute()
-  expect_importance_dt(cfi$importance, features = cfi$features)
+  expect_importance_dt(cfi$importance(), features = cfi$features)
 })
 
 test_that("CFI null result for featureless learner", {
@@ -84,7 +86,7 @@ test_that("CFI null result for featureless learner", {
     key = "feature"
   )
 
-  expect_identical(cfi$importance, expected)
+  expect_identical(cfi$importance(), expected)
 })
 
 test_that("CFI multiple perms", {
@@ -105,7 +107,7 @@ test_that("CFI multiple perms", {
 
   cfi$compute()
 
-  expect_importance_dt(cfi$importance, features = cfi$features)
+  expect_importance_dt(cfi$importance(), features = cfi$features)
 
   checkmate::expect_data_table(
     cfi$scores,
@@ -138,7 +140,7 @@ test_that("CFI only one feature", {
 
   cfi$compute()
 
-  expect_importance_dt(cfi$importance, features = "important4")
+  expect_importance_dt(cfi$importance(), features = "important4")
 
   checkmate::expect_data_table(
     cfi$scores,
@@ -168,7 +170,8 @@ test_that("CFI with friedman1 produces sensible results", {
     iters_perm = 2
   )
 
-  result = cfi$compute()
+  cfi$compute()
+  result = cfi$importance()
   expect_importance_dt(result, features = cfi$features)
 
   # Check that important features (important1-5) generally have higher scores
@@ -202,17 +205,22 @@ test_that("CFI different relations (difference vs ratio)", {
   )
 
   # Default behavior should be sane
-  res_1 = cfi$compute()
+  cfi$compute()
+  res_1 = cfi$importance()
   expect_importance_dt(res_1, cfi$features)
 
-  res_2 = cfi$compute()
+  cfi$compute()
+  res_2 = cfi$importance()
   expect_identical(res_1, res_2)
 
-  res_3 = cfi$compute("difference")
+  cfi$compute("difference")
+  res_3 = cfi$importance()
   expect_identical(res_1, res_3)
 
-  res_4 = cfi$compute("ratio")
-  res_5 = cfi$compute("difference")
+  cfi$compute("ratio")
+  res_4 = cfi$importance()
+  cfi$compute("difference")
+  res_5 = cfi$importance()
 
   expect_error(expect_equal(res_4, res_5))
 
@@ -241,11 +249,13 @@ test_that("CFI with resampling", {
     iters_perm = 2
   )
 
-  res_1 = cfi$compute()
-  expect_importance_dt(cfi$importance, cfi$features)
+  cfi$compute()
+  res_1 = cfi$importance()
+  expect_importance_dt(res_1, cfi$features)
 
-  res_2 = cfi$compute("ratio")
-  expect_importance_dt(cfi$importance, cfi$features)
+  cfi$compute("ratio")
+  res_2 = cfi$importance()
+  expect_importance_dt(res_2, cfi$features)
 
   expect_error(expect_equal(res_1, res_2))
 })

@@ -152,9 +152,9 @@ SAGE = R6Class(
       min_permutations = NULL,
       check_interval = NULL
     ) {
-      # Check if already computed
-      if (!is.null(self$importance)) {
-        return(self$importance)
+      # Check if already computed (scores check instead of importance)
+      if (!is.null(self$scores)) {
+        return(self$importance())
       }
 
       # Reset convergence tracking
@@ -242,15 +242,12 @@ SAGE = R6Class(
       # Combine results across resampling iterations
       scores = rbindlist(all_scores, idcol = "iter_rsmp")
 
-      # Aggregate by feature
-      scores_agg = private$.aggregate_importances(scores)
-
       # Store results
       self$resample_result = rr
       self$scores = scores
-      self$importance = scores_agg
-
-      copy(self$importance)
+      
+      # Return aggregated importance
+      self$importance()
     },
 
     #' @description

@@ -18,7 +18,8 @@ test_that("RFI can be constructed with simple objects", {
 
   checkmate::expect_r6(rfi, c("FeatureImportanceMethod", "PerturbationImportance", "RFI"))
 
-  expect_importance_dt(rfi$compute(), features = rfi$features)
+  rfi$compute()
+  expect_importance_dt(rfi$importance(), features = rfi$features)
   expect_importance_dt(rfi$compute(relation = "difference"), features = rfi$features)
 })
 
@@ -61,7 +62,8 @@ test_that("RFI with custom conditioning set", {
 
   expect_identical(rfi$param_set$values$conditioning_set, conditioning_set)
 
-  result = rfi$compute()
+  rfi$compute()
+  result = rfi$importance()
   expect_importance_dt(result, features = rfi$features)
 })
 
@@ -97,10 +99,12 @@ test_that("RFI with empty conditioning set (equivalent to PFI)", {
 
   # Compute results
   set.seed(456) # Different seed for RFI computation
-  rfi_result = rfi$compute()
+  rfi$compute()
+  rfi_result = rfi$importance()
 
   set.seed(456) # Same seed for PFI computation
-  pfi_result = pfi$compute()
+  pfi$compute()
+  pfi_result = pfi$importance()
 
   # Both should be valid importance tables
   expect_importance_dt(rfi_result, features = rfi$features)
@@ -151,7 +155,8 @@ test_that("RFI with single conditioning feature", {
   expect_equal(length(rfi$param_set$values$conditioning_set), 1)
   expect_equal(rfi$param_set$values$conditioning_set, "x1")
 
-  result = rfi$compute()
+  rfi$compute()
+  result = rfi$importance()
   expect_importance_dt(result, features = rfi$features)
 })
 
@@ -175,7 +180,7 @@ test_that("RFI with custom ARF sampler", {
   # Should use the custom sampler
   checkmate::expect_r6(rfi$sampler, "ARFSampler")
   rfi$compute()
-  expect_importance_dt(rfi$importance, features = rfi$features)
+  expect_importance_dt(rfi$importance(), features = rfi$features)
 })
 
 test_that("RFI null result for featureless learner", {
@@ -199,7 +204,7 @@ test_that("RFI null result for featureless learner", {
     key = "feature"
   )
 
-  expect_identical(rfi$importance, expected)
+  expect_identical(rfi$importance(), expected)
 })
 
 test_that("RFI multiple perms", {
@@ -221,7 +226,7 @@ test_that("RFI multiple perms", {
 
   rfi$compute()
 
-  expect_importance_dt(rfi$importance, features = rfi$features)
+  expect_importance_dt(rfi$importance(), features = rfi$features)
 
   checkmate::expect_data_table(
     rfi$scores,
@@ -255,7 +260,7 @@ test_that("RFI only one feature", {
 
   rfi$compute()
 
-  expect_importance_dt(rfi$importance, features = "important4")
+  expect_importance_dt(rfi$importance(), features = "important4")
 
   checkmate::expect_data_table(
     rfi$scores,
@@ -286,7 +291,8 @@ test_that("RFI with friedman1 produces sensible results", {
     iters_perm = 2
   )
 
-  result = rfi$compute()
+  rfi$compute()
+  result = rfi$importance()
   expect_importance_dt(result, features = rfi$features)
 
   # Check that important features (important1-5) generally have higher scores
@@ -321,10 +327,12 @@ test_that("RFI different relations (difference vs ratio)", {
   )
 
   # Default behavior should be sane
-  res_1 = rfi$compute()
+  rfi$compute()
+  res_1 = rfi$importance()
   expect_importance_dt(res_1, rfi$features)
 
-  res_2 = rfi$compute()
+  rfi$compute()
+  res_2 = rfi$importance()
   expect_identical(res_1, res_2)
 
   res_3 = rfi$compute("difference")
@@ -361,11 +369,12 @@ test_that("RFI with resampling", {
     iters_perm = 2
   )
 
-  res_1 = rfi$compute()
-  expect_importance_dt(rfi$importance, rfi$features)
+  rfi$compute()
+  res_1 = rfi$importance()
+  expect_importance_dt(rfi$importance(), rfi$features)
 
   res_2 = rfi$compute("ratio")
-  expect_importance_dt(rfi$importance, rfi$features)
+  expect_importance_dt(rfi$importance(), rfi$features)
 
   expect_error(expect_equal(res_1, res_2))
 })
@@ -441,9 +450,12 @@ test_that("RFI different conditioning sets produce different results", {
     iters_perm = 2
   )
 
-  result_empty = rfi_empty$compute()
-  result_one = rfi_one$compute()
-  result_multi = rfi_multi$compute()
+  rfi_empty$compute()
+  result_empty = rfi_empty$importance()
+  rfi_one$compute()
+  result_one = rfi_one$importance()
+  rfi_multi$compute()
+  result_multi = rfi_multi$importance()
 
   # All should be valid importance tables
   expect_importance_dt(result_empty, features = rfi_empty$features)
@@ -452,6 +464,6 @@ test_that("RFI different conditioning sets produce different results", {
 
   # Results should generally be different (allowing for some tolerance due to randomness)
   # We don't expect exact differences but the conditioning should have some effect
-  expect_false(all(abs(result_empty$importance - result_one$importance) < 1e-10))
-  expect_false(all(abs(result_one$importance - result_multi$importance) < 1e-10))
+  expect_false(all(abs(result_empty$importance() - result_one$importance()) < 1e-10))
+  expect_false(all(abs(result_one$importance() - result_multi$importance()) < 1e-10))
 })

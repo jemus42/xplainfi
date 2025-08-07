@@ -387,10 +387,12 @@ measure <- msr("regr.mse")
 # Compute PFI
 pfi <- PFI$new(task, learner, measure)
 pfi$compute()
+pfi$importance()
 
 # Compute CFI
 cfi <- CFI$new(task, learner, measure)
 cfi$compute()
+cfi$importance()
 ```
 
 Expected pattern: PFI falsely shows high importance for spurious x2 while CFI correctly shows near-zero importance for x2

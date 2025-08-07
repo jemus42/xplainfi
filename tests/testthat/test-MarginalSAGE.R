@@ -16,7 +16,8 @@ test_that("MarginalSAGE can be constructed with simple objects", {
     n_permutations = 2L
   )
   checkmate::expect_r6(sage_binary, c("FeatureImportanceMethod", "SAGE", "MarginalSAGE"))
-  expect_importance_dt(sage_binary$compute(), features = sage_binary$features)
+  sage_binary$compute()
+  expect_importance_dt(sage_binary$importance(), features = sage_binary$features)
 
   # Test with multiclass classification
   set.seed(123)
@@ -28,7 +29,8 @@ test_that("MarginalSAGE can be constructed with simple objects", {
     n_permutations = 2L
   )
   checkmate::expect_r6(sage_multi, c("FeatureImportanceMethod", "SAGE", "MarginalSAGE"))
-  expect_importance_dt(sage_multi$compute(), features = sage_multi$features)
+  sage_multi$compute()
+  expect_importance_dt(sage_multi$importance(), features = sage_multi$features)
 
   # Test with regression
   set.seed(123)
@@ -40,7 +42,8 @@ test_that("MarginalSAGE can be constructed with simple objects", {
     n_permutations = 2L
   )
   checkmate::expect_r6(sage_regr, c("FeatureImportanceMethod", "SAGE", "MarginalSAGE"))
-  expect_importance_dt(sage_regr$compute(), features = sage_regr$features)
+  sage_regr$compute()
+  expect_importance_dt(sage_regr$importance(), features = sage_regr$features)
 })
 
 test_that("MarginalSAGE null result for featureless learner", {
@@ -60,7 +63,7 @@ test_that("MarginalSAGE null result for featureless learner", {
     importance = 0,
     key = "feature"
   )
-  expect_identical(sage_binary$importance, expected_binary)
+  expect_identical(sage_binary$importance(), expected_binary)
 
   # Test with multiclass classification
   task_multi = mlr3::tgen("cassini")$generate(n = 200)
@@ -76,7 +79,7 @@ test_that("MarginalSAGE null result for featureless learner", {
     importance = 0,
     key = "feature"
   )
-  expect_identical(sage_multi$importance, expected_multi)
+  expect_identical(sage_multi$importance(), expected_multi)
 
   # Test with regression
   task_regr = mlr3::tgen("friedman1")$generate(n = 200)
@@ -92,7 +95,7 @@ test_that("MarginalSAGE null result for featureless learner", {
     importance = 0,
     key = "feature"
   )
-  expect_identical(sage_regr$importance, expected_regr)
+  expect_identical(sage_regr$importance(), expected_regr)
 })
 
 test_that("MarginalSAGE with friedman1 produces sensible results", {
@@ -112,7 +115,8 @@ test_that("MarginalSAGE with friedman1 produces sensible results", {
     max_reference_size = 50L
   )
 
-  result = sage$compute()
+  sage$compute()
+  result = sage$importance()
   expect_importance_dt(result, features = sage$features)
 
   # Check that important features (important1-5) generally have higher scores
@@ -147,7 +151,7 @@ test_that("MarginalSAGE with multiple resampling iterations", {
     n_permutations = 2L
   )
   sage_binary$compute()
-  expect_importance_dt(sage_binary$importance, features = sage_binary$features)
+  expect_importance_dt(sage_binary$importance(), features = sage_binary$features)
   checkmate::expect_data_table(
     sage_binary$scores,
     types = c("integer", "character", "numeric"),
@@ -167,7 +171,7 @@ test_that("MarginalSAGE with multiple resampling iterations", {
     n_permutations = 2L
   )
   sage_regr$compute()
-  expect_importance_dt(sage_regr$importance, features = sage_regr$features)
+  expect_importance_dt(sage_regr$importance(), features = sage_regr$features)
   checkmate::expect_data_table(
     sage_regr$scores,
     types = c("integer", "character", "numeric"),
@@ -194,11 +198,11 @@ test_that("MarginalSAGE only one feature", {
   )
 
   sage$compute()
-  expect_importance_dt(sage$importance, features = "important4")
+  expect_importance_dt(sage$importance(), features = "important4")
 
   # Should only have one feature
-  expect_equal(nrow(sage$importance), 1L)
-  expect_equal(sage$importance$feature, "important4")
+  expect_equal(nrow(sage$importance()), 1L)
+  expect_equal(sage$importance()$feature, "important4")
 })
 
 test_that("MarginalSAGE with custom reference data", {
@@ -224,7 +228,7 @@ test_that("MarginalSAGE with custom reference data", {
     n_permutations = 2L
   )
   sage_binary$compute()
-  expect_importance_dt(sage_binary$importance, features = sage_binary$features)
+  expect_importance_dt(sage_binary$importance(), features = sage_binary$features)
   expect_equal(nrow(sage_binary$reference_data), 20L)
 
   # Test with regression
@@ -241,7 +245,7 @@ test_that("MarginalSAGE with custom reference data", {
     n_permutations = 2L
   )
   sage_regr$compute()
-  expect_importance_dt(sage_regr$importance, features = sage_regr$features)
+  expect_importance_dt(sage_regr$importance(), features = sage_regr$features)
   expect_equal(nrow(sage_regr$reference_data), 20L)
 })
 
@@ -261,7 +265,7 @@ test_that("MarginalSAGE with max_reference_size parameter", {
     n_permutations = 2L
   )
   sage_binary$compute()
-  expect_importance_dt(sage_binary$importance, features = sage_binary$features)
+  expect_importance_dt(sage_binary$importance(), features = sage_binary$features)
   expect_lte(nrow(sage_binary$reference_data), 30L)
 
   # Test with regression
@@ -274,7 +278,7 @@ test_that("MarginalSAGE with max_reference_size parameter", {
     n_permutations = 2L
   )
   sage_regr$compute()
-  expect_importance_dt(sage_regr$importance, features = sage_regr$features)
+  expect_importance_dt(sage_regr$importance(), features = sage_regr$features)
   expect_lte(nrow(sage_regr$reference_data), 30L)
 
   # Test with multiclass classification
@@ -287,7 +291,7 @@ test_that("MarginalSAGE with max_reference_size parameter", {
     n_permutations = 2L
   )
   sage_multi$compute()
-  expect_importance_dt(sage_multi$importance, features = sage_multi$features)
+  expect_importance_dt(sage_multi$importance(), features = sage_multi$features)
   expect_lte(nrow(sage_multi$reference_data), 30L)
 })
 
@@ -307,7 +311,8 @@ test_that("MarginalSAGE reproducibility with same seed", {
     measure = measure,
     n_permutations = 3L
   )
-  result1 = sage1$compute()
+  sage1$compute()
+  result1 = sage1$importance()
 
   set.seed(42)
   sage2 = MarginalSAGE$new(
@@ -316,10 +321,11 @@ test_that("MarginalSAGE reproducibility with same seed", {
     measure = measure,
     n_permutations = 3L
   )
-  result2 = sage2$compute()
+  sage2$compute()
+  result2 = sage2$importance()
 
   # Results should be identical with same seed
-  expect_equal(result1$importance, result2$importance, tolerance = 1e-10)
+  expect_equal(result1$importance(), result2$importance(), tolerance = 1e-10)
 })
 
 test_that("MarginalSAGE parameter validation", {
@@ -397,7 +403,8 @@ test_that("MarginalSAGE works with multiclass classification", {
     max_reference_size = 50L
   )
 
-  result = sage$compute()
+  sage$compute()
+  result = sage$importance()
   expect_importance_dt(result, features = sage$features)
 
   # Check that scores are finite and not all zero
@@ -477,18 +484,18 @@ test_that("MarginalSAGE batching produces consistent results", {
     # MarginalSAGE batching should produce similar results
     # Large differences are expected due to random seed interaction with batch processing
     expect_equal(
-      result_no_batch$importance,
-      result_large_batch$importance,
+      result_no_batch$importance(),
+      result_large_batch$importance(),
       tolerance = 5.0
     )
     expect_equal(
-      result_large_batch$importance,
-      result_small_batch$importance,
+      result_large_batch$importance(),
+      result_small_batch$importance(),
       tolerance = 5.0
     )
     expect_equal(
-      result_small_batch$importance,
-      result_tiny_batch$importance,
+      result_small_batch$importance(),
+      result_tiny_batch$importance(),
       tolerance = 5.0
     )
   }
@@ -529,8 +536,8 @@ test_that("MarginalSAGE batching handles edge cases", {
 
   # MarginalSAGE batching should produce similar results
   expect_equal(
-    result_batch_1$importance,
-    result_normal$importance,
+    result_batch_1$importance(),
+    result_normal$importance(),
     tolerance = 5.0
   )
 
@@ -624,7 +631,7 @@ test_that("MarginalSAGE SE-based convergence detection", {
   expect_equal(sage$n_permutations_used, 20L)
 
   # Reset for next test
-  sage$importance = NULL
+  sage$importance() = NULL
   sage$convergence_history = NULL
   sage$converged = FALSE
   sage$n_permutations_used = NULL
@@ -643,7 +650,7 @@ test_that("MarginalSAGE SE-based convergence detection", {
   expect_false(sage$converged)
 
   # Test with moderate thresholds where both criteria might be met
-  sage$importance = NULL
+  sage$importance() = NULL
   sage$convergence_history = NULL
   sage$converged = FALSE
   sage$n_permutations_used = NULL
