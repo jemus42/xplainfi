@@ -69,8 +69,8 @@ PerturbationImportance = R6Class(
       relation = match.arg(relation, c("difference", "ratio"))
 
       # Check if already computed with this relation
-      if (!is.null(self$importance) & self$param_set$values$relation == relation) {
-        return(self$importance)
+      if (!is.null(self$scores) & self$param_set$values$relation == relation) {
+        return(self$importance())
       }
 
       # Store relation
@@ -168,15 +168,12 @@ PerturbationImportance = R6Class(
 
       setkeyv(scores, c("feature", "iter_rsmp"))
 
-      # Aggregate by feature
-      scores_agg = private$.aggregate_importances(scores)
-
       # Store results
       self$resample_result = rr
       self$scores = scores
-      self$importance = scores_agg
-
-      copy(self$importance)
+      
+      # Return aggregated importance
+      self$importance()
     }
   )
 )
@@ -456,7 +453,6 @@ RFI = R6Class(
         conditioning_set = checkmate::assert_subset(conditioning_set, self$task$feature_names)
 
         # Clear cache and temporarily modify sampler's conditioning_set
-        self$importance = NULL
         self$scores = NULL
         old_conditioning_set = self$sampler$param_set$values$conditioning_set
         self$sampler$param_set$values$conditioning_set = conditioning_set

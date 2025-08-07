@@ -17,7 +17,8 @@ test_that("ConditionalSAGE can be constructed with simple objects", {
     n_permutations = 2L
   )
   checkmate::expect_r6(sage_binary, c("FeatureImportanceMethod", "SAGE", "ConditionalSAGE"))
-  expect_importance_dt(sage_binary$compute(), features = sage_binary$features)
+  sage_binary$compute()
+  expect_importance_dt(sage_binary$importance(), features = sage_binary$features)
 
   # Test with multiclass classification
   set.seed(123)
@@ -29,7 +30,8 @@ test_that("ConditionalSAGE can be constructed with simple objects", {
     n_permutations = 2L
   )
   checkmate::expect_r6(sage_multi, c("FeatureImportanceMethod", "SAGE", "ConditionalSAGE"))
-  expect_importance_dt(sage_multi$compute(), features = sage_multi$features)
+  sage_multi$compute()
+  expect_importance_dt(sage_multi$importance(), features = sage_multi$features)
 
   # Test with regression
   set.seed(123)
@@ -41,7 +43,8 @@ test_that("ConditionalSAGE can be constructed with simple objects", {
     n_permutations = 2L
   )
   checkmate::expect_r6(sage_regr, c("FeatureImportanceMethod", "SAGE", "ConditionalSAGE"))
-  expect_importance_dt(sage_regr$compute(), features = sage_regr$features)
+  sage_regr$compute()
+  expect_importance_dt(sage_regr$importance(), features = sage_regr$features)
 })
 
 test_that("ConditionalSAGE null result for featureless learner", {
@@ -63,7 +66,7 @@ test_that("ConditionalSAGE null result for featureless learner", {
     importance = 0,
     key = "feature"
   )
-  expect_identical(sage_binary$importance, expected_binary)
+  expect_identical(sage_binary$importance(), expected_binary)
 
   # Test with multiclass classification
   task_multi = mlr3::tgen("cassini")$generate(n = 200)
@@ -79,7 +82,7 @@ test_that("ConditionalSAGE null result for featureless learner", {
     importance = 0,
     key = "feature"
   )
-  expect_identical(sage_multi$importance, expected_multi)
+  expect_identical(sage_multi$importance(), expected_multi)
 
   # Test with regression
   task_regr = mlr3::tgen("friedman1")$generate(n = 200)
@@ -95,7 +98,7 @@ test_that("ConditionalSAGE null result for featureless learner", {
     importance = 0,
     key = "feature"
   )
-  expect_identical(sage_regr$importance, expected_regr)
+  expect_identical(sage_regr$importance(), expected_regr)
 })
 
 test_that("ConditionalSAGE with friedman1 produces sensible results", {
@@ -116,7 +119,8 @@ test_that("ConditionalSAGE with friedman1 produces sensible results", {
     max_reference_size = 50L
   )
 
-  result = sage$compute()
+  sage$compute()
+  result = sage$importance()
   expect_importance_dt(result, features = sage$features)
 
   # Check that important features (important1-5) generally have higher scores
@@ -174,7 +178,7 @@ test_that("ConditionalSAGE with custom sampler", {
   # Should use the custom sampler
   checkmate::expect_r6(sage$sampler, "ConditionalSampler")
   sage$compute()
-  expect_importance_dt(sage$importance, features = sage$features)
+  expect_importance_dt(sage$importance(), features = sage$features)
 })
 
 test_that("ConditionalSAGE requires predict_type='prob' for classification", {
@@ -215,7 +219,8 @@ test_that("ConditionalSAGE works with multiclass classification", {
     max_reference_size = 30L
   )
 
-  result = sage$compute()
+  sage$compute()
+  result = sage$importance()
   expect_importance_dt(result, features = sage$features)
 
   # Check that scores are finite and not all zero
@@ -229,7 +234,6 @@ test_that("ConditionalSAGE works with multiclass classification", {
 
 test_that("ConditionalSAGE batching handles edge cases", {
   skip_if_not_installed("ranger")
-  skip_if_not_installed("mlr3learners")
   skip_if_not_installed("arf")
   skip_if_not_installed("withr")
 
@@ -248,6 +252,7 @@ test_that("ConditionalSAGE batching handles edge cases", {
       max_reference_size = 10L
     )
     sage$compute(batch_size = 1)
+    sage$importance()
   })
 
   # Compare with normal result
@@ -260,13 +265,13 @@ test_that("ConditionalSAGE batching handles edge cases", {
       max_reference_size = 10L
     )
     sage$compute()
+    sage$importance()
   })
 
   expect_equal(
     result_batch_1$importance,
     result_normal$importance,
-    tolerance = 1e-10,
-    info = "ConditionalSAGE batch_size=1 should produce identical results"
+    tolerance = 1e-10
   )
 
   # Note: Resampling tests are omitted here because mlr3's internal random state
@@ -300,6 +305,7 @@ test_that("ConditionalSAGE batching with custom sampler", {
       max_reference_size = 15L
     )
     sage$compute()
+    sage$importance()
   })
 
   # Test with custom sampler - with batching
@@ -313,6 +319,7 @@ test_that("ConditionalSAGE batching with custom sampler", {
       max_reference_size = 15L
     )
     sage$compute(batch_size = 30)
+    sage$importance()
   })
 
   expect_equal(

@@ -71,8 +71,8 @@ pfi <- PFI$new(
   resampling = resampling
 )
 
-pfi_results <- pfi$compute()
-pfi_results
+pfi$compute()
+pfi$importance()
 ```
 
 The `importance` column shows the performance difference when each feature is permuted. Higher values indicate more important features.
@@ -89,12 +89,14 @@ pfi_stable <- PFI$new(
 )
 
 pfi_stable$compute()
+pfi_stable$importance()
 ```
 
 We can also use ratio instead of difference for the importance calculation:
 
 ```{r pfi-ratio}
 pfi_stable$compute(relation = "ratio")
+pfi_stable$importance()
 ```
 
 ## Leave-One-Covariate-Out (LOCO)
@@ -109,8 +111,8 @@ loco <- LOCO$new(
   resampling = resampling
 )
 
-loco_results <- loco$compute()
-loco_results
+loco$compute()
+loco$importance()
 ```
 
 LOCO is computationally expensive (requires retraining for each feature) but provides clear interpretation: higher values mean larger performance drop when the feature is removed. **Important limitation**: LOCO cannot distinguish between direct effects and indirect effects through correlated features.

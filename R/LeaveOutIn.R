@@ -78,8 +78,8 @@ LeaveOutIn = R6Class(
 
       # Check if already computed with this relation
       # Recompute if different relation chosen
-      if (!is.null(self$importance) && self$param_set$values$relation == relation) {
-        return(self$importance)
+      if (!is.null(self$scores) && self$param_set$values$relation == relation) {
+        return(self$importance())
       }
       # Store relation
       self$param_set$values$relation = relation
@@ -243,16 +243,13 @@ LeaveOutIn = R6Class(
 
       setkeyv(scores, c("feature", "iter_rsmp"))
 
-      # Aggregate by feature
-      scores_agg = private$.aggregate_importances(scores)
-
       # Store results
       # Store the baseline resample result (either full model or featureless)
       self$resample_result = rr_reference
       self$scores = scores
-      self$importance = scores_agg
-
-      copy(self$importance)
+      
+      # Return aggregated importance
+      self$importance()
     },
 
     .compute_macro_averaged = function(relation, store_backends) {
@@ -375,11 +372,11 @@ LeaveOutIn = R6Class(
       # Store results
       self$resample_result = rr_reference
       self$scores = scores
-      self$importance = scores_agg
       self$obs_losses = obs_losses_stored
       self$predictions = predictions_features
-
-      copy(self$importance)
+      
+      # Return aggregated importance
+      self$importance()
     },
 
     # Helper for macro-averaged computation: returns observation-wise losses and predictions
