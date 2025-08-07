@@ -223,14 +223,17 @@ test_that("LOCO/LOCI different relations (difference vs ratio)", {
   )
 
   # Default behavior should be sane
+  set.seed(123)
   loco$compute()
   res_1 = loco$importance()
   expect_importance_dt(res_1, loco$features)
 
+  set.seed(123)
   loco$compute()
   res_2 = loco$importance()
   expect_identical(res_1, res_2)
 
+  set.seed(123)
   loco$compute("difference")
   res_3 = loco$importance()
   expect_identical(res_1, res_3)
@@ -466,13 +469,14 @@ test_that("LOCO/LOCI with obs_loss original formulation", {
   task = mlr3::TaskRegr$new("test", data.table::data.table(x1 = x1, x2 = x2, y = y), target = "y")
   learner = mlr3::lrn("regr.lm")
 
-  # Test LOCO with obs_loss=TRUE
+  # Test LOCO with obs_loss=TRUE using median aggregation
+  measure_mae_median = mlr3::msr("regr.mae")
+  measure_mae_median$aggregator = median
   loco_obs = LOCO$new(
     task = task,
     learner = learner,
-    measure = mlr3::msr("regr.mae"),
-    obs_loss = TRUE,
-    aggregation_fun = median
+    measure = measure_mae_median,
+    obs_loss = TRUE
   )
   loco_obs$compute()
   result_obs = loco_obs$importance()
@@ -480,13 +484,14 @@ test_that("LOCO/LOCI with obs_loss original formulation", {
   expect_true(all(is.finite(result_obs$importance)))
   expect_gt(max(result_obs$importance), 0) # Should show some importance
 
-  # Test LOCI with obs_loss=TRUE
+  # Test LOCI with obs_loss=TRUE using median aggregation
+  measure_mae_median2 = mlr3::msr("regr.mae")
+  measure_mae_median2$aggregator = median
   loci_obs = LOCI$new(
     task = task,
     learner = learner,
-    measure = mlr3::msr("regr.mae"),
-    obs_loss = TRUE,
-    aggregation_fun = median
+    measure = measure_mae_median2,
+    obs_loss = TRUE
   )
   loci_obs$compute()
   result_loci = loci_obs$importance()
@@ -494,13 +499,12 @@ test_that("LOCO/LOCI with obs_loss original formulation", {
   expect_true(all(is.finite(result_loci$importance)))
   expect_gt(max(result_loci$importance), 0) # Should show some importance
 
-  # Test different aggregation function
+  # Test different aggregation function (uses measure's default mean)
   loco_mean = LOCO$new(
     task = task,
     learner = learner,
     measure = mlr3::msr("regr.mae"),
-    obs_loss = TRUE,
-    aggregation_fun = mean
+    obs_loss = TRUE
   )
   loco_mean$compute()
   result_mean = loco_mean$importance()
@@ -551,12 +555,13 @@ test_that("LOCO/LOCI obs_loss vs micro-averaged results differ appropriately", {
   result_micro = loco_micro$importance()
 
   # Macro-averaged LOCO with MAE and median
+  measure_mae_median3 = mlr3::msr("regr.mae")
+  measure_mae_median3$aggregator = median
   loco_macro = LOCO$new(
     task = task,
     learner = learner,
-    measure = mlr3::msr("regr.mae"),
-    obs_loss = TRUE,
-    aggregation_fun = median
+    measure = measure_mae_median3,
+    obs_loss = TRUE
   )
   loco_macro$compute()
   result_macro = loco_macro$importance()
@@ -589,12 +594,13 @@ test_that("LOCO/LOCI obs_losses field functionality", {
   learner = mlr3::lrn("regr.lm")
 
   # Test LOCO with obs_loss=TRUE stores obs_losses
+  measure_mae_median4 = mlr3::msr("regr.mae")
+  measure_mae_median4$aggregator = median
   loco_obs = LOCO$new(
     task = task,
     learner = learner,
-    measure = mlr3::msr("regr.mae"),
-    obs_loss = TRUE,
-    aggregation_fun = median
+    measure = measure_mae_median4,
+    obs_loss = TRUE
   )
   loco_obs$compute()
 
@@ -652,12 +658,13 @@ test_that("LOCO/LOCI obs_losses field functionality", {
   expect_true(is.null(loco_micro$obs_losses))
 
   # Test LOCI with obs_loss=TRUE
+  measure_mae_median5 = mlr3::msr("regr.mae")
+  measure_mae_median5$aggregator = median
   loci_obs = LOCI$new(
     task = task,
     learner = learner,
-    measure = mlr3::msr("regr.mae"),
-    obs_loss = TRUE,
-    aggregation_fun = median
+    measure = measure_mae_median5,
+    obs_loss = TRUE
   )
   loci_obs$compute()
 
@@ -719,15 +726,14 @@ test_that("LOCO micro-averaged and macro-averaged with mean produce equivalent r
   )
   loco_micro$compute()
 
-  # Macro-averaged approach with mean aggregation
+  # Macro-averaged approach with mean aggregation (measure's default)
   set.seed(1)
   loco_macro <- LOCO$new(
     task = task_full,
     learner = learner,
     resampling = resampling,
     measure = measure,
-    obs_loss = TRUE,
-    aggregation_fun = mean
+    obs_loss = TRUE
   )
   loco_macro$compute()
 

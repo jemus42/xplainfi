@@ -8,7 +8,7 @@
 - Add `KnockoffSampler` (#16 via @mnwright)
   - Currently does not support `conditioning_set`
 - Add `$obs_loss` and `$predictions` fields to `FeatureImportanceMeasure`, nosw used by `LOCO` and `LOCI`
-  - Both get arugments `obs_loss = FALSE` and `aggregation_fun`, defaulting to `median` in case of `obs_loss = TRUE`, to allow for macro-averaged median of absolute differences calculcation as in original LOCO formulation, rather than the micro-averaged approach calculated by default.
+  - Both get arugments `obs_loss = FALSE` use the measure's `$aggregator` for aggregation in case of `obs_loss = TRUE`, to allow for  median of absolute differences calculation as in original LOCO formulation, rather than the "micro-"averaged approach calculated by default.
 - Fix accidentally marginal `ConditionalSAGE`.
 - `SAGE` methods get convergence tracking if `early_stopping = TRUE` ([#29](https://github.com/jemus42/xplainfi/pull/29))
   - Permutations are evaluated in steps of `check_interval` at a time, after each convergence is checked
