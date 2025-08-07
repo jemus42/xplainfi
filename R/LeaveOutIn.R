@@ -18,8 +18,7 @@ LeaveOutIn = R6Class(
     #' @param direction (`character(1)`) Either "leave-out" or "leave-in".
     #' @param label (`character(1)`) Method label.
     #' @param iters_refit (`integer(1)`) Number of refit iterations per resampling iteration.
-    #' @param obs_loss (`logical(1)`) Whether to use observation-wise loss calculation (original LOCO formulation) when supported by the measure. If `FALSE` (default), uses aggregated scores.
-    #' @param aggregation_fun (`function`) Function to aggregate observation-wise losses when `obs_loss = TRUE`. Defaults to `median` for original LOCO formulation.
+    #' @param obs_loss (`logical(1)`) Whether to use observation-wise loss calculation (original LOCO formulation) when supported by the measure. If `FALSE` (default), uses aggregated scores. When `TRUE`, uses the measure's aggregation function (default: `mean`).
     initialize = function(
       task,
       learner,
@@ -29,28 +28,24 @@ LeaveOutIn = R6Class(
       direction,
       label,
       iters_refit = 1L,
-      obs_loss = FALSE,
-      aggregation_fun = median
+      obs_loss = FALSE
     ) {
       # Validate direction
       checkmate::assert_choice(direction, c("leave-out", "leave-in"))
       checkmate::assert_int(iters_refit, lower = 1L)
       checkmate::assert_flag(obs_loss)
-      checkmate::assert_function(aggregation_fun)
       self$direction = direction
 
       # params
       ps = ps(
         relation = paradox::p_fct(c("difference", "ratio"), default = "difference"),
         iters_refit = paradox::p_int(lower = 1, default = 1),
-        obs_loss = paradox::p_lgl(default = FALSE),
-        aggregation_fun = paradox::p_uty(default = median)
+        obs_loss = paradox::p_lgl(default = FALSE)
       )
       ps$values = list(
         relation = "difference",
         iters_refit = iters_refit,
-        obs_loss = obs_loss,
-        aggregation_fun = aggregation_fun
+        obs_loss = obs_loss
       )
 
       super$initialize(
@@ -241,7 +236,7 @@ LeaveOutIn = R6Class(
       # Store results
       # Store the baseline resample result (either full model or featureless)
       self$resample_result = rr_reference
-      self$scores = scores
+      self$scores = scores[]
     },
 
     .compute_macro_averaged = function(relation, store_backends) {
@@ -321,8 +316,8 @@ LeaveOutIn = R6Class(
         obs_losses[, obs_diff := loss_feature - loss_ref] # reduced_model - full_model
       }
 
-      # Aggregate observation-wise differences using specified aggregation function
-      aggregation_fun = self$param_set$values$aggregation_fun
+      # Aggregate observation-wise differences using measure's aggregation function or mean
+      aggregation_fun = self$measure$aggregator %||% mean
       scores = obs_losses[,
         list(
           importance = if (relation == "difference") {
@@ -360,7 +355,7 @@ LeaveOutIn = R6Class(
 
       # Store results
       self$resample_result = rr_reference
-      self$scores = scores
+      self$scores = scores[]
       self$obs_losses = obs_losses_stored
       self$predictions = predictions_features
     },
@@ -449,16 +444,26 @@ LeaveOutIn = R6Class(
 #' )
 #' loco$compute()
 #'
-#' # Using observation-wise losses to compute the median instead
+#' # Using observation-wise losses with measure's aggregation function
 #' loco_obsloss = LOCO$new(
 #'   task = task,
 #'   learner = lrn("regr.ranger", num.trees = 50),
-#'   measure = msr("regr.mae"), # to use absolute differences observation-wise
-#'   obs_loss = TRUE,
-#'   aggregation_fun = median
+#'   measure = msr("regr.mae"), # uses MAE's aggregation function (mean) internally
+#'   obs_loss = TRUE
 #' )
 #' loco_obsloss$compute()
 #' loco_obsloss$obs_losses
+#'
+#' # Original LOCO formulation using median aggregation
+#' mae_median = msr("regr.mae")
+#' mae_median$aggregator = median
+#' loco_original = LOCO$new(
+#'   task = task,
+#'   learner = lrn("regr.ranger", num.trees = 50),
+#'   measure = mae_median,
+#'   obs_loss = TRUE
+#' )
+#' loco_original$compute()
 #' @export
 #'
 #' @references `r print_bib("lei_2018")`
@@ -474,8 +479,7 @@ LOCO = R6Class(
     #' @param resampling ([mlr3::Resampling]) Resampling strategy. Defaults to holdout.
     #' @param features (`character()`) Features to compute importance for. Defaults to all features.
     #' @param iters_refit (`integer(1)`: `1L`) Number of refit iterations per resampling iteration.
-    #' @param obs_loss (`logical(1)`: `FALSE`) Whether to use observation-wise loss calculation (original LOCO formulation). If `FALSE`, uses aggregated scores.
-    #' @param aggregation_fun (`function`) Function to aggregate observation-wise losses when `obs_loss = TRUE`. Defaults to `median` for original LOCO formulation.
+    #' @param obs_loss (`logical(1)`: `FALSE`) Whether to use observation-wise loss calculation (original LOCO formulation). If `FALSE`, uses aggregated scores. When `TRUE`, uses the measure's aggregation function or `mean` as fallback.
     initialize = function(
       task,
       learner,
@@ -483,8 +487,7 @@ LOCO = R6Class(
       resampling = NULL,
       features = NULL,
       iters_refit = 1L,
-      obs_loss = FALSE,
-      aggregation_fun = median
+      obs_loss = FALSE
     ) {
       super$initialize(
         task = task,
@@ -495,8 +498,7 @@ LOCO = R6Class(
         direction = "leave-out",
         label = "Leave-One-Covariate-Out (LOCO)",
         iters_refit = iters_refit,
-        obs_loss = obs_loss,
-        aggregation_fun = aggregation_fun
+        obs_loss = obs_loss
       )
     }
   )
@@ -537,8 +539,7 @@ LOCI = R6Class(
     #' @param resampling ([mlr3::Resampling]) Resampling strategy. Defaults to holdout.
     #' @param features (`character()`) Features to compute importance for. Defaults to all features.
     #' @param iters_refit (`integer(1)`) Number of refit iterations per resampling iteration.
-    #' @param obs_loss (`logical(1)`) Whether to use observation-wise loss calculation (analogous to [LOCO]) when supported by the measure. If `FALSE` (default), uses aggregated scores.
-    #' @param aggregation_fun (`function`) Function to aggregate observation-wise losses when `obs_loss = TRUE`. Defaults to `median`, analogous to [LOCO].
+    #' @param obs_loss (`logical(1)`) Whether to use observation-wise loss calculation (analogous to [LOCO]) when supported by the measure. If `FALSE` (default), uses aggregated scores. When `TRUE`, uses the measure's aggregation function or `mean` as fallback.
     initialize = function(
       task,
       learner,
@@ -546,8 +547,7 @@ LOCI = R6Class(
       resampling = NULL,
       features = NULL,
       iters_refit = 1L,
-      obs_loss = FALSE,
-      aggregation_fun = median
+      obs_loss = FALSE
     ) {
       super$initialize(
         task = task,
@@ -558,8 +558,7 @@ LOCI = R6Class(
         direction = "leave-in",
         label = "Leave-One-Covariate-In (LOCI)",
         iters_refit = iters_refit,
-        obs_loss = obs_loss,
-        aggregation_fun = aggregation_fun
+        obs_loss = obs_loss
       )
     }
   )
