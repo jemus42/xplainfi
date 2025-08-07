@@ -76,16 +76,11 @@ LeaveOutIn = R6Class(
       # only if LOCO or LOCI are used
       relation = match.arg(relation)
 
-      # Check if already computed with this relation
-      # Recompute if different relation chosen
-      if (!is.null(self$scores) && self$param_set$values$relation == relation) {
-        return(self$importance())
-      }
       # Store relation
       self$param_set$values$relation = relation
 
       # Unified computation path
-      return(private$.compute_unified(relation, store_backends))
+      private$.compute_unified(relation, store_backends)
     }
   ),
 
@@ -149,10 +144,10 @@ LeaveOutIn = R6Class(
           )
         }
         # Macro-averaged: custom aggregation of observation-wise differences
-        return(private$.compute_macro_averaged(relation, store_backends))
+        private$.compute_macro_averaged(relation, store_backends)
       } else {
         # Micro-averaged: measure's default aggregation of score differences
-        return(private$.compute_micro_averaged(relation, store_backends))
+        private$.compute_micro_averaged(relation, store_backends)
       }
     },
 
@@ -247,9 +242,6 @@ LeaveOutIn = R6Class(
       # Store the baseline resample result (either full model or featureless)
       self$resample_result = rr_reference
       self$scores = scores
-      
-      # Return aggregated importance
-      self$importance()
     },
 
     .compute_macro_averaged = function(relation, store_backends) {
@@ -374,9 +366,6 @@ LeaveOutIn = R6Class(
       self$scores = scores
       self$obs_losses = obs_losses_stored
       self$predictions = predictions_features
-      
-      # Return aggregated importance
-      self$importance()
     },
 
     # Helper for macro-averaged computation: returns observation-wise losses and predictions

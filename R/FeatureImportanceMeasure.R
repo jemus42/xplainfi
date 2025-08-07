@@ -170,24 +170,32 @@ FeatureImportanceMethod = R6Class(
 
     #' @description
     #' Get aggregated importance scores.
+    #' The stored [`measure`][mlr::Measure] object's `aggregator` (default: `mean`) will be used to aggregated importance scores
+    #' across resampling iterations and, depending on the method use, permutations ([PerturbationImportance] or refits [LOCO]).
     #' @return ([data.table][data.table::data.table]) Aggregated importance scores.
     importance = function() {
       if (is.null(self$scores)) {
         return(NULL)
       }
-      
-      # Get the aggregator function from the measure
-      aggregator = self$measure$aggregator
-      if (is.null(aggregator)) {
-        aggregator = mean
-      }
-      
       # Aggregate scores by feature using the measure's aggregator
-      scores_agg = self$scores[, list(importance = aggregator(importance)), by = feature]
-      setkeyv(scores_agg, "feature")
-      scores_agg
+
+      # Get the aggregator function from the measure
+      aggregator = self$measure$aggregator %||% mean
+      xdf = self$scores
+
+      # Skip aggregation if only one row per feature anyway
+      if (nrow(xdf) == length(unique(xdf$feature))) {
+        res = xdf[, list(feature, importance)]
+        setkeyv(res, "feature")
+        return(res)
+      }
+
+      res = xdf[, list(importance = aggregator(importance)), by = feature]
+
+      setkeyv(res, "feature")
+      res
     },
-    
+
     #' @description
     #' Resets all stored fields populated by `$compute`: `$resample_result`, `$scores`, `$obs_losses`, and `$predictions`.
     reset = function() {
@@ -222,29 +230,6 @@ FeatureImportanceMethod = R6Class(
     }
   ),
   private = list(
-    .aggregate_importances = function(xdf, include_sd = TRUE) {
-      checkmate::assert_data_table(xdf)
-      checkmate::assert_subset(c("feature", "importance"), choices = colnames(xdf))
-
-      # Skip aggregation if only one row per feature anyway
-      if (nrow(xdf) == length(unique(xdf$feature))) {
-        res = xdf[, list(feature, importance)]
-        setkeyv(res, "feature")
-        return(res)
-      }
-
-      res = xdf[, list(importance = mean(importance)), by = feature]
-
-      if (include_sd) {
-        sd = xdf[, list(sd = sd(importance)), by = feature]
-
-        res = res[sd, on = "feature"]
-      }
-
-      setkeyv(res, "feature")
-      res
-    },
-
     # Scoring utility for computing importance scores
     # Computes the relation of score before a change (e.g. PFI, LOCO, ...) and after.
     # If minimize == TRUE, then scores_post - scores_pre is computed for

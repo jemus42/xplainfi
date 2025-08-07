@@ -9,8 +9,8 @@
 #' performance among all features. Unlike perturbation-based methods,
 #' SAGE marginalizes features by integrating over their distribution.
 #' This is approximated by averaging predictions over a reference dataset.
-#' 
-#' **Standard Error Calculation**: The standard errors (SE) reported in 
+#'
+#' **Standard Error Calculation**: The standard errors (SE) reported in
 #' `$convergence_history` reflect the uncertainty in Shapley value estimation
 #' across different random permutations within a single resampling iteration.
 #' These SEs quantify the Monte Carlo sampling error for a fixed trained model
@@ -152,11 +152,6 @@ SAGE = R6Class(
       min_permutations = NULL,
       check_interval = NULL
     ) {
-      # Check if already computed (scores check instead of importance)
-      if (!is.null(self$scores)) {
-        return(self$importance())
-      }
-
       # Reset convergence tracking
       self$convergence_history = NULL
       self$converged = FALSE
@@ -245,9 +240,6 @@ SAGE = R6Class(
       # Store results
       self$resample_result = rr
       self$scores = scores
-      
-      # Return aggregated importance
-      self$importance()
     },
 
     #' @description

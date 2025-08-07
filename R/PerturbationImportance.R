@@ -171,9 +171,6 @@ PerturbationImportance = R6Class(
       # Store results
       self$resample_result = rr
       self$scores = scores
-      
-      # Return aggregated importance
-      self$importance()
     }
   )
 )
