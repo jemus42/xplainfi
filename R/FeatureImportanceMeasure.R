@@ -247,11 +247,13 @@ FeatureImportanceMethod = R6Class(
       checkmate::assert_flag(minimize)
       relation = match.arg(relation)
 
+      # I know this could be more concise but for the time I prefer it to be very obvious in what happens when
+      # General expectation -> higher score => more important
       if (minimize) {
-        # Lower is better, e.g. ce
+        # Lower is better, e.g. ce, where scores_pre is expected to be smaller and scores_post larger
         switch(relation, difference = scores_post - scores_pre, ratio = scores_post / scores_pre)
       } else {
-        # Higher is better, e.g. accuracy
+        # Higher is better, e.g. accuracy, where scores_pre is expected to be larger and scores_post smaller
         switch(relation, difference = scores_pre - scores_post, ratio = scores_pre / scores_post)
       }
     }
