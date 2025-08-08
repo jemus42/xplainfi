@@ -151,14 +151,6 @@ drop when removed).</p>
 <span><span class="co">#&gt; Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span></span>
 <span></span>
 <span><span class="va">loco</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;    feature  importance</span></span>
-<span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  noise1  0.02343712</span></span>
-<span><span class="co">#&gt; 2:  noise2  0.01808013</span></span>
-<span><span class="co">#&gt; 3:      x1 -0.14135998</span></span>
-<span><span class="co">#&gt; 4:      x2  0.11463314</span></span>
-<span><span class="co">#&gt; 5:      x3  0.65082799</span></span>
 <span><span class="va">loco</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature  importance</span></span>
@@ -200,14 +192,6 @@ performance compared to baseline).</p>
 <span><span class="co">#&gt; Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span></span>
 <span></span>
 <span><span class="va">loci</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;    feature  importance</span></span>
-<span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  noise1  0.09848467</span></span>
-<span><span class="co">#&gt; 2:  noise2 -0.05579254</span></span>
-<span><span class="co">#&gt; 3:      x1 -0.44010340</span></span>
-<span><span class="co">#&gt; 4:      x2  0.11155710</span></span>
-<span><span class="co">#&gt; 5:      x3  0.58359019</span></span>
 <span><span class="va">loci</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature  importance</span></span>
@@ -261,14 +245,6 @@ standard deviations:</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">loco_multi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;    feature  importance</span></span>
-<span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  noise1 -0.01212711</span></span>
-<span><span class="co">#&gt; 2:  noise2 -0.02467126</span></span>
-<span><span class="co">#&gt; 3:      x1 -0.08943524</span></span>
-<span><span class="co">#&gt; 4:      x2 -0.07556117</span></span>
-<span><span class="co">#&gt; 5:      x3  0.82401461</span></span>
 <span><span class="va">loco_multi</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature  importance</span></span>
@@ -461,34 +437,32 @@ of average losses using the measure’s default aggregation: <span class="math i
 \mathrm{mean}(L(Y, f(X)))\)</span>.</p>
 <p>LOCO can also be computed using the alternative approach
 (<code>obs_loss = TRUE</code>), which follows the original paper
-formulation by aggregating observation-wise differences with the median
-of absolute differences: <span class="math inline">\(\mathrm{median}(\{|L(y_i, f_{-j}(x_{i,-j}))| -
-|L(y_i, f(x_i))|\}_{i=1}^n)\)</span>, where we need to select an mlr3
-measure where the <span class="math inline">\(L_1\)</span> loss is used
-on the observation level, e.g <code>regr.mae</code>.</p>
+formulation by aggregating observation-wise differences. The aggregation
+function is taken from the measure’s <code>aggregator</code> field
+(defaulting to <code>mean</code> if not specified). For the original
+LOCO formulation with median of absolute differences, we can customize
+the measure’s aggregator: <span class="math inline">\(\mathrm{median}(\{|L(y_i, f_{-j}(x_{i,-j}))| -
+|L(y_i, f(x_i))|\}_{i=1}^n)\)</span>, where we use an mlr3 measure with
+<span class="math inline">\(L_1\)</span> loss on the observation level,
+e.g <code>regr.mae</code>.</p>
 <p>Setting <code>obs_loss = TRUE</code> provides access to individual
 observation-level differences:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Use macro-averaged approach with median aggregation</span></span>
+<span><span class="co"># Create MAE measure with median aggregator for original LOCO formulation</span></span>
+<span><span class="va">mae_median</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mae"</span><span class="op">)</span></span>
+<span><span class="va">mae_median</span><span class="op">$</span><span class="va">aggregator</span> <span class="op">&lt;-</span> <span class="va">median</span></span>
+<span></span>
 <span><span class="va">loco_obs</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  task <span class="op">=</span> <span class="va">task</span>,</span>
 <span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
-<span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mae"</span><span class="op">)</span>,  <span class="co"># MAE supports obs_loss</span></span>
-<span>  obs_loss <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  aggregation_fun <span class="op">=</span> <span class="va">median</span> <span class="co"># for the "outer" aggregation</span></span>
+<span>  measure <span class="op">=</span> <span class="va">mae_median</span>,  <span class="co"># MAE with median aggregator</span></span>
+<span>  obs_loss <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span></span>
 <span><span class="co">#&gt; Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span></span>
 <span></span>
 <span><span class="va">loco_obs</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;    feature   importance</span></span>
-<span><span class="co">#&gt;     &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  noise1  0.001274411</span></span>
-<span><span class="co">#&gt; 2:  noise2  0.003229655</span></span>
-<span><span class="co">#&gt; 3:      x1  0.001995886</span></span>
-<span><span class="co">#&gt; 4:      x2 -0.077958164</span></span>
-<span><span class="co">#&gt; 5:      x3  0.315709247</span></span>
 <span><span class="va">loco_obs</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature   importance</span></span>
@@ -689,10 +663,9 @@ from each model</li>
 <li>
 <code>obs_diff</code>: Observation-wise importance differences</li>
 </ul>
-<p>Note that in case of <code>regr.mse</code> which aggregates with the
-mean and using <code>aggregation_fun = mean</code> to aggregate the
-observation-wise losses, both approaches yield the same result, but in
-slightly different ways:</p>
+<p>Note that when using <code>regr.mse</code> (which aggregates with the
+mean) for observation-wise losses, both approaches yield the same
+result, but in slightly different ways:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">resampling</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"holdout"</span><span class="op">)</span></span>
@@ -709,9 +682,8 @@ slightly different ways:</p>
 <span>  task <span class="op">=</span> <span class="va">task</span>,</span>
 <span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
-<span>  obs_loss <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  aggregation_fun <span class="op">=</span> <span class="va">mean</span></span>
+<span>  measure <span class="op">=</span> <span class="va">measure</span>,  <span class="co"># MSE uses mean by default</span></span>
+<span>  obs_loss <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
@@ -747,18 +719,12 @@ original mlr3 prediction objects:</p>
 <span>  learner <span class="op">=</span> <span class="va">learner_classif</span>,</span>
 <span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.ce"</span><span class="op">)</span>,  <span class="co"># Classification error supports obs_loss (zero-one in this case)</span></span>
 <span>  obs_loss <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span>,  <span class="co"># Focus on just two features for clarity</span></span>
-<span>  aggregation_fun <span class="op">=</span> <span class="va">mean</span></span>
+<span>  features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span>  <span class="co"># Focus on just two features for clarity</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span></span>
 <span><span class="co">#&gt; Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span></span>
 <span></span>
 <span><span class="va">loco_classif</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;    feature importance</span></span>
-<span><span class="co">#&gt;     &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:      x1 0.04477612</span></span>
-<span><span class="co">#&gt; 2:      x2 0.00000000</span></span>
 <span><span class="va">loco_classif</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature importance</span></span>

@@ -123,6 +123,10 @@ and Relative methods)</li>
 </ul>
 <p>All methods share a common interface built on <a href="https://mlr3.mlr-org.com/" class="external-link">mlr3</a>, making them easy to use with
 any task, learner, measure, and resampling strategy.</p>
+<p>The general pattern is to call <code>$compute()</code> to calculate
+importance (which <em>always re-computes</em>), then
+<code>$importance()</code> to retrieve the aggregated results, with
+intermediate results available in <code>$scores</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="basic-example">Basic Example<a class="anchor" aria-label="anchor" href="#basic-example"></a>
@@ -159,19 +163,6 @@ when shuffled.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature   importance</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  4.858724892</span></span>
-<span><span class="co">#&gt;  2:   important2  8.155693005</span></span>
-<span><span class="co">#&gt;  3:   important3  1.109254345</span></span>
-<span><span class="co">#&gt;  4:   important4 10.784727349</span></span>
-<span><span class="co">#&gt;  5:   important5  2.395793708</span></span>
-<span><span class="co">#&gt;  6: unimportant1  0.009618005</span></span>
-<span><span class="co">#&gt;  7: unimportant2  0.080903445</span></span>
-<span><span class="co">#&gt;  8: unimportant3  0.044057887</span></span>
-<span><span class="co">#&gt;  9: unimportant4 -0.082032243</span></span>
-<span><span class="co">#&gt; 10: unimportant5 -0.137666350</span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;          feature   importance</span></span>
@@ -201,19 +192,6 @@ per resampling fold:</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pfi_stable</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature   importance</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  5.625322621</span></span>
-<span><span class="co">#&gt;  2:   important2  9.609986341</span></span>
-<span><span class="co">#&gt;  3:   important3  1.196388744</span></span>
-<span><span class="co">#&gt;  4:   important4 12.648328883</span></span>
-<span><span class="co">#&gt;  5:   important5  1.705056896</span></span>
-<span><span class="co">#&gt;  6: unimportant1 -0.002597636</span></span>
-<span><span class="co">#&gt;  7: unimportant2  0.108962283</span></span>
-<span><span class="co">#&gt;  8: unimportant3  0.039131183</span></span>
-<span><span class="co">#&gt;  9: unimportant4 -0.058408934</span></span>
-<span><span class="co">#&gt; 10: unimportant5 -0.041202334</span></span>
 <span><span class="va">pfi_stable</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;          feature   importance</span></span>
@@ -232,19 +210,6 @@ per resampling fold:</p>
 calculation:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi_stable</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature importance</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  1.9484469</span></span>
-<span><span class="co">#&gt;  2:   important2  2.4425122</span></span>
-<span><span class="co">#&gt;  3:   important3  1.2212920</span></span>
-<span><span class="co">#&gt;  4:   important4  2.9619275</span></span>
-<span><span class="co">#&gt;  5:   important5  1.3790643</span></span>
-<span><span class="co">#&gt;  6: unimportant1  0.9862282</span></span>
-<span><span class="co">#&gt;  7: unimportant2  1.0098376</span></span>
-<span><span class="co">#&gt;  8: unimportant3  1.0227458</span></span>
-<span><span class="co">#&gt;  9: unimportant4  1.0090616</span></span>
-<span><span class="co">#&gt; 10: unimportant5  0.9909342</span></span>
 <span><span class="va">pfi_stable</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;          feature importance</span></span>
@@ -259,6 +224,9 @@ calculation:</p>
 <span><span class="co">#&gt;  8: unimportant3  1.0227458</span></span>
 <span><span class="co">#&gt;  9: unimportant4  1.0090616</span></span>
 <span><span class="co">#&gt; 10: unimportant5  0.9909342</span></span></code></pre></div>
+<p><strong>Note</strong>: This API will most likely change in an
+upcoming version to enable changing the <code>"ratio"</code> without
+having to re-compute everything.</p>
 </div>
 <div class="section level2">
 <h2 id="leave-one-covariate-out-loco">Leave-One-Covariate-Out (LOCO)<a class="anchor" aria-label="anchor" href="#leave-one-covariate-out-loco"></a>
@@ -275,19 +243,6 @@ of each feature when all other features are present.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">loco</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature importance</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  3.5341950</span></span>
-<span><span class="co">#&gt;  2:   important2  5.5076635</span></span>
-<span><span class="co">#&gt;  3:   important3  0.8231575</span></span>
-<span><span class="co">#&gt;  4:   important4  7.5628028</span></span>
-<span><span class="co">#&gt;  5:   important5  0.7647955</span></span>
-<span><span class="co">#&gt;  6: unimportant1 -0.3884817</span></span>
-<span><span class="co">#&gt;  7: unimportant2 -0.3159022</span></span>
-<span><span class="co">#&gt;  8: unimportant3 -0.1991742</span></span>
-<span><span class="co">#&gt;  9: unimportant4 -0.3039987</span></span>
-<span><span class="co">#&gt; 10: unimportant5 -0.3435275</span></span>
 <span><span class="va">loco</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;          feature importance</span></span>
@@ -335,7 +290,7 @@ given the values of <code>important2</code> and
 <code>important3</code>:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sampled_conditional</span> <span class="op">&lt;-</span> <span class="va">arf_sampler</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span></span>
-<span>  feature <span class="op">=</span> <span class="st">"important1"</span>, </span>
+<span>  feature <span class="op">=</span> <span class="st">"important1"</span>,</span>
 <span>  data <span class="op">=</span> <span class="va">sample_data</span>,</span>
 <span>  conditioning_set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"important2"</span>, <span class="st">"important3"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
@@ -500,7 +455,7 @@ Let’s examine the structure of PFI’s detailed scores:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="va">scores</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span></span>
 <span>  features <span class="op">=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/duplicated.html" class="external-link">uniqueN</a></span><span class="op">(</span><span class="va">feature</span><span class="op">)</span>,</span>
-<span>  resampling_folds <span class="op">=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/duplicated.html" class="external-link">uniqueN</a></span><span class="op">(</span><span class="va">iter_rsmp</span><span class="op">)</span>, </span>
+<span>  resampling_folds <span class="op">=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/duplicated.html" class="external-link">uniqueN</a></span><span class="op">(</span><span class="va">iter_rsmp</span><span class="op">)</span>,</span>
 <span>  permutation_iters <span class="op">=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/duplicated.html" class="external-link">uniqueN</a></span><span class="op">(</span><span class="va">iter_perm</span><span class="op">)</span>,</span>
 <span>  total_scores <span class="op">=</span> <span class="va">.N</span></span>
 <span><span class="op">)</span><span class="op">]</span></span>

@@ -102,8 +102,7 @@ This is an abstract class - use LOCO or LOCI.</p>
 <span>  <span class="va">direction</span>,</span>
 <span>  <span class="va">label</span>,</span>
 <span>  iters_refit <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  obs_loss <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  aggregation_fun <span class="op">=</span> <span class="va">median</span></span>
+<span>  obs_loss <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -126,11 +125,7 @@ This is an abstract class - use LOCO or LOCI.</p>
 
 
 <dt><code>obs_loss</code></dt>
-<dd><p>(<code>logical(1)</code>) Whether to use observation-wise loss calculation (original LOCO formulation) when supported by the measure. If <code>FALSE</code> (default), uses aggregated scores.</p></dd>
-
-
-<dt><code>aggregation_fun</code></dt>
-<dd><p>(<code>function</code>) Function to aggregate observation-wise losses when <code>obs_loss = TRUE</code>. Defaults to <code>median</code> for original LOCO formulation.</p></dd>
+<dd><p>(<code>logical(1)</code>) Whether to use observation-wise loss calculation (original LOCO formulation) when supported by the measure. If <code>FALSE</code> (default), uses aggregated scores. When <code>TRUE</code>, uses the measure's aggregation function (default: <code>mean</code>).</p></dd>
 
 
 </dl><p></p></div>

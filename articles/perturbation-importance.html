@@ -153,8 +153,8 @@ destroys the crucial interaction term.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Compute importance scores</span></span>
-<span><span class="va">pfi_int_results</span> <span class="op">&lt;-</span> <span class="va">pfi_int</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
-<span><span class="va">pfi_int_results</span></span>
+<span><span class="va">pfi_int</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span><span class="va">pfi_int</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature  importance</span></span>
 <span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;</span></span>
@@ -187,8 +187,8 @@ interaction effect:</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Compute importance scores</span></span>
-<span><span class="va">cfi_int_results</span> <span class="op">&lt;-</span> <span class="va">cfi_int</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
-<span><span class="va">cfi_int_results</span></span>
+<span><span class="va">cfi_int</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span><span class="va">cfi_int</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature  importance</span></span>
 <span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;</span></span>
@@ -218,7 +218,7 @@ Let’s explore what happens when we condition on different features:</p>
 <span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  sampler <span class="op">=</span> <span class="va">sampler_int</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">rfi_int_x2_results</span> <span class="op">&lt;-</span> <span class="va">rfi_int_x2</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span><span class="va">rfi_int_x2</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># RFI conditioning on x1: "How important is x2 given we know x1?"  </span></span>
 <span><span class="va">rfi_int_x1</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/RFI.html">RFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
@@ -230,7 +230,7 @@ Let’s explore what happens when we condition on different features:</p>
 <span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  sampler <span class="op">=</span> <span class="va">sampler_int</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">rfi_int_x1_results</span> <span class="op">&lt;-</span> <span class="va">rfi_int_x1</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">rfi_int_x1</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
 <p><strong>RFI Results:</strong></p>
 <ul>
 <li>
@@ -267,8 +267,8 @@ marginal methods miss.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Combine results and calculate ratios</span></span>
 <span><span class="va">comp_int</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/rbindlist.html" class="external-link">rbindlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  <span class="va">pfi_int_results</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, <span class="va">importance</span>, method <span class="op">=</span> <span class="st">"PFI"</span><span class="op">)</span><span class="op">]</span>,</span>
-<span>  <span class="va">cfi_int_results</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, <span class="va">importance</span>, method <span class="op">=</span> <span class="st">"CFI"</span><span class="op">)</span><span class="op">]</span></span>
+<span>  <span class="va">pfi_int</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, <span class="va">importance</span>, method <span class="op">=</span> <span class="st">"PFI"</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>  <span class="va">cfi_int</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, <span class="va">importance</span>, method <span class="op">=</span> <span class="st">"CFI"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Calculate the ratio of CFI to PFI importance for interacting features</span></span>
@@ -358,8 +358,8 @@ affects both features and the outcome.</p>
 <span>  iters_perm <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">pfi_conf_results</span> <span class="op">&lt;-</span> <span class="va">pfi_conf</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
-<span><span class="va">pfi_conf_results</span></span>
+<span><span class="va">pfi_conf</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span><span class="va">pfi_conf</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;        feature importance</span></span>
 <span><span class="co">#&gt;         &lt;char&gt;      &lt;num&gt;</span></span>
@@ -391,8 +391,8 @@ affects both features and the outcome.</p>
 <span>  sampler <span class="op">=</span> <span class="va">sampler_conf</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">rfi_conf_results</span> <span class="op">&lt;-</span> <span class="va">rfi_conf</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
-<span><span class="va">rfi_conf_results</span></span>
+<span><span class="va">rfi_conf</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span><span class="va">rfi_conf</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;        feature importance</span></span>
 <span><span class="co">#&gt;         &lt;char&gt;      &lt;num&gt;</span></span>
@@ -414,8 +414,8 @@ affects both features and the outcome.</p>
 <span>  sampler <span class="op">=</span> <span class="va">sampler_conf</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">cfi_conf_results</span> <span class="op">&lt;-</span> <span class="va">cfi_conf</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
-<span><span class="va">cfi_conf_results</span></span>
+<span><span class="va">cfi_conf</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span><span class="va">cfi_conf</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;        feature importance</span></span>
 <span><span class="co">#&gt;         &lt;char&gt;      &lt;num&gt;</span></span>
@@ -452,7 +452,7 @@ performs when we can condition directly on the true confounder:</p>
 <span>  sampler <span class="op">=</span> <span class="va">sampler_conf_obs</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">rfi_conf_obs_results</span> <span class="op">&lt;-</span> <span class="va">rfi_conf_obs</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span><span class="va">rfi_conf_obs</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Compare with PFI on the same data</span></span>
 <span><span class="va">pfi_conf_obs</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
@@ -462,7 +462,7 @@ performs when we can condition directly on the true confounder:</p>
 <span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
 <span>  iters_perm <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">pfi_conf_obs_results</span> <span class="op">&lt;-</span> <span class="va">pfi_conf_obs</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">pfi_conf_obs</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Key Results:</strong></p>
 <ul>
 <li>
@@ -606,8 +606,8 @@ features:</p>
 <span>  iters_perm <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">pfi_cor_results</span> <span class="op">&lt;-</span> <span class="va">pfi_cor</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
-<span><span class="va">pfi_cor_results</span></span>
+<span><span class="va">pfi_cor</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span><span class="va">pfi_cor</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature    importance</span></span>
 <span><span class="co">#&gt;     &lt;char&gt;         &lt;num&gt;</span></span>
@@ -636,8 +636,8 @@ information about x1.</p>
 <span>  sampler <span class="op">=</span> <span class="va">sampler_cor</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">cfi_cor_results</span> <span class="op">&lt;-</span> <span class="va">cfi_cor</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
-<span><span class="va">cfi_cor_results</span></span>
+<span><span class="va">cfi_cor</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span><span class="va">cfi_cor</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature   importance</span></span>
 <span><span class="co">#&gt;     &lt;char&gt;        &lt;num&gt;</span></span>
@@ -665,7 +665,7 @@ predictors.</p>
 <span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  sampler <span class="op">=</span> <span class="va">sampler_cor</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">rfi_cor_x1_results</span> <span class="op">&lt;-</span> <span class="va">rfi_cor_x1</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
+<span><span class="va">rfi_cor_x1</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># RFI conditioning on x2: "How important is x1 given we know x2?"</span></span>
 <span><span class="va">rfi_cor_x2</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/RFI.html">RFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
@@ -677,7 +677,7 @@ predictors.</p>
 <span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  sampler <span class="op">=</span> <span class="va">sampler_cor</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">rfi_cor_x2_results</span> <span class="op">&lt;-</span> <span class="va">rfi_cor_x2</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">rfi_cor_x2</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
 <p><strong>RFI Results:</strong> - <strong>x2 given x1</strong>: 0.078
 (How much does x2 add when we already know x1?) - <strong>x1 given
 x2</strong>: 0.134 (How much does x1 add when we already know x2?)</p>
@@ -771,7 +771,7 @@ has only a direct effect on y (or no effect in the case of noise).</p>
 <span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
 <span>  iters_perm <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">pfi_ind_results</span> <span class="op">&lt;-</span> <span class="va">pfi_ind</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">pfi_ind</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
 <p>Now CFI with the ARF sampler:</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sampler_ind</span> <span class="op">=</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>task <span class="op">=</span> <span class="va">task_ind</span>, finite_bounds <span class="op">=</span> <span class="st">"local"</span><span class="op">)</span></span>
@@ -783,7 +783,7 @@ has only a direct effect on y (or no effect in the case of noise).</p>
 <span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  sampler <span class="op">=</span> <span class="va">sampler_ind</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">cfi_ind_results</span> <span class="op">&lt;-</span> <span class="va">cfi_ind</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">cfi_ind</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
 <p>RFI with empty conditioning set, basically equivalent to PFI with a
 different sampler:</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
@@ -796,7 +796,7 @@ different sampler:</p>
 <span>  iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  sampler <span class="op">=</span> <span class="va">sampler_ind</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">rfi_ind_results</span> <span class="op">&lt;-</span> <span class="va">rfi_ind</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">rfi_ind</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"difference"</span><span class="op">)</span></span></code></pre></div>
 <p>And now we visualize:</p>
 <p><img src="perturbation-importance_files/figure-html/combine-rf-plot-1.png" width="768"></p>
 </div>

@@ -100,8 +100,7 @@ feature performs better than the baseline, negative values indicate worse perfor
 <span>  resampling <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  features <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  iters_refit <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  obs_loss <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  aggregation_fun <span class="op">=</span> <span class="va">median</span></span>
+<span>  obs_loss <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -132,11 +131,7 @@ feature performs better than the baseline, negative values indicate worse perfor
 
 
 <dt><code>obs_loss</code></dt>
-<dd><p>(<code>logical(1)</code>) Whether to use observation-wise loss calculation (analogous to <a href="LOCO.html">LOCO</a>) when supported by the measure. If <code>FALSE</code> (default), uses aggregated scores.</p></dd>
-
-
-<dt><code>aggregation_fun</code></dt>
-<dd><p>(<code>function</code>) Function to aggregate observation-wise losses when <code>obs_loss = TRUE</code>. Defaults to <code>median</code>, analogous to <a href="LOCO.html">LOCO</a>.</p></dd>
+<dd><p>(<code>logical(1)</code>) Whether to use observation-wise loss calculation (analogous to <a href="LOCO.html">LOCO</a>) when supported by the measure. If <code>FALSE</code> (default), uses aggregated scores. When <code>TRUE</code>, uses the measure's aggregation function or <code>mean</code> as fallback.</p></dd>
 
 
 </dl><p></p></div>
@@ -165,7 +160,10 @@ feature performs better than the baseline, negative values indicate worse perfor
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr3.mlr-org.com" class="external-link">mlr3</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr3learners.mlr-org.com" class="external-link">mlr3learners</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">task</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tgen</a></span><span class="op">(</span><span class="st">"friedman1"</span><span class="op">)</span><span class="op">$</span><span class="fu">generate</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Standard LOCI with aggregated scores</span></span></span>
 <span class="r-in"><span><span class="va">loci</span> <span class="op">=</span> <span class="va">LOCI</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  task <span class="op">=</span> <span class="va">task</span>,</span></span>
 <span class="r-in"><span>  learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>,</span></span>
@@ -174,19 +172,57 @@ feature performs better than the baseline, negative values indicate worse perfor
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span>
 <span class="r-in"><span><span class="va">loci</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          feature importance</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;      &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  -2.406238</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  -4.115327</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  -4.727581</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4  -2.733018</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  -6.409611</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1  -3.117955</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2  -7.393254</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3  -1.405322</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4  -7.921127</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  -5.992936</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Using observation-wise losses with measure's aggregation function</span></span></span>
+<span class="r-in"><span><span class="va">loci_obsloss</span> <span class="op">=</span> <span class="va">LOCI</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  task <span class="op">=</span> <span class="va">task</span>,</span></span>
+<span class="r-in"><span>  learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mae"</span><span class="op">)</span>, <span class="co"># uses MAE's aggregation function (mean) internally</span></span></span>
+<span class="r-in"><span>  obs_loss <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span>
+<span class="r-in"><span><span class="va">loci_obsloss</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">loci_obsloss</span><span class="op">$</span><span class="va">obs_losses</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      row_ids      feature iteration iter_refit    truth response_ref</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        &lt;int&gt;       &lt;char&gt;     &lt;int&gt;      &lt;int&gt;    &lt;num&gt;        &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1:       4   important1         1          1 15.36222     14.04979</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2:       4   important2         1          1 15.36222     14.04979</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   3:       4   important3         1          1 15.36222     14.04979</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   4:       4   important4         1          1 15.36222     14.04979</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   5:       4   important5         1          1 15.36222     14.04979</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                                                </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 666:     190 unimportant1         1          1 11.60406     14.04979</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 667:     190 unimportant2         1          1 11.60406     14.04979</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 668:     190 unimportant3         1          1 11.60406     14.04979</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 669:     190 unimportant4         1          1 11.60406     14.04979</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 670:     190 unimportant5         1          1 11.60406     14.04979</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      response_feature loss_ref loss_feature   obs_diff</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 &lt;num&gt;    &lt;num&gt;        &lt;num&gt;      &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1:         15.42979 1.312421   0.06757879  1.2448426</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2:         12.11727 1.312421   3.24494453 -1.9325232</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   3:         20.14413 1.312421   4.78191717 -3.4694958</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   4:         11.69276 1.312421   3.66945606 -2.3570347</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   5:         13.48251 1.312421   1.87971032 -0.5672890</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 666:         13.96568 2.445737   2.36161915  0.0841178</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 667:         18.78093 2.445737   7.17687679 -4.7311398</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 668:         13.16344 2.445737   1.55938273  0.8863542</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 669:         15.96397 2.445737   4.35991736 -1.9141804</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 670:         12.86600 2.445737   1.26193892  1.1837980</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># LOCI with median aggregation (analogous to original LOCO)</span></span></span>
+<span class="r-in"><span><span class="va">mae_median</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mae"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">mae_median</span><span class="op">$</span><span class="va">aggregator</span> <span class="op">=</span> <span class="va">median</span></span></span>
+<span class="r-in"><span><span class="va">loci_median</span> <span class="op">=</span> <span class="va">LOCI</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  task <span class="op">=</span> <span class="va">task</span>,</span></span>
+<span class="r-in"><span>  learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  measure <span class="op">=</span> <span class="va">mae_median</span>,</span></span>
+<span class="r-in"><span>  obs_loss <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span>
+<span class="r-in"><span><span class="va">loci_median</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

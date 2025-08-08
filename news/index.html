@@ -68,7 +68,7 @@
 </li>
 </ul></li>
 <li>Add <code>$obs_loss</code> and <code>$predictions</code> fields to <code>FeatureImportanceMeasure</code>, nosw used by <code>LOCO</code> and <code>LOCI</code>
-<ul><li>Both get arugments <code>obs_loss = FALSE</code> and <code>aggregation_fun</code>, defaulting to <code>median</code> in case of <code>obs_loss = TRUE</code>, to allow for macro-averaged median of absolute differences calculcation as in original LOCO formulation, rather than the micro-averaged approach calculated by default.</li>
+<ul><li>Both get arugments <code>obs_loss = FALSE</code> use the measure’s <code>$aggregator</code> for aggregation in case of <code>obs_loss = TRUE</code>, to allow for median of absolute differences calculation as in original LOCO formulation, rather than the “micro-”averaged approach calculated by default.</li>
 </ul></li>
 <li>Fix accidentally marginal <code>ConditionalSAGE</code>.</li>
 <li>
