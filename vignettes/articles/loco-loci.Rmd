@@ -181,18 +181,21 @@ importance_combined |>
 
 The examples above aggregates predictions on each test set (`obs_loss = FALSE`), computing importance as the difference of average losses using the measure's default aggregation: $\mathrm{mean}(L(Y, f_{-j}(X_{-j}))) - \mathrm{mean}(L(Y, f(X)))$. 
 
-LOCO can also be computed using the alternative approach (`obs_loss = TRUE`), which follows the original paper formulation by aggregating observation-wise differences with the median of absolute differences: $\mathrm{median}(\{|L(y_i, f_{-j}(x_{i,-j}))| - |L(y_i, f(x_i))|\}_{i=1}^n)$, where we need to select an mlr3 measure where the $L_1$ loss is used on the observation level, e.g `regr.mae`.
+LOCO can also be computed using the alternative approach (`obs_loss = TRUE`), which follows the original paper formulation by aggregating observation-wise differences. The aggregation function is taken from the measure's `aggregator` field (defaulting to `mean` if not specified). For the original LOCO formulation with median of absolute differences, we can customize the measure's aggregator: $\mathrm{median}(\{|L(y_i, f_{-j}(x_{i,-j}))| - |L(y_i, f(x_i))|\}_{i=1}^n)$, where we use an mlr3 measure with $L_1$ loss on the observation level, e.g `regr.mae`.
 
 Setting `obs_loss = TRUE` provides access to individual observation-level differences:
 
 ```{r obs-loss-regression}
 # Use macro-averaged approach with median aggregation
+# Create MAE measure with median aggregator for original LOCO formulation
+mae_median <- msr("regr.mae")
+mae_median$aggregator <- median
+
 loco_obs <- LOCO$new(
   task = task,
   learner = learner,
-  measure = msr("regr.mae"),  # MAE supports obs_loss
-  obs_loss = TRUE,
-  aggregation_fun = median # for the "outer" aggregation
+  measure = mae_median,  # MAE with median aggregator
+  obs_loss = TRUE
 )
 
 loco_obs$compute()
@@ -230,7 +233,7 @@ Each row contains:
 - `loss_ref` / `loss_feature`: Individual losses from each model
 - `obs_diff`: Observation-wise importance differences
 
-Note that in case of `regr.mse` which aggregates with the mean and using `aggregation_fun = mean` to aggregate the observation-wise losses, both approaches yield the same result, but in slightly different ways:
+Note that when using `regr.mse` (which aggregates with the mean) for observation-wise losses, both approaches yield the same result, but in slightly different ways:
 
 ```{r obs-loss-mean-identity}
 set.seed(1)
@@ -248,9 +251,8 @@ loco_obsloss <- LOCO$new(
   task = task,
   learner = learner,
   resampling = resampling,
-  measure = measure,
-  obs_loss = TRUE,
-  aggregation_fun = mean
+  measure = measure,  # MSE uses mean by default
+  obs_loss = TRUE
 )
 
 rbind(
@@ -277,8 +279,7 @@ loco_classif <- LOCO$new(
   learner = learner_classif,
   measure = msr("classif.ce"),  # Classification error supports obs_loss (zero-one in this case)
   obs_loss = TRUE,
-  features = c("x1", "x2"),  # Focus on just two features for clarity
-  aggregation_fun = mean
+  features = c("x1", "x2")  # Focus on just two features for clarity
 )
 
 loco_classif$compute()

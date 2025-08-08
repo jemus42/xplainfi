@@ -426,7 +426,6 @@ LeaveOutIn = R6Class(
 #'
 #' @description
 #' Calculates Leave-One-Covariate-Out (LOCO) scores.
-#' Despite the name, this implementation can leave out one or more features at a time.
 #'
 #' @details
 #' LOCO measures feature importance by comparing model performance with and without
@@ -509,12 +508,13 @@ LOCO = R6Class(
 #' @title Leave-One-Covariate-In (LOCI)
 #'
 #' @description
-#' Calculates Leave-One-Covariate-In (LOCI) scores.
-#' Despite the name, this implementation can leave in one or more features at a time.
+#' Calculates Leave-One-Covariate-In (LOCI) scores. This method is primariliy implemented for
+#' completeness' sake, but in general there are more informative measures for the marginal
+#' association between a feature and the target.
 #'
 #' @details
 #' LOCI measures feature importance by training models with only each individual
-#' feature (or feature subset) and comparing their performance to a featureless
+#' feature and comparing their performance to a featureless
 #' baseline model (optimal constant prediction). The importance is calculated as
 #' (featureless_model_loss - single_feature_loss). Positive values indicate the
 #' feature performs better than the baseline, negative values indicate worse performance.
