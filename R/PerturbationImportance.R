@@ -113,10 +113,12 @@ PerturbationImportance = R6Class(
                 perturbed_data = sampler$sample(feature, test_dt)
 
                 # Predict and score
-                pred = rr$learners[[iter]]$predict_newdata(
+                pred_raw = rr$learners[[iter]]$predict_newdata_fast(
                   newdata = perturbed_data,
                   task = self$task
                 )
+
+                pred = private$.construct_pred(perturbed_data, pred_raw)
 
                 score = pred$score(self$measure)
                 names(score) = feature
