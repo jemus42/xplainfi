@@ -261,6 +261,26 @@ FeatureImportanceMethod = R6Class(
         # Higher is better, e.g. accuracy, where scores_pre is expected to be larger and scores_post smaller
         switch(relation, difference = scores_pre - scores_post, ratio = scores_pre / scores_post)
       }
+    },
+    .construct_pred = function(test_dt, raw_prediction) {
+      n_test = nrow(test_dt)
+      truth = test_dt[[self$task$target_names]]
+      row_ids = seq_len(n_test)
+
+      switch(
+        self$task$task_type,
+        classif = PredictionClassif$new(
+          row_ids = row_ids,
+          truth = truth,
+          response = raw_prediction$response, # vector of class names or NULL
+          prob = raw_prediction$prob # matrix for predict_type prob or NULL
+        ),
+        regr = PredictionRegr$new(
+          row_ids = row_ids,
+          truth = truth,
+          response = raw_prediction$response # numeric
+        )
+      )
     }
   )
 )
