@@ -151,5 +151,31 @@ bibentries = c(
     pages = "307",
     issn = "1471-2105",
     doi = "10.1186/1471-2105-9-307"
+  ),
+
+  molnar_2023 = bibentry(
+    "inproceedings",
+    title = "Relating the Partial Dependence Plot and Permutation Feature Importance to the Data Generating Process",
+    booktitle = "Explainable Artificial Intelligence",
+    author = "Molnar, Christoph and Freiesleben, Timo and K\u00f6nig, Gunnar and Herbinger, Julia and Reisinger, Tim and Casalicchio, Giuseppe and Wright, Marvin N. and Bischl, Bernd",
+    editor = "Longo, Luca",
+    year = "2023",
+    pages = "456--479",
+    publisher = "Springer Nature Switzerland",
+    doi = "10.1007/978-3-031-44064-9_24",
+    isbn = "978-3-031-44064-9"
+  ),
+
+  nadaeu_2003 = bibentry(
+    "article",
+    title = "Inference for the Generalization Error",
+    author = "Nadeau, Claude and Bengio, Yoshua",
+    year = "2003",
+    journal = "Machine Learning",
+    volume = "52",
+    number = "3",
+    pages = "239--281",
+    issn = "1573-0565",
+    doi = "10.1023/A:1024068626366"
   )
 )

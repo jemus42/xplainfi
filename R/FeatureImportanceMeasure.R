@@ -176,11 +176,53 @@ FeatureImportanceMethod = R6Class(
     #' The stored [`measure`][mlr3::Measure] object's `aggregator` (default: `mean`) will be used to aggregated importance scores
     #' across resampling iterations and, depending on the method use, permutations ([PerturbationImportance] or refits [LOCO]).
     #' @param standardize (`logical(1)`: `FALSE`) If `TRUE`, importances are standardized by the highest score so all scores fall in `[-1, 1]`.
-    #' @return ([data.table][data.table::data.table]) Aggregated importance scores.
-    importance = function(standardize = FALSE) {
+    #' @param variance_method (`character(1)`: `"none"`) Variance method to use, defaulting to omitting variance estimation (`"none"`).
+    #'   If `"raw"`, uncorrected (biased!) variance estimates are provided purely for informative purposes.
+    #'   If `"nadeau_bengio"`, variance correction is performed according to Nadeau & bengio (2003) as suggested by Molnar et al. (2023).
+    #'   See details.
+    #' @param conf_level (`numeric(1): 0.95`): Conficence level to use for confidence interval construction when `variance_method != "none"`.
+    #' @return ([data.table][data.table::data.table]) Aggregated importance scores. with variables `"feature", "importance"`
+    #' and depending in `variance_method` also `"var", "conf_lower", "conf_upper"`.
+    #'
+    #' @note Even if `measure` uses an `aggregator` function that is not the mean, variance estimation currently will always use [stats::var()].
+    #'
+    #' @details
+    #' Variance estimates for importance scores are biased due to the resampling procedure. Molnar et al. (2023) suggest to use
+    #' the variance correction factor proposed by Nadeau & Bengio (2003) of n2/n1, where n2 and n1 are the sizes of the test- and train set, respectively.
+    #' This should then be combined with approx. 15 iterations of bootstrapping or subsampling. Note however that the use of bootstrapping in this
+    #' context can lead to problematic information leakage when combined with learners that perform bootstrapping themselves, most famously Random Forest learners.
+    #' In such cases, observations may be used as train- and test instances simultaneously, leading to erroneous performance estimates.
+    #'
+    #' A suggested approach leading to still imperfect, but improved variance estimates would be, for example:
+    #'
+    #' ```r
+    #' PFI$new(
+    #'   task = sim_dgp_interactions(n = 1000),
+    #'   learner = lrn("regr.ranger", num.trees = 100),
+    #'   measure = msr("regr.mse"),
+    #'   # Subsampling instead of bootstrapping due to RF
+    #'   resampling = rsmp("subsampling", repeats = 15),
+    #'   iters_perm = 5
+    #' )
+    #' ```
+    #'
+    #' Note that `iters_perm = 5` in this context only improves the stability of the PFI estimate within the resampling iteration, whereas `rsmp("subsampling", repeats = 15)`
+    #' is used to accounter for learner variance and neccessitates variance correction factor.
+    #'
+    #' @references
+    #' `r print_bib("nadaeu_2003")`
+    #' `r print_bib("molnar_2023")`
+    #'
+    importance = function(
+      standardize = FALSE,
+      variance_method = c("none", "raw", "nadeau_bengio"),
+      conf_level = 0.95
+    ) {
       if (is.null(self$scores)) {
         return(NULL)
       }
+      variance_method = match.arg(variance_method)
+      checkmate::assert_number(conf_level, lower = 0, upper = 1)
       # Aggregate scores by feature using the measure's aggregator
 
       # Get the aggregator function from the measure
@@ -194,10 +236,48 @@ FeatureImportanceMethod = R6Class(
         return(res)
       }
 
-      res = xdf[, list(importance = aggregator(importance)), by = feature]
-
       if (standardize) {
         res[, importance := importance / max(importance, na.rm = TRUE)]
+      }
+
+      # Variance estimation / correction
+      resample_iters = self$resample_result$iters
+      adjustment_factor = 1
+
+      if (variance_method == "nadeau_bengio") {
+        # Correction factor is test_size / train_size, which we average over resampling iterations just in case.
+        correction_factor = mean(vapply(
+          seq_len(resample_iters),
+          \(i) {
+            length(self$resample_result$resampling$test_set(i)) /
+              length(self$resample_result$resampling$train_set(i))
+          },
+          numeric(1)
+        ))
+
+        # (1 / m )+ c in Molnar et al. (2023)
+        adjustment_factor = (1 / resample_iters) + correction_factor
+      }
+
+      res = xdf[,
+        # This currently allows getting the MAE with aggregator = median but still getting "regular" variance
+        list(importance = aggregator(importance)),
+        by = feature
+      ]
+
+      if (variance_method != "none") {
+        res_var = xdf[,
+          # This currently allows getting the MAE with aggregator = median but still getting "regular" variance / sd
+          list(sd = adjustment_factor * sd(importance)),
+          by = feature
+        ]
+
+        res = res[res_var, on = "feature"]
+
+        res[, let(
+          conf_lower = importance + qt((1 - conf_level) / 2, df = resample_iters - 1) * sd,
+          conf_upper = importance - qt((1 - conf_level) / 2, df = resample_iters - 1) * sd
+        )]
       }
 
       setkeyv(res, "feature")
