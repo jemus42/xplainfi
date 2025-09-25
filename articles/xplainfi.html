@@ -196,16 +196,16 @@ per resampling fold:</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;          feature   importance</span></span>
 <span><span class="co">#&gt;           &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  5.625322621</span></span>
-<span><span class="co">#&gt;  2:   important2  9.609986341</span></span>
-<span><span class="co">#&gt;  3:   important3  1.196388744</span></span>
-<span><span class="co">#&gt;  4:   important4 12.648328883</span></span>
-<span><span class="co">#&gt;  5:   important5  1.705056896</span></span>
-<span><span class="co">#&gt;  6: unimportant1 -0.002597636</span></span>
-<span><span class="co">#&gt;  7: unimportant2  0.108962283</span></span>
-<span><span class="co">#&gt;  8: unimportant3  0.039131183</span></span>
-<span><span class="co">#&gt;  9: unimportant4 -0.058408934</span></span>
-<span><span class="co">#&gt; 10: unimportant5 -0.041202334</span></span></code></pre></div>
+<span><span class="co">#&gt;  1:   important1  5.441765987</span></span>
+<span><span class="co">#&gt;  2:   important2  7.656959223</span></span>
+<span><span class="co">#&gt;  3:   important3  1.138734047</span></span>
+<span><span class="co">#&gt;  4:   important4 12.912511477</span></span>
+<span><span class="co">#&gt;  5:   important5  2.022581485</span></span>
+<span><span class="co">#&gt;  6: unimportant1  0.008083817</span></span>
+<span><span class="co">#&gt;  7: unimportant2 -0.016775381</span></span>
+<span><span class="co">#&gt;  8: unimportant3  0.051276892</span></span>
+<span><span class="co">#&gt;  9: unimportant4  0.054493044</span></span>
+<span><span class="co">#&gt; 10: unimportant5 -0.037631558</span></span></code></pre></div>
 <p>We can also use ratio instead of difference for the importance
 calculation:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -214,16 +214,16 @@ calculation:</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;          feature importance</span></span>
 <span><span class="co">#&gt;           &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  1.9484469</span></span>
-<span><span class="co">#&gt;  2:   important2  2.4425122</span></span>
-<span><span class="co">#&gt;  3:   important3  1.2212920</span></span>
-<span><span class="co">#&gt;  4:   important4  2.9619275</span></span>
-<span><span class="co">#&gt;  5:   important5  1.3790643</span></span>
-<span><span class="co">#&gt;  6: unimportant1  0.9862282</span></span>
-<span><span class="co">#&gt;  7: unimportant2  1.0098376</span></span>
-<span><span class="co">#&gt;  8: unimportant3  1.0227458</span></span>
-<span><span class="co">#&gt;  9: unimportant4  1.0090616</span></span>
-<span><span class="co">#&gt; 10: unimportant5  0.9909342</span></span></code></pre></div>
+<span><span class="co">#&gt;  1:   important1  1.9115916</span></span>
+<span><span class="co">#&gt;  2:   important2  2.3328872</span></span>
+<span><span class="co">#&gt;  3:   important3  1.1815284</span></span>
+<span><span class="co">#&gt;  4:   important4  3.1119077</span></span>
+<span><span class="co">#&gt;  5:   important5  1.3074943</span></span>
+<span><span class="co">#&gt;  6: unimportant1  1.0014012</span></span>
+<span><span class="co">#&gt;  7: unimportant2  1.0142247</span></span>
+<span><span class="co">#&gt;  8: unimportant3  1.0073501</span></span>
+<span><span class="co">#&gt;  9: unimportant4  1.0057013</span></span>
+<span><span class="co">#&gt; 10: unimportant5  0.9931385</span></span></code></pre></div>
 <p><strong>Note</strong>: This API will most likely change in an
 upcoming version to enable changing the <code>"ratio"</code> without
 having to re-compute everything.</p>
@@ -247,16 +247,16 @@ of each feature when all other features are present.</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;          feature importance</span></span>
 <span><span class="co">#&gt;           &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  3.5341950</span></span>
-<span><span class="co">#&gt;  2:   important2  5.5076635</span></span>
-<span><span class="co">#&gt;  3:   important3  0.8231575</span></span>
-<span><span class="co">#&gt;  4:   important4  7.5628028</span></span>
-<span><span class="co">#&gt;  5:   important5  0.7647955</span></span>
-<span><span class="co">#&gt;  6: unimportant1 -0.3884817</span></span>
-<span><span class="co">#&gt;  7: unimportant2 -0.3159022</span></span>
-<span><span class="co">#&gt;  8: unimportant3 -0.1991742</span></span>
-<span><span class="co">#&gt;  9: unimportant4 -0.3039987</span></span>
-<span><span class="co">#&gt; 10: unimportant5 -0.3435275</span></span></code></pre></div>
+<span><span class="co">#&gt;  1:   important1  3.5788368</span></span>
+<span><span class="co">#&gt;  2:   important2  6.2913695</span></span>
+<span><span class="co">#&gt;  3:   important3  0.6706200</span></span>
+<span><span class="co">#&gt;  4:   important4  7.9823082</span></span>
+<span><span class="co">#&gt;  5:   important5  0.7767788</span></span>
+<span><span class="co">#&gt;  6: unimportant1 -0.1836171</span></span>
+<span><span class="co">#&gt;  7: unimportant2 -0.2041343</span></span>
+<span><span class="co">#&gt;  8: unimportant3 -0.2060322</span></span>
+<span><span class="co">#&gt;  9: unimportant4 -0.3647704</span></span>
+<span><span class="co">#&gt; 10: unimportant5 -0.1385035</span></span></code></pre></div>
 <p>LOCO is computationally expensive (requires retraining for each
 feature) but provides clear interpretation: higher values mean larger
 performance drop when the feature is removed. <strong>Important
@@ -306,11 +306,11 @@ given the values of <code>important2</code> and
 <span><span class="va">sampled_conditional</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">y</span>, <span class="va">important1</span>, <span class="va">important2</span>, <span class="va">important3</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt;           y important1  important2 important3</span></span>
 <span><span class="co">#&gt;       &lt;num&gt;      &lt;num&gt;       &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1: 20.59935  0.2666614 0.784575267  0.2372297</span></span>
-<span><span class="co">#&gt; 2: 10.48474  0.2551529 0.009429905  0.6864904</span></span>
-<span><span class="co">#&gt; 3: 19.99049  0.4023150 0.779065883  0.2258184</span></span>
-<span><span class="co">#&gt; 4: 19.70521  1.0645308 0.729390652  0.3184946</span></span>
-<span><span class="co">#&gt; 5: 21.94251  0.6319506 0.630131853  0.1739838</span></span></code></pre></div>
+<span><span class="co">#&gt; 1: 20.59935  0.5615136 0.784575267  0.2372297</span></span>
+<span><span class="co">#&gt; 2: 10.48474  0.1849156 0.009429905  0.6864904</span></span>
+<span><span class="co">#&gt; 3: 19.99049  0.4247184 0.779065883  0.2258184</span></span>
+<span><span class="co">#&gt; 4: 19.70521  0.3381281 0.729390652  0.3184946</span></span>
+<span><span class="co">#&gt; 5: 21.94251  0.1283596 0.630131853  0.1739838</span></span></code></pre></div>
 <p>This conditional sampling is essential for methods like CFI and RFI
 that need to preserve feature dependencies. See
 <code>vignette("perturbation-importance")</code> for detailed
