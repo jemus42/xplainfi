@@ -40,7 +40,7 @@ ISBN 978-3-031-44064-9, \doi{10.1007/978-3-031-44064-9_24}.
 
 \item{\code{param_set}}{(\code{\link[paradox:ps]{paradox::ps()}})}
 
-\item{\code{scores}}{(\link[data.table:data.table]{data.table}) Individual performance scores used to compute \verb{$importance} per resampling iteration and permutation iteration.}
+\item{\code{scores}}{(\link[data.table:data.table]{data.table}) Individual performance scores used to compute \verb{$importance()} per resampling iteration and permutation iteration.}
 
 \item{\code{obs_losses}}{(\link[data.table:data.table]{data.table}) Observation-wise losses when available (e.g., when using obs_loss = TRUE). Contains columns for row_ids, feature, iteration indices, individual loss values, and both reference and feature-specific predictions.}
 
