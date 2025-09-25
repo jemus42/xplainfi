@@ -21,7 +21,7 @@ FeatureImportanceMethod = R6Class(
     features = NULL,
     #' @field param_set ([paradox::ps()])
     param_set = ps(),
-    #' @field scores ([data.table][data.table::data.table]) Individual performance scores used to compute `$importance` per resampling iteration and permutation iteration.
+    #' @field scores ([data.table][data.table::data.table]) Individual performance scores used to compute `$importance()` per resampling iteration and permutation iteration.
     scores = NULL,
     #' @field obs_losses ([data.table][data.table::data.table]) Observation-wise losses when available (e.g., when using obs_loss = TRUE). Contains columns for row_ids, feature, iteration indices, individual loss values, and both reference and feature-specific predictions.
     obs_losses = NULL,
