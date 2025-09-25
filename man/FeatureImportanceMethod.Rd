@@ -8,6 +8,19 @@ Feature Importance Method Class
 
 Feature Importance Method Class
 }
+\note{
+Even if \code{measure} uses an \code{aggregator} function that is not the mean, variance estimation currently will always use \code{\link[stats:cor]{stats::var()}}.
+}
+\references{
+Nadeau, Claude, Bengio, Yoshua (2003).
+\dQuote{Inference for the Generalization Error.}
+\emph{Machine Learning}, \bold{52}(3), 239--281.
+ISSN 1573-0565, \doi{10.1023/A:1024068626366}.
+Molnar, Christoph, Freiesleben, Timo, König, Gunnar, Herbinger, Julia, Reisinger, Tim, Casalicchio, Giuseppe, Wright, N. M, Bischl, Bernd (2023).
+\dQuote{Relating the Partial Dependence Plot and Permutation Feature Importance to the Data Generating Process.}
+In Longo, Luca (eds.), \emph{Explainable Artificial Intelligence}, 456--479.
+ISBN 978-3-031-44064-9, \doi{10.1007/978-3-031-44064-9_24}.
+}
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
@@ -102,18 +115,53 @@ Get aggregated importance scores.
 The stored \code{\link[mlr3:Measure]{measure}} object's \code{aggregator} (default: \code{mean}) will be used to aggregated importance scores
 across resampling iterations and, depending on the method use, permutations (\link{PerturbationImportance} or refits \link{LOCO}).
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$importance(standardize = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$importance(
+  standardize = FALSE,
+  variance_method = c("none", "raw", "nadeau_bengio"),
+  conf_level = 0.95
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{standardize}}{(\code{logical(1)}: \code{FALSE}) If \code{TRUE}, importances are standardized by the highest score so all scores fall in \verb{[-1, 1]}.}
+
+\item{\code{variance_method}}{(\code{character(1)}: \code{"none"}) Variance method to use, defaulting to omitting variance estimation (\code{"none"}).
+If \code{"raw"}, uncorrected (biased!) variance estimates are provided purely for informative purposes.
+If \code{"nadeau_bengio"}, variance correction is performed according to Nadeau & bengio (2003) as suggested by Molnar et al. (2023).
+See details.}
+
+\item{\code{conf_level}}{(\code{numeric(1): 0.95}): Conficence level to use for confidence interval construction when \code{variance_method != "none"}.}
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Details}{
+Variance estimates for importance scores are biased due to the resampling procedure. Molnar et al. (2023) suggest to use
+the variance correction factor proposed by Nadeau & Bengio (2003) of n2/n1, where n2 and n1 are the sizes of the test- and train set, respectively.
+This should then be combined with approx. 15 iterations of bootstrapping or subsampling. Note however that the use of bootstrapping in this
+context can lead to problematic information leakage when combined with learners that perform bootstrapping themselves, most famously Random Forest learners.
+In such cases, observations may be used as train- and test instances simultaneously, leading to erroneous performance estimates.
+
+A suggested approach leading to still imperfect, but improved variance estimates would be, for example:
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{PFI$new(
+  task = sim_dgp_interactions(n = 1000),
+  learner = lrn("regr.ranger", num.trees = 100),
+  measure = msr("regr.mse"),
+  # Subsampling instead of bootstrapping due to RF
+  resampling = rsmp("subsampling", repeats = 15),
+  iters_perm = 5
+)
+}\if{html}{\out{</div>}}
+
+Note that \code{iters_perm = 5} in this context only improves the stability of the PFI estimate within the resampling iteration, whereas \code{rsmp("subsampling", repeats = 15)}
+is used to accounter for learner variance and neccessitates variance correction factor.
+}
+
 \subsection{Returns}{
-(\link[data.table:data.table]{data.table}) Aggregated importance scores.
+(\link[data.table:data.table]{data.table}) Aggregated importance scores. with variables \verb{"feature", "importance"}
+and depending in \code{variance_method} also \verb{"var", "conf_lower", "conf_upper"}.
 }
 }
 \if{html}{\out{<hr>}}
