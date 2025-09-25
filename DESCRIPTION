@@ -17,7 +17,7 @@ Imports:
     cli,
     data.table (>= 1.15.0),
     lgr,
-    mlr3 (>= 1.0.0),
+    mlr3 (>= 1.1.0),
     paradox (>= 1.0.0),
     R6,
     stats
@@ -45,4 +45,4 @@ Config/testthat/edition: 3
 Config/testthat/parallel: true
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3

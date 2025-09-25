@@ -5,7 +5,6 @@
 \title{Leave-One-Covariate-Out (LOCO)}
 \description{
 Calculates Leave-One-Covariate-Out (LOCO) scores.
-Despite the name, this implementation can leave out one or more features at a time.
 }
 \details{
 LOCO measures feature importance by comparing model performance with and without
@@ -14,7 +13,7 @@ the performance difference (reduced_model_loss - full_model_loss) indicates the
 feature's importance. Higher values indicate more important features.
 }
 \examples{
-\dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(mlr3learners)
 task = tgen("friedman1")$generate(n = 200)
 

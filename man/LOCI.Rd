@@ -4,18 +4,19 @@
 \alias{LOCI}
 \title{Leave-One-Covariate-In (LOCI)}
 \description{
-Calculates Leave-One-Covariate-In (LOCI) scores.
-Despite the name, this implementation can leave in one or more features at a time.
+Calculates Leave-One-Covariate-In (LOCI) scores. This method is primariliy implemented for
+completeness' sake, but in general there are more informative measures for the marginal
+association between a feature and the target.
 }
 \details{
 LOCI measures feature importance by training models with only each individual
-feature (or feature subset) and comparing their performance to a featureless
+feature and comparing their performance to a featureless
 baseline model (optimal constant prediction). The importance is calculated as
 (featureless_model_loss - single_feature_loss). Positive values indicate the
 feature performs better than the baseline, negative values indicate worse performance.
 }
 \examples{
-\dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(mlr3)
 library(mlr3learners)
 task = tgen("friedman1")$generate(n = 200)

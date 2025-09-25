@@ -104,6 +104,9 @@ PerturbationImportance = R6Class(
 
         rbindlist(
           lapply(seq_len(iters_perm), \(iter_perm) {
+            # Extract the learner here once because apparently reassembly is expensive
+            this_learner = rr$learners[[iter]]
+
             scores_post = vapply(
               self$features,
               \(feature) {
@@ -113,10 +116,12 @@ PerturbationImportance = R6Class(
                 perturbed_data = sampler$sample(feature, test_dt)
 
                 # Predict and score
-                pred = rr$learners[[iter]]$predict_newdata(
+                pred_raw = this_learner$predict_newdata_fast(
                   newdata = perturbed_data,
                   task = self$task
                 )
+
+                pred = private$.construct_pred(perturbed_data, pred_raw)
 
                 score = pred$score(self$measure)
                 names(score) = feature

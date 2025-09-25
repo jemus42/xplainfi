@@ -173,7 +173,7 @@ FeatureImportanceMethod = R6Class(
 
     #' @description
     #' Get aggregated importance scores.
-    #' The stored [`measure`][mlr::Measure] object's `aggregator` (default: `mean`) will be used to aggregated importance scores
+    #' The stored [`measure`][mlr3::Measure] object's `aggregator` (default: `mean`) will be used to aggregated importance scores
     #' across resampling iterations and, depending on the method use, permutations ([PerturbationImportance] or refits [LOCO]).
     #' @param standardize (`logical(1)`: `FALSE`) If `TRUE`, importances are standardized by the highest score so all scores fall in `[-1, 1]`.
     #' @return ([data.table][data.table::data.table]) Aggregated importance scores.
@@ -264,6 +264,29 @@ FeatureImportanceMethod = R6Class(
         # Higher is better, e.g. accuracy, where scores_pre is expected to be larger and scores_post smaller
         switch(relation, difference = scores_pre - scores_post, ratio = scores_pre / scores_post)
       }
+    },
+    # Take the raw predictions as returned by $predict_newdata_fast and convert to Prediction object fitting the task type
+    # @param test_dt `data.table` with test target values
+    # @param raw_prediction `list` with elements `reponse` (vector) or `prob` (matrix) depending on task type.
+    .construct_pred = function(test_dt, raw_prediction) {
+      n_test = nrow(test_dt)
+      truth = test_dt[[self$task$target_names]]
+      row_ids = seq_len(n_test)
+
+      switch(
+        self$task$task_type,
+        classif = PredictionClassif$new(
+          row_ids = row_ids,
+          truth = truth,
+          response = raw_prediction$response, # vector of class names or NULL
+          prob = raw_prediction$prob # matrix for predict_type prob or NULL
+        ),
+        regr = PredictionRegr$new(
+          row_ids = row_ids,
+          truth = truth,
+          response = raw_prediction$response # numeric
+        )
+      )
     }
   )
 )

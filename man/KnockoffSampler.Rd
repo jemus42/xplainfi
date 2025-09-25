@@ -10,7 +10,7 @@ Implements conditional sampling using Knockoffs.
 The KnockoffSampler samples \link[knockoff:knockoff]{Knockoffs} based on the task data.
 }
 \examples{
-\dontshow{if (requireNamespace("knockoff", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (requireNamespace("knockoff", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(mlr3)
 task = tgen("2dnormals")$generate(n = 100)
 # Create sampler with default parameters
