@@ -636,7 +636,7 @@ SAGE = R6Class(
               "Predicting on {.val {nrow(batch_data)}} instances in batch {.val {batch_idx}/{n_batches}}"
             )
           }
-          pred_result = learner$predict_newdata(newdata = batch_data, task = self$task)
+          pred_result = learner$predict_newdata_fast(newdata = batch_data, task = self$task)
 
           # Store the predictions (probabilities for classification, response for regression).
           if (self$task$task_type == "classif") {
@@ -659,7 +659,7 @@ SAGE = R6Class(
           cli::cli_inform("Predicting on {.val {nrow(combined_data)}} instances at once")
         }
 
-        pred_result = learner$predict_newdata(newdata = combined_data, task = self$task)
+        pred_result = learner$predict_newdata_fast(newdata = combined_data, task = self$task)
 
         if (self$task$task_type == "classif") {
           combined_predictions = pred_result$prob
@@ -989,7 +989,7 @@ ConditionalSAGE = R6Class(
             )
           }
 
-          pred_result = learner$predict_newdata(newdata = batch_data, task = self$task)
+          pred_result = learner$predict_newdata_fast(newdata = batch_data, task = self$task)
 
           if (self$task$task_type == "classif") {
             all_predictions[[batch_idx]] = pred_result$prob
@@ -1010,7 +1010,7 @@ ConditionalSAGE = R6Class(
           cli::cli_inform("Predicting on {.val {nrow(combined_data)}} instances at once")
         }
 
-        pred_result = learner$predict_newdata(newdata = combined_data, task = self$task)
+        pred_result = learner$predict_newdata_fast(newdata = combined_data, task = self$task)
 
         if (self$task$task_type == "classif") {
           combined_predictions = pred_result$prob
