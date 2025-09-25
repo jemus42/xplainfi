@@ -262,6 +262,9 @@ FeatureImportanceMethod = R6Class(
         switch(relation, difference = scores_pre - scores_post, ratio = scores_pre / scores_post)
       }
     },
+    #' Take the raw predictions as returned by $predict_newdata_fast and convert to Prediction object fitting the task type
+    #' @param test_dt `data.table` with test target values
+    #' @param raw_prediction `list` with elements `reponse` (vector) or `prob` (matrix) depending on task type.
     .construct_pred = function(test_dt, raw_prediction) {
       n_test = nrow(test_dt)
       truth = test_dt[[self$task$target_names]]
