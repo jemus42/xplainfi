@@ -4,7 +4,7 @@ This turns out to be still a period of major changes in the early phase, so, uhm
 
 - Extend `ARFSampler` to store more arguments on construction, making it easier to "preconfigure" the sampler via arguments used in `$sample()`.
 - Standardize on `conditioning_set` as the name for the character vector defining features to condition on in `ConditionalSampler` and `RFI`.
-- Streamline and speedup `PerturbationImportance` implementation, also by using `learner$predict_newdata_fast()`, bumping the mlr3 dependency >= 1.1.0.
+- Streamline and speedup `PerturbationImportance` implementation, also by using `learner$predict_newdata_fast()` (#39), bumping the mlr3 dependency >= 1.1.0.
 - Add `sim_dgp_ewald()` and other `sim_dgp_*()` helpers to simulate data (in `Task` form) with simple DGPs as used for illustration in Ewald et al. (2024) for example, which should make it easier to interpret the results of various importance methods.
 - Add `KnockoffSampler` (#16 via @mnwright)
   - Currently does not support `conditioning_set`
