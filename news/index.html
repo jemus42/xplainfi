@@ -58,21 +58,25 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0.9000" id="xplainfi-0109000">xplainfi 0.1.0.9000<a class="anchor" aria-label="anchor" href="#xplainfi-0109000"></a></h2>
+<p>This turns out to be still a period of major changes in the early phase, so, uhm, well.</p>
 <ul><li>Extend <code>ARFSampler</code> to store more arguments on construction, making it easier to “preconfigure” the sampler via arguments used in <code>$sample()</code>.</li>
 <li>Standardize on <code>conditioning_set</code> as the name for the character vector defining features to condition on in <code>ConditionalSampler</code> and <code>RFI</code>.</li>
-<li>Streamline <code>PerturbationImportance</code> implementation.</li>
-<li>Add <code>batch_size</code> argument for <code>SAGE</code> methods to control number of observations used at once per <code>learner$predict_newdata()</code> call (could lead to excessive RAM usage).</li>
-<li>Add <code><a href="../reference/sim_dgp_ewald.html">sim_dgp_ewald()</a></code> to simulate data with a simple DGP as used for illustration in Ewald et al. (2024), which should make it easier to interpret the results of various importance methods.</li>
+<li>Streamline and speedup <code>PerturbationImportance</code> implementation, also by using <code>learner$predict_newdata_fast()</code> (<a href="https://github.com/jemus42/xplainfi/issues/39" class="external-link">#39</a>), bumping the mlr3 dependency &gt;= 1.1.0.</li>
+<li>Add <code><a href="../reference/sim_dgp_ewald.html">sim_dgp_ewald()</a></code> and other <code>sim_dgp_*()</code> helpers to simulate data (in <code>Task</code> form) with simple DGPs as used for illustration in Ewald et al. (2024) for example, which should make it easier to interpret the results of various importance methods.</li>
 <li>Add <code>KnockoffSampler</code> (<a href="https://github.com/jemus42/xplainfi/issues/16" class="external-link">#16</a> via <a href="https://github.com/mnwright" class="external-link">@mnwright</a>)
 <ul><li>Currently does not support <code>conditioning_set</code>
 </li>
 </ul></li>
-<li>Add <code>$obs_loss</code> and <code>$predictions</code> fields to <code>FeatureImportanceMeasure</code>, nosw used by <code>LOCO</code> and <code>LOCI</code>
+<li>Add <code>$obs_loss</code> and <code>$predictions</code> fields to <code>FeatureImportanceMeasure</code>, now used by <code>LOCO</code> and <code>LOCI</code>
 <ul><li>Both get arugments <code>obs_loss = FALSE</code> use the measure’s <code>$aggregator</code> for aggregation in case of <code>obs_loss = TRUE</code>, to allow for median of absolute differences calculation as in original LOCO formulation, rather than the “micro-”averaged approach calculated by default.</li>
 </ul></li>
-<li>Fix accidentally marginal <code>ConditionalSAGE</code>.</li>
 <li>
-<code>SAGE</code> methods get convergence tracking if <code>early_stopping = TRUE</code> (<a href="https://github.com/jemus42/xplainfi/pull/29" class="external-link">#29</a>)
+<code>SAGE</code>:
+<ul><li>Fix accidentally marginal <code>ConditionalSAGE</code>.</li>
+<li>Also using <code>learner$predict_newdata_fast()</code> now</li>
+<li>
+<code>batch_size</code> controls number of observations used at once per <code>learner$predict_newdata_fast()</code> call (could lead to excessive RAM usage).</li>
+<li>convergence tracking if <code>early_stopping = TRUE</code> (<a href="https://github.com/jemus42/xplainfi/pull/29" class="external-link">#29</a>)
 <ul><li>Permutations are evaluated in steps of <code>check_interval</code> at a time, after each convergence is checked</li>
 <li>If values change by less than <code>convergence_threshold</code>, convergence is assumed</li>
 <li>A <code>$converged</code> field is set to <code>TRUE</code>
@@ -84,6 +88,7 @@
 <code>$plot_convergence_history()</code> plots convergence history per feature</li>
 <li>Convergence is tracked only for first resampling iteration</li>
 <li>Also add standard error tracking as part of the convergence history (<a href="https://github.com/jemus42/xplainfi/pull/33" class="external-link">#33</a>)</li>
+</ul></li>
 </ul></li>
 </ul></div>
     <div class="section level2">
