@@ -66,11 +66,14 @@ FeatureImportanceMethod = R6Class(
           i = "No {.cls Resampling} provided",
           "Using {.code resampling = rsmp(\"holdout\")} with default {.code ratio = {round(resampling$param_set$values$ratio, 2)}}."
         ))
+      } else {
+        # Clone the resampling to avoid instantiating the resampling in the user's workspace
+        resampling = mlr3::assert_resampling(resampling)$clone()
       }
       if (!resampling$is_instantiated) {
         resampling$instantiate(task)
       }
-      self$resampling = mlr3::assert_resampling(resampling)
+      self$resampling = resampling
     },
 
     #' @description
