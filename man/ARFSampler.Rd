@@ -14,7 +14,7 @@ then uses it to generate samples from \eqn{P(X_j | X_{-j})} where \eqn{X_j} is t
 feature of interest and \eqn{X_{-j}} are the conditioning features.
 }
 \examples{
-\dontshow{if (requireNamespace("arf", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (requireNamespace("arf", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(mlr3)
 task = tgen("2dnormals")$generate(n = 100)
 # Create sampler with default parameters

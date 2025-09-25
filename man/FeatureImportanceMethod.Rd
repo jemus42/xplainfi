@@ -99,7 +99,7 @@ Compute feature importance scores
 \if{latex}{\out{\hypertarget{method-FeatureImportanceMethod-importance}{}}}
 \subsection{Method \code{importance()}}{
 Get aggregated importance scores.
-The stored \code{\link[mlr:makeMeasure]{measure}} object's \code{aggregator} (default: \code{mean}) will be used to aggregated importance scores
+The stored \code{\link[mlr3:Measure]{measure}} object's \code{aggregator} (default: \code{mean}) will be used to aggregated importance scores
 across resampling iterations and, depending on the method use, permutations (\link{PerturbationImportance} or refits \link{LOCO}).
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$importance(standardize = FALSE)}\if{html}{\out{</div>}}

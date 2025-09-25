@@ -20,7 +20,7 @@ the Random Forest algorithm. The method works by:
 }
 }
 \examples{
-\dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(mlr3learners)
 task = tgen("xor", d = 5)$generate(n = 100)
 pfi = PFI$new(
