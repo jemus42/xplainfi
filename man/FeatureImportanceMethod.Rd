@@ -8,9 +8,6 @@ Feature Importance Method Class
 
 Feature Importance Method Class
 }
-\note{
-Even if \code{measure} uses an \code{aggregator} function that is not the mean, variance estimation currently will always use \code{\link[stats:cor]{stats::var()}}.
-}
 \references{
 Nadeau, Claude, Bengio, Yoshua (2003).
 \dQuote{Inference for the Generalization Error.}
@@ -128,8 +125,8 @@ across resampling iterations and, depending on the method use, permutations (\li
 \item{\code{standardize}}{(\code{logical(1)}: \code{FALSE}) If \code{TRUE}, importances are standardized by the highest score so all scores fall in \verb{[-1, 1]}.}
 
 \item{\code{variance_method}}{(\code{character(1)}: \code{"none"}) Variance method to use, defaulting to omitting variance estimation (\code{"none"}).
-If \code{"raw"}, uncorrected (biased!) variance estimates are provided purely for informative purposes.
-If \code{"nadeau_bengio"}, variance correction is performed according to Nadeau & bengio (2003) as suggested by Molnar et al. (2023).
+If \code{"raw"}, uncorrected variance estimates are provided purely for informative purposes with \strong{invalid} confidence intervals.
+If \code{"nadeau_bengio"}, variance correction is performed according to Nadeau & Bengio (2003) as suggested by Molnar et al. (2023).
 See details.}
 
 \item{\code{conf_level}}{(\code{numeric(1): 0.95}): Conficence level to use for confidence interval construction when \code{variance_method != "none"}.}
@@ -139,11 +136,13 @@ See details.}
 \subsection{Details}{
 Variance estimates for importance scores are biased due to the resampling procedure. Molnar et al. (2023) suggest to use
 the variance correction factor proposed by Nadeau & Bengio (2003) of n2/n1, where n2 and n1 are the sizes of the test- and train set, respectively.
-This should then be combined with approx. 15 iterations of bootstrapping or subsampling. Note however that the use of bootstrapping in this
-context can lead to problematic information leakage when combined with learners that perform bootstrapping themselves, most famously Random Forest learners.
+This should then be combined with approx. 15 iterations of either bootstrapping or subsampling.
+
+The use of bootstrapping in this context can lead to problematic information leakage when combined with learners
+that perform bootstrapping themselves, e.g., Random Forest learners.
 In such cases, observations may be used as train- and test instances simultaneously, leading to erroneous performance estimates.
 
-A suggested approach leading to still imperfect, but improved variance estimates would be, for example:
+An approach leading to still imperfect, but improved variance estimates could be:
 
 \if{html}{\out{<div class="sourceCode r">}}\preformatted{PFI$new(
   task = sim_dgp_interactions(n = 1000),
@@ -155,8 +154,10 @@ A suggested approach leading to still imperfect, but improved variance estimates
 )
 }\if{html}{\out{</div>}}
 
-Note that \code{iters_perm = 5} in this context only improves the stability of the PFI estimate within the resampling iteration, whereas \code{rsmp("subsampling", repeats = 15)}
+\code{iters_perm = 5} in this context only improves the stability of the PFI estimate within the resampling iteration, whereas \code{rsmp("subsampling", repeats = 15)}
 is used to accounter for learner variance and neccessitates variance correction factor.
+
+Note that even if \code{measure} uses an \code{aggregator} function that is not the mean, variance estimation currently will always use \code{\link[=mean]{mean()}} and \code{\link[=var]{var()}}.
 }
 
 \subsection{Returns}{
