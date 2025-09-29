@@ -847,6 +847,79 @@ In the baseline scenario with independent features:
 
 3. **Noise correctly identified**: All methods correctly assign near-zero importance to the noise features.
 
+## Variance Estimation and Confidence Intervals
+
+When using resampling, xplainfi can compute confidence intervals for importance scores to quantify uncertainty. However, standard variance calculations produce confidence intervals that are too narrow when observations appear in multiple resampling folds.
+
+### Example: Corrected vs Uncorrected Confidence Intervals
+
+```{r variance-estimation}
+#| cache: true
+# Demonstrate variance correction with subsampling
+task_var <- sim_dgp_independent(n = 300)
+
+pfi_var <- PFI$new(
+  task = task_var,
+  learner = lrn("regr.ranger", num.trees = 100),
+  measure = msr("regr.mse"),
+  resampling = rsmp("subsampling", repeats = 10, ratio = 0.8),
+  iters_perm = 5
+)
+
+pfi_var$compute()
+
+# Compare variance methods
+imp_raw <- pfi_var$importance(variance_method = "raw") # Uncorrected (too narrow!)
+imp_corrected <- pfi_var$importance(variance_method = "nadeau_bengio") # Corrected
+
+# Show the difference for important features
+imp_raw[grepl("^important", feature), .(feature, importance, conf_lower, conf_upper)]
+imp_corrected[grepl("^important", feature), .(feature, importance, conf_lower, conf_upper)]
+```
+
+```{r variance-comparison-plot}
+#| echo: false
+#| fig.width: 8
+#| fig.height: 5
+# Visualize the difference
+var_comparison <- rbindlist(list(
+  imp_raw[
+    grepl("^important", feature),
+    .(feature, importance, conf_lower, conf_upper, method = "Uncorrected (too narrow!)")
+  ],
+  imp_corrected[
+    grepl("^important", feature),
+    .(feature, importance, conf_lower, conf_upper, method = "Corrected (Nadeau-Bengio)")
+  ]
+))
+
+ggplot(var_comparison, aes(x = feature, y = importance, color = method)) +
+  geom_point(position = position_dodge(width = 0.3), size = 2) +
+  geom_errorbar(
+    aes(ymin = conf_lower, ymax = conf_upper),
+    position = position_dodge(width = 0.3),
+    width = 0.15
+  ) +
+  scale_color_manual(
+    values = c("Uncorrected (too narrow!)" = "red", "Corrected (Nadeau-Bengio)" = "blue")
+  ) +
+  labs(
+    title = "Corrected vs Uncorrected Confidence Intervals",
+    subtitle = "Nadeau-Bengio correction provides honest uncertainty estimates",
+    y = "Importance Score",
+    x = NULL,
+    color = NULL
+  ) +
+  theme_minimal() +
+  theme(legend.position = "top")
+```
+
+### Practical Recommendations
+
+- Use `variance_method = "nadeau_bengio"` when using bootstrap or subsampling for improved (yet still flawed) confidence intervals
+- The default `variance_method = "none"` returns only point estimates without uncertainty
+- Never use `variance_method = "raw"` for actual results, the uncorrected intervals are misleadingly narrow
+
 ## Key Takeaways
 
 Through these four scenarios, we've demonstrated:
