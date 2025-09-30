@@ -4,7 +4,7 @@ This turns out to be still a period of major changes in the early phase, so, uhm
 
 ## General changes and improvements
 
-- `$importance` become a function `$importance()` with arguments `standardize` and `variance_method`:
+- `$importance` become a function `$importance()` with arguments `standardize` and `variance_method` (#40):
   - `"nadeau_bengio"` implements the correction method by Nadeau & Bengio (2003) recommended by Molnaet et al. (2023).
 - Add `$obs_loss` and `$predictions` fields to `FeatureImportanceMeasure`, now used by `LOCO` and `LOCI`
   - Both get arugments `obs_loss = FALSE` use the measure's `$aggregator` for aggregation in case of `obs_loss = TRUE`, to allow for  median of absolute differences calculation as in original LOCO formulation, rather than the "micro-"averaged approach calculated by default.
