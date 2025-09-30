@@ -11,10 +11,10 @@ editor_options:
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.width = 8,
-  fig.height = 6
+	collapse = TRUE,
+	comment = "#>",
+	fig.width = 8,
+	fig.height = 6
 )
 set.seed(123)
 # Quiet down
@@ -67,10 +67,10 @@ PFI is the most straightforward method: for each feature, we permute (shuffle) i
 
 ```{r pfi-basic}
 pfi <- PFI$new(
-  task = task,
-  learner = learner,
-  measure = measure,
-  resampling = resampling
+	task = task,
+	learner = learner,
+	measure = measure,
+	resampling = resampling
 )
 
 pfi$compute()
@@ -83,11 +83,11 @@ For more stable estimates, we can use multiple permutation iterations per resamp
 
 ```{r pfi-parameters}
 pfi_stable <- PFI$new(
-  task = task,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  iters_perm = 5
+	task = task,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	iters_perm = 5
 )
 
 pfi_stable$compute()
@@ -109,10 +109,10 @@ LOCO measures importance by retraining the model without each feature and compar
 
 ```{r loco-basic}
 loco <- LOCO$new(
-  task = task,
-  learner = learner,
-  measure = measure,
-  resampling = resampling
+	task = task,
+	learner = learner,
+	measure = measure,
+	resampling = resampling
 )
 
 loco$compute()
@@ -138,9 +138,9 @@ Now we'll conditionally sample the `important1` feature given the values of `imp
 
 ```{r conditional-sampling}
 sampled_conditional <- arf_sampler$sample(
-  feature = "important1",
-  data = sample_data,
-  conditioning_set = c("important2", "important3")
+	feature = "important1",
+	data = sample_data,
+	conditioning_set = c("important2", "important3")
 )
 
 sample_data[, .(y, important1, important2, important3)]
@@ -166,16 +166,16 @@ All methods store detailed scoring information for further analysis. Let's exami
 
 ```{r detailed-scores}
 head(pfi$scores, 10) |>
-  knitr::kable(digits = 4, caption = "Detailed PFI scores (first 10 rows)")
+	knitr::kable(digits = 4, caption = "Detailed PFI scores (first 10 rows)")
 ```
 
 We can also summarize the scoring structure:
 
 ```{r scoring-summary}
 pfi$scores[, .(
-  features = uniqueN(feature),
-  resampling_folds = uniqueN(iter_rsmp),
-  permutation_iters = uniqueN(iter_perm),
-  total_scores = .N
+	features = uniqueN(feature),
+	resampling_folds = uniqueN(iter_rsmp),
+	permutation_iters = uniqueN(iter_perm),
+	total_scores = .N
 )]
 ```

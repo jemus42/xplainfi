@@ -17,19 +17,19 @@
 #' require_package("seqknockoff", from = "https://github.com/kormama1/seqknockoff")
 #'
 require_package <- function(pkg, from = "cran") {
-  has_pkg <- length(find.package(pkg, quiet = TRUE)) > 0
+	has_pkg <- length(find.package(pkg, quiet = TRUE)) > 0
 
-  if (has_pkg) {
-    return(invisible(TRUE))
-  }
+	if (has_pkg) {
+		return(invisible(TRUE))
+	}
 
-  msg <- "Package {.pkg {pkg}} required but not found!"
+	msg <- "Package {.pkg {pkg}} required but not found!"
 
-  if (from == "cran") {
-    instruct <- "Install it from CRAN with {.code install.packages(\"{pkg}\")}"
-  } else {
-    instruct <- "Install it from {.url {from}}"
-  }
+	if (from == "cran") {
+		instruct <- "Install it from CRAN with {.code install.packages(\"{pkg}\")}"
+	} else {
+		instruct <- "Install it from {.url {from}}"
+	}
 
-  cli::cli_abort(c(x = msg, i = instruct))
+	cli::cli_abort(c(x = msg, i = instruct))
 }

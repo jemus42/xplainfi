@@ -15,19 +15,19 @@
 #' @param features (character()) Feature names used to test names and order of importance scores.
 #' @noRd
 expect_importance_dt = function(x, features) {
-  checkmate::expect_data_table(
-    x,
-    types = c("character", "numeric"),
-    nrows = length(features),
-    min.cols = 2,
-    any.missing = FALSE
-  )
+	checkmate::expect_data_table(
+		x,
+		types = c("character", "numeric"),
+		nrows = length(features),
+		min.cols = 2,
+		any.missing = FALSE
+	)
 
-  checkmate::expect_character(x$feature, any.missing = FALSE)
-  checkmate::expect_numeric(x$importance, any.missing = FALSE)
+	checkmate::expect_character(x$feature, any.missing = FALSE)
+	checkmate::expect_numeric(x$importance, any.missing = FALSE)
 
-  # TODO: SD can be Inf/NaN in some cases, need to robustify this
-  if ("sd" %in% colnames(x)) checkmate::expect_numeric(x$sd)
+	# TODO: SD can be Inf/NaN in some cases, need to robustify this
+	if ("sd" %in% colnames(x)) checkmate::expect_numeric(x$sd)
 }
 
 #' Expectation for individual importance score tables
@@ -44,15 +44,15 @@ expect_importance_dt = function(x, features) {
 #' @param features (character()) Feature names used to test names and order of importance scores.
 #' @noRd
 expect_score_dt = function(x, features) {
-  checkmate::expect_data_table(
-    x,
-    types = c("character", "numeric"),
-    min.rows = length(features),
-    min.cols = 5,
-    any.missing = FALSE,
-    key = c("feature", "iter_rsmp")
-  )
+	checkmate::expect_data_table(
+		x,
+		types = c("character", "numeric"),
+		min.rows = length(features),
+		min.cols = 5,
+		any.missing = FALSE,
+		key = c("feature", "iter_rsmp")
+	)
 
-  checkmate::expect_character(x$feature, any.missing = FALSE)
-  checkmate::expect_numeric(x$importance, any.missing = FALSE)
+	checkmate::expect_character(x$feature, any.missing = FALSE)
+	checkmate::expect_numeric(x$importance, any.missing = FALSE)
 }

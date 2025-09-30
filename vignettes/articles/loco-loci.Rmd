@@ -6,8 +6,8 @@ editor_options:
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
+	collapse = TRUE,
+	comment = "#>"
 )
 set.seed(123)
 # Quiet down
@@ -55,9 +55,9 @@ learner <- lrn("regr.lm")
 measure <- msr("regr.mse")
 
 loco <- LOCO$new(
-  task = task,
-  learner = learner,
-  measure = measure
+	task = task,
+	learner = learner,
+	measure = measure
 )
 
 loco$compute()
@@ -81,9 +81,9 @@ Higher values indicate more important features (better individual performance co
 
 ```{r loci-example}
 loci <- LOCI$new(
-  task = task,
-  learner = learner,
-  measure = measure
+	task = task,
+	learner = learner,
+	measure = measure
 )
 
 loci$compute()
@@ -110,11 +110,11 @@ Like PFI has `iters_perm` for multiple permutation iterations, LOCO and LOCI sup
 
 ```{r multiple-refits}
 loco_multi = LOCO$new(
-  task = task,
-  learner = learner,
-  measure = measure,
-  resampling = rsmp("cv", folds = 3),
-  iters_refit = 3L
+	task = task,
+	learner = learner,
+	measure = measure,
+	resampling = rsmp("cv", folds = 3),
+	iters_refit = 3L
 )
 
 loco_multi$compute()
@@ -122,7 +122,7 @@ loco_multi$importance()
 
 # Check individual scores with multiple refits
 loco_multi$scores[1:10, ] |>
-  knitr::kable(digits = 4, caption = "LOCO scores per refit and resampling fold")
+	knitr::kable(digits = 4, caption = "LOCO scores per refit and resampling fold")
 ```
 
 ## Comparing LOCO and LOCI
@@ -130,15 +130,15 @@ loco_multi$scores[1:10, ] |>
 ```{r comparison}
 # Combine results for comparison
 importance_combined <- rbind(
-  loco$importance()[, method := "LOCO"],
-  loci$importance()[, method := "LOCI"]
+	loco$importance()[, method := "LOCO"],
+	loci$importance()[, method := "LOCI"]
 )
 
 importance_combined <- importance_combined |>
-  dcast(feature ~ method, value.var = "importance")
+	dcast(feature ~ method, value.var = "importance")
 
 importance_combined |>
-  knitr::kable(digits = 4, caption = "LOCO vs LOCI importance scores")
+	knitr::kable(digits = 4, caption = "LOCO vs LOCI importance scores")
 ```
 
 **Interpreting the results:**
@@ -154,27 +154,27 @@ importance_combined |>
 #| fig-height: 7
 
 importance_combined |>
-  data.table::melt(
-    id.vars = "feature",
-    value.name = "score",
-    variable.name = "method"
-  ) |>
-  ggplot(aes(x = score, y = reorder(feature, score), color = method, fill = method)) +
-  facet_wrap(vars(method), ncol = 1, scales = "free") +
-  geom_col(position = "dodge", alpha = 0.7) +
-  scale_color_brewer(palette = "Set1", aesthetics = c("color", "fill")) +
-  labs(
-    title = "LOCO vs LOCI Feature Importance",
-    x = "Importance Score",
-    y = "Feature",
-    color = "Method",
-    fill = "Method"
-  ) +
-  theme_minimal(base_size = 14) +
-  theme(
-    legend.position = "bottom",
-    plot.title.position = "plot"
-  ) 
+	data.table::melt(
+		id.vars = "feature",
+		value.name = "score",
+		variable.name = "method"
+	) |>
+	ggplot(aes(x = score, y = reorder(feature, score), color = method, fill = method)) +
+	facet_wrap(vars(method), ncol = 1, scales = "free") +
+	geom_col(position = "dodge", alpha = 0.7) +
+	scale_color_brewer(palette = "Set1", aesthetics = c("color", "fill")) +
+	labs(
+		title = "LOCO vs LOCI Feature Importance",
+		x = "Importance Score",
+		y = "Feature",
+		color = "Method",
+		fill = "Method"
+	) +
+	theme_minimal(base_size = 14) +
+	theme(
+		legend.position = "bottom",
+		plot.title.position = "plot"
+	)
 ```
 
 ## Different aggregation methods in LOCO
@@ -192,10 +192,10 @@ mae_median <- msr("regr.mae")
 mae_median$aggregator <- median
 
 loco_obs <- LOCO$new(
-  task = task,
-  learner = learner,
-  measure = mae_median,  # MAE with median aggregator
-  obs_loss = TRUE
+	task = task,
+	learner = learner,
+	measure = mae_median, # MAE with median aggregator
+	obs_loss = TRUE
 )
 
 loco_obs$compute()
@@ -203,11 +203,11 @@ loco_obs$importance()
 
 # Compare aggregated results
 rbind(
-  loco$importance()[, method := "Set-wise MSE (measure default)"],
-  loco_obs$importance()[, method := "Observation-wise (median of diffs)"]
+	loco$importance()[, method := "Set-wise MSE (measure default)"],
+	loco_obs$importance()[, method := "Observation-wise (median of diffs)"]
 ) |>
-  dcast(feature ~ method, value.var = "importance") |>
-  knitr::kable(digits = 4, caption = "Comparison of LOCO aggregation approaches")
+	dcast(feature ~ method, value.var = "importance") |>
+	knitr::kable(digits = 4, caption = "Comparison of LOCO aggregation approaches")
 ```
 
 The `$obs_losses` field provides detailed observation-level information:
@@ -221,7 +221,7 @@ str(feature_data)
 
 # Display first few observations
 head(feature_data) |>
-  knitr::kable(digits = 3, caption = "Observation-wise losses for x3")
+	knitr::kable(digits = 3, caption = "Observation-wise losses for x3")
 ```
 
 Each row contains:
@@ -241,25 +241,31 @@ resampling = rsmp("holdout")
 resampling$instantiate(task)
 
 loco_orig <- LOCO$new(
-  task = task,
-  learner = learner,
-  resampling = resampling,
-  measure = measure
+	task = task,
+	learner = learner,
+	resampling = resampling,
+	measure = measure
 )
 
 loco_obsloss <- LOCO$new(
-  task = task,
-  learner = learner,
-  resampling = resampling,
-  measure = measure,  # MSE uses mean by default
-  obs_loss = TRUE
+	task = task,
+	learner = learner,
+	resampling = resampling,
+	measure = measure, # MSE uses mean by default
+	obs_loss = TRUE
 )
 
 rbind(
-  {loco_orig$compute(); loco_orig$importance()[, method := "Set-wise"]},
-  {loco_obsloss$compute(); loco_obsloss$importance()[, method := "Observation-wise"]}
+	{
+		loco_orig$compute()
+		loco_orig$importance()[, method := "Set-wise"]
+	},
+	{
+		loco_obsloss$compute()
+		loco_obsloss$importance()[, method := "Observation-wise"]
+	}
 ) |>
-  dcast(feature ~ method, value.var = "importance")
+	dcast(feature ~ method, value.var = "importance")
 ```
 
 ## Classification Example with Probability Access
@@ -275,11 +281,11 @@ learner_classif <- lrn("classif.rpart", predict_type = "prob")
 
 # LOCO with observation-wise losses
 loco_classif <- LOCO$new(
-  task = task_classif,
-  learner = learner_classif,
-  measure = msr("classif.ce"),  # Classification error supports obs_loss (zero-one in this case)
-  obs_loss = TRUE,
-  features = c("x1", "x2")  # Focus on just two features for clarity
+	task = task_classif,
+	learner = learner_classif,
+	measure = msr("classif.ce"), # Classification error supports obs_loss (zero-one in this case)
+	obs_loss = TRUE,
+	features = c("x1", "x2") # Focus on just two features for clarity
 )
 
 loco_classif$compute()
@@ -287,7 +293,7 @@ loco_classif$importance()
 
 # Show classification importance
 loco_classif$importance() |>
-  knitr::kable(digits = 4, caption = "LOCO importance for classification")
+	knitr::kable(digits = 4, caption = "LOCO importance for classification")
 ```
 
 Examine the observation-wise classification results:
@@ -297,7 +303,7 @@ Examine the observation-wise classification results:
 classif_data <- head(loco_classif$obs_losses, 8)
 
 classif_data |>
-  knitr::kable(caption = "Observation-wise classification losses")
+	knitr::kable(caption = "Observation-wise classification losses")
 ```
 
 For classification, the response columns contain predicted classes (factors). Note that `$resample_result` only contains the reference model predictions (full model for LOCO, featureless for LOCI), not the feature-specific models:
@@ -306,19 +312,19 @@ For classification, the response columns contain predicted classes (factors). No
 # Access feature-specific predictions (available with obs_loss = TRUE)
 head(loco_classif$predictions)
 
-# Get probabilities for a specific feature and iteration  
+# Get probabilities for a specific feature and iteration
 if (nrow(loco_classif$predictions) > 0) {
-  feature_pred <- loco_classif$predictions[1, ]$prediction[[1]]
-  
-  # Access both predicted classes and probabilities
-  # Note: probabilities are only available because we used predict_type = "prob"
-  head(feature_pred$response)  # Predicted classes
-  head(feature_pred$prob)      # Probability matrix
+	feature_pred <- loco_classif$predictions[1, ]$prediction[[1]]
+
+	# Access both predicted classes and probabilities
+	# Note: probabilities are only available because we used predict_type = "prob"
+	head(feature_pred$response) # Predicted classes
+	head(feature_pred$prob) # Probability matrix
 }
 
 # Compare with reference model (full model for LOCO)
 ref_pred <- loco_classif$resample_result$prediction(1)
-head(ref_pred$prob)  # Reference model probabilities
+head(ref_pred$prob) # Reference model probabilities
 ```
 
 The `$predictions` field provides complete access to feature-specific prediction objects:

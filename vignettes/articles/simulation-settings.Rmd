@@ -4,10 +4,10 @@ title: "Simulation Settings for Feature Importance Methods"
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.width = 7,
-  fig.height = 5
+	collapse = TRUE,
+	comment = "#>",
+	fig.width = 7,
+	fig.height = 5
 )
 ```
 
@@ -28,13 +28,39 @@ This article provides a comprehensive overview of all simulation settings, inclu
 
 ```{r overview-table, echo=FALSE}
 dgp_overview <- data.frame(
-  DGP = c("sim_dgp_correlated", "sim_dgp_mediated", "sim_dgp_confounded", 
-          "sim_dgp_interactions", "sim_dgp_independent", "sim_dgp_ewald"),
-  Challenge = c("Spurious correlation", "Mediation effects", "Confounding",
-                "Interaction effects", "Baseline (no challenges)", "Mixed effects"),
-  `PFI Behavior` = c("High for spurious x2", "Shows total effects", "Biased upward", "Low (no main effects)", "Accurate", "Mixed"),
-  `CFI Behavior` = c("Low for spurious x2", "Shows direct effects", "Less biased", "High (captures interactions)", "Accurate", "Mixed"),
-  check.names = FALSE
+	DGP = c(
+		"sim_dgp_correlated",
+		"sim_dgp_mediated",
+		"sim_dgp_confounded",
+		"sim_dgp_interactions",
+		"sim_dgp_independent",
+		"sim_dgp_ewald"
+	),
+	Challenge = c(
+		"Spurious correlation",
+		"Mediation effects",
+		"Confounding",
+		"Interaction effects",
+		"Baseline (no challenges)",
+		"Mixed effects"
+	),
+	`PFI Behavior` = c(
+		"High for spurious x2",
+		"Shows total effects",
+		"Biased upward",
+		"Low (no main effects)",
+		"Accurate",
+		"Mixed"
+	),
+	`CFI Behavior` = c(
+		"Low for spurious x2",
+		"Shows direct effects",
+		"Less biased",
+		"High (captures interactions)",
+		"Accurate",
+		"Mixed"
+	),
+	check.names = FALSE
 )
 knitr::kable(dgp_overview, caption = "Overview of simulation settings and expected method behavior")
 ```
@@ -55,7 +81,8 @@ where $\varepsilon \sim N(0, 0.2^2)$.
 ### Causal Structure
 
 ```{r dag-correlated, echo=FALSE, fig.cap="DAG for correlated features DGP", fig.width=10, fig.height=4}
-grViz("
+grViz(
+	"
   digraph Correlated {
     rankdir=LR;
     graph [ranksep=1.5];
@@ -76,7 +103,8 @@ grViz("
     {rank=source; X1; X3; X4}
     {rank=same; X2}
     {rank=sink; Y}
-  }")
+  }"
+)
 ```
 
 ### Usage Example
@@ -113,7 +141,8 @@ where $\varepsilon_m \sim N(0, 0.3^2)$ and $\varepsilon \sim N(0, 0.2^2)$.
 ### Causal Structure
 
 ```{r dag-mediated, echo=FALSE, fig.cap="DAG for mediated effects DGP", fig.width=10, fig.height=4}
-grViz("
+grViz(
+	"
   digraph Mediated {
     rankdir=LR;
     graph [ranksep=1.2];
@@ -134,7 +163,8 @@ grViz("
     {rank=source; E; D; N}
     {rank=same; M}
     {rank=sink; Y}
-  }")
+  }"
+)
 ```
 
 ### Usage Example
@@ -170,7 +200,8 @@ where all $\varepsilon \sim N(0, 0.5^2)$ independently.
 ### Causal Structure
 
 ```{r dag-confounded, echo=FALSE, fig.cap="DAG for confounding DGP", fig.width=10, fig.height=5}
-grViz("
+grViz(
+	"
   digraph Confounded {
     rankdir=LR;
     graph [ranksep=1.2, nodesep=0.8];
@@ -194,7 +225,8 @@ grViz("
     {rank=source; H}
     {rank=same; X1; X2; P; I}
     {rank=sink; Y}
-  }")
+  }"
+)
 ```
 
 ### Usage Example
@@ -203,11 +235,11 @@ grViz("
 set.seed(123)
 # Hidden confounder scenario (default)
 task_hidden <- sim_dgp_confounded(n = 500, hidden = TRUE)
-task_hidden$feature_names  # proxy available but not confounder
+task_hidden$feature_names # proxy available but not confounder
 
 # Observable confounder scenario
 task_observed <- sim_dgp_confounded(n = 500, hidden = FALSE)
-task_observed$feature_names  # both confounder and proxy available
+task_observed$feature_names # both confounder and proxy available
 ```
 
 ### Expected Behavior
@@ -229,7 +261,8 @@ where $X_j \sim N(0,1)$ independently and $\varepsilon \sim N(0, 0.5^2)$.
 ### Causal Structure
 
 ```{r dag-interactions, echo=FALSE, fig.cap="DAG for interaction effects DGP", fig.width=10, fig.height=4}
-grViz("
+grViz(
+	"
   digraph Interaction {
     rankdir=LR;
     graph [ranksep=1.2];
@@ -253,7 +286,8 @@ grViz("
     {rank=source; X1; X2; X3; N1; N2}
     {rank=same; INT}
     {rank=sink; Y}
-  }")
+  }"
+)
 ```
 
 ### Usage Example
@@ -286,7 +320,8 @@ where $X_j \sim N(0,1)$ independently and $\varepsilon \sim N(0, 0.2^2)$.
 ### Causal Structure
 
 ```{r dag-independent, echo=FALSE, fig.cap="DAG for independent features DGP", fig.width=10, fig.height=4}
-grViz("
+grViz(
+	"
   digraph Independent {
     rankdir=LR;
     graph [ranksep=1.5];
@@ -307,7 +342,8 @@ grViz("
     
     {rank=source; X1; X2; X3; N1; N2}
     {rank=sink; Y}
-  }")
+  }"
+)
 ```
 
 ### Usage Example
@@ -339,7 +375,8 @@ $$Y = X_4 + X_5 + X_4 \cdot X_5 + \varepsilon, \quad \varepsilon \sim N(0, 0.1)$
 ### Causal Structure
 
 ```{r dag-ewald, echo=FALSE, fig.cap="DAG for Ewald et al. (2024) DGP", fig.width=10, fig.height=4}
-grViz("
+grViz(
+	"
   digraph Ewald {
     rankdir=LR;
     graph [ranksep=1.2];
@@ -365,7 +402,8 @@ grViz("
     {rank=same; X2; X4}
     {rank=same; INT}
     {rank=sink; Y}
-  }")
+  }"
+)
 ```
 
 ### Usage Example

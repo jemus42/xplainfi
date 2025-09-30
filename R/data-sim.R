@@ -26,25 +26,25 @@
 #' sim_dgp_ewald(100)
 #'
 sim_dgp_ewald <- function(n = 500) {
-  x1 <- runif(n)
-  x3 <- runif(n)
-  x5 <- runif(n)
+	x1 <- runif(n)
+	x3 <- runif(n)
+	x5 <- runif(n)
 
-  x2 <- x1 + rnorm(n, 0, sqrt(0.001))
-  x4 <- x3 + rnorm(n, 0, sqrt(0.1))
+	x2 <- x1 + rnorm(n, 0, sqrt(0.001))
+	x4 <- x3 + rnorm(n, 0, sqrt(0.1))
 
-  y <- x4 + x5 + x4 * x5 + rnorm(n, 0, sqrt(0.1))
+	y <- x4 + x5 + x4 * x5 + rnorm(n, 0, sqrt(0.1))
 
-  xdf <- data.table::data.table(
-    y,
-    x1,
-    x2,
-    x3,
-    x4,
-    x5
-  )
+	xdf <- data.table::data.table(
+		y,
+		x1,
+		x2,
+		x3,
+		x4,
+		x5
+	)
 
-  mlr3::TaskRegr$new(backend = xdf, target = "y", id = paste0("Ewald_", n))
+	mlr3::TaskRegr$new(backend = xdf, target = "y", id = paste0("Ewald_", n))
 }
 
 #' @title Simulation DGPs for Feature Importance Method Comparison
@@ -90,27 +90,27 @@ NULL
 #' task = sim_dgp_correlated(200)
 #' task$data()
 sim_dgp_correlated <- function(n = 500L) {
-  # Causal feature
-  x1 <- rnorm(n)
-  
-  # Spurious feature: correlated with x1 but no causal effect
-  x2 <- x1 + rnorm(n, 0, 0.05) # Nearly perfect copy with small noise
+	# Causal feature
+	x1 <- rnorm(n)
 
-  # Independent features
-  x3 <- rnorm(n) # Has causal effect
-  x4 <- rnorm(n) # No causal effect (noise)
+	# Spurious feature: correlated with x1 but no causal effect
+	x2 <- x1 + rnorm(n, 0, 0.05) # Nearly perfect copy with small noise
 
-  # Outcome depends only on x1 and x3 (x2 has NO causal effect despite correlation)
-  y <- 2 * x1 + x3 + rnorm(n, 0, 0.2)
+	# Independent features
+	x3 <- rnorm(n) # Has causal effect
+	x4 <- rnorm(n) # No causal effect (noise)
 
-  data.table::data.table(
-    y = y,
-    x1 = x1,
-    x2 = x2,
-    x3 = x3,
-    x4 = x4
-  ) |>
-    mlr3::TaskRegr$new(target = "y", id = paste0("correlated_", n))
+	# Outcome depends only on x1 and x3 (x2 has NO causal effect despite correlation)
+	y <- 2 * x1 + x3 + rnorm(n, 0, 0.2)
+
+	data.table::data.table(
+		y = y,
+		x1 = x1,
+		x2 = x2,
+		x3 = x3,
+		x4 = x4
+	) |>
+		mlr3::TaskRegr$new(target = "y", id = paste0("correlated_", n))
 }
 
 #' @describeIn sim_dgp_scenarios Mediated effects showing direct vs total importance
@@ -144,29 +144,29 @@ sim_dgp_correlated <- function(n = 500L) {
 #' task = sim_dgp_mediated(200)
 #' task$data()
 sim_dgp_mediated <- function(n = 500L) {
-  # Initial exposure variable
-  exposure <- rnorm(n)
+	# Initial exposure variable
+	exposure <- rnorm(n)
 
-  # Direct predictor that affects both mediator and outcome
-  direct <- rnorm(n)
+	# Direct predictor that affects both mediator and outcome
+	direct <- rnorm(n)
 
-  # Mediator affected by both exposure and direct
-  mediator <- 0.8 * exposure + 0.6 * direct + rnorm(n, 0, 0.3)
+	# Mediator affected by both exposure and direct
+	mediator <- 0.8 * exposure + 0.6 * direct + rnorm(n, 0, 0.3)
 
-  # Noise variable
-  noise <- rnorm(n)
+	# Noise variable
+	noise <- rnorm(n)
 
-  # Outcome depends on mediator and direct effect, but NOT directly on exposure
-  y <- 1.5 * mediator + 0.5 * direct + rnorm(n, 0, 0.2)
+	# Outcome depends on mediator and direct effect, but NOT directly on exposure
+	y <- 1.5 * mediator + 0.5 * direct + rnorm(n, 0, 0.2)
 
-  data.table::data.table(
-    y = y,
-    exposure = exposure,
-    mediator = mediator,
-    direct = direct,
-    noise = noise
-  ) |>
-    mlr3::TaskRegr$new(target = "y", id = paste0("mediated_", n))
+	data.table::data.table(
+		y = y,
+		exposure = exposure,
+		mediator = mediator,
+		direct = direct,
+		noise = noise
+	) |>
+		mlr3::TaskRegr$new(target = "y", id = paste0("mediated_", n))
 }
 
 #' @describeIn sim_dgp_scenarios Confounding scenario for conditional sampling
@@ -210,47 +210,47 @@ sim_dgp_mediated <- function(n = 500L) {
 #' task_observed = sim_dgp_confounded(200, hidden = FALSE)
 #' task_observed$feature_names  # both confounder and proxy available
 sim_dgp_confounded <- function(n = 500L, hidden = TRUE) {
-  # Confounder
-  confounder <- rnorm(n)
+	# Confounder
+	confounder <- rnorm(n)
 
-  # Features affected by confounder
-  x1 <- confounder + rnorm(n, 0, 0.5)
-  x2 <- confounder + rnorm(n, 0, 0.5)
+	# Features affected by confounder
+	x1 <- confounder + rnorm(n, 0, 0.5)
+	x2 <- confounder + rnorm(n, 0, 0.5)
 
-  # Proxy measurement of confounder (observable but noisy)
-  proxy <- confounder + rnorm(n, 0, 0.5)
+	# Proxy measurement of confounder (observable but noisy)
+	proxy <- confounder + rnorm(n, 0, 0.5)
 
-  # Independent feature unaffected by confounder
-  independent <- rnorm(n)
+	# Independent feature unaffected by confounder
+	independent <- rnorm(n)
 
-  # Outcome affected by confounder and all features
-  y <- confounder + 0.5 * x1 + 0.5 * x2 + independent + rnorm(n, 0, 0.5)
+	# Outcome affected by confounder and all features
+	y <- confounder + 0.5 * x1 + 0.5 * x2 + independent + rnorm(n, 0, 0.5)
 
-  # Create data.table conditionally including the confounder
-  if (hidden) {
-    # Traditional scenario: confounder is hidden, only proxy available
-    dt <- data.table::data.table(
-      y = y,
-      x1 = x1,
-      x2 = x2,
-      proxy = proxy,
-      independent = independent
-    )
-    task_id <- paste0("confounded_hidden_", n)
-  } else {
-    # Observable confounder scenario: both confounder and proxy available
-    dt <- data.table::data.table(
-      y = y,
-      x1 = x1,
-      x2 = x2,
-      confounder = confounder,
-      proxy = proxy,
-      independent = independent
-    )
-    task_id <- paste0("confounded_observed_", n)
-  }
+	# Create data.table conditionally including the confounder
+	if (hidden) {
+		# Traditional scenario: confounder is hidden, only proxy available
+		dt <- data.table::data.table(
+			y = y,
+			x1 = x1,
+			x2 = x2,
+			proxy = proxy,
+			independent = independent
+		)
+		task_id <- paste0("confounded_hidden_", n)
+	} else {
+		# Observable confounder scenario: both confounder and proxy available
+		dt <- data.table::data.table(
+			y = y,
+			x1 = x1,
+			x2 = x2,
+			confounder = confounder,
+			proxy = proxy,
+			independent = independent
+		)
+		task_id <- paste0("confounded_observed_", n)
+	}
 
-  mlr3::TaskRegr$new(dt, target = "y", id = task_id)
+	mlr3::TaskRegr$new(dt, target = "y", id = task_id)
 }
 
 #' @describeIn sim_dgp_scenarios Interaction effects between features
@@ -278,29 +278,29 @@ sim_dgp_confounded <- function(n = 500L, hidden = TRUE) {
 #' task = sim_dgp_interactions(200)
 #' task$data()
 sim_dgp_interactions <- function(n = 500L) {
-  # Independent features for interaction
-  x1 <- rnorm(n)
-  x2 <- rnorm(n)
+	# Independent features for interaction
+	x1 <- rnorm(n)
+	x2 <- rnorm(n)
 
-  # Independent feature with main effect
-  x3 <- rnorm(n)
+	# Independent feature with main effect
+	x3 <- rnorm(n)
 
-  # Noise features
-  noise1 <- rnorm(n)
-  noise2 <- rnorm(n)
+	# Noise features
+	noise1 <- rnorm(n)
+	noise2 <- rnorm(n)
 
-  # Outcome with ONLY interaction between x1 and x2 (no main effects), plus main effect of x3
-  y <- 2 * x1 * x2 + x3 + rnorm(n, 0, 0.5)
+	# Outcome with ONLY interaction between x1 and x2 (no main effects), plus main effect of x3
+	y <- 2 * x1 * x2 + x3 + rnorm(n, 0, 0.5)
 
-  data.table::data.table(
-    y = y,
-    x1 = x1,
-    x2 = x2,
-    x3 = x3,
-    noise1 = noise1,
-    noise2 = noise2
-  ) |>
-    mlr3::TaskRegr$new(target = "y", id = paste0("interactions_", n))
+	data.table::data.table(
+		y = y,
+		x1 = x1,
+		x2 = x2,
+		x3 = x3,
+		noise1 = noise1,
+		noise2 = noise2
+	) |>
+		mlr3::TaskRegr$new(target = "y", id = paste0("interactions_", n))
 }
 
 #' @describeIn sim_dgp_scenarios Independent features baseline scenario
@@ -327,25 +327,25 @@ sim_dgp_interactions <- function(n = 500L) {
 #' task = sim_dgp_independent(200)
 #' task$data()
 sim_dgp_independent <- function(n = 500L) {
-  # Independent important features with different effect sizes
-  important1 <- rnorm(n)
-  important2 <- rnorm(n)
-  important3 <- rnorm(n)
+	# Independent important features with different effect sizes
+	important1 <- rnorm(n)
+	important2 <- rnorm(n)
+	important3 <- rnorm(n)
 
-  # Independent unimportant features
-  unimportant1 <- rnorm(n)
-  unimportant2 <- rnorm(n)
+	# Independent unimportant features
+	unimportant1 <- rnorm(n)
+	unimportant2 <- rnorm(n)
 
-  # Additive linear outcome
-  y <- 2.0 * important1 + 1.0 * important2 + 0.5 * important3 + rnorm(n, 0, 0.2)
+	# Additive linear outcome
+	y <- 2.0 * important1 + 1.0 * important2 + 0.5 * important3 + rnorm(n, 0, 0.2)
 
-  data.table::data.table(
-    y = y,
-    important1 = important1,
-    important2 = important2,
-    important3 = important3,
-    unimportant1 = unimportant1,
-    unimportant2 = unimportant2
-  ) |>
-    mlr3::TaskRegr$new(target = "y", id = paste0("independent_", n))
+	data.table::data.table(
+		y = y,
+		important1 = important1,
+		important2 = important2,
+		important3 = important3,
+		unimportant1 = unimportant1,
+		unimportant2 = unimportant2
+	) |>
+		mlr3::TaskRegr$new(target = "y", id = paste0("independent_", n))
 }

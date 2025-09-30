@@ -48,7 +48,6 @@ check-remote:
 site:
 	Rscript -e "pkgdown::build_site()"
 
-
 FIPPY_RESULT=vignettes/articles/fippy-comparison/fippy_results.json
 FIPPY_SCRIPT=vignettes/articles/fippy-comparison/calculate_fippy.py
 

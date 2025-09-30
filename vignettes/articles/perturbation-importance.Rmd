@@ -6,10 +6,10 @@ editor_options:
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.width = 8,
-  fig.height = 6
+	collapse = TRUE,
+	comment = "#>",
+	fig.width = 8,
+	fig.height = 6
 )
 set.seed(123)
 # Quiet down
@@ -54,7 +54,8 @@ data_int <- task_int$data()
 **Causal Structure:**
 
 ```{r dag-interactions, fig.width=8, fig.height=4, echo=FALSE}
-grViz("
+grViz(
+	"
 digraph interaction_dag {
   rankdir=TB;
   node [shape=circle, style=filled, fontname='Arial', fontsize=12];
@@ -84,7 +85,8 @@ digraph interaction_dag {
   {rank=same; x1, x2, x3, noise1, noise2}
   {rank=same; interaction}
 }
-")
+"
+)
 ```
 
 The key insight: x1 and x2 have **NO direct effects** - they affect y ONLY through their interaction (thick red arrow). However, PFI will still show them as important because permuting either feature destroys the crucial interaction term.
@@ -98,11 +100,11 @@ Let's analyze the interaction scenario where $y = 2 \cdot x_1 \cdot x_2 + x_3 + 
 ```{r pfi-interactions}
 #| cache: true
 pfi_int <- PFI$new(
-  task = task_int,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  iters_perm = 5
+	task = task_int,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	iters_perm = 5
 )
 
 # Compute importance scores
@@ -122,12 +124,12 @@ CFI preserves the joint distribution, which should better capture the interactio
 sampler_int = ARFSampler$new(task = task_int, finite_bounds = "local")
 
 cfi_int <- CFI$new(
-  task = task_int,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  iters_perm = 5,
-  sampler = sampler_int
+	task = task_int,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	iters_perm = 5,
+	sampler = sampler_int
 )
 
 # Compute importance scores
@@ -145,25 +147,25 @@ RFI's unique strength is answering specific conditional questions. Let's explore
 #| cache: true
 # RFI conditioning on x2: "How important is x1 given we know x2?"
 rfi_int_x2 <- RFI$new(
-  task = task_int,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  conditioning_set = "x2",  # Condition on x2
-  iters_perm = 5,
-  sampler = sampler_int
+	task = task_int,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	conditioning_set = "x2", # Condition on x2
+	iters_perm = 5,
+	sampler = sampler_int
 )
 rfi_int_x2$compute(relation = "difference")
 
-# RFI conditioning on x1: "How important is x2 given we know x1?"  
+# RFI conditioning on x1: "How important is x2 given we know x1?"
 rfi_int_x1 <- RFI$new(
-  task = task_int,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  conditioning_set = "x1",  # Condition on x1
-  iters_perm = 5,
-  sampler = sampler_int
+	task = task_int,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	conditioning_set = "x1", # Condition on x1
+	iters_perm = 5,
+	sampler = sampler_int
 )
 rfi_int_x1$compute(relation = "difference")
 ```
@@ -185,41 +187,47 @@ Let's compare how the methods handle the interaction:
 
 # Create comprehensive comparison including all methods
 comp_all <- rbindlist(list(
-  # PFI and CFI for all features
-  pfi_int$importance()[, .(feature, importance, method = "PFI")],
-  cfi_int$importance()[, .(feature, importance, method = "CFI")],
-  # Selected RFI conditional results
-  rfi_int_x2$importance()[feature == "x1", .(feature, importance, method = "RFI|x2")],
-  rfi_int_x1$importance()[feature == "x2", .(feature, importance, method = "RFI|x1")],
-  rfi_int_x2$importance()[feature == "x3", .(feature, importance, method = "RFI|x2")],
-  # Add some noise features for completeness
-  rfi_int_x2$importance()[feature %in% c("noise1", "noise2"), .(feature, importance, method = "RFI|x2")]
+	# PFI and CFI for all features
+	pfi_int$importance()[, .(feature, importance, method = "PFI")],
+	cfi_int$importance()[, .(feature, importance, method = "CFI")],
+	# Selected RFI conditional results
+	rfi_int_x2$importance()[feature == "x1", .(feature, importance, method = "RFI|x2")],
+	rfi_int_x1$importance()[feature == "x2", .(feature, importance, method = "RFI|x1")],
+	rfi_int_x2$importance()[feature == "x3", .(feature, importance, method = "RFI|x2")],
+	# Add some noise features for completeness
+	rfi_int_x2$importance()[
+		feature %in% c("noise1", "noise2"),
+		.(feature, importance, method = "RFI|x2")
+	]
 ))
 
 # Create comprehensive comparison plot
-p1 <- ggplot(comp_all[method %in% c("PFI", "CFI")], aes(x = feature, y = importance, fill = method)) +
-  geom_col(position = "dodge", alpha = 0.8) +
-  scale_fill_manual(values = c("PFI" = "steelblue", "CFI" = "darkgreen")) +
-  labs(
-    title = "PFI vs CFI on Interaction Effects",
-    subtitle = "Marginal vs conditional sampling",
-    y = "Importance Score",
-    x = "Feature",
-    fill = "Method"
-  ) +
-  theme_minimal() +
-  theme(legend.position = "bottom")
+p1 <- ggplot(
+	comp_all[method %in% c("PFI", "CFI")],
+	aes(x = feature, y = importance, fill = method)
+) +
+	geom_col(position = "dodge", alpha = 0.8) +
+	scale_fill_manual(values = c("PFI" = "steelblue", "CFI" = "darkgreen")) +
+	labs(
+		title = "PFI vs CFI on Interaction Effects",
+		subtitle = "Marginal vs conditional sampling",
+		y = "Importance Score",
+		x = "Feature",
+		fill = "Method"
+	) +
+	theme_minimal() +
+	theme(legend.position = "bottom")
 
 # Show RFI conditional results separately since they answer different questions
 p2 <- ggplot(comp_all[method == "RFI|x2"], aes(x = feature, y = importance)) +
-  geom_col(fill = "orange", alpha = 0.8) +
-  labs(
-    title = "RFI Conditioning on x2",
-    subtitle = "How important is each feature given we know x2?",
-    y = "Importance Score",
-    x = "Feature"
-  ) +
-  theme_minimal()
+	geom_col(fill = "orange", alpha = 0.8) +
+	labs(
+		title = "RFI Conditioning on x2",
+		subtitle = "How important is each feature given we know x2?",
+		y = "Importance Score",
+		x = "Feature"
+	) +
+	theme_minimal()
 
 # Display both plots
 p1
@@ -238,21 +246,20 @@ rfi_x3_given_x2 <- rfi_int_x2$importance()[feature == "x3", importance]
 ```{r summary-interactions}
 # Combine results and calculate ratios
 comp_int <- rbindlist(list(
-  pfi_int$importance()[, .(feature, importance, method = "PFI")],
-  cfi_int$importance()[, .(feature, importance, method = "CFI")]
+	pfi_int$importance()[, .(feature, importance, method = "PFI")],
+	cfi_int$importance()[, .(feature, importance, method = "CFI")]
 ))
 
 # Calculate the ratio of CFI to PFI importance for interacting features
-int_ratio <- dcast(comp_int[feature %in% c("x1", "x2")], 
-                   feature ~ method, value.var = "importance")
+int_ratio <- dcast(comp_int[feature %in% c("x1", "x2")], feature ~ method, value.var = "importance")
 int_ratio[, cfi_pfi_ratio := CFI / PFI]
 setnames(int_ratio, c("PFI", "CFI"), c("pfi_importance", "cfi_importance"))
 
-int_ratio |> 
-  knitr::kable(
-    digits = 3,
-    caption = "CFI vs PFI for Interacting Features"
-  )
+int_ratio |>
+	knitr::kable(
+		digits = 3,
+		caption = "CFI vs PFI for Interacting Features"
+	)
 ```
 
 **Important insight about interaction effects**: This example illustrates a crucial subtlety about PFI and interactions. While x1 and x2 have no main effects, PFI still correctly identifies them as important because permuting either feature destroys the interaction term x1×x2, which is crucial for prediction. The key limitation is that **PFI cannot distinguish between main effects and interaction effects** - it measures total contribution including through interactions.
@@ -262,7 +269,7 @@ int_ratio |>
 This scenario shows how hidden confounders affect importance estimates and how conditioning can help:
 
 ```{r setup-confounding}
-# Generate confounding scenario  
+# Generate confounding scenario
 task_conf <- sim_dgp_confounded(n = 1000)
 data_conf <- task_conf$data()
 ```
@@ -270,7 +277,8 @@ data_conf <- task_conf$data()
 **Causal Structure:**
 
 ```{r dag-confounding, fig.width=8, fig.height=5, echo=FALSE}
-grViz("
+grViz(
+	"
 digraph confounding_dag {
   rankdir=TB;
   node [shape=circle, style=filled, fontname='Arial', fontsize=12];
@@ -301,7 +309,8 @@ digraph confounding_dag {
   # Layout
   {rank=same; x1, x2, proxy, independent}
 }
-")
+"
+)
 ```
 
 The **red arrows** show the confounding paths: the hidden confounder creates spurious correlations between x1, x2, proxy, and y. The **blue arrows** show true direct causal effects. Note that `independent` is truly independent (no confounding) while `proxy` provides a noisy measurement of the confounder.
@@ -314,21 +323,21 @@ In the **observable confounder scenario** (used later), the confounder H would b
 cor_data <- cor(data_conf[, .(x1, x2, proxy, independent, y)])
 # Convert correlation matrix to long format for ggplot
 cor_df <- data.table(
-  var1 = rep(rownames(cor_data), each = ncol(cor_data)),
-  var2 = rep(colnames(cor_data), nrow(cor_data)),
-  correlation = as.vector(cor_data)
+	var1 = rep(rownames(cor_data), each = ncol(cor_data)),
+	var2 = rep(colnames(cor_data), nrow(cor_data)),
+	correlation = as.vector(cor_data)
 )
 
 ggplot(cor_df, aes(x = var1, y = var2, fill = correlation)) +
-  geom_tile(color = "white") +
-  geom_text(aes(label = round(correlation, 2)), size = 3) +
-  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0) +
-  labs(
-    title = "Correlation Structure with Hidden Confounder",
-    subtitle = "Note high correlations between x1, x2, and proxy due to confounder"
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+	geom_tile(color = "white") +
+	geom_text(aes(label = round(correlation, 2)), size = 3) +
+	scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0) +
+	labs(
+		title = "Correlation Structure with Hidden Confounder",
+		subtitle = "Note high correlations between x1, x2, and proxy due to confounder"
+	) +
+	theme_minimal() +
+	theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 **Key insight**: The hidden confounder creates spurious correlations between x1, x2, and y (red paths), making them appear more important than they truly are. RFI conditioning on the proxy (which measures the confounder) should help isolate the true direct effects (blue paths).
@@ -342,11 +351,11 @@ Now let's analyze the confounding scenario where a hidden confounder affects bot
 ```{r pfi-confounding}
 #| cache: true
 pfi_conf <- PFI$new(
-  task = task_conf,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  iters_perm = 5
+	task = task_conf,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	iters_perm = 5
 )
 
 pfi_conf$compute(relation = "difference")
@@ -361,20 +370,20 @@ RFI can condition on the proxy to help isolate direct effects:
 #| cache: true
 # Create sampler for confounding task
 sampler_conf = ARFSampler$new(
-  task = task_conf,
-  verbose = FALSE,
-  finite_bounds = "local"
+	task = task_conf,
+	verbose = FALSE,
+	finite_bounds = "local"
 )
 
 # RFI conditioning on the proxy
 rfi_conf <- RFI$new(
-  task = task_conf,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  conditioning_set = "proxy",  # Condition on proxy to reduce confounding
-  iters_perm = 5,
-  sampler = sampler_conf
+	task = task_conf,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	conditioning_set = "proxy", # Condition on proxy to reduce confounding
+	iters_perm = 5,
+	sampler = sampler_conf
 )
 
 rfi_conf$compute(relation = "difference")
@@ -386,12 +395,12 @@ rfi_conf$importance()
 ```{r cfi-confounding}
 #| cache: true
 cfi_conf <- CFI$new(
-  task = task_conf,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  iters_perm = 5,
-  sampler = sampler_conf
+	task = task_conf,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	iters_perm = 5,
+	sampler = sampler_conf
 )
 
 cfi_conf$compute(relation = "difference")
@@ -409,31 +418,31 @@ task_conf_obs <- sim_dgp_confounded(n = 1000, hidden = FALSE)
 
 # Now we can condition directly on the true confounder
 sampler_conf_obs = ARFSampler$new(
-  task = task_conf_obs,
-  verbose = FALSE,
-  finite_bounds = "local"
+	task = task_conf_obs,
+	verbose = FALSE,
+	finite_bounds = "local"
 )
 
 # RFI conditioning on the true confounder (not just proxy)
 rfi_conf_obs <- RFI$new(
-  task = task_conf_obs,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  conditioning_set = "confounder",  # Condition on true confounder
-  iters_perm = 5,
-  sampler = sampler_conf_obs
+	task = task_conf_obs,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	conditioning_set = "confounder", # Condition on true confounder
+	iters_perm = 5,
+	sampler = sampler_conf_obs
 )
 
 rfi_conf_obs$compute(relation = "difference")
 
 # Compare with PFI on the same data
 pfi_conf_obs <- PFI$new(
-  task = task_conf_obs,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  iters_perm = 5
+	task = task_conf_obs,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	iters_perm = 5
 )
 pfi_conf_obs$compute(relation = "difference")
 ```
@@ -452,41 +461,41 @@ pfi_conf_obs$compute(relation = "difference")
 #| echo: false
 # Combine all results
 comp_conf_long <- rbindlist(list(
-  pfi_conf$importance()[, .(feature, importance, method = "PFI")],
-  cfi_conf$importance()[, .(feature, importance, method = "CFI")],
-  rfi_conf$importance()[, .(feature, importance, method = "RFI")]
+	pfi_conf$importance()[, .(feature, importance, method = "PFI")],
+	cfi_conf$importance()[, .(feature, importance, method = "CFI")],
+	rfi_conf$importance()[, .(feature, importance, method = "RFI")]
 ))
 
 ggplot(comp_conf_long, aes(x = feature, y = importance, fill = method)) +
-  geom_col(position = "dodge", alpha = 0.8) +
-  scale_fill_manual(values = c("PFI" = "steelblue", "CFI" = "darkgreen", "RFI" = "orange")) +
-  labs(
-    title = "Feature Importance Under Confounding",
-    subtitle = "RFI conditions on proxy to reduce confounding bias",
-    y = "Importance Score",
-    x = "Feature",
-    fill = "Method"
-  ) +
-  theme_minimal() +
-  theme(legend.position = "bottom")
+	geom_col(position = "dodge", alpha = 0.8) +
+	scale_fill_manual(values = c("PFI" = "steelblue", "CFI" = "darkgreen", "RFI" = "orange")) +
+	labs(
+		title = "Feature Importance Under Confounding",
+		subtitle = "RFI conditions on proxy to reduce confounding bias",
+		y = "Importance Score",
+		x = "Feature",
+		fill = "Method"
+	) +
+	theme_minimal() +
+	theme(legend.position = "bottom")
 
 comp_conf_obs_long <- rbindlist(list(
-  pfi_conf_obs$importance()[, .(feature, importance, method = "PFI")],
-  rfi_conf_obs$importance()[, .(feature, importance, method = "RFI")]
+	pfi_conf_obs$importance()[, .(feature, importance, method = "PFI")],
+	rfi_conf_obs$importance()[, .(feature, importance, method = "RFI")]
 ))
 
 ggplot(comp_conf_obs_long, aes(x = feature, y = importance, fill = method)) +
-  geom_col(position = "dodge", alpha = 0.8) +
-  scale_fill_manual(values = c("PFI" = "steelblue", "RFI" = "orange")) +
-  labs(
-    title = "Feature Importance Under Observed Confounding",
-    subtitle = "RFI conditions on confounder to reduce confounding bias",
-    y = "Importance Score",
-    x = "Feature",
-    fill = "Method"
-  ) +
-  theme_minimal() +
-  theme(legend.position = "bottom")
+	geom_col(position = "dodge", alpha = 0.8) +
+	scale_fill_manual(values = c("PFI" = "steelblue", "RFI" = "orange")) +
+	labs(
+		title = "Feature Importance Under Observed Confounding",
+		subtitle = "RFI conditions on confounder to reduce confounding bias",
+		y = "Importance Score",
+		x = "Feature",
+		fill = "Method"
+	) +
+	theme_minimal() +
+	theme(legend.position = "bottom")
 ```
 
 ### Key Insights: Confounding Effects
@@ -495,17 +504,17 @@ ggplot(comp_conf_obs_long, aes(x = feature, y = importance, fill = method)) +
 # Show how conditioning affects importance estimates
 conf_wide <- dcast(comp_conf_long, feature ~ method, value.var = "importance")
 conf_summary <- conf_wide[, .(
-  feature,
-  pfi_importance = round(PFI, 3),
-  cfi_importance = round(CFI, 3),
-  rfi_proxy_importance = round(RFI, 3),
-  pfi_rfi_diff = round(PFI - RFI, 3)
+	feature,
+	pfi_importance = round(PFI, 3),
+	cfi_importance = round(CFI, 3),
+	rfi_proxy_importance = round(RFI, 3),
+	pfi_rfi_diff = round(PFI - RFI, 3)
 )]
 
-conf_summary |> 
-  knitr::kable(
-    caption = "Effect of Conditioning on Proxy in Confounded Scenario"
-  )
+conf_summary |>
+	knitr::kable(
+		caption = "Effect of Conditioning on Proxy in Confounded Scenario"
+	)
 ```
 
 In the confounding scenario, we observed:
@@ -531,7 +540,8 @@ data_cor <- task_cor$data()
 **Causal Structure:**
 
 ```{r dag-correlated, fig.width=6, fig.height=4, echo=FALSE}
-grViz("
+grViz(
+	"
 digraph correlated_dag {
   rankdir=TB;
   node [shape=circle, style=filled, fontname='Arial', fontsize=12];
@@ -556,7 +566,8 @@ digraph correlated_dag {
   # Layout
   {rank=same; x1, x2, x3, x4}
 }
-")
+"
+)
 ```
 
 **Key feature**: x1 and x2 are nearly identical (correlation ≈ 0.999) but only x1 has a causal effect on y. x2 is a spurious predictor - highly correlated with the causal feature but not causal itself.
@@ -570,11 +581,11 @@ Let's analyze how different methods handle highly correlated features:
 ```{r pfi-correlated}
 #| cache: true
 pfi_cor <- PFI$new(
-  task = task_cor,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  iters_perm = 5
+	task = task_cor,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	iters_perm = 5
 )
 
 pfi_cor$compute(relation = "difference")
@@ -591,12 +602,12 @@ Expected: PFI will show high importance for BOTH x1 and x2, even though only x1 
 sampler_cor = ARFSampler$new(task = task_cor, finite_bounds = "local")
 
 cfi_cor <- CFI$new(
-  task = task_cor,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  iters_perm = 5,
-  sampler = sampler_cor
+	task = task_cor,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	iters_perm = 5,
+	sampler = sampler_cor
 )
 
 cfi_cor$compute(relation = "difference")
@@ -611,25 +622,25 @@ Expected: CFI should show high importance for x1 (the true causal feature) but n
 #| cache: true
 # RFI conditioning on x1: "How important is x2 given we know x1?"
 rfi_cor_x1 <- RFI$new(
-  task = task_cor,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  conditioning_set = "x1",
-  iters_perm = 5,
-  sampler = sampler_cor
+	task = task_cor,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	conditioning_set = "x1",
+	iters_perm = 5,
+	sampler = sampler_cor
 )
 rfi_cor_x1$compute(relation = "difference")
 
 # RFI conditioning on x2: "How important is x1 given we know x2?"
 rfi_cor_x2 <- RFI$new(
-  task = task_cor,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  conditioning_set = "x2",
-  iters_perm = 5,
-  sampler = sampler_cor
+	task = task_cor,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	conditioning_set = "x2",
+	iters_perm = 5,
+	sampler = sampler_cor
 )
 rfi_cor_x2$compute(relation = "difference")
 ```
@@ -646,43 +657,46 @@ Expected: When conditioning on x1, the importance of x2 should be near zero (and
 #| echo: false
 # Combine results
 comp_cor_long <- rbindlist(list(
-  pfi_cor$importance()[, .(feature, importance, method = "PFI")],
-  cfi_cor$importance()[, .(feature, importance, method = "CFI")]
+	pfi_cor$importance()[, .(feature, importance, method = "PFI")],
+	cfi_cor$importance()[, .(feature, importance, method = "CFI")]
 ))
 
 # Add selected RFI results
 comp_cor_rfi <- rbindlist(list(
-  rfi_cor_x1$importance()[feature == "x2", .(feature = "x2|x1", importance, method = "RFI")],
-  rfi_cor_x2$importance()[feature == "x1", .(feature = "x1|x2", importance, method = "RFI")]
+	rfi_cor_x1$importance()[feature == "x2", .(feature = "x2|x1", importance, method = "RFI")],
+	rfi_cor_x2$importance()[feature == "x1", .(feature = "x1|x2", importance, method = "RFI")]
 ))
 
 ggplot(comp_cor_long, aes(x = feature, y = importance, fill = method)) +
-  geom_col(position = "dodge", alpha = 0.8) +
-  scale_fill_manual(values = c("PFI" = "steelblue", "CFI" = "darkgreen")) +
-  labs(
-    title = "PFI vs CFI on Highly Correlated Features",
-    subtitle = "x1 and x2 have correlation ≈ 0.999 but both have true causal effects",
-    y = "Importance Score",
-    x = "Feature",
-    fill = "Method"
-  ) +
-  theme_minimal() +
-  theme(legend.position = "bottom")
+	geom_col(position = "dodge", alpha = 0.8) +
+	scale_fill_manual(values = c("PFI" = "steelblue", "CFI" = "darkgreen")) +
+	labs(
+		title = "PFI vs CFI on Highly Correlated Features",
+		subtitle = "x1 and x2 have correlation ≈ 0.999 but both have true causal effects",
+		y = "Importance Score",
+		x = "Feature",
+		fill = "Method"
+	) +
+	theme_minimal() +
+	theme(legend.position = "bottom")
 
 # Calculate the ratio of CFI to PFI for correlated features
-cor_ratio <- dcast(comp_cor_long[feature %in% c("x1", "x2")], 
-                   feature ~ method, value.var = "importance")
+cor_ratio <- dcast(
+	comp_cor_long[feature %in% c("x1", "x2")],
+	feature ~ method,
+	value.var = "importance"
+)
 cor_ratio[, cfi_pfi_ratio := CFI / PFI]
 ```
 
 ### Key Insights: Correlated Features
 
 ```{r summary-correlated}
-cor_ratio |> 
-  knitr::kable(
-    digits = 3,
-    caption = "CFI vs PFI for Highly Correlated Features"
-  )
+cor_ratio |>
+	knitr::kable(
+		digits = 3,
+		caption = "CFI vs PFI for Highly Correlated Features"
+	)
 ```
 
 In the correlated features scenario:
@@ -708,7 +722,8 @@ data_ind <- task_ind$data()
 **Causal Structure:**
 
 ```{r dag-independent, fig.width=6, fig.height=4, echo=FALSE}
-grViz("
+grViz(
+	"
 digraph independent_dag {
   rankdir=TB;
   node [shape=circle, style=filled, fontname='Arial', fontsize=12];
@@ -733,7 +748,8 @@ digraph independent_dag {
   # Layout
   {rank=same; important1, important2, important3, unimportant1, unimportant2}
 }
-")
+"
+)
 ```
 
 This is the **simplest scenario**: all features are independent, there are no interactions, and no confounding. Each feature has only a direct effect on y (or no effect in the case of noise).
@@ -746,11 +762,11 @@ First PFI:
 #| cache: true
 # PFI
 pfi_ind <- PFI$new(
-  task = task_ind,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  iters_perm = 5
+	task = task_ind,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	iters_perm = 5
 )
 pfi_ind$compute(relation = "difference")
 ```
@@ -761,12 +777,12 @@ Now CFI  with the ARF sampler:
 #| cache: true
 sampler_ind = ARFSampler$new(task = task_ind, finite_bounds = "local")
 cfi_ind <- CFI$new(
-  task = task_ind,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  iters_perm = 5,
-  sampler = sampler_ind
+	task = task_ind,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	iters_perm = 5,
+	sampler = sampler_ind
 )
 cfi_ind$compute(relation = "difference")
 ```
@@ -776,13 +792,13 @@ RFI with empty conditioning set, basically equivalent to PFI with a different sa
 ```{r all-methods-independent-rfi}
 #| cache: true
 rfi_ind <- RFI$new(
-  task = task_ind,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  conditioning_set = character(0),  # Empty set
-  iters_perm = 5,
-  sampler = sampler_ind
+	task = task_ind,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	conditioning_set = character(0), # Empty set
+	iters_perm = 5,
+	sampler = sampler_ind
 )
 rfi_ind$compute(relation = "difference")
 ```
@@ -793,23 +809,23 @@ And now we visualize:
 #| echo: false
 # Combine results using rbindlist
 comp_ind_long <- rbindlist(list(
-  pfi_ind$importance()[, .(feature, importance, method = "PFI")],
-  cfi_ind$importance()[, .(feature, importance, method = "CFI")],
-  rfi_ind$importance()[, .(feature, importance, method = "RFI")]
+	pfi_ind$importance()[, .(feature, importance, method = "PFI")],
+	cfi_ind$importance()[, .(feature, importance, method = "CFI")],
+	rfi_ind$importance()[, .(feature, importance, method = "RFI")]
 ))
 
 ggplot(comp_ind_long, aes(x = feature, y = importance, fill = method)) +
-  geom_col(position = "dodge", alpha = 0.8) +
-  scale_fill_manual(values = c("PFI" = "steelblue", "CFI" = "darkgreen", "RFI" = "orange")) +
-  labs(
-    title = "Feature Importance: Independent Features (Baseline)",
-    subtitle = "All methods should produce similar results with independent features",
-    y = "Importance Score",
-    x = "Feature",
-    fill = "Method"
-  ) +
-  theme_minimal() +
-  theme(legend.position = "bottom")
+	geom_col(position = "dodge", alpha = 0.8) +
+	scale_fill_manual(values = c("PFI" = "steelblue", "CFI" = "darkgreen", "RFI" = "orange")) +
+	labs(
+		title = "Feature Importance: Independent Features (Baseline)",
+		subtitle = "All methods should produce similar results with independent features",
+		y = "Importance Score",
+		x = "Feature",
+		fill = "Method"
+	) +
+	theme_minimal() +
+	theme(legend.position = "bottom")
 ```
 
 ### Agreement Between Methods
@@ -817,22 +833,25 @@ ggplot(comp_ind_long, aes(x = feature, y = importance, fill = method)) +
 ```{r agreement-independent}
 # Calculate coefficient of variation for each feature across methods
 comp_ind_wide <- dcast(comp_ind_long, feature ~ method, value.var = "importance")
-comp_ind_wide[, `:=`(
-  mean_importance = rowMeans(.SD),
-  sd_importance = apply(.SD, 1, sd),
-  cv = apply(.SD, 1, sd) / rowMeans(.SD)
-), .SDcols = c("PFI", "CFI", "RFI")]
+comp_ind_wide[,
+	`:=`(
+		mean_importance = rowMeans(.SD),
+		sd_importance = apply(.SD, 1, sd),
+		cv = apply(.SD, 1, sd) / rowMeans(.SD)
+	),
+	.SDcols = c("PFI", "CFI", "RFI")
+]
 
 comp_ind_wide[, .(
-  feature,
-  mean_importance = round(mean_importance, 3),
-  cv = round(cv, 3),
-  agreement = ifelse(cv < 0.1, "High", ifelse(cv < 0.2, "Moderate", "Low"))
+	feature,
+	mean_importance = round(mean_importance, 3),
+	cv = round(cv, 3),
+	agreement = ifelse(cv < 0.1, "High", ifelse(cv < 0.2, "Moderate", "Low"))
 )] |>
-  knitr::kable(
-    caption = "Method Agreement on Independent Features",
-    col.names = c("Feature", "Mean Importance", "Coef. of Variation", "Agreement Level")
-  )
+	knitr::kable(
+		caption = "Method Agreement on Independent Features",
+		col.names = c("Feature", "Mean Importance", "Coef. of Variation", "Agreement Level")
+	)
 ```
 
 **Key insight**: With independent features and no complex relationships, all three methods (PFI, CFI, RFI) produce very similar importance estimates. This confirms that the differences we observe in Scenarios 1 and 2 are truly due to interactions and confounding, not artifacts of the methods themselves.
@@ -859,11 +878,11 @@ When using resampling, xplainfi can compute confidence intervals for importance 
 task_var <- sim_dgp_independent(n = 300)
 
 pfi_var <- PFI$new(
-  task = task_var,
-  learner = lrn("regr.ranger", num.trees = 100),
-  measure = msr("regr.mse"),
-  resampling = rsmp("subsampling", repeats = 10, ratio = 0.8),
-  iters_perm = 5
+	task = task_var,
+	learner = lrn("regr.ranger", num.trees = 100),
+	measure = msr("regr.mse"),
+	resampling = rsmp("subsampling", repeats = 10, ratio = 0.8),
+	iters_perm = 5
 )
 
 pfi_var$compute()
@@ -883,35 +902,35 @@ imp_corrected[grepl("^important", feature), .(feature, importance, conf_lower, c
 #| fig.height: 5
 # Visualize the difference
 var_comparison <- rbindlist(list(
-  imp_raw[
-    grepl("^important", feature),
-    .(feature, importance, conf_lower, conf_upper, method = "Uncorrected (too narrow!)")
-  ],
-  imp_corrected[
-    grepl("^important", feature),
-    .(feature, importance, conf_lower, conf_upper, method = "Corrected (Nadeau-Bengio)")
-  ]
+	imp_raw[
+		grepl("^important", feature),
+		.(feature, importance, conf_lower, conf_upper, method = "Uncorrected (too narrow!)")
+	],
+	imp_corrected[
+		grepl("^important", feature),
+		.(feature, importance, conf_lower, conf_upper, method = "Corrected (Nadeau-Bengio)")
+	]
 ))
 
 ggplot(var_comparison, aes(x = feature, y = importance, color = method)) +
-  geom_point(position = position_dodge(width = 0.3), size = 2) +
-  geom_errorbar(
-    aes(ymin = conf_lower, ymax = conf_upper),
-    position = position_dodge(width = 0.3),
-    width = 0.15
-  ) +
-  scale_color_manual(
-    values = c("Uncorrected (too narrow!)" = "red", "Corrected (Nadeau-Bengio)" = "blue")
-  ) +
-  labs(
-    title = "Corrected vs Uncorrected Confidence Intervals",
-    subtitle = "Nadeau-Bengio correction provides honest uncertainty estimates",
-    y = "Importance Score",
-    x = NULL,
-    color = NULL
-  ) +
-  theme_minimal() +
-  theme(legend.position = "top")
+	geom_point(position = position_dodge(width = 0.3), size = 2) +
+	geom_errorbar(
+		aes(ymin = conf_lower, ymax = conf_upper),
+		position = position_dodge(width = 0.3),
+		width = 0.15
+	) +
+	scale_color_manual(
+		values = c("Uncorrected (too narrow!)" = "red", "Corrected (Nadeau-Bengio)" = "blue")
+	) +
+	labs(
+		title = "Corrected vs Uncorrected Confidence Intervals",
+		subtitle = "Nadeau-Bengio correction provides honest uncertainty estimates",
+		y = "Importance Score",
+		x = NULL,
+		color = NULL
+	) +
+	theme_minimal() +
+	theme(legend.position = "top")
 ```
 
 ### Practical Recommendations

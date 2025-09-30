@@ -13,21 +13,21 @@
 #' xplain_opt("progress")
 #'
 xplain_opt <- function(x) {
-  opt <- getOption(paste0("xplain.", tolower(x)), default = NA)
-  envvar <- Sys.getenv(toupper(paste0("xplain_", x)), unset = NA)
+	opt <- getOption(paste0("xplain.", tolower(x)), default = NA)
+	envvar <- Sys.getenv(toupper(paste0("xplain_", x)), unset = NA)
 
-  # cli::cli_inform("opt: {.val {opt}}, env: {.val {envvar}}")
-  opt <- as.logical(opt)
-  if (is.na(opt)) {
-    opt <- NULL
-  }
+	# cli::cli_inform("opt: {.val {opt}}, env: {.val {envvar}}")
+	opt <- as.logical(opt)
+	if (is.na(opt)) {
+		opt <- NULL
+	}
 
-  envvar <- as.logical(envvar)
-  if (is.na(envvar)) {
-    envvar <- NULL
-  }
+	envvar <- as.logical(envvar)
+	if (is.na(envvar)) {
+		envvar <- NULL
+	}
 
-  # option has higher priority than env, if both NULL then FALSE
-  # cli::cli_inform("opt: {.val {opt}}, env: {.val {envvar}}")
-  opt %||% envvar %||% FALSE
+	# option has higher priority than env, if both NULL then FALSE
+	# cli::cli_inform("opt: {.val {opt}}, env: {.val {envvar}}")
+	opt %||% envvar %||% FALSE
 }

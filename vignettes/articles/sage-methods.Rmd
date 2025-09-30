@@ -4,10 +4,10 @@ title: "Shapley Additive Global Importance (SAGE)"
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.width = 8,
-  fig.height = 6
+	collapse = TRUE,
+	comment = "#>",
+	fig.width = 8,
+	fig.height = 6
 )
 set.seed(123)
 options("xplain.progress" = interactive())
@@ -81,13 +81,13 @@ Marginal SAGE marginalizes features independently by averaging predictions over 
 ```{r marginal-sage}
 # Create Marginal SAGE instance
 marginal_sage = MarginalSAGE$new(
-  task = task,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  n_permutations = 30L,  # More permutations for stable results
-  max_reference_size = 100L,
-  batch_size = 5000L
+	task = task,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	n_permutations = 30L, # More permutations for stable results
+	max_reference_size = 100L,
+	batch_size = 5000L
 )
 
 # Compute SAGE values
@@ -104,31 +104,31 @@ marginal_results$method = "Marginal SAGE"
 
 # Create a factor with proper ordering
 marginal_results$feature = factor(
-  marginal_results$feature,
-  levels = marginal_results$feature[order(marginal_results$importance, decreasing = TRUE)]
+	marginal_results$feature,
+	levels = marginal_results$feature[order(marginal_results$importance, decreasing = TRUE)]
 )
 
 # Color features by type (causal vs noise)
 marginal_results$feature_type = ifelse(
-  marginal_results$feature %in% c("x1", "x3"), 
-  "Causal", 
-  "Noise"
+	marginal_results$feature %in% c("x1", "x3"),
+	"Causal",
+	"Noise"
 )
 
 # Create bar plot
 ggplot(marginal_results, aes(x = feature, y = importance)) +
-  geom_col(aes(fill = feature_type), alpha = 0.8) +
-  scale_fill_manual(
-    values = c("Causal" = "steelblue", "Noise" = "lightcoral"),
-    name = "Feature type"
-  ) +
-  labs(
-    title = "Marginal SAGE Feature Importance",
-    subtitle = "Correlated features: x1 and x2 are highly correlated (r ≈ 0.999)\nx2 has no effect on y",
-    x = "Features", 
-    y = "SAGE Value"
-  ) +
-  theme_minimal(base_size = 14) 
+	geom_col(aes(fill = feature_type), alpha = 0.8) +
+	scale_fill_manual(
+		values = c("Causal" = "steelblue", "Noise" = "lightcoral"),
+		name = "Feature type"
+	) +
+	labs(
+		title = "Marginal SAGE Feature Importance",
+		subtitle = "Correlated features: x1 and x2 are highly correlated (r ≈ 0.999)\nx2 has no effect on y",
+		x = "Features",
+		y = "SAGE Value"
+	) +
+	theme_minimal(base_size = 14)
 ```
 
 We can also keep track of the SAGE value approximation across permutations:
@@ -144,12 +144,12 @@ Conditional SAGE uses conditional sampling (via ARF by default) to marginalize f
 ```{r conditional-sage}
 # Create Conditional SAGE instance
 conditional_sage = ConditionalSAGE$new(
-  task = task,
-  learner = learner,
-  measure = measure,
-  resampling = resampling,
-  n_permutations = 30L,
-  max_reference_size = 100L
+	task = task,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	n_permutations = 30L,
+	max_reference_size = 100L
 )
 
 # Compute SAGE values
@@ -167,32 +167,32 @@ conditional_results$method = "Conditional SAGE"
 
 # Create a factor with proper ordering
 conditional_results$feature = factor(
-  conditional_results$feature,
-  levels = conditional_results$feature[order(conditional_results$importance, decreasing = TRUE)]
+	conditional_results$feature,
+	levels = conditional_results$feature[order(conditional_results$importance, decreasing = TRUE)]
 )
 
 # Color features by type (causal vs noise)
 conditional_results$feature_type = ifelse(
-  conditional_results$feature %in% c("x1", "x3"), 
-  "Causal", 
-  "Noise"
+	conditional_results$feature %in% c("x1", "x3"),
+	"Causal",
+	"Noise"
 )
 
 # Create bar plot
 ggplot(conditional_results, aes(x = feature, y = importance)) +
-  geom_col(aes(fill = feature_type), alpha = 0.8) +
-  scale_fill_manual(
-    values = c("Causal" = "steelblue", "Noise" = "lightcoral"),
-    name = "Feature type"
-  ) +
-  labs(
-    title = "Conditional SAGE Feature Importance",
-    subtitle = "Conditional sampling should reduce importance of redundant correlated features",
-    x = "Features", 
-    y = "SAGE Value"
-  ) +
-  theme_minimal(base_size = 14) +
-  theme(legend.position = "bottom")
+	geom_col(aes(fill = feature_type), alpha = 0.8) +
+	scale_fill_manual(
+		values = c("Causal" = "steelblue", "Noise" = "lightcoral"),
+		name = "Feature type"
+	) +
+	labs(
+		title = "Conditional SAGE Feature Importance",
+		subtitle = "Conditional sampling should reduce importance of redundant correlated features",
+		x = "Features",
+		y = "SAGE Value"
+	) +
+	theme_minimal(base_size = 14) +
+	theme(legend.position = "bottom")
 ```
 
 
@@ -209,9 +209,9 @@ Let's compare the two SAGE methods side by side:
 
 # Ensure both datasets have feature_type for consistency
 marginal_results$feature_type = ifelse(
-  marginal_results$feature %in% c("x1", "x3"), 
-  "Causal", 
-  "Noise"
+	marginal_results$feature %in% c("x1", "x3"),
+	"Causal",
+	"Noise"
 )
 
 # Combine results
@@ -219,17 +219,17 @@ combined_results = rbind(marginal_results, conditional_results)
 
 # Create comparison plot
 ggplot(combined_results, aes(x = feature, y = importance, fill = method)) +
-  facet_wrap(~ feature_type, scales = "free_x") +
-  geom_col(position = "dodge", alpha = 0.8) +
-  scale_fill_manual(values = c("Marginal SAGE" = "steelblue", "Conditional SAGE" = "darkgreen")) +
-  labs(
-    title = "Marginal vs Conditional SAGE Comparison",
-    x = "Features", 
-    y = "SAGE Value",
-    fill = "Method"
-  ) +
-  theme_minimal(base_size = 14) +
-  theme(legend.position = "bottom")
+	facet_wrap(~feature_type, scales = "free_x") +
+	geom_col(position = "dodge", alpha = 0.8) +
+	scale_fill_manual(values = c("Marginal SAGE" = "steelblue", "Conditional SAGE" = "darkgreen")) +
+	labs(
+		title = "Marginal vs Conditional SAGE Comparison",
+		x = "Features",
+		y = "SAGE Value",
+		fill = "Method"
+	) +
+	theme_minimal(base_size = 14) +
+	theme(legend.position = "bottom")
 ```
 
 Let's also create a correlation plot to see how similar the rankings are:
@@ -239,10 +239,10 @@ Let's also create a correlation plot to see how similar the rankings are:
 
 # Merge the two results for correlation analysis
 merged_results = merge(
-  marginal_results[, c("feature", "importance", "feature_type")], 
-  conditional_results[, c("feature", "importance")], 
-  by = "feature", 
-  suffixes = c("_marginal", "_conditional")
+	marginal_results[, c("feature", "importance", "feature_type")],
+	conditional_results[, c("feature", "importance")],
+	by = "feature",
+	suffixes = c("_marginal", "_conditional")
 )
 
 # Calculate correlation
@@ -250,20 +250,20 @@ correlation = cor(merged_results$importance_marginal, merged_results$importance_
 
 # Create scatter plot
 ggplot(merged_results, aes(x = importance_marginal, y = importance_conditional)) +
-  geom_point(aes(color = feature_type), size = 3, alpha = 0.8) +
-  geom_smooth(method = "lm", se = FALSE, color = "gray50", linetype = "dashed") +
-  scale_color_manual(
-    values = c("Causal" = "steelblue", "Noise" = "lightcoral"),
-    name = "Feature type"
-  ) +
-  labs(
-    title = "Marginal vs Conditional SAGE Correlation",
-    subtitle = sprintf("Pearson correlation: %.3f", correlation),
-    x = "Marginal SAGE Value",
-    y = "Conditional SAGE Value"
-  ) +
-  theme_minimal(base_size = 14) +
-  geom_text(aes(label = feature), hjust = 0, vjust = -0.5, size = 3)
+	geom_point(aes(color = feature_type), size = 3, alpha = 0.8) +
+	geom_smooth(method = "lm", se = FALSE, color = "gray50", linetype = "dashed") +
+	scale_color_manual(
+		values = c("Causal" = "steelblue", "Noise" = "lightcoral"),
+		name = "Feature type"
+	) +
+	labs(
+		title = "Marginal vs Conditional SAGE Correlation",
+		subtitle = sprintf("Pearson correlation: %.3f", correlation),
+		x = "Marginal SAGE Value",
+		y = "Conditional SAGE Value"
+	) +
+	theme_minimal(base_size = 14) +
+	geom_text(aes(label = feature), hjust = 0, vjust = -0.5, size = 3)
 ```
 
 ### Interpretation
@@ -287,7 +287,7 @@ For reference, let's compare SAGE methods with the analogous PFI and CFI methods
 ```{r pfi-cfi-comparison}
 # Quick PFI and CFI comparison for context
 pfi = PFI$new(task, learner, measure)
-cfi = CFI$new(task, learner, measure) 
+cfi = CFI$new(task, learner, measure)
 
 pfi$compute()
 cfi$compute()
@@ -296,35 +296,37 @@ cfi_results = cfi$importance()
 
 # Create comparison data frame
 method_comparison = data.frame(
-  feature = rep(c("x1", "x2", "x3", "x4"), 4),
-  importance = c(
-    pfi_results$importance,
-    cfi_results$importance,
-    marginal_results$importance,
-    conditional_results$importance
-  ),
-  method = rep(c("PFI", "CFI", "Marginal SAGE", "Conditional SAGE"), each = 4),
-  approach = rep(c("Marginal", "Conditional", "Marginal", "Conditional"), each = 4)
+	feature = rep(c("x1", "x2", "x3", "x4"), 4),
+	importance = c(
+		pfi_results$importance,
+		cfi_results$importance,
+		marginal_results$importance,
+		conditional_results$importance
+	),
+	method = rep(c("PFI", "CFI", "Marginal SAGE", "Conditional SAGE"), each = 4),
+	approach = rep(c("Marginal", "Conditional", "Marginal", "Conditional"), each = 4)
 )
 
 # Create comparison plot
 ggplot(method_comparison, aes(x = feature, y = importance, fill = method)) +
-  geom_col(position = "dodge", alpha = 0.8) +
-  scale_fill_manual(values = c(
-    "PFI" = "lightblue", 
-    "CFI" = "blue", 
-    "Marginal SAGE" = "lightcoral", 
-    "Conditional SAGE" = "darkred"
-  )) +
-  labs(
-    title = "Comparison: PFI/CFI vs Marginal/Conditional SAGE",
-    subtitle = "Both pairs show similar patterns: marginal methods inflate correlated feature importance",
-    x = "Features", 
-    y = "Importance Value",
-    fill = "Method"
-  ) +
-  theme_minimal(base_size = 14) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+	geom_col(position = "dodge", alpha = 0.8) +
+	scale_fill_manual(
+		values = c(
+			"PFI" = "lightblue",
+			"CFI" = "blue",
+			"Marginal SAGE" = "lightcoral",
+			"Conditional SAGE" = "darkred"
+		)
+	) +
+	labs(
+		title = "Comparison: PFI/CFI vs Marginal/Conditional SAGE",
+		subtitle = "Both pairs show similar patterns: marginal methods inflate correlated feature importance",
+		x = "Features",
+		y = "Importance Value",
+		fill = "Method"
+	) +
+	theme_minimal(base_size = 14) +
+	theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 **Key Observations:**

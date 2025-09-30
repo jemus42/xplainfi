@@ -9,5 +9,5 @@
 #' 1 %||% 2
 #' NULL %||% 2
 `%||%` = function(x, y) {
-  if (is.null(x)) y else x
+	if (is.null(x)) y else x
 }

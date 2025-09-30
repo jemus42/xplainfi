@@ -77,11 +77,11 @@ xplainfi_results_path <- file.path(base_dir, "xplainfi_results.json")
 fippy_results_path <- file.path(base_dir, "fippy_results.json")
 
 if (!file.exists(xplainfi_results_path)) {
-  stop("xplainfi_results.json not found. Please run calculate_xplainfi.R first.")
+	stop("xplainfi_results.json not found. Please run calculate_xplainfi.R first.")
 }
 
 if (!file.exists(fippy_results_path)) {
-  stop("fippy_results.json not found. Please run calculate_fippy.py first.")
+	stop("fippy_results.json not found. Please run calculate_fippy.py first.")
 }
 
 # Load results from both implementations
@@ -93,11 +93,11 @@ fippy_results <- fromJSON(fippy_results_path)
 
 ```{r model-performance}
 performance_comparison <- data.table(
-  Implementation = c("xplainfi (R)", "fippy (Python)"),
-  R_squared = c(
-    round(xplainfi_results$model_performance$r_squared, 4),
-    round(fippy_results$model_performance$r_squared, 4)
-  )
+	Implementation = c("xplainfi (R)", "fippy (Python)"),
+	R_squared = c(
+		round(xplainfi_results$model_performance$r_squared, 4),
+		round(fippy_results$model_performance$r_squared, 4)
+	)
 )
 
 kable(performance_comparison, caption = "Model Performance Comparison")
@@ -107,25 +107,27 @@ kable(performance_comparison, caption = "Model Performance Comparison")
 
 ```{r comparison-function}
 compare_method <- function(method_name, xplainfi_result, fippy_result) {
-  # Both implementations available
-  method_dt <- data.table(
-    feature = xplainfi_result$feature,
-    xplainfi = xplainfi_result$importance,
-    fippy = fippy_result$importance
-  )
-  
-  # Return table and correlation for display
-  correlation <- cor(method_dt$xplainfi, method_dt$fippy)
-  correlation_spearman = cor(method_dt$xplainfi, method_dt$fippy, method = "spearman")
-  
-  list(
-    method = method_name, 
-    table = kable(method_dt[order(-xplainfi)], 
-                  caption = glue("{method_name} Results Comparison"), 
-                  digits = 4),
-    correlation = correlation,
-    correlation_spearman = correlation_spearman
-  )
+	# Both implementations available
+	method_dt <- data.table(
+		feature = xplainfi_result$feature,
+		xplainfi = xplainfi_result$importance,
+		fippy = fippy_result$importance
+	)
+
+	# Return table and correlation for display
+	correlation <- cor(method_dt$xplainfi, method_dt$fippy)
+	correlation_spearman = cor(method_dt$xplainfi, method_dt$fippy, method = "spearman")
+
+	list(
+		method = method_name,
+		table = kable(
+			method_dt[order(-xplainfi)],
+			caption = glue("{method_name} Results Comparison"),
+			digits = 4
+		),
+		correlation = correlation,
+		correlation_spearman = correlation_spearman
+	)
 }
 ```
 
@@ -158,14 +160,22 @@ glue("fippy conditioning set: {paste(fippy_results$RFI$conditioning_set, collaps
 #### Marginal SAGE
 
 ```{r sage-marginal-comparison}
-sage_marginal_result <- compare_method("Marginal SAGE", xplainfi_results$SAGE_Marginal, fippy_results$SAGE_Marginal)
+sage_marginal_result <- compare_method(
+	"Marginal SAGE",
+	xplainfi_results$SAGE_Marginal,
+	fippy_results$SAGE_Marginal
+)
 sage_marginal_result$table
 ```
 
 #### Conditional SAGE
 
 ```{r sage-conditional-comparison}
-sage_conditional_result <- compare_method("Conditional SAGE", xplainfi_results$SAGE_Conditional, fippy_results$SAGE_Conditional)
+sage_conditional_result <- compare_method(
+	"Conditional SAGE",
+	xplainfi_results$SAGE_Conditional,
+	fippy_results$SAGE_Conditional
+)
 sage_conditional_result$table
 ```
 
@@ -173,36 +183,40 @@ sage_conditional_result$table
 
 ```{r correlation-summary}
 correlations <- rbindlist(list(
-  pfi_result[c("method", "correlation", "correlation_spearman")],
-  cfi_result[c("method", "correlation", "correlation_spearman")],
-  rfi_result[c("method", "correlation", "correlation_spearman")],
-  sage_marginal_result[c("method", "correlation", "correlation_spearman")],
-  sage_conditional_result[c("method", "correlation", "correlation_spearman")]
+	pfi_result[c("method", "correlation", "correlation_spearman")],
+	cfi_result[c("method", "correlation", "correlation_spearman")],
+	rfi_result[c("method", "correlation", "correlation_spearman")],
+	sage_marginal_result[c("method", "correlation", "correlation_spearman")],
+	sage_conditional_result[c("method", "correlation", "correlation_spearman")]
 ))
 
 kable(
-  correlations, 
-  digits = 4,
-  caption = "Pearson and Spearman Correlations between xplainfi and fippy", 
-  col.names = c("Method", "Pearson Corr.", "Spearman Corr.")
+	correlations,
+	digits = 4,
+	caption = "Pearson and Spearman Correlations between xplainfi and fippy",
+	col.names = c("Method", "Pearson Corr.", "Spearman Corr.")
 )
 
 melt(correlations, id.vars = "method") |>
-  ggplot(aes(x = reorder(method, value), y = value)) +
-    facet_wrap(vars(variable), ncol = 1, labeller = as_labeller(c(correlation = "Pearson's", correlation_spearman = "Spearman's"))) +
-    geom_col(fill = "steelblue", alpha = 0.7) +
-    geom_hline(yintercept = c(0.5, 1), linetype = "dashed", color = "red", alpha = 0.7) +
-    coord_flip() +
-    labs(
-      title = "Implementation Correlations",
-      subtitle = "xplainfi (R) vs fippy (Python)",
-      x = "Method",
-      y = "Correlation"
-    ) +
-    theme_minimal(base_size = 14) +
-    theme(
-      plot.title.position = "plot"
-    )
+	ggplot(aes(x = reorder(method, value), y = value)) +
+	facet_wrap(
+		vars(variable),
+		ncol = 1,
+		labeller = as_labeller(c(correlation = "Pearson's", correlation_spearman = "Spearman's"))
+	) +
+	geom_col(fill = "steelblue", alpha = 0.7) +
+	geom_hline(yintercept = c(0.5, 1), linetype = "dashed", color = "red", alpha = 0.7) +
+	coord_flip() +
+	labs(
+		title = "Implementation Correlations",
+		subtitle = "xplainfi (R) vs fippy (Python)",
+		x = "Method",
+		y = "Correlation"
+	) +
+	theme_minimal(base_size = 14) +
+	theme(
+		plot.title.position = "plot"
+	)
 
 ```
 
@@ -214,26 +228,28 @@ The Ewald simulation provides interpretable feature importance patterns that hel
 #| echo: false
 # Extract feature importance rankings from each method
 create_ranking_summary <- function(results, method_name) {
-  if (is.null(results[[method_name]])) return(NULL)
-  
-  data.table(
-    method = method_name,
-    feature = results[[method_name]]$feature,
-    importance = results[[method_name]]$importance,
-    rank = rank(-results[[method_name]]$importance)
-  )
+	if (is.null(results[[method_name]])) {
+		return(NULL)
+	}
+
+	data.table(
+		method = method_name,
+		feature = results[[method_name]]$feature,
+		importance = results[[method_name]]$importance,
+		rank = rank(-results[[method_name]]$importance)
+	)
 }
 
 # Combine rankings from both implementations
 xplainfi_rankings <- rbindlist(lapply(
-  c("PFI", "CFI", "RFI", "SAGE_Marginal", "SAGE_Conditional"),
-  function(m) create_ranking_summary(xplainfi_results, m)
+	c("PFI", "CFI", "RFI", "SAGE_Marginal", "SAGE_Conditional"),
+	function(m) create_ranking_summary(xplainfi_results, m)
 ))
 xplainfi_rankings[, implementation := "xplainfi"]
 
 fippy_rankings <- rbindlist(lapply(
-  c("PFI", "CFI", "RFI", "SAGE_Marginal", "SAGE_Conditional"),
-  function(m) create_ranking_summary(fippy_results, m)
+	c("PFI", "CFI", "RFI", "SAGE_Marginal", "SAGE_Conditional"),
+	function(m) create_ranking_summary(fippy_results, m)
 ))
 fippy_rankings[, implementation := "fippy"]
 
@@ -246,22 +262,22 @@ all_rankings <- rbind(xplainfi_rankings, fippy_rankings)
 #| figh-width: 9
 # Create ranking comparison plot
 ggplot(all_rankings, aes(x = reorder(feature, -rank), y = rank, fill = implementation)) +
-  geom_col(position = "dodge", alpha = 0.7) +
-  facet_wrap(vars(method), scales = "free_y", nrow = 1) +
-  coord_flip() +
-  #scale_y_reverse(name = "Rank (1 = highest importance)") +
-  scale_fill_manual(values = c("xplainfi" = "steelblue", "fippy" = "orange")) +
-  labs(
-    title = "Feature Importance Rankings Comparison",
-    subtitle = "Ewald Simulation: Lower rank = higher importance",
-    x = "Feature",
-    fill = "Implementation"
-  ) +
-  theme_minimal() +
-  theme(
-    plot.title.position = "plot",
-    legend.position = "bottom"
-  )
+	geom_col(position = "dodge", alpha = 0.7) +
+	facet_wrap(vars(method), scales = "free_y", nrow = 1) +
+	coord_flip() +
+	#scale_y_reverse(name = "Rank (1 = highest importance)") +
+	scale_fill_manual(values = c("xplainfi" = "steelblue", "fippy" = "orange")) +
+	labs(
+		title = "Feature Importance Rankings Comparison",
+		subtitle = "Ewald Simulation: Lower rank = higher importance",
+		x = "Feature",
+		fill = "Implementation"
+	) +
+	theme_minimal() +
+	theme(
+		plot.title.position = "plot",
+		legend.position = "bottom"
+	)
 ```
 
 ### Method-Specific Insights
