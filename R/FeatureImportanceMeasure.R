@@ -176,9 +176,10 @@ FeatureImportanceMethod = R6Class(
     #' The stored [`measure`][mlr3::Measure] object's `aggregator` (default: `mean`) will be used to aggregated importance scores
     #' across resampling iterations and, depending on the method use, permutations ([PerturbationImportance] or refits [LOCO]).
     #' @param standardize (`logical(1)`: `FALSE`) If `TRUE`, importances are standardized by the highest score so all scores fall in `[-1, 1]`.
-    #' @param variance_method (`character(1)`: `"none"`) Variance method to use, defaulting to omitting variance estimation (`"none"`).
-    #'   If `"raw"`, uncorrected variance estimates are provided purely for informative purposes with **invalid** confidence intervals.
+    #' @param variance_method (`character(1)`: `"none"`) Variance estimation method to use, defaulting to omitting variance estimation (`"none"`).
+    #'   If `"raw"`, uncorrected variance estimates are provided purely for informative purposes with **invalid** (too narrow) confidence intervals.
     #'   If `"nadeau_bengio"`, variance correction is performed according to Nadeau & Bengio (2003) as suggested by Molnar et al. (2023).
+    #'   These methods are model-agnostic and rely on suitable `resampling`s, e.g. subsampling with 15 repeats for `"nadeau_bengio"`.
     #'   See details.
     #' @param conf_level (`numeric(1): 0.95`): Conficence level to use for confidence interval construction when `variance_method != "none"`.
     #'
@@ -209,6 +210,10 @@ FeatureImportanceMethod = R6Class(
     #'
     #' `iters_perm = 5` in this context only improves the stability of the PFI estimate within the resampling iteration, whereas `rsmp("subsampling", repeats = 15)`
     #' is used to accounter for learner variance and neccessitates variance correction factor.
+    #'
+    #' This appraoch can in principle also be applied to `CFI` and `RFI`, but beware that a conditional sample such as [ARFSampler] also needs to be trained on data,
+    #' which would need to be taken account by the variance estimation method.
+    #' Analogously, the `"nadeau_bengio"` correction was recommended for the use with [PFI] by Molnar et al., so it's use with [LOCO] or [MarginalSAGE] is experimental.
     #'
     #' Note that even if `measure` uses an `aggregator` function that is not the mean, variance estimation currently will always use [mean()] and [var()].
     #'

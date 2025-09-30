@@ -124,9 +124,10 @@ across resampling iterations and, depending on the method use, permutations (\li
 \describe{
 \item{\code{standardize}}{(\code{logical(1)}: \code{FALSE}) If \code{TRUE}, importances are standardized by the highest score so all scores fall in \verb{[-1, 1]}.}
 
-\item{\code{variance_method}}{(\code{character(1)}: \code{"none"}) Variance method to use, defaulting to omitting variance estimation (\code{"none"}).
-If \code{"raw"}, uncorrected variance estimates are provided purely for informative purposes with \strong{invalid} confidence intervals.
+\item{\code{variance_method}}{(\code{character(1)}: \code{"none"}) Variance estimation method to use, defaulting to omitting variance estimation (\code{"none"}).
+If \code{"raw"}, uncorrected variance estimates are provided purely for informative purposes with \strong{invalid} (too narrow) confidence intervals.
 If \code{"nadeau_bengio"}, variance correction is performed according to Nadeau & Bengio (2003) as suggested by Molnar et al. (2023).
+These methods are model-agnostic and rely on suitable \code{resampling}s, e.g. subsampling with 15 repeats for \code{"nadeau_bengio"}.
 See details.}
 
 \item{\code{conf_level}}{(\code{numeric(1): 0.95}): Conficence level to use for confidence interval construction when \code{variance_method != "none"}.}
@@ -156,6 +157,10 @@ An approach leading to still imperfect, but improved variance estimates could be
 
 \code{iters_perm = 5} in this context only improves the stability of the PFI estimate within the resampling iteration, whereas \code{rsmp("subsampling", repeats = 15)}
 is used to accounter for learner variance and neccessitates variance correction factor.
+
+This appraoch can in principle also be applied to \code{CFI} and \code{RFI}, but beware that a conditional sample such as \link{ARFSampler} also needs to be trained on data,
+which would need to be taken account by the variance estimation method.
+Analogously, the \code{"nadeau_bengio"} correction was recommended for the use with \link{PFI} by Molnar et al., so it's use with \link{LOCO} or \link{MarginalSAGE} is experimental.
 
 Note that even if \code{measure} uses an \code{aggregator} function that is not the mean, variance estimation currently will always use \code{\link[=mean]{mean()}} and \code{\link[=var]{var()}}.
 }
