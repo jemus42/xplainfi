@@ -54,6 +54,13 @@ Blesch K, Watson D, Wright M (2023).
 \item \href{#method-KnockoffSampler-clone}{\code{KnockoffSampler$clone()}}
 }
 }
+\if{html}{\out{
+<details open><summary>Inherited methods</summary>
+<ul>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureSampler" data-id="print"><a href='../../xplainfi/html/FeatureSampler.html#method-FeatureSampler-print'><code>xplainfi::FeatureSampler$print()</code></a></span></li>
+</ul>
+</details>
+}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-KnockoffSampler-new"></a>}}
 \if{latex}{\out{\hypertarget{method-KnockoffSampler-new}{}}}

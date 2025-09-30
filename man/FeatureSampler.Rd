@@ -23,6 +23,7 @@ for feature importance methods like PFI and CFI
 \itemize{
 \item \href{#method-FeatureSampler-new}{\code{FeatureSampler$new()}}
 \item \href{#method-FeatureSampler-sample}{\code{FeatureSampler$sample()}}
+\item \href{#method-FeatureSampler-print}{\code{FeatureSampler$print()}}
 \item \href{#method-FeatureSampler-clone}{\code{FeatureSampler$clone()}}
 }
 }
@@ -63,6 +64,23 @@ Sample values for feature(s)
 }
 \subsection{Returns}{
 Modified copy of the input data with the feature(s) sampled
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-FeatureSampler-print"></a>}}
+\if{latex}{\out{\hypertarget{method-FeatureSampler-print}{}}}
+\subsection{Method \code{print()}}{
+Print sampler
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{FeatureSampler$print(...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{...}}{Ignored.}
+}
+\if{html}{\out{</div>}}
 }
 }
 \if{html}{\out{<hr>}}

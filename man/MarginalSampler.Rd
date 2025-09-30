@@ -22,10 +22,16 @@ sampled_data = sampler$sample("x1", data)
 \itemize{
 \item \href{#method-MarginalSampler-new}{\code{MarginalSampler$new()}}
 \item \href{#method-MarginalSampler-sample}{\code{MarginalSampler$sample()}}
-\item \href{#method-MarginalSampler-print}{\code{MarginalSampler$print()}}
 \item \href{#method-MarginalSampler-clone}{\code{MarginalSampler$clone()}}
 }
 }
+\if{html}{\out{
+<details open><summary>Inherited methods</summary>
+<ul>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureSampler" data-id="print"><a href='../../xplainfi/html/FeatureSampler.html#method-FeatureSampler-print'><code>xplainfi::FeatureSampler$print()</code></a></span></li>
+</ul>
+</details>
+}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-MarginalSampler-new"></a>}}
 \if{latex}{\out{\hypertarget{method-MarginalSampler-new}{}}}
@@ -63,23 +69,6 @@ Sample values for feature(s) by permutation (marginal distribution)
 }
 \subsection{Returns}{
 Modified copy of the input data with the feature(s) permuted
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-MarginalSampler-print"></a>}}
-\if{latex}{\out{\hypertarget{method-MarginalSampler-print}{}}}
-\subsection{Method \code{print()}}{
-Print sampler
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{MarginalSampler$print(...)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Passed to \code{print()}}
-}
-\if{html}{\out{</div>}}
 }
 }
 \if{html}{\out{<hr>}}

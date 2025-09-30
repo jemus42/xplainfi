@@ -19,6 +19,13 @@ that should be extended by concrete implementations.
 \item \href{#method-ConditionalSampler-clone}{\code{ConditionalSampler$clone()}}
 }
 }
+\if{html}{\out{
+<details open><summary>Inherited methods</summary>
+<ul>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureSampler" data-id="print"><a href='../../xplainfi/html/FeatureSampler.html#method-FeatureSampler-print'><code>xplainfi::FeatureSampler$print()</code></a></span></li>
+</ul>
+</details>
+}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConditionalSampler-new"></a>}}
 \if{latex}{\out{\hypertarget{method-ConditionalSampler-new}{}}}

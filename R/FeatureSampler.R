@@ -30,6 +30,15 @@ FeatureSampler = R6Class(
 		#' @return Modified copy of the input data with the feature(s) sampled
 		sample = function(feature, data) {
 			stop("Abstract method. Use a concrete implementation.")
+		},
+
+		#' @description
+		#' Print sampler
+		#'
+		#' @param ... Ignored.
+		print = function(...) {
+			cli::cli_h1(self$label)
+			self$task$print()
 		}
 	)
 )
@@ -39,13 +48,13 @@ FeatureSampler = R6Class(
 #' @description Implements marginal sampling for PFI, where the feature of interest
 #' is sampled independently of other features
 #'
+#' @export
 #' @examples
 #' library(mlr3)
 #' task = tgen("2dnormals")$generate(n = 100)
 #' sampler = MarginalSampler$new(task)
 #' data = task$data()
 #' sampled_data = sampler$sample("x1", data)
-#' @export
 MarginalSampler = R6Class(
 	"MarginalSampler",
 	inherit = FeatureSampler,
@@ -71,14 +80,6 @@ MarginalSampler = R6Class(
 			data_copy[, (feature) := lapply(.SD, sample), .SDcols = feature]
 
 			data_copy[]
-		},
-
-		#' @description
-		#' Print sampler
-		#'
-		#' @param ... Passed to `print()`
-		print = function(...) {
-			cli::cli_h2(self$label)
 		}
 	)
 )
