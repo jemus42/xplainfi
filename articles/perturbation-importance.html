@@ -886,6 +886,65 @@ correctly assign near-zero importance to the noise features.</p></li>
 </div>
 </div>
 <div class="section level2">
+<h2 id="variance-estimation-and-confidence-intervals">Variance Estimation and Confidence Intervals<a class="anchor" aria-label="anchor" href="#variance-estimation-and-confidence-intervals"></a>
+</h2>
+<p>When using resampling, xplainfi can compute confidence intervals for
+importance scores to quantify uncertainty. However, standard variance
+calculations produce confidence intervals that are too narrow when
+observations appear in multiple resampling folds.</p>
+<div class="section level3">
+<h3 id="example-corrected-vs-uncorrected-confidence-intervals">Example: Corrected vs Uncorrected Confidence Intervals<a class="anchor" aria-label="anchor" href="#example-corrected-vs-uncorrected-confidence-intervals"></a>
+</h3>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Demonstrate variance correction with subsampling</span></span>
+<span><span class="va">task_var</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_independent</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">pfi_var</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="va">task_var</span>,</span>
+<span>  learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">100</span><span class="op">)</span>,</span>
+<span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span>,</span>
+<span>  resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"subsampling"</span>, repeats <span class="op">=</span> <span class="fl">10</span>, ratio <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span>,</span>
+<span>  iters_perm <span class="op">=</span> <span class="fl">5</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">pfi_var</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Compare variance methods</span></span>
+<span><span class="va">imp_raw</span> <span class="op">&lt;-</span> <span class="va">pfi_var</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span>variance_method <span class="op">=</span> <span class="st">"raw"</span><span class="op">)</span> <span class="co"># Uncorrected (too narrow!)</span></span>
+<span><span class="va">imp_corrected</span> <span class="op">&lt;-</span> <span class="va">pfi_var</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span>variance_method <span class="op">=</span> <span class="st">"nadeau_bengio"</span><span class="op">)</span> <span class="co"># Corrected</span></span>
+<span></span>
+<span><span class="co"># Show the difference for important features</span></span>
+<span><span class="va">imp_raw</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"^important"</span>, <span class="va">feature</span><span class="op">)</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, <span class="va">importance</span>, <span class="va">conf_lower</span>, <span class="va">conf_upper</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;       feature importance conf_lower conf_upper</span></span>
+<span><span class="co">#&gt;        &lt;char&gt;      &lt;num&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: important1   6.852356  6.2868757  7.4178357</span></span>
+<span><span class="co">#&gt; 2: important2   1.202571  1.0354044  1.3697375</span></span>
+<span><span class="co">#&gt; 3: important3   0.255696  0.2133724  0.2980197</span></span>
+<span><span class="va">imp_corrected</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"^important"</span>, <span class="va">feature</span><span class="op">)</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, <span class="va">importance</span>, <span class="va">conf_lower</span>, <span class="va">conf_upper</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;       feature importance conf_lower conf_upper</span></span>
+<span><span class="co">#&gt;        &lt;char&gt;      &lt;num&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: important1   6.852356  5.7944395  7.9102719</span></span>
+<span><span class="co">#&gt; 2: important2   1.202571  0.8898311  1.5153109</span></span>
+<span><span class="co">#&gt; 3: important3   0.255696  0.1765158  0.3348763</span></span></code></pre></div>
+<p><img src="perturbation-importance_files/figure-html/variance-comparison-plot-1.png" width="768"></p>
+</div>
+<div class="section level3">
+<h3 id="practical-recommendations">Practical Recommendations<a class="anchor" aria-label="anchor" href="#practical-recommendations"></a>
+</h3>
+<ul>
+<li>Use <code>variance_method = "nadeau_bengio"</code> when using
+bootstrap or subsampling for improved (yet still flawed) confidence
+intervals</li>
+<li>The default <code>variance_method = "none"</code> returns only point
+estimates without uncertainty</li>
+<li>Never use <code>variance_method = "raw"</code> for actual results,
+the uncorrected intervals are misleadingly narrow</li>
+</ul>
+</div>
+</div>
+<div class="section level2">
 <h2 id="key-takeaways">Key Takeaways<a class="anchor" aria-label="anchor" href="#key-takeaways"></a>
 </h2>
 <p>Through these four scenarios, we’ve demonstrated:</p>

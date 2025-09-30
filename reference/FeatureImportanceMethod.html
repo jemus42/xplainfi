@@ -66,6 +66,19 @@ Feature Importance Method Class"><script defer src="https://umami.jemu.name/scri
 
 
     <div class="section level2">
+    <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
+    <p>Nadeau, Claude, Bengio, Yoshua (2003).
+“Inference for the Generalization Error.”
+<em>Machine Learning</em>, <b>52</b>(3), 239–281.
+ISSN 1573-0565, <a href="https://doi.org/10.1023/A%3A1024068626366" class="external-link">doi:10.1023/A:1024068626366</a>
+.
+Molnar, Christoph, Freiesleben, Timo, König, Gunnar, Herbinger, Julia, Reisinger, Tim, Casalicchio, Giuseppe, Wright, N. M, Bischl, Bernd (2023).
+“Relating the Partial Dependence Plot and Permutation Feature Importance to the Data Generating Process.”
+In Longo, Luca (eds.), <em>Explainable Artificial Intelligence</em>, 456–479.
+ISBN 978-3-031-44064-9, <a href="https://doi.org/10.1007/978-3-031-44064-9_24" class="external-link">doi:10.1007/978-3-031-44064-9_24</a>
+.</p>
+    </div>
+    <div class="section level2">
     <h2 id="public-fields">Public fields<a class="anchor" aria-label="anchor" href="#public-fields"></a></h2>
     <p></p><div class="r6-fields"><dl><dt><code>label</code></dt>
 <dd><p>(<code>character(1)</code>) Method label.</p></dd>
@@ -179,7 +192,11 @@ This is typically intended for use by derived classes.</p><div class="section">
 The stored <code><a href="https://mlr3.mlr-org.com/reference/Measure.html" class="external-link">measure</a></code> object's <code>aggregator</code> (default: <code>mean</code>) will be used to aggregated importance scores
 across resampling iterations and, depending on the method use, permutations (<a href="PerturbationImportance.html">PerturbationImportance</a> or refits <a href="LOCO.html">LOCO</a>).</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceMethod</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span>standardize <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceMethod</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span></span>
+<span>  standardize <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  variance_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"raw"</span>, <span class="st">"nadeau_bengio"</span><span class="op">)</span>,</span>
+<span>  conf_level <span class="op">=</span> <span class="fl">0.95</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
@@ -188,11 +205,49 @@ across resampling iterations and, depending on the method use, permutations (<a 
 <dd><p>(<code>logical(1)</code>: <code>FALSE</code>) If <code>TRUE</code>, importances are standardized by the highest score so all scores fall in <code>[-1, 1]</code>.</p></dd>
 
 
+<dt><code>variance_method</code></dt>
+<dd><p>(<code>character(1)</code>: <code>"none"</code>) Variance estimation method to use, defaulting to omitting variance estimation (<code>"none"</code>).
+If <code>"raw"</code>, uncorrected variance estimates are provided purely for informative purposes with <strong>invalid</strong> (too narrow) confidence intervals.
+If <code>"nadeau_bengio"</code>, variance correction is performed according to Nadeau &amp; Bengio (2003) as suggested by Molnar et al. (2023).
+These methods are model-agnostic and rely on suitable <code>resampling</code>s, e.g. subsampling with 15 repeats for <code>"nadeau_bengio"</code>.
+See details.</p></dd>
+
+
+<dt><code>conf_level</code></dt>
+<dd><p>(<code>numeric(1): 0.95</code>): Conficence level to use for confidence interval construction when <code>variance_method != "none"</code>.</p></dd>
+
+
 </dl><p></p></div>
 </div>
 <div class="section">
+<h4 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h4>
+<p>Variance estimates for importance scores are biased due to the resampling procedure. Molnar et al. (2023) suggest to use
+the variance correction factor proposed by Nadeau &amp; Bengio (2003) of n2/n1, where n2 and n1 are the sizes of the test- and train set, respectively.
+This should then be combined with approx. 15 iterations of either bootstrapping or subsampling.</p>
+<p>The use of bootstrapping in this context can lead to problematic information leakage when combined with learners
+that perform bootstrapping themselves, e.g., Random Forest learners.
+In such cases, observations may be used as train- and test instances simultaneously, leading to erroneous performance estimates.</p>
+<p>An approach leading to still imperfect, but improved variance estimates could be:</p>
+<p></p><div class="sourceCode r"><pre><code><span><span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  task <span class="op">=</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_interactions</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span>,</span>
+<span>  learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">100</span><span class="op">)</span>,</span>
+<span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span>,</span>
+<span>  <span class="co"># Subsampling instead of bootstrapping due to RF</span></span>
+<span>  resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"subsampling"</span>, repeats <span class="op">=</span> <span class="fl">15</span><span class="op">)</span>,</span>
+<span>  iters_perm <span class="op">=</span> <span class="fl">5</span></span>
+<span><span class="op">)</span></span></code></pre><p></p></div>
+<p><code>iters_perm = 5</code> in this context only improves the stability of the PFI estimate within the resampling iteration, whereas <code>rsmp("subsampling", repeats = 15)</code>
+is used to accounter for learner variance and neccessitates variance correction factor.</p>
+<p>This appraoch can in principle also be applied to <code>CFI</code> and <code>RFI</code>, but beware that a conditional sample such as <a href="ARFSampler.html">ARFSampler</a> also needs to be trained on data,
+which would need to be taken account by the variance estimation method.
+Analogously, the <code>"nadeau_bengio"</code> correction was recommended for the use with <a href="PFI.html">PFI</a> by Molnar et al., so it's use with <a href="LOCO.html">LOCO</a> or <a href="MarginalSAGE.html">MarginalSAGE</a> is experimental.</p>
+<p>Note that even if <code>measure</code> uses an <code>aggregator</code> function that is not the mean, variance estimation currently will always use <code><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean()</a></code> and <code><a href="https://rdrr.io/r/stats/cor.html" class="external-link">var()</a></code>.</p>
+</div>
+
+<div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
-<p>(<a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a>) Aggregated importance scores.</p>
+<p>(<a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a>) Aggregated importance scores. with variables <code>"feature", "importance"</code>
+and depending in <code>variance_method</code> also <code>"var", "conf_lower", "conf_upper"</code>.</p>
 </div>
 
 </div><p></p><hr><a id="method-FeatureImportanceMethod-reset"></a><div class="section">
