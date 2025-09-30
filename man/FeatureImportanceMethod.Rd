@@ -29,17 +29,13 @@ ISBN 978-3-031-44064-9, \doi{10.1007/978-3-031-44064-9_24}.
 
 \item{\code{measure}}{(\link[mlr3:Measure]{mlr3::Measure})}
 
-\item{\code{resampling}}{(\link[mlr3:Resampling]{mlr3::Resampling})}
+\item{\code{resampling}}{(\link[mlr3:Resampling]{mlr3::Resampling}), instantiated upon construction.}
 
-\item{\code{resample_result}}{(\link[mlr3:ResampleResult]{mlr3::ResampleResult})}
+\item{\code{resample_result}}{(\link[mlr3:ResampleResult]{mlr3::ResampleResult}) of the original \code{learner} and \code{task}, used for baseline scores.}
 
 \item{\code{features}}{(\code{character})}
 
 \item{\code{param_set}}{(\code{\link[paradox:ps]{paradox::ps()}})}
-
-\item{\code{scores}}{(\link[data.table:data.table]{data.table}) Individual performance scores used to compute \verb{$importance()} per resampling iteration and permutation iteration.}
-
-\item{\code{obs_losses}}{(\link[data.table:data.table]{data.table}) Observation-wise losses when available (e.g., when using obs_loss = TRUE). Contains columns for row_ids, feature, iteration indices, individual loss values, and both reference and feature-specific predictions.}
 
 \item{\code{predictions}}{(\link[data.table:data.table]{data.table}) Feature-specific prediction objects when using obs_loss = TRUE. Contains columns for feature, iteration, iter_refit, and prediction objects. Similar to ResampleResult$predictions() but extended for feature-specific models.}
 }
@@ -51,8 +47,10 @@ ISBN 978-3-031-44064-9, \doi{10.1007/978-3-031-44064-9_24}.
 \item \href{#method-FeatureImportanceMethod-new}{\code{FeatureImportanceMethod$new()}}
 \item \href{#method-FeatureImportanceMethod-compute}{\code{FeatureImportanceMethod$compute()}}
 \item \href{#method-FeatureImportanceMethod-importance}{\code{FeatureImportanceMethod$importance()}}
+\item \href{#method-FeatureImportanceMethod-obs_scores}{\code{FeatureImportanceMethod$obs_scores()}}
 \item \href{#method-FeatureImportanceMethod-reset}{\code{FeatureImportanceMethod$reset()}}
 \item \href{#method-FeatureImportanceMethod-print}{\code{FeatureImportanceMethod$print()}}
+\item \href{#method-FeatureImportanceMethod-scores}{\code{FeatureImportanceMethod$scores()}}
 \item \href{#method-FeatureImportanceMethod-clone}{\code{FeatureImportanceMethod$clone()}}
 }
 }
@@ -88,17 +86,12 @@ This is typically intended for use by derived classes.
 \subsection{Method \code{compute()}}{
 Compute feature importance scores
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$compute(
-  relation = c("difference", "ratio"),
-  store_backends = TRUE
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$compute(store_backends = TRUE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{relation}}{(\code{character(1): "difference"}) How to relate perturbed scores to originals ("difference" or "ratio")}
-
 \item{\code{store_backends}}{(\code{logical(1): TRUE}) Whether to store backends.}
 }
 \if{html}{\out{</div>}}
@@ -171,6 +164,20 @@ and depending in \code{variance_method} also \verb{"var", "conf_lower", "conf_up
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-FeatureImportanceMethod-obs_scores"></a>}}
+\if{latex}{\out{\hypertarget{method-FeatureImportanceMethod-obs_scores}{}}}
+\subsection{Method \code{obs_scores()}}{
+Calculate observation-wise importance scores.
+
+Requires that \verb{$compute()} was run and that \code{measure} is decomposable and
+has an observation-wise loss (\code{Measure$obs_loss()}) associated with it.
+This is not the case for measure like \code{classif.auc}, which is not decomposable.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$obs_scores()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-FeatureImportanceMethod-reset"></a>}}
 \if{latex}{\out{\hypertarget{method-FeatureImportanceMethod-reset}{}}}
 \subsection{Method \code{reset()}}{
@@ -196,6 +203,20 @@ Print importance scores
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-FeatureImportanceMethod-scores"></a>}}
+\if{latex}{\out{\hypertarget{method-FeatureImportanceMethod-scores}{}}}
+\subsection{Method \code{scores()}}{
+Calculate importance scores for each resampling iteration and sub-iterations
+(\code{iter_rsmp} in \link{PFI} for example).
+
+Iteration-wise importance are computed on the fly depending on the chosen relation
+(\code{difference} or \code{ratio}) to avoid re-computation if only a different relation is needed.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$scores()}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-FeatureImportanceMethod-clone"></a>}}

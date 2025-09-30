@@ -12,19 +12,15 @@ FeatureImportanceMethod = R6Class(
 		learner = NULL,
 		#' @field measure ([mlr3::Measure])
 		measure = NULL,
-		#' @field resampling ([mlr3::Resampling])
+		#' @field resampling ([mlr3::Resampling]), instantiated upon construction.
 		resampling = NULL,
-		#' @field resample_result ([mlr3::ResampleResult])
+		#' @field resample_result ([mlr3::ResampleResult]) of the original `learner` and `task`, used for baseline scores.
 		resample_result = NULL,
 		# TODO: list of features, for grouped importance
 		#' @field features (`character`)
 		features = NULL,
 		#' @field param_set ([paradox::ps()])
 		param_set = ps(),
-		#' @field scores ([data.table][data.table::data.table]) Individual performance scores used to compute `$importance()` per resampling iteration and permutation iteration.
-		scores = NULL,
-		#' @field obs_losses ([data.table][data.table::data.table]) Observation-wise losses when available (e.g., when using obs_loss = TRUE). Contains columns for row_ids, feature, iteration indices, individual loss values, and both reference and feature-specific predictions.
-		obs_losses = NULL,
 		#' @field predictions ([data.table][data.table::data.table]) Feature-specific prediction objects when using obs_loss = TRUE. Contains columns for feature, iteration, iter_refit, and prediction objects. Similar to ResampleResult$predictions() but extended for feature-specific models.
 		predictions = NULL,
 
@@ -78,98 +74,11 @@ FeatureImportanceMethod = R6Class(
 
 		#' @description
 		#' Compute feature importance scores
-		#' @param relation (`character(1): "difference"`) How to relate perturbed scores to originals ("difference" or "ratio")
+		# @param relation (`character(1): "difference"`) How to relate perturbed scores to originals ("difference" or "ratio")
 		#' @param store_backends (`logical(1): TRUE`) Whether to store backends.
-		compute = function(relation = c("difference", "ratio"), store_backends = TRUE) {
+		compute = function(store_backends = TRUE) {
 			stop("Abstract method. Use a concrete implementation.")
 		},
-
-		# Removed for the time being - could be useful at some point but to cumbersome to maintain during active development when things change a lot
-		# #' @description
-		# #' Combine two `FeatureImportanceMethod` objects with computed scores.
-		# #'
-		# #' @param y ([FeatureImportanceMethod]) Object to combine. Must have computed scores.
-		# #' @param ... (any) Unused.
-		# #' @return A new [FeatureImportanceMethod] of the same subclass as `x` and `y`.
-		# #' Currently this method merges the following:
-		# #' - `$scores` is combined, with `iter_rsmp` increased for `y`.
-		# #' - `$importance` is re-computed from the combined `$scores`.
-		# #' - `$resample_result` is combined to a [mlr3::BenchmarkResult]
-		# #' - `$resampling` is combined into a [mlr3::ResamplingCustom], again continuing te `iteration` count from `x` with that of `y`.
-		# combine = function(y, ...) {
-		#   checkmate::assert_class(self, classes = "FeatureImportanceMethod")
-		#   checkmate::assert_class(y, classes = "FeatureImportanceMethod")
-		#   checkmate::assert_true(class(self)[[1]] == class(y)[[1]], .var.name = "Identical subclasses")
-		#   checkmate::assert_data_table(self$importance, key = "feature")
-		#   checkmate::assert_data_table(y$importance, key = "feature")
-
-		#   checkmate::assert_true(self$task$hash == y$task$hash, .var.name = "identical tasks")
-		#   checkmate::assert_true(self$measure$hash == y$measure$hash, .var.name = "identical measures")
-		#   checkmate::assert_true(self$learner$hash == y$learner$hash, .var.name = "identical learners")
-
-		#   # merge importance scores
-		#   scores_y = copy(y$scores)
-		#   # Increase iteration count for y for consistency
-		#   scores_y[, iter_rsmp := iter_rsmp + self$resampling$iters]
-		#   scores = rbindlist(list(self$scores, scores_y))
-		#   setkeyv(scores, c("feature", "iter_rsmp"))
-
-		#   # Merge aggregated cores
-		#   importance = scores[, list(importance = mean(importance)), by = feature]
-
-		#   # Combine obs_losses if available
-		#   obs_losses = NULL
-		#   if (!is.null(self$obs_losses) || !is.null(y$obs_losses)) {
-		#     if (!is.null(self$obs_losses) && !is.null(y$obs_losses)) {
-		#       obs_losses_y = copy(y$obs_losses)
-		#       # Increase iteration count for y for consistency
-		#       obs_losses_y[, iteration := iteration + self$resampling$iters]
-		#       obs_losses = rbindlist(list(self$obs_losses, obs_losses_y))
-		#     } else if (!is.null(self$obs_losses)) {
-		#       obs_losses = copy(self$obs_losses)
-		#     } else {
-		#       obs_losses = copy(y$obs_losses)
-		#     }
-		#   }
-
-		#   # Combine predictions if available
-		#   predictions = NULL
-		#   if (!is.null(self$predictions) || !is.null(y$predictions)) {
-		#     if (!is.null(self$predictions) && !is.null(y$predictions)) {
-		#       predictions_y = copy(y$predictions)
-		#       # Increase iteration count for y for consistency
-		#       predictions_y[, iteration := iteration + self$resampling$iters]
-		#       predictions = rbindlist(list(self$predictions, predictions_y))
-		#     } else if (!is.null(self$predictions)) {
-		#       predictions = copy(self$predictions)
-		#     } else {
-		#       predictions = copy(y$predictions)
-		#     }
-		#   }
-
-		#   # Modify
-		#   self$scores = scores
-		#   self$importance = importance
-		#   self$obs_losses = obs_losses
-		#   self$predictions = predictions
-		#   self$resample_result = c(self$resample_result, y$resample_result)
-
-		#   # Combine resampling objects
-		#   rsmp_x = as.data.table(self$resampling)
-		#   rsmp_y = as.data.table(y$resampling)
-		#   rsmp_y[, iteration := iteration + self$resampling$iters]
-		#   rsmp_x = rbind(rsmp_x, rsmp_y)
-		#   setkeyv(rsmp_x, c("set"))
-
-		#   resampling = mlr3::ResamplingCustom$new()
-		#   resampling$instance = list(
-		#     train_sets = rsmp_x[list("train"), list(ids = list(row_id)), by = "iteration"]$ids,
-		#     test_sets = rsmp_x[list("test"), list(ids = list(row_id)), by = "iteration"]$ids
-		#   )
-		#   self$resampling = resampling
-
-		#   self
-		# },
 
 		#' @description
 		#' Get aggregated importance scores.
@@ -233,7 +142,7 @@ FeatureImportanceMethod = R6Class(
 			checkmate::assert_number(conf_level, lower = 0, upper = 1)
 			# Aggregate scores by feature using the measure's aggregator
 			aggregator = self$measure$aggregator %||% mean
-			scores = self$scores
+			scores = self$scores()
 
 			# Skip aggregation if only one row per feature anyway
 			if (nrow(scores) == length(unique(scores$feature))) {
@@ -318,11 +227,59 @@ FeatureImportanceMethod = R6Class(
 		},
 
 		#' @description
+		#' Calculate observation-wise importance scores.
+		#'
+		#' Requires that `$compute()` was run and that `measure` is decomposable and
+		#' has an observation-wise loss (`Measure$obs_loss()`) associated with it.
+		#' This is not the case for measure like `classif.auc`, which is not decomposable.
+		#'
+		#'
+		obs_scores = function() {
+			if (is.null(self$measure$obs_loss)) {
+				cli::cli_abort(
+					"{.cls Measure} {.val {self$measure$id}} ha no associated osbervation-wise loss"
+				)
+			}
+			# Prepare baseline losses
+			obs_loss_baseline = self$resample_result$obs_loss(measures = self$measure)
+			# obs_loss_baseline[, let(truth = NULL, response = NULL)]
+			setnames(
+				obs_loss_baseline,
+				old = c("iteration", self$measure$id),
+				new = c("iter_rsmp", "baseline_loss")
+			)
+
+			obs_loss_combined = obs_loss_baseline[
+				private$.obs_losses,
+				on = .(iter_rsmp, row_ids),
+				allow.cartesian = TRUE
+			]
+
+			obs_loss_combined[,
+				obs_importance := private$.compute_score(
+					baseline_loss,
+					loss_perturbed,
+					relation = self$param_set$relation,
+					minimize = self$measure$minimize
+				)
+			]
+
+			obs_loss_combined[, .(
+				feature,
+				iter_rsmp,
+				iter_perm,
+				row_ids,
+				baseline_loss,
+				loss_perturbed
+			)][]
+		},
+
+		#' @description
 		#' Resets all stored fields populated by `$compute`: `$resample_result`, `$scores`, `$obs_losses`, and `$predictions`.
 		reset = function() {
 			self$resample_result = NULL
-			self$scores = NULL
-			self$obs_losses = NULL
+			self$.scores = NULL
+			self$.obs_losses = NULL
 			self$predictions = NULL
 		},
 
@@ -348,6 +305,32 @@ FeatureImportanceMethod = R6Class(
 			} else {
 				cli::cli_inform("No importances computed yet.")
 			}
+		},
+
+		#' @description
+		#' Calculate importance scores for each resampling iteration and sub-iterations
+		#' (`iter_rsmp` in [PFI] for example).
+		#'
+		#' Iteration-wise importance are computed on the fly depending on the chosen relation
+		#' (`difference` or `ratio`) to avoid re-computation if only a different relation is needed.
+		#'
+		scores = function() {
+			scores = data.table::copy(private$.scores)[,
+				importance := private$.compute_score(
+					score_baseline,
+					score_post,
+					relation = self$param_set$values$relation,
+					minimize = self$measure$minimize
+				)
+			]
+
+			setnames(
+				scores,
+				old = c("score_baseline", "score_post"),
+				new = c(paste0(self$measure$id, c("_baseline", "_perturbed")))
+			)
+
+			scores[]
 		}
 	),
 	private = list(
@@ -378,28 +361,34 @@ FeatureImportanceMethod = R6Class(
 				switch(relation, difference = scores_pre - scores_post, ratio = scores_pre / scores_post)
 			}
 		},
-		# Take the raw predictions as returned by $predict_newdata_fast and convert to Prediction object fitting the task type
+		# Take the raw predictions as returned by $predict_newdata_fast and convert to Prediction object fitting the task type to simplify type-specific handling
 		# @param test_dt `data.table` with test target values
 		# @param raw_prediction `list` with elements `reponse` (vector) or `prob` (matrix) depending on task type.
-		.construct_pred = function(test_dt, raw_prediction) {
-			n_test = nrow(test_dt)
+		# @param test_row_ids `integer()` test set row ids, important to ensure predictions can be matched with original observations / baseline predictions
+		.construct_pred = function(test_dt, raw_prediction, test_row_ids) {
 			truth = test_dt[[self$task$target_names]]
-			row_ids = seq_len(n_test)
+			stopifnot(nrow(truth) == length(test_row_ids))
 
 			switch(
 				self$task$task_type,
 				classif = PredictionClassif$new(
-					row_ids = row_ids,
+					row_ids = test_row_ids,
 					truth = truth,
 					response = raw_prediction$response, # vector of class names or NULL
 					prob = raw_prediction$prob # matrix for predict_type prob or NULL
 				),
 				regr = PredictionRegr$new(
-					row_ids = row_ids,
+					row_ids = test_row_ids,
 					truth = truth,
 					response = raw_prediction$response # numeric
 				)
 			)
-		}
+		},
+
+		# @field .scores ([data.table][data.table::data.table]) Iteration-wise importances scores. Essentially an aggregated form of .obs_losses (which may not be available), used as basis for the calculation in `$importance() `and `$scores()`.
+		.scores = NULL,
+
+		# @field .obs_losses ([data.table][data.table::data.table]) Observation-wise losses when available. Contains columns for row_ids, feature, iteration indices, individual loss values, and observation-wise losses for baseline and modified case.
+		.obs_losses = NULL
 	)
 )

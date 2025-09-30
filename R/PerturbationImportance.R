@@ -54,7 +54,6 @@ PerturbationImportance = R6Class(
 	private = list(
 		# Common computation method for all perturbation-based methods
 		.compute_perturbation_importance = function(
-			relation = NULL,
 			iters_perm = NULL,
 			store_backends = TRUE,
 			sampler = NULL
@@ -62,22 +61,10 @@ PerturbationImportance = R6Class(
 			# Use provided sampler or default to self$sampler
 			sampler = sampler %||% self$sampler
 
-			# Use hierarchical parameter resolution
-			relation = resolve_param(relation, self$param_set$values$relation, "difference")
 			iters_perm = resolve_param(iters_perm, self$param_set$values$iters_perm, 1L)
 
-			relation = match.arg(relation, c("difference", "ratio"))
-
-			# Check if already computed with this relation
-			if (!is.null(self$scores) & self$param_set$values$relation == relation) {
-				return(self$importance())
-			}
-
-			# Store relation
-			self$param_set$values$relation = relation
-
 			# Initial resampling
-			rr = resample(
+			self$resample_result = resample(
 				self$task,
 				self$learner,
 				self$resampling,
@@ -85,8 +72,14 @@ PerturbationImportance = R6Class(
 				store_backends = store_backends
 			)
 
-			scores_orig = rr$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
-			setnames(scores_orig, old = self$measure$id, "scores_pre")
+			# Prepare baseline scores
+			scores_baseline = self$resample_result$score(self$measure)[,
+				.SD,
+				.SDcols = c("iteration", self$measure$id)
+			]
+
+			setnames(scores_baseline, old = self$measure$id, "score_baseline")
+			setnames(scores_baseline, old = "iteration", "iter_rsmp")
 
 			if (xplain_opt("progress")) {
 				# resampling * permutation iters suffices for update speed
@@ -97,85 +90,101 @@ PerturbationImportance = R6Class(
 					.envir = .progress_env
 				)
 			}
+			# browser()
+			# Get predictions for each resampling iter, permutation iter, feature
+			all_preds = data.table::rbindlist(
+				lapply(seq_len(self$resampling$iters), \(iter) {
+					test_dt = self$task$data(rows = self$resampling$test_set(iter))
 
-			# Compute permuted scores
-			scores = lapply(seq_len(self$resampling$iters), \(iter) {
-				test_dt = self$task$data(rows = rr$resampling$test_set(iter))
+					rbindlist(
+						lapply(
+							seq_len(iters_perm),
+							\(iter_perm) {
+								# Extract the learner here once because apparently reassembly is expensive
+								this_learner = self$resample_result$learners[[iter]]
 
-				rbindlist(
-					lapply(seq_len(iters_perm), \(iter_perm) {
-						# Extract the learner here once because apparently reassembly is expensive
-						this_learner = rr$learners[[iter]]
+								# # Update progress bar.
+								if (xplain_opt("progress")) {
+									cli::cli_progress_update(inc = 1, .envir = .progress_env)
+								}
 
-						scores_post = vapply(
-							self$features,
-							\(feature) {
-								# Sample feature - sampler handles conditioning appropriately
-								# If CFI, ConditionalSampler must use all non-FOI features as conditioning set
-								# If RFI, `conditioning_set` must be pre-configured!
-								perturbed_data = sampler$sample(feature, test_dt)
+								data.table::rbindlist(
+									lapply(
+										self$features,
+										\(feature) {
+											# Sample feature - sampler handles conditioning appropriately
+											# If CFI, ConditionalSampler must use all non-FOI features as conditioning set
+											# If RFI, `conditioning_set` must be pre-configured!
+											perturbed_data = sampler$sample(feature, test_dt)
 
-								# Predict and score
-								pred_raw = this_learner$predict_newdata_fast(
-									newdata = perturbed_data,
-									task = self$task
+											# Predict and score
+											pred_raw = this_learner$predict_newdata_fast(
+												newdata = perturbed_data,
+												task = self$task
+											)
+
+											pred = private$.construct_pred(
+												perturbed_data,
+												pred_raw,
+												test_row_ids = self$resampling$test_set(iter)
+											)
+											data.table::data.table(feature = feature, prediction = list(pred))
+										}
+									)
 								)
-
-								pred = private$.construct_pred(perturbed_data, pred_raw)
-
-								score = pred$score(self$measure)
-								names(score) = feature
-								score
-							},
-							FUN.VALUE = numeric(1)
-						)
-
-						# Update progress bar.
-						if (xplain_opt("progress")) {
-							cli::cli_progress_update(inc = 1, .envir = .progress_env)
-						}
-
-						data.table(
-							feature = names(scores_post),
-							iter_perm = iter_perm,
-							scores_post = unname(scores_post)
-						)
-					})
-				)
-			})
+							}
+						),
+						# Append iteration id for within-resampling permutations
+						idcol = "iter_perm"
+					)
+				}),
+				# Append iteration id for resampling
+				idcol = "iter_rsmp"
+			)
 
 			# Update progress bar.
 			if (xplain_opt("progress")) {
 				cli::cli_progress_done(.envir = .progress_env)
 			}
 
-			# Collect permuted scores, add original scores
-			scores = rbindlist(scores, idcol = "iteration")
-			scores = scores[scores_orig, on = "iteration"]
-			setcolorder(scores, c("feature", "iteration", "iter_perm", "scores_pre", "scores_post"))
-
-			# Calculate importance depending on relation
-			scores[,
-				importance := private$.compute_score(
-					scores_pre,
-					scores_post,
-					relation = self$param_set$values$relation,
-					minimize = self$measure$minimize
+			scores = data.table::copy(all_preds)[,
+				score_post := vapply(
+					prediction,
+					\(p) p$score(measures = self$measure)[[self$measure$id]],
+					FUN.VALUE = numeric(1)
 				)
 			]
 
-			# Rename columns for clarity
-			setnames(
-				scores,
-				old = c("iteration", "scores_pre", "scores_post"),
-				new = c("iter_rsmp", paste0(self$measure$id, c("_orig", "_perm")))
-			)
+			private$.scores = scores[scores_baseline, on = c("iter_rsmp")][, .(
+				feature,
+				iter_rsmp,
+				iter_perm,
+				score_baseline,
+				score_post
+			)]
 
-			setkeyv(scores, c("feature", "iter_rsmp"))
+			# for obs_loss:
+			# Not all losses are decomposable so this is optional and depends on the provided measure
+			# browser()
+			if (!is.null(self$measure$obs_loss)) {
+				obs_loss_all <- all_preds[,
+					{
+						pred <- prediction[[1]]
+						obs_loss_vals <- self$measure$obs_loss(
+							truth = pred$truth,
+							response = pred$response
+						)
 
-			# Store results
-			self$resample_result = rr
-			self$scores = scores
+						list(
+							row_ids = pred$row_ids,
+							loss_perturbed = obs_loss_vals
+						)
+					},
+					by = .(feature, iter_rsmp, iter_perm)
+				]
+
+				private$.obs_losses = obs_loss_all
+			}
 		}
 	)
 )
@@ -257,7 +266,6 @@ PFI = R6Class(
 		compute = function(relation = NULL, iters_perm = NULL, store_backends = TRUE) {
 			# PFI uses the MarginalSampler directly
 			private$.compute_perturbation_importance(
-				relation = relation,
 				iters_perm = iters_perm,
 				store_backends = store_backends,
 				sampler = self$sampler
@@ -319,7 +327,6 @@ CFI = R6Class(
 				resampling = resampling,
 				features = features,
 				sampler = sampler,
-				relation = relation,
 				iters_perm = iters_perm
 			)
 
@@ -381,7 +388,6 @@ RFI = R6Class(
 			resampling = NULL,
 			features = NULL,
 			conditioning_set = NULL,
-			relation = "difference",
 			iters_perm = 1L,
 			sampler = NULL
 		) {

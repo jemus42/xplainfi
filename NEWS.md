@@ -4,13 +4,26 @@ This turns out to be still a period of major changes in the early phase, so, uhm
 
 ## General changes and improvements
 
-- `$importance` become a function `$importance()` with arguments `standardize` and `variance_method` (#40):
+- `$importance` becomes a function `$importance()` with arguments `standardize` and `variance_method` (#40):
   - `"nadeau_bengio"` implements the correction method by Nadeau & Bengio (2003) recommended by Molnaet et al. (2023).
-- Add `$obs_loss` and `$predictions` fields to `FeatureImportanceMeasure`, now used by `LOCO` and `LOCI`
-  - Both get arugments `obs_loss = FALSE` use the measure's `$aggregator` for aggregation in case of `obs_loss = TRUE`, to allow for  median of absolute differences calculation as in original LOCO formulation, rather than the "micro-"averaged approach calculated by default.
+
 - Add `sim_dgp_ewald()` and other `sim_dgp_*()` helpers to simulate data (in `Task` form) with simple DGPs as used for illustration in Ewald et al. (2024) for example, which should make it easier to interpret the results of various importance methods.
 
+### Observation-wise losses
+
+- `$scores` becomes `$scores()` and re-computes iteration-wise scores depending on `relation` on the fly. Original scores are stored in `$.scores` (for now)
+-  `$obs_scores()` analogously computes observation-wise importance scores base on losses stored in `$.obs_losses` **if** `measure` has a `Measure$obs_loss()`
+
+- `$predictions` will probably be removed again?
+
 ## Method-specific changes
+
+### `LeaveOutIn`
+
+This is in flux and will be changed again
+
+- Add `$obs_loss` and `$predictions` fields to `FeatureImportanceMeasure`, now used by `LOCO` and `LOCI`
+  - Both get arugments `obs_loss = FALSE` use the measure's `$aggregator` for aggregation in case of `obs_loss = TRUE`, to allow for  median of absolute differences calculation as in original LOCO formulation, rather than the "micro-"averaged approach calculated by default.
 
 ### `PerturbationImportance`
 
@@ -27,7 +40,7 @@ This turns out to be still a period of major changes in the early phase, so, uhm
 ### `SAGE`
 
 - Fix accidentally marginal `ConditionalSAGE`.
--  Also using `learner$predict_newdata_fast()` now
+- Also using `learner$predict_newdata_fast()` now  (#39)
 - `batch_size` controls number of observations used at once per `learner$predict_newdata_fast()` call (could lead to excessive RAM usage). 
 - convergence tracking if `early_stopping = TRUE` ([#29](https://github.com/jemus42/xplainfi/pull/29))
   - Permutations are evaluated in steps of `check_interval` at a time, after each convergence is checked
