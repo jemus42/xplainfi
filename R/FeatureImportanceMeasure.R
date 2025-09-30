@@ -176,32 +176,145 @@ FeatureImportanceMethod = R6Class(
     #' The stored [`measure`][mlr3::Measure] object's `aggregator` (default: `mean`) will be used to aggregated importance scores
     #' across resampling iterations and, depending on the method use, permutations ([PerturbationImportance] or refits [LOCO]).
     #' @param standardize (`logical(1)`: `FALSE`) If `TRUE`, importances are standardized by the highest score so all scores fall in `[-1, 1]`.
-    #' @return ([data.table][data.table::data.table]) Aggregated importance scores.
-    importance = function(standardize = FALSE) {
+    #' @param variance_method (`character(1)`: `"none"`) Variance estimation method to use, defaulting to omitting variance estimation (`"none"`).
+    #'   If `"raw"`, uncorrected variance estimates are provided purely for informative purposes with **invalid** (too narrow) confidence intervals.
+    #'   If `"nadeau_bengio"`, variance correction is performed according to Nadeau & Bengio (2003) as suggested by Molnar et al. (2023).
+    #'   These methods are model-agnostic and rely on suitable `resampling`s, e.g. subsampling with 15 repeats for `"nadeau_bengio"`.
+    #'   See details.
+    #' @param conf_level (`numeric(1): 0.95`): Conficence level to use for confidence interval construction when `variance_method != "none"`.
+    #'
+    #' @return ([data.table][data.table::data.table]) Aggregated importance scores. with variables `"feature", "importance"`
+    #' and depending in `variance_method` also `"var", "conf_lower", "conf_upper"`.
+    #'
+    #' @details
+    #' Variance estimates for importance scores are biased due to the resampling procedure. Molnar et al. (2023) suggest to use
+    #' the variance correction factor proposed by Nadeau & Bengio (2003) of n2/n1, where n2 and n1 are the sizes of the test- and train set, respectively.
+    #' This should then be combined with approx. 15 iterations of either bootstrapping or subsampling.
+    #'
+    #' The use of bootstrapping in this context can lead to problematic information leakage when combined with learners
+    #' that perform bootstrapping themselves, e.g., Random Forest learners.
+    #' In such cases, observations may be used as train- and test instances simultaneously, leading to erroneous performance estimates.
+    #'
+    #' An approach leading to still imperfect, but improved variance estimates could be:
+    #'
+    #' ```r
+    #' PFI$new(
+    #'   task = sim_dgp_interactions(n = 1000),
+    #'   learner = lrn("regr.ranger", num.trees = 100),
+    #'   measure = msr("regr.mse"),
+    #'   # Subsampling instead of bootstrapping due to RF
+    #'   resampling = rsmp("subsampling", repeats = 15),
+    #'   iters_perm = 5
+    #' )
+    #' ```
+    #'
+    #' `iters_perm = 5` in this context only improves the stability of the PFI estimate within the resampling iteration, whereas `rsmp("subsampling", repeats = 15)`
+    #' is used to accounter for learner variance and neccessitates variance correction factor.
+    #'
+    #' This appraoch can in principle also be applied to `CFI` and `RFI`, but beware that a conditional sample such as [ARFSampler] also needs to be trained on data,
+    #' which would need to be taken account by the variance estimation method.
+    #' Analogously, the `"nadeau_bengio"` correction was recommended for the use with [PFI] by Molnar et al., so it's use with [LOCO] or [MarginalSAGE] is experimental.
+    #'
+    #' Note that even if `measure` uses an `aggregator` function that is not the mean, variance estimation currently will always use [mean()] and [var()].
+    #'
+    #' @references
+    #' `r print_bib("nadaeu_2003")`
+    #' `r print_bib("molnar_2023")`
+    #'
+    importance = function(
+      standardize = FALSE,
+      variance_method = c("none", "raw", "nadeau_bengio"),
+      conf_level = 0.95
+    ) {
       if (is.null(self$scores)) {
         return(NULL)
       }
+      variance_method = match.arg(variance_method)
+      checkmate::assert_number(conf_level, lower = 0, upper = 1)
       # Aggregate scores by feature using the measure's aggregator
-
-      # Get the aggregator function from the measure
       aggregator = self$measure$aggregator %||% mean
-      xdf = self$scores
+      scores = self$scores
 
       # Skip aggregation if only one row per feature anyway
-      if (nrow(xdf) == length(unique(xdf$feature))) {
-        res = xdf[, list(feature, importance)]
+      if (nrow(scores) == length(unique(scores$feature))) {
+        res = scores[, list(feature, importance)]
         setkeyv(res, "feature")
         return(res)
       }
 
-      res = xdf[, list(importance = aggregator(importance)), by = feature]
-
       if (standardize) {
-        res[, importance := importance / max(importance, na.rm = TRUE)]
+        # Standardizing first on raw scores so subsequent variance shenanigans are performed on standardized values
+        scores[, importance := importance / max(abs(importance), na.rm = TRUE)]
       }
 
-      setkeyv(res, "feature")
-      res[]
+      # Variance estimation / correction
+      resample_iters = self$resample_result$iters
+      adjustment_factor = 1 / resample_iters
+
+      if (variance_method == "nadeau_bengio") {
+        # For now we limit when we allow this method
+        checkmate::assert_subset(self$resampling$id, choices = c("bootstrap", "subsampling"))
+
+        if (self$resampling$id == "bootstrap") {
+          # ratio would be 1 here and n1 = n
+          test_train_ratio <- 0.632
+        } else {
+          # see also https://github.com/mlr-org/mlr3inferr/blob/539ad41c1b68c90321138134dd9071322e66726e/R/MeasureCiCorT.R#L40-L70
+          # Correction factor is n2 / n1 -> test_size / train_size
+          # in the nadeau paper n1 is the train-set size and n2 the test set size
+          ratio = self$resampling$param_set$values$ratio
+          n = self$resampling$task_nrow
+
+          n1 = round(ratio * n) # same rounding in ResamplingSubsampling
+          n2 = n - n1
+          test_train_ratio <- n2 / n1
+        }
+
+        # (1 / m ) + c in Molnar et al. (2023)
+        # c = 0 gives uncorrected variance
+        adjustment_factor = 1 / resample_iters + test_train_ratio
+
+        if (xplain_opt("debug")) {
+          cli::cli_inform(c(
+            i = "Using {.val nadeau_bengio} correction with n2/n1 = {test_train_ratio}",
+            i = "Factor: 1 / {resample_iters} + {adjustment_factor}"
+          ))
+        }
+      }
+
+      # Calculcate per-feature aggregated importance which we need regardless of the variance method
+      agg_importance = scores[,
+        list(importance = aggregator(importance)),
+        by = feature
+      ]
+
+      # This currently allows getting the MAE with aggregator = median but still getting "regular" variance / sd
+      if (variance_method != "none") {
+        # Aggregate within resamplings first to get one row per resampling iter (discarded later)
+        means_rsmp = scores[,
+          list(importance = mean(importance)),
+          by = c("iter_rsmp", "feature")
+        ]
+
+        sds = means_rsmp[,
+          # se calculcated from variance where adjustment_factor is either with correction or not
+          list(se = sqrt(adjustment_factor * var(importance))),
+          by = feature
+        ]
+
+        agg_importance = agg_importance[sds, on = "feature"]
+
+        alpha = 1 - conf_level
+        quant = qt(1 - alpha / 2, df = resample_iters - 1)
+
+        agg_importance[, let(
+          conf_lower = importance - quant * se,
+          conf_upper = importance + quant * se
+        )]
+      }
+
+      setkeyv(agg_importance, "feature")
+      agg_importance[]
     },
 
     #' @description
