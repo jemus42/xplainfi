@@ -316,12 +316,12 @@ DAG for confounding DGP
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="co"># Hidden confounder scenario (default)</span></span>
 <span><span class="va">task_hidden</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_confounded</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">500</span>, hidden <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">task_hidden</span><span class="op">$</span><span class="va">feature_names</span>  <span class="co"># proxy available but not confounder</span></span>
+<span><span class="va">task_hidden</span><span class="op">$</span><span class="va">feature_names</span> <span class="co"># proxy available but not confounder</span></span>
 <span><span class="co">#&gt; [1] "independent" "proxy"       "x1"          "x2"</span></span>
 <span></span>
 <span><span class="co"># Observable confounder scenario</span></span>
 <span><span class="va">task_observed</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_confounded</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">500</span>, hidden <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="va">task_observed</span><span class="op">$</span><span class="va">feature_names</span>  <span class="co"># both confounder and proxy available</span></span>
+<span><span class="va">task_observed</span><span class="op">$</span><span class="va">feature_names</span> <span class="co"># both confounder and proxy available</span></span>
 <span><span class="co">#&gt; [1] "confounder"  "independent" "proxy"       "x1"          "x2"</span></span></code></pre></div>
 </div>
 <div class="section level3">

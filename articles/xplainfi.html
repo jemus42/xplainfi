@@ -156,10 +156,10 @@ deteriorates. More important features cause larger performance drops
 when shuffled.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
-<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
-<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
-<span>  resampling <span class="op">=</span> <span class="va">resampling</span></span>
+<span>    task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>    resampling <span class="op">=</span> <span class="va">resampling</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
@@ -184,11 +184,11 @@ features.</p>
 per resampling fold:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi_stable</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
-<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
-<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
-<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>  iters_perm <span class="op">=</span> <span class="fl">5</span></span>
+<span>    task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>    iters_perm <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pfi_stable</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
@@ -236,10 +236,10 @@ and comparing performance to the full model. This shows the contribution
 of each feature when all other features are present.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">loco</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
-<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
-<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
-<span>  resampling <span class="op">=</span> <span class="va">resampling</span></span>
+<span>    task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>    resampling <span class="op">=</span> <span class="va">resampling</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">loco</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
@@ -290,9 +290,9 @@ given the values of <code>important2</code> and
 <code>important3</code>:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sampled_conditional</span> <span class="op">&lt;-</span> <span class="va">arf_sampler</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span></span>
-<span>  feature <span class="op">=</span> <span class="st">"important1"</span>,</span>
-<span>  data <span class="op">=</span> <span class="va">sample_data</span>,</span>
-<span>  conditioning_set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"important2"</span>, <span class="st">"important3"</span><span class="op">)</span></span>
+<span>    feature <span class="op">=</span> <span class="st">"important1"</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">sample_data</span>,</span>
+<span>    conditioning_set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"important2"</span>, <span class="st">"important3"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">sample_data</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">y</span>, <span class="va">important1</span>, <span class="va">important2</span>, <span class="va">important3</span><span class="op">)</span><span class="op">]</span></span>
@@ -349,7 +349,7 @@ dependencies (see <code>vignette("perturbation-importance")</code>)</li>
 Let’s examine the structure of PFI’s detailed scores:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">pfi</span><span class="op">$</span><span class="va">scores</span>, <span class="fl">10</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"Detailed PFI scores (first 10 rows)"</span><span class="op">)</span></span></code></pre></div>
+<span>    <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"Detailed PFI scores (first 10 rows)"</span><span class="op">)</span></span></code></pre></div>
 <table style="width:100%;" class="table">
 <caption>Detailed PFI scores (first 10 rows)</caption>
 <colgroup>
@@ -454,10 +454,10 @@ Let’s examine the structure of PFI’s detailed scores:</p>
 <p>We can also summarize the scoring structure:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="va">scores</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span></span>
-<span>  features <span class="op">=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/duplicated.html" class="external-link">uniqueN</a></span><span class="op">(</span><span class="va">feature</span><span class="op">)</span>,</span>
-<span>  resampling_folds <span class="op">=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/duplicated.html" class="external-link">uniqueN</a></span><span class="op">(</span><span class="va">iter_rsmp</span><span class="op">)</span>,</span>
-<span>  permutation_iters <span class="op">=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/duplicated.html" class="external-link">uniqueN</a></span><span class="op">(</span><span class="va">iter_perm</span><span class="op">)</span>,</span>
-<span>  total_scores <span class="op">=</span> <span class="va">.N</span></span>
+<span>    features <span class="op">=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/duplicated.html" class="external-link">uniqueN</a></span><span class="op">(</span><span class="va">feature</span><span class="op">)</span>,</span>
+<span>    resampling_folds <span class="op">=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/duplicated.html" class="external-link">uniqueN</a></span><span class="op">(</span><span class="va">iter_rsmp</span><span class="op">)</span>,</span>
+<span>    permutation_iters <span class="op">=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/duplicated.html" class="external-link">uniqueN</a></span><span class="op">(</span><span class="va">iter_perm</span><span class="op">)</span>,</span>
+<span>    total_scores <span class="op">=</span> <span class="va">.N</span></span>
 <span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt;    features resampling_folds permutation_iters total_scores</span></span>
 <span><span class="co">#&gt;       &lt;int&gt;            &lt;int&gt;             &lt;int&gt;        &lt;int&gt;</span></span>

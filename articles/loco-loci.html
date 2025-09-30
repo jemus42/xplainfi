@@ -143,9 +143,9 @@ drop when removed).</p>
 <span><span class="va">measure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">loco</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
-<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
-<span>  measure <span class="op">=</span> <span class="va">measure</span></span>
+<span>    task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>    measure <span class="op">=</span> <span class="va">measure</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span></span>
 <span><span class="co">#&gt; Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span></span>
@@ -184,9 +184,9 @@ or constant model and the model including only the feature: <span class="math di
 performance compared to baseline).</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">loci</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/LOCI.html">LOCI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
-<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
-<span>  measure <span class="op">=</span> <span class="va">measure</span></span>
+<span>    task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>    measure <span class="op">=</span> <span class="va">measure</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span></span>
 <span><span class="co">#&gt; Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span></span>
@@ -237,11 +237,11 @@ refit iterations per resampling iteration, which then also provide
 standard deviations:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">loco_multi</span> <span class="op">=</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
-<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
-<span>  measure <span class="op">=</span> <span class="va">measure</span>,</span>
-<span>  resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
-<span>  iters_refit <span class="op">=</span> <span class="fl">3L</span></span>
+<span>    task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>    resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>    iters_refit <span class="op">=</span> <span class="fl">3L</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">loco_multi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
@@ -257,7 +257,7 @@ standard deviations:</p>
 <span></span>
 <span><span class="co"># Check individual scores with multiple refits</span></span>
 <span><span class="va">loco_multi</span><span class="op">$</span><span class="va">scores</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="op">]</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"LOCO scores per refit and resampling fold"</span><span class="op">)</span></span></code></pre></div>
+<span>    <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"LOCO scores per refit and resampling fold"</span><span class="op">)</span></span></code></pre></div>
 <table style="width:100%;" class="table">
 <caption>LOCO scores per refit and resampling fold</caption>
 <colgroup>
@@ -366,15 +366,15 @@ standard deviations:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Combine results for comparison</span></span>
 <span><span class="va">importance_combined</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
-<span>  <span class="va">loco</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"LOCO"</span><span class="op">]</span>,</span>
-<span>  <span class="va">loci</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"LOCI"</span><span class="op">]</span></span>
+<span>    <span class="va">loco</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"LOCO"</span><span class="op">]</span>,</span>
+<span>    <span class="va">loci</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"LOCI"</span><span class="op">]</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">importance_combined</span> <span class="op">&lt;-</span> <span class="va">importance_combined</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/dcast.data.table.html" class="external-link">dcast</a></span><span class="op">(</span><span class="va">feature</span> <span class="op">~</span> <span class="va">method</span>, value.var <span class="op">=</span> <span class="st">"importance"</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/dcast.data.table.html" class="external-link">dcast</a></span><span class="op">(</span><span class="va">feature</span> <span class="op">~</span> <span class="va">method</span>, value.var <span class="op">=</span> <span class="st">"importance"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">importance_combined</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"LOCO vs LOCI importance scores"</span><span class="op">)</span></span></code></pre></div>
+<span>    <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"LOCO vs LOCI importance scores"</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <caption>LOCO vs LOCI importance scores</caption>
 <thead><tr class="header">
@@ -454,10 +454,10 @@ observation-level differences:</p>
 <span><span class="va">mae_median</span><span class="op">$</span><span class="va">aggregator</span> <span class="op">&lt;-</span> <span class="va">median</span></span>
 <span></span>
 <span><span class="va">loco_obs</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
-<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
-<span>  measure <span class="op">=</span> <span class="va">mae_median</span>,  <span class="co"># MAE with median aggregator</span></span>
-<span>  obs_loss <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>    measure <span class="op">=</span> <span class="va">mae_median</span>, <span class="co"># MAE with median aggregator</span></span>
+<span>    obs_loss <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span></span>
 <span><span class="co">#&gt; Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span></span>
@@ -475,11 +475,11 @@ observation-level differences:</p>
 <span></span>
 <span><span class="co"># Compare aggregated results</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
-<span>  <span class="va">loco</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"Set-wise MSE (measure default)"</span><span class="op">]</span>,</span>
-<span>  <span class="va">loco_obs</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"Observation-wise (median of diffs)"</span><span class="op">]</span></span>
+<span>    <span class="va">loco</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"Set-wise MSE (measure default)"</span><span class="op">]</span>,</span>
+<span>    <span class="va">loco_obs</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"Observation-wise (median of diffs)"</span><span class="op">]</span></span>
 <span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/dcast.data.table.html" class="external-link">dcast</a></span><span class="op">(</span><span class="va">feature</span> <span class="op">~</span> <span class="va">method</span>, value.var <span class="op">=</span> <span class="st">"importance"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"Comparison of LOCO aggregation approaches"</span><span class="op">)</span></span></code></pre></div>
+<span>    <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/dcast.data.table.html" class="external-link">dcast</a></span><span class="op">(</span><span class="va">feature</span> <span class="op">~</span> <span class="va">method</span>, value.var <span class="op">=</span> <span class="st">"importance"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"Comparison of LOCO aggregation approaches"</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <caption>Comparison of LOCO aggregation approaches</caption>
 <colgroup>
@@ -543,7 +543,7 @@ observation-level information:</p>
 <span></span>
 <span><span class="co"># Display first few observations</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">feature_data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">3</span>, caption <span class="op">=</span> <span class="st">"Observation-wise losses for x3"</span><span class="op">)</span></span></code></pre></div>
+<span>    <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">3</span>, caption <span class="op">=</span> <span class="st">"Observation-wise losses for x3"</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <caption>Observation-wise losses for x3</caption>
 <colgroup>
@@ -672,25 +672,31 @@ result, but in slightly different ways:</p>
 <span><span class="va">resampling</span><span class="op">$</span><span class="fu">instantiate</span><span class="op">(</span><span class="va">task</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">loco_orig</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
-<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
-<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>  measure <span class="op">=</span> <span class="va">measure</span></span>
+<span>    task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>    measure <span class="op">=</span> <span class="va">measure</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">loco_obsloss</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task</span>,</span>
-<span>  learner <span class="op">=</span> <span class="va">learner</span>,</span>
-<span>  resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>  measure <span class="op">=</span> <span class="va">measure</span>,  <span class="co"># MSE uses mean by default</span></span>
-<span>  obs_loss <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
+<span>    measure <span class="op">=</span> <span class="va">measure</span>, <span class="co"># MSE uses mean by default</span></span>
+<span>    obs_loss <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
-<span>  <span class="op">{</span><span class="va">loco_orig</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span>; <span class="va">loco_orig</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"Set-wise"</span><span class="op">]</span><span class="op">}</span>,</span>
-<span>  <span class="op">{</span><span class="va">loco_obsloss</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span>; <span class="va">loco_obsloss</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"Observation-wise"</span><span class="op">]</span><span class="op">}</span></span>
+<span>    <span class="op">{</span></span>
+<span>        <span class="va">loco_orig</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span>        <span class="va">loco_orig</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"Set-wise"</span><span class="op">]</span></span>
+<span>    <span class="op">}</span>,</span>
+<span>    <span class="op">{</span></span>
+<span>        <span class="va">loco_obsloss</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span>        <span class="va">loco_obsloss</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="va">method</span> <span class="op">:=</span> <span class="st">"Observation-wise"</span><span class="op">]</span></span>
+<span>    <span class="op">}</span></span>
 <span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/dcast.data.table.html" class="external-link">dcast</a></span><span class="op">(</span><span class="va">feature</span> <span class="op">~</span> <span class="va">method</span>, value.var <span class="op">=</span> <span class="st">"importance"</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/dcast.data.table.html" class="external-link">dcast</a></span><span class="op">(</span><span class="va">feature</span> <span class="op">~</span> <span class="va">method</span>, value.var <span class="op">=</span> <span class="st">"importance"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature Observation-wise    Set-wise</span></span>
 <span><span class="co">#&gt;     &lt;char&gt;            &lt;num&gt;       &lt;num&gt;</span></span>
@@ -715,11 +721,11 @@ original mlr3 prediction objects:</p>
 <span></span>
 <span><span class="co"># LOCO with observation-wise losses</span></span>
 <span><span class="va">loco_classif</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  task <span class="op">=</span> <span class="va">task_classif</span>,</span>
-<span>  learner <span class="op">=</span> <span class="va">learner_classif</span>,</span>
-<span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.ce"</span><span class="op">)</span>,  <span class="co"># Classification error supports obs_loss (zero-one in this case)</span></span>
-<span>  obs_loss <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span>  <span class="co"># Focus on just two features for clarity</span></span>
+<span>    task <span class="op">=</span> <span class="va">task_classif</span>,</span>
+<span>    learner <span class="op">=</span> <span class="va">learner_classif</span>,</span>
+<span>    measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"classif.ce"</span><span class="op">)</span>, <span class="co"># Classification error supports obs_loss (zero-one in this case)</span></span>
+<span>    obs_loss <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span> <span class="co"># Focus on just two features for clarity</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span></span>
 <span><span class="co">#&gt; Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span></span>
@@ -734,7 +740,7 @@ original mlr3 prediction objects:</p>
 <span></span>
 <span><span class="co"># Show classification importance</span></span>
 <span><span class="va">loco_classif</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"LOCO importance for classification"</span><span class="op">)</span></span></code></pre></div>
+<span>    <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">4</span>, caption <span class="op">=</span> <span class="st">"LOCO importance for classification"</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <caption>LOCO importance for classification</caption>
 <thead><tr class="header">
@@ -758,7 +764,7 @@ original mlr3 prediction objects:</p>
 <span><span class="va">classif_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">loco_classif</span><span class="op">$</span><span class="va">obs_losses</span>, <span class="fl">8</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">classif_data</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>caption <span class="op">=</span> <span class="st">"Observation-wise classification losses"</span><span class="op">)</span></span></code></pre></div>
+<span>    <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>caption <span class="op">=</span> <span class="st">"Observation-wise classification losses"</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <caption>Observation-wise classification losses</caption>
 <colgroup>
@@ -896,14 +902,14 @@ not the feature-specific models:</p>
 <span><span class="co">#&gt; 1:      x1         1          1 &lt;PredictionClassif&gt;</span></span>
 <span><span class="co">#&gt; 2:      x2         1          1 &lt;PredictionClassif&gt;</span></span>
 <span></span>
-<span><span class="co"># Get probabilities for a specific feature and iteration  </span></span>
+<span><span class="co"># Get probabilities for a specific feature and iteration</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">loco_classif</span><span class="op">$</span><span class="va">predictions</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">feature_pred</span> <span class="op">&lt;-</span> <span class="va">loco_classif</span><span class="op">$</span><span class="va">predictions</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span><span class="op">$</span><span class="va">prediction</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
-<span>  </span>
-<span>  <span class="co"># Access both predicted classes and probabilities</span></span>
-<span>  <span class="co"># Note: probabilities are only available because we used predict_type = "prob"</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">feature_pred</span><span class="op">$</span><span class="va">response</span><span class="op">)</span>  <span class="co"># Predicted classes</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">feature_pred</span><span class="op">$</span><span class="va">prob</span><span class="op">)</span>      <span class="co"># Probability matrix</span></span>
+<span>    <span class="va">feature_pred</span> <span class="op">&lt;-</span> <span class="va">loco_classif</span><span class="op">$</span><span class="va">predictions</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span><span class="op">$</span><span class="va">prediction</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span></span>
+<span>    <span class="co"># Access both predicted classes and probabilities</span></span>
+<span>    <span class="co"># Note: probabilities are only available because we used predict_type = "prob"</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">feature_pred</span><span class="op">$</span><span class="va">response</span><span class="op">)</span> <span class="co"># Predicted classes</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">feature_pred</span><span class="op">$</span><span class="va">prob</span><span class="op">)</span> <span class="co"># Probability matrix</span></span>
 <span><span class="op">}</span></span>
 <span><span class="co">#&gt;               A         B</span></span>
 <span><span class="co">#&gt; [1,] 0.06060606 0.9393939</span></span>
@@ -915,7 +921,7 @@ not the feature-specific models:</p>
 <span></span>
 <span><span class="co"># Compare with reference model (full model for LOCO)</span></span>
 <span><span class="va">ref_pred</span> <span class="op">&lt;-</span> <span class="va">loco_classif</span><span class="op">$</span><span class="va">resample_result</span><span class="op">$</span><span class="fu">prediction</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ref_pred</span><span class="op">$</span><span class="va">prob</span><span class="op">)</span>  <span class="co"># Reference model probabilities</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ref_pred</span><span class="op">$</span><span class="va">prob</span><span class="op">)</span> <span class="co"># Reference model probabilities</span></span>
 <span><span class="co">#&gt;               A          B</span></span>
 <span><span class="co">#&gt; [1,] 0.06060606 0.93939394</span></span>
 <span><span class="co">#&gt; [2,] 0.06060606 0.93939394</span></span>
