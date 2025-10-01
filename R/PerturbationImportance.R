@@ -91,57 +91,58 @@ PerturbationImportance = R6Class(
 				)
 			}
 			# Get predictions for each resampling iter, permutation iter, feature
-			all_preds = data.table::rbindlist(
-				lapply(seq_len(self$resampling$iters), \(iter) {
-					test_dt = self$task$data(rows = self$resampling$test_set(iter))
+			all_preds = lapply(seq_len(self$resampling$iters), \(iter) {
+				test_dt = self$task$data(rows = self$resampling$test_set(iter))
 
-					rbindlist(
-						lapply(
-							seq_len(iters_perm),
-							\(iter_perm) {
-								# Extract the learner here once because apparently reassembly is expensive
-								this_learner = self$resample_result$learners[[iter]]
+				pred_per_perm = lapply(
+					seq_len(iters_perm),
+					\(iter_perm) {
+						# Extract the learner here once because apparently reassembly is expensive
+						this_learner = self$resample_result$learners[[iter]]
 
-								# # Update progress bar.
-								if (xplain_opt("progress")) {
-									cli::cli_progress_update(inc = 1, .envir = .progress_env)
-								}
+						# # Update progress bar.
+						if (xplain_opt("progress")) {
+							cli::cli_progress_update(inc = 1, .envir = .progress_env)
+						}
 
-								data.table::rbindlist(
-									lapply(
-										self$features,
-										\(feature) {
-											# Sample feature - sampler handles conditioning appropriately
-											# If CFI, ConditionalSampler must use all non-FOI features as conditioning set
-											# If RFI, `conditioning_set` must be pre-configured!
-											perturbed_data = sampler$sample(feature, test_dt)
+						pred_per_feature = lapply(
+							self$features,
+							\(feature) {
+								# Sample feature - sampler handles conditioning appropriately
+								# If CFI, ConditionalSampler must use all non-FOI features as conditioning set
+								# If RFI, `conditioning_set` must be pre-configured!
+								perturbed_data = sampler$sample(feature, test_dt)
 
-											# Predict and score
-											pred_raw = this_learner$predict_newdata_fast(
-												newdata = perturbed_data,
-												task = self$task
-											)
-
-											pred = private$.construct_pred(
-												perturbed_data,
-												pred_raw,
-												test_row_ids = self$resampling$test_set(iter)
-											)
-											data.table::data.table(feature = feature, prediction = list(pred))
-										}
-									)
+								# Predict and score
+								pred_raw = this_learner$predict_newdata_fast(
+									newdata = perturbed_data,
+									task = self$task
 								)
-							}
-						),
-						# Append iteration id for within-resampling permutations
-						idcol = "iter_perm"
-					)
-				}),
-				# Append iteration id for resampling
-				idcol = "iter_rsmp"
-			)
 
-			# Update progress bar.
+								pred = private$.construct_pred(
+									perturbed_data,
+									pred_raw,
+									test_row_ids = self$resampling$test_set(iter)
+								)
+								# FIXME: For grouped features, `feature` needs to be
+								# the name of the list entry or list-column
+								data.table::data.table(feature = feature, prediction = list(pred))
+							}
+						)
+						data.table::rbindlist(pred_per_feature)
+					}
+				)
+				# Append iteration id for within-resampling permutations
+				rbindlist(pred_per_perm, idcol = "iter_perm")
+			})
+			# Append iteration id for resampling
+			all_preds = data.table::rbindlist(all_preds, idcol = "iter_rsmp")
+			setkeyv(all_preds, cols = c("feature", "iter_rsmp"))
+
+			# store predictions for future reference maybe?
+			self$predictions = all_preds
+
+			# Close progress bar now that we're done iterating
 			if (xplain_opt("progress")) {
 				cli::cli_progress_done(.envir = .progress_env)
 			}

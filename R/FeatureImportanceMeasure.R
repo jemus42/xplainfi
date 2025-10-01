@@ -246,7 +246,7 @@ FeatureImportanceMethod = R6Class(
 			setnames(
 				obs_loss_baseline,
 				old = c("iteration", self$measure$id),
-				new = c("iter_rsmp", "baseline_loss")
+				new = c("iter_rsmp", "loss_baseline")
 			)
 
 			obs_loss_combined = obs_loss_baseline[
@@ -257,7 +257,7 @@ FeatureImportanceMethod = R6Class(
 
 			obs_loss_combined[,
 				obs_importance := private$.compute_score(
-					baseline_loss,
+					loss_baseline,
 					loss_perturbed,
 					relation = relation,
 					minimize = self$measure$minimize
@@ -272,7 +272,7 @@ FeatureImportanceMethod = R6Class(
 				"iter_perm",
 				"iter_refit",
 				"row_ids",
-				"baseline_loss",
+				"loss_baseline",
 				"loss_perturbed",
 				"obs_importance"
 			)
