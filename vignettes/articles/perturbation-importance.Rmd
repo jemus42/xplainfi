@@ -108,8 +108,8 @@ pfi_int <- PFI$new(
 )
 
 # Compute importance scores
-pfi_int$compute(relation = "difference")
-pfi_int$importance()
+pfi_int$compute()
+pfi_int$importance(relation = "difference")
 ```
 
 Expected: x1 and x2 will show high importance with PFI because permuting either feature destroys the interaction term x1×x2, which is crucial for prediction. This demonstrates a key limitation of PFI with interactions.
@@ -133,8 +133,8 @@ cfi_int <- CFI$new(
 )
 
 # Compute importance scores
-cfi_int$compute(relation = "difference")
-cfi_int$importance()
+cfi_int$compute()
+cfi_int$importance(relation = "difference")
 ```
 
 Expected: CFI should show somewhat lower importance for x1 and x2 compared to PFI because it better preserves the interaction structure during conditional sampling, providing a more nuanced importance estimate.
@@ -155,7 +155,7 @@ rfi_int_x2 <- RFI$new(
 	iters_perm = 5,
 	sampler = sampler_int
 )
-rfi_int_x2$compute(relation = "difference")
+rfi_int_x2$compute()
 
 # RFI conditioning on x1: "How important is x2 given we know x1?"
 rfi_int_x1 <- RFI$new(
@@ -167,7 +167,7 @@ rfi_int_x1 <- RFI$new(
 	iters_perm = 5,
 	sampler = sampler_int
 )
-rfi_int_x1$compute(relation = "difference")
+rfi_int_x1$compute()
 ```
 
 **RFI Results:**
@@ -358,7 +358,7 @@ pfi_conf <- PFI$new(
 	iters_perm = 5
 )
 
-pfi_conf$compute(relation = "difference")
+pfi_conf$compute()
 pfi_conf$importance()
 ```
 
@@ -386,7 +386,7 @@ rfi_conf <- RFI$new(
 	sampler = sampler_conf
 )
 
-rfi_conf$compute(relation = "difference")
+rfi_conf$compute()
 rfi_conf$importance()
 ```
 
@@ -403,7 +403,7 @@ cfi_conf <- CFI$new(
 	sampler = sampler_conf
 )
 
-cfi_conf$compute(relation = "difference")
+cfi_conf$compute()
 cfi_conf$importance()
 ```
 
@@ -434,7 +434,8 @@ rfi_conf_obs <- RFI$new(
 	sampler = sampler_conf_obs
 )
 
-rfi_conf_obs$compute(relation = "difference")
+rfi_conf_obs$compute()
+rfi_conf_obs$importance()
 
 # Compare with PFI on the same data
 pfi_conf_obs <- PFI$new(
@@ -444,7 +445,8 @@ pfi_conf_obs <- PFI$new(
 	resampling = resampling,
 	iters_perm = 5
 )
-pfi_conf_obs$compute(relation = "difference")
+pfi_conf_obs$compute()
+pfi_conf_obs$importance()
 ```
 
 **Key Results:**
@@ -588,7 +590,7 @@ pfi_cor <- PFI$new(
 	iters_perm = 5
 )
 
-pfi_cor$compute(relation = "difference")
+pfi_cor$compute()
 pfi_cor$importance()
 ```
 
@@ -610,7 +612,7 @@ cfi_cor <- CFI$new(
 	sampler = sampler_cor
 )
 
-cfi_cor$compute(relation = "difference")
+cfi_cor$compute()
 cfi_cor$importance()
 ```
 
@@ -630,7 +632,7 @@ rfi_cor_x1 <- RFI$new(
 	iters_perm = 5,
 	sampler = sampler_cor
 )
-rfi_cor_x1$compute(relation = "difference")
+rfi_cor_x1$compute()
 
 # RFI conditioning on x2: "How important is x1 given we know x2?"
 rfi_cor_x2 <- RFI$new(
@@ -642,7 +644,7 @@ rfi_cor_x2 <- RFI$new(
 	iters_perm = 5,
 	sampler = sampler_cor
 )
-rfi_cor_x2$compute(relation = "difference")
+rfi_cor_x2$compute()
 ```
 
 **RFI Results:**
@@ -768,7 +770,7 @@ pfi_ind <- PFI$new(
 	resampling = resampling,
 	iters_perm = 5
 )
-pfi_ind$compute(relation = "difference")
+pfi_ind$compute()
 ```
 
 Now CFI  with the ARF sampler:
@@ -784,7 +786,7 @@ cfi_ind <- CFI$new(
 	iters_perm = 5,
 	sampler = sampler_ind
 )
-cfi_ind$compute(relation = "difference")
+cfi_ind$compute()
 ```
 
 RFI with empty conditioning set, basically equivalent to PFI with a different sampler:
@@ -800,7 +802,7 @@ rfi_ind <- RFI$new(
 	iters_perm = 5,
 	sampler = sampler_ind
 )
-rfi_ind$compute(relation = "difference")
+rfi_ind$compute()
 ```
 
 And now we visualize:
@@ -924,7 +926,7 @@ ggplot(var_comparison, aes(x = feature, y = importance, color = method)) +
 	) +
 	labs(
 		title = "Corrected vs Uncorrected Confidence Intervals",
-		subtitle = "Nadeau-Bengio correction provides honest uncertainty estimates",
+		subtitle = "Nadeau-Bengio correction provides more honest uncertainty estimates",
 		y = "Importance Score",
 		x = NULL,
 		color = NULL
