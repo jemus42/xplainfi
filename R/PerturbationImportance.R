@@ -377,7 +377,7 @@ RFI = R6Class(
 		#' @param task,learner,measure,resampling,features Passed to PerturbationImportance
 		#' @param conditioning_set ([character()]) Set of features to condition on. Can be overridden in `$compute()`.
 		#'   Default (`character(0)`) is equivalent to `PFI`. In `CFI`, this would be set to all features except tat of interest.
-		#' @param relation (character(1)) How to relate perturbed scores to originals. Can be overridden in `$compute()`.
+		#' @param relation (character(1)) How to relate perturbed scores to originals. Can be overridden in `$scores()`.
 		#' @param iters_perm (integer(1)) Number of permutation iterations. Can be overridden in `$compute()`.
 		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to ARFSampler
 		initialize = function(
@@ -387,6 +387,7 @@ RFI = R6Class(
 			resampling = NULL,
 			features = NULL,
 			conditioning_set = NULL,
+			relation = "difference",
 			iters_perm = 1L,
 			sampler = NULL
 		) {

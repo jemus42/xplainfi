@@ -94,14 +94,12 @@ pfi_stable$compute()
 pfi_stable$importance()
 ```
 
-We can also use ratio instead of difference for the importance calculation:
+We can also use ratio instead of difference for the importance calculation, meaning that an unimportant feature is now expected to get an importance score of 1 rather than 0:
 
 ```{r pfi-ratio}
-pfi_stable$compute(relation = "ratio")
-pfi_stable$importance()
+pfi_stable$importance(relation = "ratio")
 ```
 
-**Note**: This API will most likely change in an upcoming version to enable changing the `"ratio"` without having to re-compute everything.
 
 ## Leave-One-Covariate-Out (LOCO)
 
@@ -165,14 +163,14 @@ xplainfi supports many advanced features for robust importance estimation:
 All methods store detailed scoring information for further analysis. Let's examine the structure of PFI's detailed scores:
 
 ```{r detailed-scores}
-head(pfi$scores, 10) |>
+head(pfi$scores(), 10) |>
 	knitr::kable(digits = 4, caption = "Detailed PFI scores (first 10 rows)")
 ```
 
 We can also summarize the scoring structure:
 
 ```{r scoring-summary}
-pfi$scores[, .(
+pfi$scores()[, .(
 	features = uniqueN(feature),
 	resampling_folds = uniqueN(iter_rsmp),
 	permutation_iters = uniqueN(iter_perm),
