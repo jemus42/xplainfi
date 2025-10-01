@@ -16,6 +16,7 @@ cfi = CFI$new(
   measure = msr("classif.ce")
 )
 cfi$compute()
+cfi$importance()
 \dontshow{\}) # examplesIf}
 }
 \references{

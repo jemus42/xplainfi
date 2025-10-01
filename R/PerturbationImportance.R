@@ -221,6 +221,7 @@ PerturbationImportance = R6Class(
 #'   iters_perm = 3
 #' )
 #' pfi$compute()
+#' pfi$importance()
 #' @export
 PFI = R6Class(
 	"PFI",
@@ -289,6 +290,7 @@ PFI = R6Class(
 #'   measure = msr("classif.ce")
 #' )
 #' cfi$compute()
+#' cfi$importance()
 #' @export
 CFI = R6Class(
 	"CFI",
@@ -367,6 +369,7 @@ CFI = R6Class(
 #'   conditioning_set = c("important1")
 #' )
 #' rfi$compute()
+#' rfi$importance()
 #' @export
 RFI = R6Class(
 	"RFI",

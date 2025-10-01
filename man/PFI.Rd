@@ -31,6 +31,7 @@ pfi = PFI$new(
   iters_perm = 3
 )
 pfi$compute()
+pfi$importance()
 \dontshow{\}) # examplesIf}
 }
 \references{

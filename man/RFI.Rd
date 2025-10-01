@@ -17,6 +17,7 @@ rfi = RFI$new(
   conditioning_set = c("important1")
 )
 rfi$compute()
+rfi$importance()
 \dontshow{\}) # examplesIf}
 }
 \references{
@@ -60,6 +61,7 @@ Creates a new instance of the RFI class
   resampling = NULL,
   features = NULL,
   conditioning_set = NULL,
+  relation = "difference",
   iters_perm = 1L,
   sampler = NULL
 )}\if{html}{\out{</div>}}
@@ -73,11 +75,11 @@ Creates a new instance of the RFI class
 \item{\code{conditioning_set}}{(\code{\link[=character]{character()}}) Set of features to condition on. Can be overridden in \verb{$compute()}.
 Default (\code{character(0)}) is equivalent to \code{PFI}. In \code{CFI}, this would be set to all features except tat of interest.}
 
+\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. Can be overridden in \verb{$scores()}.}
+
 \item{\code{iters_perm}}{(integer(1)) Number of permutation iterations. Can be overridden in \verb{$compute()}.}
 
 \item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to ARFSampler}
-
-\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. Can be overridden in \verb{$compute()}.}
 }
 \if{html}{\out{</div>}}
 }
