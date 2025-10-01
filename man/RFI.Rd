@@ -88,24 +88,19 @@ Default (\code{character(0)}) is equivalent to \code{PFI}. In \code{CFI}, this w
 \subsection{Method \code{compute()}}{
 Compute RFI scores
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RFI$compute(
-  relation = NULL,
-  conditioning_set = NULL,
-  iters_perm = NULL,
-  store_backends = TRUE
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RFI$compute(conditioning_set = NULL, iters_perm = NULL, store_backends = TRUE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. If \code{NULL}, uses stored value.}
-
-\item{\code{conditioning_set}}{(\code{\link[=character]{character()}}) Set of features to condition on. If \code{NULL}, uses the stored parameter value.}
+\item{\code{conditioning_set}}{(character()) Set of features to condition on. If \code{NULL}, uses the stored parameter value.}
 
 \item{\code{iters_perm}}{(integer(1)) Number of permutation iterations. If \code{NULL}, uses stored value.}
 
-\item{\code{store_backends}}{(logical(1)) Whether to store backends}
+\item{\code{store_backends}}{(logical(1)) Whether to store backends, passed to \code{\link[mlr3:resample]{mlr3::resample()}} internally
+for the initial fit of the learner.
+This may be required for certain measures and is recommended to leave enabled unless really necessary.}
 }
 \if{html}{\out{</div>}}
 }

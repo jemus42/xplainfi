@@ -106,6 +106,7 @@ The stored \code{\link[mlr3:Measure]{measure}} object's \code{aggregator} (defau
 across resampling iterations and, depending on the method use, permutations (\link{PerturbationImportance} or refits \link{LOCO}).
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$importance(
+  relation = NULL,
   standardize = FALSE,
   variance_method = c("none", "raw", "nadeau_bengio"),
   conf_level = 0.95
@@ -115,6 +116,8 @@ across resampling iterations and, depending on the method use, permutations (\li
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
+\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If \code{NULL}, uses stored parameter value.}
+
 \item{\code{standardize}}{(\code{logical(1)}: \code{FALSE}) If \code{TRUE}, importances are standardized by the highest score so all scores fall in \verb{[-1, 1]}.}
 
 \item{\code{variance_method}}{(\code{character(1)}: \code{"none"}) Variance estimation method to use, defaulting to omitting variance estimation (\code{"none"}).
@@ -173,9 +176,16 @@ Requires that \verb{$compute()} was run and that \code{measure} is decomposable 
 has an observation-wise loss (\code{Measure$obs_loss()}) associated with it.
 This is not the case for measure like \code{classif.auc}, which is not decomposable.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$obs_scores()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$obs_scores(relation = NULL)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If \code{NULL}, uses stored parameter value.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-FeatureImportanceMethod-reset"></a>}}
@@ -214,9 +224,16 @@ Calculate importance scores for each resampling iteration and sub-iterations
 Iteration-wise importance are computed on the fly depending on the chosen relation
 (\code{difference} or \code{ratio}) to avoid re-computation if only a different relation is needed.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$scores()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$scores(relation = NULL)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If \code{NULL}, uses stored parameter value.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-FeatureImportanceMethod-clone"></a>}}

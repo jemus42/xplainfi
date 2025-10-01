@@ -90,7 +90,6 @@ PerturbationImportance = R6Class(
 					.envir = .progress_env
 				)
 			}
-			# browser()
 			# Get predictions for each resampling iter, permutation iter, feature
 			all_preds = data.table::rbindlist(
 				lapply(seq_len(self$resampling$iters), \(iter) {
@@ -165,7 +164,6 @@ PerturbationImportance = R6Class(
 
 			# for obs_loss:
 			# Not all losses are decomposable so this is optional and depends on the provided measure
-			# browser()
 			if (!is.null(self$measure$obs_loss)) {
 				obs_loss_all <- all_preds[,
 					{
@@ -260,10 +258,11 @@ PFI = R6Class(
 
 		#' @description
 		#' Compute PFI scores
-		#' @param relation (character(1)) How to relate perturbed scores to originals. If `NULL`, uses stored value.
 		#' @param iters_perm (integer(1)) Number of permutation iterations. If `NULL`, uses stored value.
-		#' @param store_backends (logical(1)) Whether to store backends
-		compute = function(relation = NULL, iters_perm = NULL, store_backends = TRUE) {
+		#' @param store_backends (logical(1)) Whether to store backends, passed to [mlr3::resample()] internally
+		#' for the initial fit of the learner.
+		#' This may be required for certain measures and is recommended to leave enabled unless really necessary.
+		compute = function(iters_perm = NULL, store_backends = TRUE) {
 			# PFI uses the MarginalSampler directly
 			private$.compute_perturbation_importance(
 				iters_perm = iters_perm,
@@ -335,15 +334,14 @@ CFI = R6Class(
 
 		#' @description
 		#' Compute CFI scores
-		#' @param relation (character(1)) How to relate perturbed scores to originals. If `NULL`, uses stored value.
 		#' @param iters_perm (integer(1)) Number of permutation iterations. If `NULL`, uses stored value.
-		#' @param store_backends (logical(1)) Whether to store backends
-		compute = function(relation = NULL, iters_perm = NULL, store_backends = TRUE) {
+		#' @param store_backends (logical(1)) Whether to store backends, passed to [mlr3::resample()] internally
+		#' for the initial fit of the learner.
+		#' This may be required for certain measures and is recommended to leave enabled unless really necessary.
+		compute = function(iters_perm = NULL, store_backends = TRUE) {
 			# CFI expects sampler configured to condition on all other features for each feature
 			# Default for ARFSampler
-			# TODO: Needs more rigorous approach
 			private$.compute_perturbation_importance(
-				relation = relation,
 				iters_perm = iters_perm,
 				store_backends = store_backends,
 				sampler = self$sampler
@@ -445,12 +443,12 @@ RFI = R6Class(
 
 		#' @description
 		#' Compute RFI scores
-		#' @param relation (character(1)) How to relate perturbed scores to originals. If `NULL`, uses stored value.
-		#' @param conditioning_set ([character()]) Set of features to condition on. If `NULL`, uses the stored parameter value.
+		#' @param conditioning_set (character()) Set of features to condition on. If `NULL`, uses the stored parameter value.
 		#' @param iters_perm (integer(1)) Number of permutation iterations. If `NULL`, uses stored value.
-		#' @param store_backends (logical(1)) Whether to store backends
+		#' @param store_backends (logical(1)) Whether to store backends, passed to [mlr3::resample()] internally
+		#' for the initial fit of the learner.
+		#' This may be required for certain measures and is recommended to leave enabled unless really necessary.
 		compute = function(
-			relation = NULL,
 			conditioning_set = NULL,
 			iters_perm = NULL,
 			store_backends = TRUE
@@ -469,7 +467,6 @@ RFI = R6Class(
 
 			# Use the (potentially modified) sampler
 			private$.compute_perturbation_importance(
-				relation = relation,
 				iters_perm = iters_perm,
 				store_backends = store_backends,
 				sampler = self$sampler

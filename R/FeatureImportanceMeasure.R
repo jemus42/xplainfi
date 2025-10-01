@@ -84,6 +84,7 @@ FeatureImportanceMethod = R6Class(
 		#' Get aggregated importance scores.
 		#' The stored [`measure`][mlr3::Measure] object's `aggregator` (default: `mean`) will be used to aggregated importance scores
 		#' across resampling iterations and, depending on the method use, permutations ([PerturbationImportance] or refits [LOCO]).
+		#' @param relation (character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If `NULL`, uses stored parameter value.
 		#' @param standardize (`logical(1)`: `FALSE`) If `TRUE`, importances are standardized by the highest score so all scores fall in `[-1, 1]`.
 		#' @param variance_method (`character(1)`: `"none"`) Variance estimation method to use, defaulting to omitting variance estimation (`"none"`).
 		#'   If `"raw"`, uncorrected variance estimates are provided purely for informative purposes with **invalid** (too narrow) confidence intervals.
@@ -131,18 +132,19 @@ FeatureImportanceMethod = R6Class(
 		#' `r print_bib("molnar_2023")`
 		#'
 		importance = function(
+			relation = NULL,
 			standardize = FALSE,
 			variance_method = c("none", "raw", "nadeau_bengio"),
 			conf_level = 0.95
 		) {
-			if (is.null(self$scores)) {
+			if (is.null(private$.scores)) {
 				return(NULL)
 			}
 			variance_method = match.arg(variance_method)
 			checkmate::assert_number(conf_level, lower = 0, upper = 1)
 			# Aggregate scores by feature using the measure's aggregator
 			aggregator = self$measure$aggregator %||% mean
-			scores = self$scores()
+			scores = self$scores(relation = relation)
 
 			# Skip aggregation if only one row per feature anyway
 			if (nrow(scores) == length(unique(scores$feature))) {
@@ -151,8 +153,8 @@ FeatureImportanceMethod = R6Class(
 				return(res)
 			}
 
+			# Standardizing first on raw scores so subsequent variance shenanigans are performed on standardized values
 			if (standardize) {
-				# Standardizing first on raw scores so subsequent variance shenanigans are performed on standardized values
 				scores[, importance := importance / max(abs(importance), na.rm = TRUE)]
 			}
 
@@ -182,13 +184,6 @@ FeatureImportanceMethod = R6Class(
 				# (1 / m ) + c in Molnar et al. (2023)
 				# c = 0 gives uncorrected variance
 				adjustment_factor = 1 / resample_iters + test_train_ratio
-
-				if (xplain_opt("debug")) {
-					cli::cli_inform(c(
-						i = "Using {.val nadeau_bengio} correction with n2/n1 = {test_train_ratio}",
-						i = "Factor: 1 / {resample_iters} + {adjustment_factor}"
-					))
-				}
 			}
 
 			# Calculcate per-feature aggregated importance which we need regardless of the variance method
@@ -233,13 +228,18 @@ FeatureImportanceMethod = R6Class(
 		#' has an observation-wise loss (`Measure$obs_loss()`) associated with it.
 		#' This is not the case for measure like `classif.auc`, which is not decomposable.
 		#'
+		#' @param relation (character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If `NULL`, uses stored parameter value.
 		#'
-		obs_scores = function() {
+		obs_scores = function(relation = NULL) {
 			if (is.null(self$measure$obs_loss)) {
-				cli::cli_abort(
-					"{.cls Measure} {.val {self$measure$id}} ha no associated osbervation-wise loss"
-				)
+				cli::cli_abort(c(
+					x = "{.cls Measure} {.val {self$measure$id}} does not have an observation-wise loss:",
+					i = "Is it decomposable?"
+				))
 			}
+
+			relation = resolve_param(relation, self$param_set$values$relation, "difference")
+
 			# Prepare baseline losses
 			obs_loss_baseline = self$resample_result$obs_loss(measures = self$measure)
 			# obs_loss_baseline[, let(truth = NULL, response = NULL)]
@@ -259,19 +259,26 @@ FeatureImportanceMethod = R6Class(
 				obs_importance := private$.compute_score(
 					baseline_loss,
 					loss_perturbed,
-					relation = self$param_set$relation,
+					relation = relation,
 					minimize = self$measure$minimize
 				)
 			]
 
-			obs_loss_combined[, .(
-				feature,
-				iter_rsmp,
-				iter_perm,
-				row_ids,
-				baseline_loss,
-				loss_perturbed
-			)][]
+			# Select / reorder column names, but note that e.g. iter_perm and iter_refit are
+			# specific to methods and may not be present
+			names_to_keep = c(
+				"feature",
+				"iter_rsmp",
+				"iter_perm",
+				"iter_refit",
+				"row_ids",
+				"baseline_loss",
+				"loss_perturbed",
+				"obs_importance"
+			)
+			names_to_keep = intersect(names_to_keep, colnames(obs_loss_combined))
+
+			obs_loss_combined[, .SD, .SDcols = names_to_keep][]
 		},
 
 		#' @description
@@ -290,12 +297,17 @@ FeatureImportanceMethod = R6Class(
 		print = function(...) {
 			cli::cli_h2(self$label)
 			cli::cli_ul()
+			cli::cli_li("Learner: {.val {self$learner_id}}")
+			cli::cli_li("Task: {.val {self$task$id}}")
 			cli::cli_li("Feature{?s} of interest: {.val {self$features}}")
+			cli::cli_li("Resampling: {.val {self$resampling$id}} ({.val {self$resampling$iters}} iters)")
+
 			cli::cli_li("Parameters:")
 
-			pidx = seq_along(self$param_set$values)
+			pv = self$param_set$values
+			pidx = seq_along(pv)
 			sapply(pidx, \(i) {
-				cli::cli_ul("{.code {names(self$param_set$values)[i]}}: {.val {self$param_set$values[i]}}")
+				cli::cli_ul("{.code {names(pv)[i]}}: {.val {pv[i]}}")
 			})
 
 			cli::cli_end()
@@ -303,7 +315,7 @@ FeatureImportanceMethod = R6Class(
 			if (!is.null(imp)) {
 				print(imp, ...)
 			} else {
-				cli::cli_inform("No importances computed yet.")
+				cli::cli_inform(c(i = "No importances computed yet."))
 			}
 		},
 
@@ -314,12 +326,16 @@ FeatureImportanceMethod = R6Class(
 		#' Iteration-wise importance are computed on the fly depending on the chosen relation
 		#' (`difference` or `ratio`) to avoid re-computation if only a different relation is needed.
 		#'
-		scores = function() {
+		#' @param relation (character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If `NULL`, uses stored parameter value.
+		#'
+		scores = function(relation = NULL) {
+			relation = resolve_param(relation, self$param_set$values$relation, "difference")
+
 			scores = data.table::copy(private$.scores)[,
 				importance := private$.compute_score(
 					score_baseline,
 					score_post,
-					relation = self$param_set$values$relation,
+					relation = relation,
 					minimize = self$measure$minimize
 				)
 			]
