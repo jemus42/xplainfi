@@ -176,7 +176,7 @@ PerturbationImportance = R6Class(
 
 						list(
 							row_ids = pred$row_ids,
-							loss_perturbed = obs_loss_vals
+							loss_post = obs_loss_vals
 						)
 					},
 					by = .(feature, iter_rsmp, iter_perm)
