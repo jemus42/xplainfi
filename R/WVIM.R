@@ -26,7 +26,7 @@ WVIM = R6Class(
 			resampling = NULL,
 			features = NULL,
 			direction = c("leave-out", "leave_in"),
-			# label,
+			label = "Williamson's Variable Importance Measure (WVIM)",
 			iters_refit = 1L
 		) {
 			require_package("mlr3fselect")
@@ -53,7 +53,7 @@ WVIM = R6Class(
 				resampling = resampling,
 				features = features,
 				param_set = ps,
-				label = "Williamson's Variable Importance Measure (WVIM)"
+				label = label
 			)
 		},
 
@@ -137,7 +137,7 @@ WVIM = R6Class(
 			# join with batch_nr to identify the foi for eatch iteration
 			scores = archive_base[scores, on = "batch_nr"]
 			# Regain iters_refit (hacky but kind of works I guess)
-			scores[, iter_refit := batch_nr %% (iters_refit) + 1]
+			scores[, iter_refit := batch_nr %% (self$param_set$values$iters_refit) + 1]
 			private$.scores = scores[, .(feature, iter_rsmp, iter_refit, score_baseline, score_post)]
 
 			# obs losses ----
@@ -145,7 +145,7 @@ WVIM = R6Class(
 				obs_loss_vals = instance$archive$benchmark_result$obs_loss(self$measure)
 				setnames(obs_loss_vals, "resample_result", "batch_nr")
 				# add iter_refit to keep track
-				obs_loss_vals[, iter_refit := (batch_nr %% (iters_refit) + 1)]
+				obs_loss_vals[, iter_refit := (batch_nr %% (self$param_set$values$iters_refit) + 1)]
 
 				obs_loss_vals = archive_base[obs_loss_vals, on = "batch_nr"]
 
@@ -193,9 +193,11 @@ LOCO = R6Class(
 			features = NULL,
 			iters_refit = 1L
 		) {
-			# LOCO specifically does not "allow" grouped features
-			checkmate::assert_character(features)
-			checkmate::assert_subset(features, choices = task$feature_names)
+			if (!is.null(features)) {
+				# LOCO specifically does not "allow" grouped features
+				checkmate::assert_character(features)
+				checkmate::assert_subset(features, choices = task$feature_names)
+			}
 
 			super$initialize(
 				task = task,
