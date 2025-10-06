@@ -23,6 +23,7 @@ Imports:
     stats
 Suggests: 
     arf,
+    mlr3fselect,
     DiagrammeR,
     foreach,
     ggplot2,
