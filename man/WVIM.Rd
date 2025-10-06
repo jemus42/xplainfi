@@ -50,7 +50,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   measure,
   resampling = NULL,
   features = NULL,
-  direction = c("leave-out", "leave_in"),
+  direction = c("leave-out", "leave-in"),
   label = "Williamson's Variable Importance Measure (WVIM)",
   iters_refit = 1L
 )}\if{html}{\out{</div>}}

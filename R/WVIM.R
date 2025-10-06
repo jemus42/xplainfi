@@ -25,7 +25,7 @@ WVIM = R6Class(
 			measure,
 			resampling = NULL,
 			features = NULL,
-			direction = c("leave-out", "leave_in"),
+			direction = c("leave-out", "leave-in"),
 			label = "Williamson's Variable Importance Measure (WVIM)",
 			iters_refit = 1L
 		) {
@@ -118,6 +118,18 @@ WVIM = R6Class(
 						features,
 						\(x) {
 							setdiff(self$task$feature_names, x)
+						},
+						FUN.VALUE = character(1)
+					)
+				]
+			} else {
+				# For "leave-in", the feature column corresponds to the features that were left in
+				# FIXME: Needs to account for grouped features
+				archive_base[,
+					feature := vapply(
+						features,
+						\(x) {
+							x
 						},
 						FUN.VALUE = character(1)
 					)

@@ -139,3 +139,53 @@ test_that("LOCO works with cross-validation", {
 	scores = loco$scores()
 	expect_gt(length(unique(scores$iter_rsmp)), 1L)
 })
+
+test_that("WVIM works with leave-in direction (LOCI)", {
+	skip_if_not_installed("ranger")
+	skip_if_not_installed("mlr3learners")
+
+	set.seed(123)
+	task = mlr3::tgen("friedman1")$generate(n = 150)
+	learner = mlr3::lrn("regr.ranger", num.trees = 20)
+	measure = mlr3::msr("regr.mse")
+
+	wvim_loci = WVIM$new(
+		task = task,
+		learner = learner,
+		measure = measure,
+		features = task$feature_names[1:3],
+		direction = "leave-in"
+	)
+
+	checkmate::expect_r6(wvim_loci, c("FeatureImportanceMethod", "WVIM"))
+	expect_equal(wvim_loci$direction, "leave-in")
+
+	wvim_loci$compute()
+	expect_importance_dt(wvim_loci$importance(), features = wvim_loci$features)
+})
+
+test_that("WVIM with feature groups is not yet supported", {
+	skip_if_not_installed("ranger")
+	skip_if_not_installed("mlr3learners")
+
+	set.seed(123)
+	task = mlr3::tgen("friedman1")$generate(n = 150)
+	learner = mlr3::lrn("regr.ranger", num.trees = 20)
+	measure = mlr3::msr("regr.mse")
+
+	feature_groups = list(
+		group1 = task$feature_names[1:2],
+		group2 = task$feature_names[3:4]
+	)
+
+	wvim_groups = WVIM$new(
+		task = task,
+		learner = learner,
+		measure = measure,
+		features = feature_groups,
+		direction = "leave-out"
+	)
+
+	# Feature groups not yet supported - see FIXME in WVIM.R
+	expect_error(wvim_groups$compute(), "values must be length 1")
+})
