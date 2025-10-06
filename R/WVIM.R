@@ -117,7 +117,7 @@ WVIM = R6Class(
 					feature := vapply(
 						features,
 						\(x) {
-							setdiff(task$feature_names, x)
+							setdiff(self$task$feature_names, x)
 						},
 						FUN.VALUE = character(1)
 					)

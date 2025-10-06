@@ -51,6 +51,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   resampling = NULL,
   features = NULL,
   direction = c("leave-out", "leave_in"),
+  label = "Williamson's Variable Importance Measure (WVIM)",
   iters_refit = 1L
 )}\if{html}{\out{</div>}}
 }
@@ -62,9 +63,9 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 
 \item{\code{direction}}{(\code{character(1)}) Either "leave-out" or "leave-in".}
 
-\item{\code{iters_refit}}{(\code{integer(1)}) Number of refit iterations per resampling iteration.}
-
 \item{\code{label}}{(\code{character(1)}) Method label.}
+
+\item{\code{iters_refit}}{(\code{integer(1)}) Number of refit iterations per resampling iteration.}
 }
 \if{html}{\out{</div>}}
 }

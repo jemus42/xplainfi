@@ -7,8 +7,7 @@
 wvim_design_matrix(
   all_features,
   feature_names = all_features,
-  direction = c("leave-out", "leave-in"),
-  iters = 1L
+  direction = c("leave-out", "leave-in")
 )
 }
 \arguments{
