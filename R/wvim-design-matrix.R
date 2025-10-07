@@ -17,7 +17,7 @@
 #'   `length(feature_names)` rows, one for each entry in `feature_names`
 #'
 #' @examples
-#' task = tsk("mtcars")
+#' task = mlr3::tsk("mtcars")
 #'
 #' # Individual features
 #' feature_names = task$feature_names[1:3]

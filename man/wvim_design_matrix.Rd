@@ -31,7 +31,7 @@ Creates a logical design matrix for leave-in or leave-out feature evaluation.
 Used internally with mlr3fselect to evaluate feature subsets.
 }
 \examples{
-task = tsk("mtcars")
+task = mlr3::tsk("mtcars")
 
 # Individual features
 feature_names = task$feature_names[1:3]
