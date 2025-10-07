@@ -21,7 +21,7 @@ FeatureImportanceMethod = R6Class(
 		features = NULL,
 		#' @field param_set ([paradox::ps()])
 		param_set = ps(),
-		#' @field predictions ([data.table][data.table::data.table]) Feature-specific prediction objects when using obs_loss = TRUE. Contains columns for feature, iteration, iter_refit, and prediction objects. Similar to ResampleResult$predictions() but extended for feature-specific models.
+		#' @field predictions ([data.table][data.table::data.table]) Feature-specific prediction objects provided for some methods ([PFI], [WVIM]). Contains columns for feature of interest, resampling iteration, refit or perturbation iteration, and [mlr3::Prediction] objects.
 		predictions = NULL,
 
 		#' @description

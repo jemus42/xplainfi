@@ -37,7 +37,7 @@ ISBN 978-3-031-44064-9, \doi{10.1007/978-3-031-44064-9_24}.
 
 \item{\code{param_set}}{(\code{\link[paradox:ps]{paradox::ps()}})}
 
-\item{\code{predictions}}{(\link[data.table:data.table]{data.table}) Feature-specific prediction objects when using obs_loss = TRUE. Contains columns for feature, iteration, iter_refit, and prediction objects. Similar to ResampleResult$predictions() but extended for feature-specific models.}
+\item{\code{predictions}}{(\link[data.table:data.table]{data.table}) Feature-specific prediction objects provided for some methods (\link{PFI}, \link{WVIM}). Contains columns for feature of interest, resampling iteration, refit or perturbation iteration, and \link[mlr3:Prediction]{mlr3::Prediction} objects.}
 }
 \if{html}{\out{</div>}}
 }
