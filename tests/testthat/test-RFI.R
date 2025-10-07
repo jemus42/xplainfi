@@ -20,7 +20,8 @@ test_that("RFI can be constructed with simple objects", {
 
 	rfi$compute()
 	expect_importance_dt(rfi$importance(), features = rfi$features)
-	expect_importance_dt(rfi$compute(relation = "difference"), features = rfi$features)
+	# Test that default is "difference"
+	expect_identical(rfi$importance(), rfi$importance(relation = "difference"))
 })
 
 test_that("RFI uses ARFSampler by default", {
@@ -229,7 +230,7 @@ test_that("RFI multiple perms", {
 	expect_importance_dt(rfi$importance(), features = rfi$features)
 
 	checkmate::expect_data_table(
-		rfi$scores,
+		rfi$scores(),
 		types = c("character", "integer", "numeric"),
 		nrows = rfi$resampling$iters *
 			rfi$param_set$values$iters_perm *
@@ -263,7 +264,7 @@ test_that("RFI only one feature", {
 	expect_importance_dt(rfi$importance(), features = "important4")
 
 	checkmate::expect_data_table(
-		rfi$scores,
+		rfi$scores(),
 		types = c("character", "integer", "numeric"),
 		nrows = rfi$resampling$iters *
 			rfi$param_set$values$iters_perm,
@@ -331,52 +332,17 @@ test_that("RFI different relations (difference vs ratio)", {
 	res_1 = rfi$importance()
 	expect_importance_dt(res_1, rfi$features)
 
-	rfi$compute()
-	res_2 = rfi$importance()
+	res_2 = rfi$importance(relation = "difference")
 	expect_identical(res_1, res_2)
 
-	res_3 = rfi$compute("difference")
-	expect_identical(res_1, res_3)
+	res_3 = rfi$importance(relation = "ratio")
+	res_4 = rfi$importance(relation = "difference")
 
-	res_4 = rfi$compute("ratio")
-	res_5 = rfi$compute("difference")
-
-	expect_error(expect_equal(res_4, res_5))
+	expect_error(expect_equal(res_3, res_4))
 
 	expect_importance_dt(res_2, rfi$features)
 	expect_importance_dt(res_3, rfi$features)
 	expect_importance_dt(res_4, rfi$features)
-	expect_importance_dt(res_5, rfi$features)
-})
-
-test_that("RFI with resampling", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
-	skip_if_not_installed("arf")
-
-	set.seed(123)
-	task = mlr3::tgen("xor", d = 4)$generate(n = 200)
-	learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob")
-	resampling = mlr3::rsmp("cv", folds = 3)
-	measure = mlr3::msr("classif.ce")
-
-	rfi = RFI$new(
-		task = task,
-		learner = learner,
-		resampling = resampling,
-		measure = measure,
-		conditioning_set = "x2",
-		iters_perm = 2
-	)
-
-	rfi$compute()
-	res_1 = rfi$importance()
-	expect_importance_dt(rfi$importance(), rfi$features)
-
-	res_2 = rfi$compute("ratio")
-	expect_importance_dt(rfi$importance(), rfi$features)
-
-	expect_error(expect_equal(res_1, res_2))
 })
 
 test_that("RFI parameter validation", {
