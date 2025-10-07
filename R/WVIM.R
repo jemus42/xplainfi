@@ -72,7 +72,7 @@ WVIM = R6Class(
 				direction = self$direction
 			)
 
-			design_dt = data.table::rbindlist(replicate(
+			design = data.table::rbindlist(replicate(
 				n = self$param_set$values$iters_refit,
 				design,
 				simplify = FALSE
@@ -137,9 +137,8 @@ WVIM = R6Class(
 			}
 			archive_base = archive_base[, .(batch_nr, feature)]
 
-			# Scores ---
+			# Scores and predictions ---
 			scores = instance$archive$benchmark_result$score(self$measure)
-			scores = scores[, .SD, .SDcols = c("nr", "iteration", self$measure$id)]
 			setnames(scores, self$measure$id, "score_post")
 			setnames(scores, "iteration", "iter_rsmp")
 			setnames(scores, "nr", "batch_nr")
@@ -149,8 +148,18 @@ WVIM = R6Class(
 			# join with batch_nr to identify the foi for eatch iteration
 			scores = archive_base[scores, on = "batch_nr"]
 			# Regain iters_refit (hacky but kind of works I guess)
-			scores[, iter_refit := batch_nr %% (self$param_set$values$iters_refit) + 1]
+			scores[, iter_refit := seq_along(batch_nr), by = c("iter_rsmp", "feature")]
+
+			# Sanity check for iter refit
+			#scores[, .(iter_rsmp, batch_nr, iter_refit, feature)][feature == "important1"]
 			private$.scores = scores[, .(feature, iter_rsmp, iter_refit, score_baseline, score_post)]
+
+			# Extract prediction for storage
+			# self$predictions needs: iter_rsmp, iter_perm/refit, feature, prediction
+			predictions = copy(scores)[, .(iter_rsmp, iter_refit, feature, prediction_test)]
+			setnames(predictions, "prediction_test", "prediction")
+			setkeyv(predictions, cols = c("feature", "iter_rsmp"))
+			self$predictions = predictions[, .(iter_rsmp, iter_refit, feature, prediction)]
 
 			# obs losses ----
 			if (!is.null(self$measure$obs_loss)) {
