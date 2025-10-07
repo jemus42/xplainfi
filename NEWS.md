@@ -5,7 +5,7 @@ This turns out to be still a period of major changes in the early phase, so, uhm
 ## General changes and improvements
 
 - `$importance` becomes a function `$importance()` with arguments `standardize` and `variance_method` (#40):
-  - `"nadeau_bengio"` implements the correction method by Nadeau & Bengio (2003) recommended by Molnaet et al. (2023).
+  - `"nadeau_bengio"` implements the correction method by Nadeau & Bengio (2003) recommended by Molnar et al. (2023).
 
 - Add `sim_dgp_ewald()` and other `sim_dgp_*()` helpers to simulate data (in `Task` form) with simple DGPs as used for illustration in Ewald et al. (2024) for example, which should make it easier to interpret the results of various importance methods.
 
@@ -18,12 +18,11 @@ This turns out to be still a period of major changes in the early phase, so, uhm
 
 ## Method-specific changes
 
-### `LeaveOutIn`
+### `LeaveOutIn` -> `WVIM`
 
-This is in flux and will be changed again
-
-- Add `$obs_loss` and `$predictions` fields to `FeatureImportanceMeasure`, now used by `LOCO` and `LOCI`
-  - Both get arugments `obs_loss = FALSE` use the measure's `$aggregator` for aggregation in case of `obs_loss = TRUE`, to allow for  median of absolute differences calculation as in original LOCO formulation, rather than the "micro-"averaged approach calculated by default.
+- Williamson's Variable Importance Measure (WVIM) generalizes LOCO / LOCI
+- Feature grouping API is still WIP
+- New implementation built around `mlr3fselect`, greatly simplifying the internals
 
 ### `PerturbationImportance`
 

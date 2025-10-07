@@ -174,34 +174,20 @@ WVIM uses feature selection design matrices to specify which features should be 
 We can manually replicate LOCO using WVIM's `"leave-out"` direction:
 
 ```{r wvim-loco}
-# Use same instantiated resampling for comparison
-resampling_shared <- rsmp("holdout")
-resampling_shared$instantiate(task)
-
-# Create LOCO with shared resampling
-loco_shared <- LOCO$new(
-	task = task,
-	learner = learner,
-	measure = measure,
-	resampling = resampling_shared,
-	features = task$feature_names
-)
-loco_shared$compute()
-
-# Create WVIM instance (LOCO's parent class) with same resampling
+# Create WVIM instance (LOCO's parent class) using same resampling
 wvim_loco <- WVIM$new(
 	task = task,
 	learner = learner,
 	measure = measure,
-	resampling = resampling_shared,
+	resampling = resampling,
 	features = task$feature_names,
 	direction = "leave-out"
 )
 wvim_loco$compute()
 
-# Compare results
+# Compare with original LOCO results
 comparison_wvim <- merge(
-	loco_shared$importance()[, .(feature, loco = importance)],
+	loco$importance()[, .(feature, loco = importance)],
 	wvim_loco$importance()[, .(feature, wvim = importance)],
 	by = "feature"
 )
