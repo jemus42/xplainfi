@@ -55,10 +55,16 @@ task <- sim_dgp_interactions(n = 500)
 learner <- lrn("regr.ranger", num.trees = 100)
 measure <- msr("regr.mse")
 
+# Use 3-fold CV for more robust estimates and reuse across comparisons
+set.seed(123)
+resampling <- rsmp("cv", folds = 3)
+resampling$instantiate(task)
+
 loco <- LOCO$new(
 	task = task,
 	learner = learner,
 	measure = measure,
+	resampling = resampling,
 	features = task$feature_names
 )
 
@@ -113,10 +119,12 @@ loco_multi$scores()[1:10, ] |>
 LOCO works with any mlr3 measure. Different measures can highlight different aspects of feature importance:
 
 ```{r different-measures}
+# Use same resampling for fair comparison
 loco_mae <- LOCO$new(
 	task = task,
 	learner = learner,
-	measure = msr("regr.mae")
+	measure = msr("regr.mae"),
+	resampling = resampling
 )
 
 loco_mae$compute()
@@ -128,10 +136,8 @@ comparison <- merge(
 	by = "feature"
 )
 
-comparison |>
-	knitr::kable(digits = 4, caption = "LOCO importance with different measures")
+comparison
 ```
-
 
 ## Comparison with Perturbation Methods
 
@@ -141,8 +147,8 @@ LOCO differs from perturbation-based methods like PFI and CFI:
 - **PFI/CFI**: Perturb feature values using existing model (faster)
 
 ```{r compare-methods}
-# Compare LOCO with PFI
-pfi <- PFI$new(task, learner, measure)
+# Compare LOCO with PFI using same resampling
+pfi <- PFI$new(task, learner, measure, resampling = resampling)
 pfi$compute()
 
 comparison <- merge(
@@ -151,9 +157,10 @@ comparison <- merge(
 	by = "feature"
 )
 
-comparison |>
-	knitr::kable(digits = 4, caption = "LOCO vs PFI")
+comparison
 ```
+
+**Note:** Using the same instantiated resampling ensures we evaluate both methods on identical train/test splits. Even so, stochastic learners like `ranger` will produce slightly different results between methods due to the random forest's sampling.
 
 LOCO measures the value of having a feature available during training, while PFI measures the value of having informative feature values at prediction time.
 
@@ -199,11 +206,10 @@ comparison_wvim <- merge(
 	by = "feature"
 )
 
-comparison_wvim |>
-	knitr::kable(digits = 4, caption = "LOCO vs WVIM with shared resampling")
+comparison_wvim
 ```
 
-**Note:** To get comparable results between methods, we must use the same instantiated resampling. Even then, stochastic learners like `ranger` will produce slightly different results due to random forest sampling, but the overall patterns should be consistent.
+**Note:** To get comparable results between methods, we must use the same instantiated resampling. Even then, stochastic learners like `ranger` will produce slightly different results due to random forest's bootstrapping and split selection, but the overall patterns should be consistent.
 
 ### LOCI: Leave-One-Covariate-In
 
@@ -223,8 +229,7 @@ wvim_loci <- WVIM$new(
 )
 
 wvim_loci$compute()
-wvim_loci$importance() |>
-	knitr::kable(digits = 4, caption = "LOCI importance (via WVIM)")
+wvim_loci$importance()
 ```
 
 LOCI interprets importance differently from LOCO:
