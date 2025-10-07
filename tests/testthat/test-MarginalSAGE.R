@@ -13,6 +13,7 @@ test_that("MarginalSAGE can be constructed with simple objects", {
 		task = task_binary,
 		learner = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
+		# resampling = rsmp("cv", folds = 3),
 		n_permutations = 2L
 	)
 	checkmate::expect_r6(sage_binary, c("FeatureImportanceMethod", "SAGE", "MarginalSAGE"))
@@ -153,7 +154,7 @@ test_that("MarginalSAGE with multiple resampling iterations", {
 	sage_binary$compute()
 	expect_importance_dt(sage_binary$importance(), features = sage_binary$features)
 	checkmate::expect_data_table(
-		sage_binary$scores,
+		sage_binary$scores(),
 		types = c("integer", "character", "numeric"),
 		nrows = sage_binary$resampling$iters * length(sage_binary$features),
 		ncols = 3,
@@ -173,7 +174,7 @@ test_that("MarginalSAGE with multiple resampling iterations", {
 	sage_regr$compute()
 	expect_importance_dt(sage_regr$importance(), features = sage_regr$features)
 	checkmate::expect_data_table(
-		sage_regr$scores,
+		sage_regr$scores(),
 		types = c("integer", "character", "numeric"),
 		nrows = sage_regr$resampling$iters * length(sage_regr$features),
 		ncols = 3,
@@ -583,7 +584,6 @@ test_that("MarginalSAGE SE-based convergence detection", {
 
 	# Reset for next test
 	sage$reset()
-	sage$n_permutations_used = NULL
 
 	# Test with very strict SE threshold (should trigger convergence quickly)
 	result_strict = sage$compute(
@@ -600,7 +600,6 @@ test_that("MarginalSAGE SE-based convergence detection", {
 
 	# Test with moderate thresholds where both criteria might be met
 	sage$reset()
-	sage$n_permutations_used = NULL
 
 	result_moderate = sage$compute(
 		early_stopping = TRUE,

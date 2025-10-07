@@ -74,7 +74,6 @@ FeatureImportanceMethod = R6Class(
 
 		#' @description
 		#' Compute feature importance scores
-		# @param relation (`character(1): "difference"`) How to relate perturbed scores to originals ("difference" or "ratio")
 		#' @param store_backends (`logical(1): TRUE`) Whether to store backends.
 		compute = function(store_backends = TRUE) {
 			stop("Abstract method. Use a concrete implementation.")
@@ -84,7 +83,8 @@ FeatureImportanceMethod = R6Class(
 		#' Get aggregated importance scores.
 		#' The stored [`measure`][mlr3::Measure] object's `aggregator` (default: `mean`) will be used to aggregated importance scores
 		#' across resampling iterations and, depending on the method use, permutations ([PerturbationImportance] or refits [LOCO]).
-		#' @param relation (character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If `NULL`, uses stored parameter value.
+		#' @param relation (character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If `NULL`, uses stored parameter value. This is only applicable for methods where importance is based on some
+		#' relation between baseline and post-modifcation loss, i.e. [PerturbationImportance] methods such as [PFI] or [WVIM] / [LOCO]. Not available for [SAGE] methods.
 		#' @param standardize (`logical(1)`: `FALSE`) If `TRUE`, importances are standardized by the highest score so all scores fall in `[-1, 1]`.
 		#' @param variance_method (`character(1)`: `"none"`) Variance estimation method to use, defaulting to omitting variance estimation (`"none"`).
 		#'   If `"raw"`, uncorrected variance estimates are provided purely for informative purposes with **invalid** (too narrow) confidence intervals.
@@ -140,6 +140,7 @@ FeatureImportanceMethod = R6Class(
 			if (is.null(private$.scores)) {
 				return(NULL)
 			}
+
 			variance_method = match.arg(variance_method)
 			checkmate::assert_number(conf_level, lower = 0, upper = 1)
 			# Aggregate scores by feature using the measure's aggregator
@@ -228,7 +229,8 @@ FeatureImportanceMethod = R6Class(
 		#' has an observation-wise loss (`Measure$obs_loss()`) associated with it.
 		#' This is not the case for measure like `classif.auc`, which is not decomposable.
 		#'
-		#' @param relation (character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If `NULL`, uses stored parameter value.
+		#' @param relation (character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If `NULL`, uses stored parameter value. This is only applicable for methods where importance is based on some
+		#' relation between baseline and post-modifcation loss, i.e. [PerturbationImportance] methods such as [PFI] or [WVIM] / [LOCO]. Not available for [SAGE] methods.
 		#'
 		obs_scores = function(relation = NULL) {
 			if (is.null(self$measure$obs_loss)) {
@@ -285,9 +287,11 @@ FeatureImportanceMethod = R6Class(
 		#' Resets all stored fields populated by `$compute`: `$resample_result`, `$scores`, `$obs_losses`, and `$predictions`.
 		reset = function() {
 			self$resample_result = NULL
-			self$.scores = NULL
-			self$.obs_losses = NULL
+			private$.scores = NULL
+			private$.obs_losses = NULL
 			self$predictions = NULL
+			# SAGE
+			self$n_permutations_used = NULL
 		},
 
 		#' @description
@@ -326,9 +330,17 @@ FeatureImportanceMethod = R6Class(
 		#' Iteration-wise importance are computed on the fly depending on the chosen relation
 		#' (`difference` or `ratio`) to avoid re-computation if only a different relation is needed.
 		#'
-		#' @param relation (character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If `NULL`, uses stored parameter value.
+		#' @param relation (character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If `NULL`, uses stored parameter value. This is only applicable for methods where importance is based on some
+		#' relation between baseline and post-modifcation loss, i.e. [PerturbationImportance] methods such as [PFI] or [WVIM] / [LOCO]. Not available for [SAGE] methods.
 		#'
 		scores = function(relation = NULL) {
+			if ("importance" %in% colnames(private$.scores)) {
+				# If there is already an importance variable in the stored scores like in SAGE,
+				# we can't calculate pre/post scores like in PFI, LOCO etc,
+				# individual "scores" would have different meaning there
+				return(private$.scores)
+			}
+
 			relation = resolve_param(relation, self$param_set$values$relation, "difference")
 
 			scores = data.table::copy(private$.scores)[,
