@@ -267,7 +267,7 @@ ARFSampler = R6Class(
 			if (length(conditioning_set) == 0) {
 				# Equivalent (ish) to marginal permutation
 				if (xplain_opt("debug")) {
-					cli::cli_alert_inform(
+					cli::cli_alert_info(
 						"{.val conditioning_set} is length 0, passing {.code evidence = NULL} to {.fun arf::forge}"
 					)
 				}
