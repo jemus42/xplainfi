@@ -5,6 +5,7 @@
 #' Default corresponds to leaving out each feature `iters_refit` times, which
 #' corresponds to LOCO (Leave One Covariate Out).
 #'
+#' @export
 #' @keywords internal
 WVIM = R6Class(
 	"WVIM",
@@ -77,7 +78,6 @@ WVIM = R6Class(
 				design,
 				simplify = FALSE
 			))
-
 			private$.compute_wvim(design, store_backends)
 		}
 	),
