@@ -90,7 +90,7 @@ The `$scores()` method provides detailed information for each feature, resamplin
 
 ```{r detailed-scores}
 loco$scores() |>
-	knitr::kable(digits = 4, caption = "LOCO scores with baseline and post-refit performance")
+	knitr::kable(digits = 4, caption = "LOCO scores with baseline and post-refit score")
 ```
 
 ## Multiple Refits
@@ -110,8 +110,9 @@ loco_multi$compute()
 loco_multi$importance()
 
 # Check individual scores with multiple refits
-loco_multi$scores()[1:10, ] |>
-	knitr::kable(digits = 4, caption = "LOCO scores per refit and resampling fold")
+loco_multi$scores() |>
+	head(10) |>
+	knitr::kable(digits = 4, caption = "First 10 LOCO scores per refit and resampling fold")
 ```
 
 ## Using Different Measures
@@ -211,7 +212,9 @@ wvim_loci <- WVIM$new(
 	learner = learner,
 	measure = measure,
 	features = task$feature_names,
-	direction = "leave-in"
+	direction = "leave-in",
+	resampling = rsmp("cv", folds = 3),
+	iters_refit = 2
 )
 
 wvim_loci$compute()
@@ -225,6 +228,10 @@ LOCI interprets importance differently from LOCO:
 
 For our interaction data where $y = 2 \cdot x_1 \cdot x_2 + x_3 + \epsilon$:
 
-- LOCI will show low importance for $x_1$ and $x_2$ individually (no main effects)
-- LOCI will show high importance for $x_3$ (strong main effect)
+- LOCI would be expected to
+  - show low importance for $x_1$ and $x_2$ individually (no main effects)
+  - show high importance for $x_3$ (strong main effect)
 - LOCO better captures the value of features that participate in interactions
+
+However, since we used a random forest learner (ranger), it can not be expected to learn any meaningful relations based on one training with onle one feature.
+This hopefully showcases that LOCI is primarily "useful" as a teaching exercise, rather than a meaningful importance measure.
