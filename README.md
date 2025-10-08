@@ -52,11 +52,11 @@ learner = lrn("regr.ranger", num.trees = 100)
 measure = msr("regr.mse")
 
 pfi = PFI$new(
-  task = task,
-  learner = learner,
-  measure = measure,
-  resampling = rsmp("cv", folds = 3),
-  iters_perm = 5
+    task = task,
+    learner = learner,
+    measure = measure,
+    resampling = rsmp("cv", folds = 3),
+    iters_perm = 5
 )
 ```
 
@@ -64,85 +64,108 @@ Compute and print PFI scores:
 
 ``` r
 pfi$compute()
+pfi$importance()
 #> Key: <feature>
-#>          feature    importance         sd
-#>           <char>         <num>      <num>
-#>  1:   important1  7.9320281224 0.77703482
-#>  2:   important2  8.1368297554 0.65578878
-#>  3:   important3  1.9003588453 0.35593120
-#>  4:   important4 13.5083721272 0.73670025
-#>  5:   important5  2.2748507393 0.24176933
-#>  6: unimportant1 -0.0004293556 0.03863355
-#>  7: unimportant2  0.0219242406 0.04763718
-#>  8: unimportant3  0.0314298729 0.04041201
-#>  9: unimportant4  0.0091510237 0.06797763
-#> 10: unimportant5  0.0108304225 0.05918420
+#>          feature    importance
+#>           <char>         <num>
+#>  1:   important1  7.9320281224
+#>  2:   important2  8.1368297554
+#>  3:   important3  1.9003588453
+#>  4:   important4 13.5083721272
+#>  5:   important5  2.2748507393
+#>  6: unimportant1 -0.0004293556
+#>  7: unimportant2  0.0219242406
+#>  8: unimportant3  0.0314298729
+#>  9: unimportant4  0.0091510237
+#> 10: unimportant5  0.0108304225
 ```
 
-Retrieve scores later in `pfi$importance`.
+If it aides interpretation, importances can also be calculates as the
+*ratio* rather then the *difference* between the baseline and
+post-permutation losses:
+
+``` r
+pfi$importance(relation = "ratio")
+#> Key: <feature>
+#>          feature importance
+#>           <char>      <num>
+#>  1:   important1  2.6410386
+#>  2:   important2  2.6853106
+#>  3:   important3  1.3968261
+#>  4:   important4  3.8012909
+#>  5:   important5  1.4697651
+#>  6: unimportant1  0.9997936
+#>  7: unimportant2  1.0044383
+#>  8: unimportant3  1.0068725
+#>  9: unimportant4  1.0015174
+#> 10: unimportant5  1.0017192
+```
 
 When PFI is computed based on resampling with multiple iterations, and /
 or multiple permutation iterations, the individual scores can be
 retrieved as a `data.table`:
 
 ``` r
-str(pfi$scores)
+str(pfi$scores())
 #> Classes 'data.table' and 'data.frame':   150 obs. of  6 variables:
-#>  $ feature      : chr  "important1" "important1" "important1" "important1" ...
-#>  $ iter_rsmp    : int  1 1 1 1 1 2 2 2 2 2 ...
-#>  $ iter_perm    : int  1 2 3 4 5 1 2 3 4 5 ...
-#>  $ regr.mse_orig: num  5.3 5.3 5.3 5.3 5.3 ...
-#>  $ regr.mse_perm: num  13.9 14.1 12.9 12.5 12.8 ...
-#>  $ importance   : num  8.65 8.84 7.55 7.21 7.46 ...
-#>  - attr(*, ".internal.selfref")=<externalptr> 
-#>  - attr(*, "sorted")= chr [1:2] "feature" "iter_rsmp"
+#>  $ feature           : chr  "important1" "important1" "important1" "important1" ...
+#>  $ iter_rsmp         : int  1 1 1 1 1 1 1 1 1 1 ...
+#>  $ iter_perm         : int  1 2 3 4 5 1 2 3 4 5 ...
+#>  $ regr.mse_baseline : num  5.3 5.3 5.3 5.3 5.3 ...
+#>  $ regr.mse_perturbed: num  13.9 14.1 12.9 12.5 12.8 ...
+#>  $ importance        : num  8.65 8.84 7.55 7.21 7.46 ...
+#>  - attr(*, ".internal.selfref")=<externalptr>
 ```
 
 Where `iter_rsmp` corresponds to the resampling iteration, i.e., 3 for
 3-fold cross-validation, and `iter_perm` corresponds to the permutation
 iteration within each resampling iteration, 5 in this case. While
-`pfi$importance` contains the means and standard deviations across all
-iterations, `pfi$scores` allows you to manually aggregate them in any
+`pfi$importance()` contains the means across all iterations,
+`pfi$scores()` allows you to manually visualize or aggregate them in any
 way you see fit.
 
-This of course also enables visualization across iterations:
+For example:
 
 ``` r
 library(ggplot2)
 
-ggplot(pfi$scores, aes(x = importance, y = reorder(feature, importance))) +
-  geom_boxplot() +
-  labs(
-    title = "PFI Scores on Friedman1",
-    subtitle = "Aggregated over 3-fold CV with 5 permutations per iteration",
-    x = "Importance",
-    y = "Feature"
-  ) +
-  theme_minimal(base_size = 16) +
-  theme(
-    plot.title.position = "plot",
-    panel.grid.major.y = element_blank()
-  )
+ggplot(
+    pfi$scores(),
+    aes(x = importance, y = reorder(feature, importance))
+) +
+    geom_boxplot(color = "#f44560", fill = alpha("#f44560", 0.4)) +
+    labs(
+        title = "Permutation Feature Importance on Friedman1",
+        subtitle = "Computed over 3-fold CV with 5 permutations per iteration using Random Forest",
+        x = "Importance",
+        y = "Feature"
+    ) +
+    theme_minimal(base_size = 16) +
+    theme(
+        plot.title.position = "plot",
+        panel.grid.major.y = element_blank()
+    )
 ```
 
 <img src="man/figures/README-pfi-plot-1.png" width="100%" />
 
-If the measure in question needs to be maximized ratehr than minimized
+If the measure in question needs to be maximized rather than minimized
 (like $R^2$), the internal importance calculation takes that into
-account via the `$minimize` property of the measure object and
-calculates importances such that the “performance improvement” -\>
-higher importance score holds:
+account via the `$minimize` property of the measure and calculates
+importances such that the intuition “performance improvement” -\>
+“higher importance score” still holds:
 
 ``` r
 pfi = PFI$new(
-  task = task,
-  learner = learner,
-  measure = msr("regr.rsq"),
-  iters_perm = 1
+    task = task,
+    learner = learner,
+    measure = msr("regr.rsq")
 )
-#> ℹ No <Resampling> provided, using holdout resampling with default ratio.
+#> ℹ No <Resampling> provided
+#> Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.
 
 pfi$compute()
+pfi$importance()
 #> Key: <feature>
 #>          feature    importance
 #>           <char>         <num>

@@ -232,7 +232,7 @@ FeatureImportanceMethod = R6Class(
 		#' @param relation (character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If `NULL`, uses stored parameter value. This is only applicable for methods where importance is based on some
 		#' relation between baseline and post-modifcation loss, i.e. [PerturbationImportance] methods such as [PFI] or [WVIM] / [LOCO]. Not available for [SAGE] methods.
 		#'
-		obs_scores = function(relation = NULL) {
+		obs_loss = function(relation = NULL) {
 			if (is.null(self$measure$obs_loss)) {
 				cli::cli_abort(c(
 					x = "{.cls Measure} {.val {self$measure$id}} does not have an observation-wise loss:",

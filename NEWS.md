@@ -12,7 +12,7 @@ This turns out to be still a period of major changes in the early phase, so, uhm
 
 ### Observation-wise losses
 
--  `$obs_scores()` analogously computes observation-wise importance scores base on losses stored in `$.obs_losses` **if** `measure` has a `Measure$obs_loss()`
+-  `$obs_loss()` analogously computes observation-wise importance scores base on losses stored in `$.obs_losses` **if** `measure` has a `Measure$obs_loss()`
 
 - `$predictions` will probably be removed again?
 

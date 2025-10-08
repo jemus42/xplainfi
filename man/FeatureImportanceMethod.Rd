@@ -47,7 +47,7 @@ ISBN 978-3-031-44064-9, \doi{10.1007/978-3-031-44064-9_24}.
 \item \href{#method-FeatureImportanceMethod-new}{\code{FeatureImportanceMethod$new()}}
 \item \href{#method-FeatureImportanceMethod-compute}{\code{FeatureImportanceMethod$compute()}}
 \item \href{#method-FeatureImportanceMethod-importance}{\code{FeatureImportanceMethod$importance()}}
-\item \href{#method-FeatureImportanceMethod-obs_scores}{\code{FeatureImportanceMethod$obs_scores()}}
+\item \href{#method-FeatureImportanceMethod-obs_loss}{\code{FeatureImportanceMethod$obs_loss()}}
 \item \href{#method-FeatureImportanceMethod-reset}{\code{FeatureImportanceMethod$reset()}}
 \item \href{#method-FeatureImportanceMethod-print}{\code{FeatureImportanceMethod$print()}}
 \item \href{#method-FeatureImportanceMethod-scores}{\code{FeatureImportanceMethod$scores()}}
@@ -168,16 +168,16 @@ and depending in \code{variance_method} also \verb{"var", "conf_lower", "conf_up
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-FeatureImportanceMethod-obs_scores"></a>}}
-\if{latex}{\out{\hypertarget{method-FeatureImportanceMethod-obs_scores}{}}}
-\subsection{Method \code{obs_scores()}}{
+\if{html}{\out{<a id="method-FeatureImportanceMethod-obs_loss"></a>}}
+\if{latex}{\out{\hypertarget{method-FeatureImportanceMethod-obs_loss}{}}}
+\subsection{Method \code{obs_loss()}}{
 Calculate observation-wise importance scores.
 
 Requires that \verb{$compute()} was run and that \code{measure} is decomposable and
 has an observation-wise loss (\code{Measure$obs_loss()}) associated with it.
 This is not the case for measure like \code{classif.auc}, which is not decomposable.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$obs_scores(relation = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$obs_loss(relation = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

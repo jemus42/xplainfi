@@ -160,10 +160,11 @@ xplainfi supports many advanced features for robust importance estimation:
 
 ## Detailed Scoring Information
 
-All methods store detailed scoring information for further analysis. Let's examine the structure of PFI's detailed scores:
+All methods store detailed scoring information from each resampling iteration for further analysis. Let's examine the structure of PFI's detailed scores:
 
 ```{r detailed-scores}
-head(pfi$scores(), 10) |>
+pfi$scores() |>
+	head(10) |>
 	knitr::kable(digits = 4, caption = "Detailed PFI scores (first 10 rows)")
 ```
 
@@ -177,3 +178,33 @@ pfi$scores()[, .(
 	total_scores = .N
 )]
 ```
+
+So `$importance()` always gives us the aggregated importances across multiple resampling- and permutation-/refitting iterations, whereas `$scores()` gives you the individual scores as calculated by the supplied `measures` and the corresponding importance calculated from the difference of these scores by default.
+
+Analogously to `$importance()`, you can also use `relation = "ratio"` here:
+
+```{r detailed-scores-ratio}
+pfi$scores(relation = "ratio") |>
+	head(10) |>
+	knitr::kable(digits = 4, caption = "PFI scores using the ratio (first 10 rows)")
+```
+
+## Observation-wise losses and importances
+
+For methods where importances are calculated based on observation-level comparisons and with decomposable measures, we can also retrieve observation-level information with `$obs_loss()`, which works analogously to `$scores()` and `$importances()` but even more detailed:
+
+
+```{r pfi-obs-scores}
+pfi$obs_loss()
+```
+
+Since we computed PFI using the mean squared error (`msr("regr.mse")`), we can use the associated `Measure$obs_loss()`, the squared error.  
+In the resulting table we see 
+
+- `loss_baseline`: The loss (squared error) for the baseline model before permutation
+- `loss_post`: The loss for this observation after permutation (or in the case of `LOCO`, after refit)
+- `obs_importance`: The difference (or ratio if `relation = "ratio"`) of the the two losses
+
+Note that not all measures have a `Measure$obs_loss()`:
+Some measures like `msr("classif.auc")` are not decomposable, so observation-wise loss values are not available.  
+In other cases, the corresponding `obs_loss()` is just not yet implemented in [`mlr3measures`](https://cran.r-project.org/web/packages/mlr3measures/index.html), but will likely be in the future.
