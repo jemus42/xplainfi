@@ -70,10 +70,10 @@ pfi_r <- PFI$new(
 	iters_perm = 5
 )
 
-pfi_results <- pfi_r$compute()
+pfi_r$compute()
 results$PFI <- list(
-	feature = pfi_results$feature,
-	importance = pfi_results$importance()
+	feature = pfi_r$feature,
+	importance = pfi_r$importance()
 )
 
 # 2. CFI
@@ -87,10 +87,10 @@ cfi_r <- CFI$new(
 	sampler = sampler
 )
 
-cfi_results <- cfi_r$compute()
+cfi_r$compute()
 results$CFI <- list(
-	feature = cfi_results$feature,
-	importance = cfi_results$importance()
+	feature = cfi_r$feature,
+	importance = cfi_r$importance()
 )
 cli_alert_success("CFI completed")
 
@@ -107,10 +107,10 @@ rfi_r <- RFI$new(
 	sampler = sampler
 )
 
-rfi_results <- rfi_r$compute()
+rfi_r$compute()
 results$RFI <- list(
-	feature = rfi_results$feature,
-	importance = rfi_results$importance(),
+	feature = rfi_r$feature,
+	importance = rfi_r$importance(),
 	conditioning_set = c("x1", "x2")
 )
 cli_alert_success("RFI completed")
@@ -130,10 +130,10 @@ sage_marginal_r <- MarginalSAGE$new(
 	max_reference_size = max_ref_size_sage
 )
 
-sage_marginal_results <- sage_marginal_r$compute(batch_size = batch_size_sage)
+sage_marginal_r$compute(batch_size = batch_size_sage)
 results$SAGE_Marginal <- list(
-	feature = sage_marginal_results$feature,
-	importance = sage_marginal_results$importance()
+	feature = sage_marginal_r$feature,
+	importance = sage_marginal_r$importance()
 )
 
 # 5. Conditional SAGE
@@ -148,10 +148,10 @@ sage_conditional_r <- ConditionalSAGE$new(
 	max_reference_size = max_ref_size_sage
 )
 
-sage_conditional_results <- sage_conditional_r$compute(batch_size = batch_size_sage)
+sage_conditional_r$compute(batch_size = batch_size_sage)
 results$SAGE_Conditional <- list(
-	feature = sage_conditional_results$feature,
-	importance = sage_conditional_results$importance()
+	feature = sage_conditional_r$feature,
+	importance = sage_conditional_r$importance()
 )
 cli_alert_success("Conditional SAGE completed")
 
