@@ -194,7 +194,7 @@ test_that("scores and obs_losses agree", {
 	)
 
 	# Aggregate squared errors to get mse per iteration, should be same as $scores()
-	# up to numerical errot
+	# up to numerical error
 	obs_agg = importance_obs_loss[,
 		list(importance = mean(obs_importance)),
 		by = c("iter_rsmp", "iter_perm", "feature")
