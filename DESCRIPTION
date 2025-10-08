@@ -23,7 +23,6 @@ Imports:
     stats
 Suggests: 
     arf,
-    mlr3fselect,
     DiagrammeR,
     foreach,
     ggplot2,
@@ -31,6 +30,7 @@ Suggests:
     knitr,
     knockoff,
     mlr3data,
+    mlr3fselect,
     mlr3learners,
     mvtnorm,
     patchwork,

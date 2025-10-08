@@ -116,7 +116,8 @@ across resampling iterations and, depending on the method use, permutations (\li
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If \code{NULL}, uses stored parameter value.}
+\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If \code{NULL}, uses stored parameter value. This is only applicable for methods where importance is based on some
+relation between baseline and post-modifcation loss, i.e. \link{PerturbationImportance} methods such as \link{PFI} or \link{WVIM} / \link{LOCO}. Not available for \link{SAGE} methods.}
 
 \item{\code{standardize}}{(\code{logical(1)}: \code{FALSE}) If \code{TRUE}, importances are standardized by the highest score so all scores fall in \verb{[-1, 1]}.}
 
@@ -182,7 +183,8 @@ This is not the case for measure like \code{classif.auc}, which is not decomposa
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If \code{NULL}, uses stored parameter value.}
+\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If \code{NULL}, uses stored parameter value. This is only applicable for methods where importance is based on some
+relation between baseline and post-modifcation loss, i.e. \link{PerturbationImportance} methods such as \link{PFI} or \link{WVIM} / \link{LOCO}. Not available for \link{SAGE} methods.}
 }
 \if{html}{\out{</div>}}
 }
@@ -230,7 +232,8 @@ Iteration-wise importance are computed on the fly depending on the chosen relati
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If \code{NULL}, uses stored parameter value.}
+\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If \code{NULL}, uses stored parameter value. This is only applicable for methods where importance is based on some
+relation between baseline and post-modifcation loss, i.e. \link{PerturbationImportance} methods such as \link{PFI} or \link{WVIM} / \link{LOCO}. Not available for \link{SAGE} methods.}
 }
 \if{html}{\out{</div>}}
 }
