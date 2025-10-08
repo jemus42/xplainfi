@@ -39,8 +39,8 @@ reference:
   - subtitle: Model Refitting Measures
     desc: Methods which refit models with one (or more) features omitted (LOCO) or included (LOCI).
     contents:
+    - WVIM
     - LOCO
-    - LOCI
   - subtitle: Shapley-Based Approaches
     desc: Shapley Additive Global Importance (SAGE) in marginal and conditional variants
     contents:
@@ -57,7 +57,7 @@ reference:
       - contains("Sampler")
   - title: Utilities
   - contents:
-    - starts_with("compute")
+    - wvim_design_matrix
     - starts_with("op-")
   - title: Data simulation
   - contents:
@@ -68,7 +68,7 @@ articles:
     # navbar: ~
     contents:
     - articles/perturbation-importance
-    - articles/loco-loci
+    - articles/loco
     - articles/sage-methods
   - title: Testing and Validation
     contents:

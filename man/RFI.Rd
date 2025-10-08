@@ -17,6 +17,7 @@ rfi = RFI$new(
   conditioning_set = c("important1")
 )
 rfi$compute()
+rfi$importance()
 \dontshow{\}) # examplesIf}
 }
 \references{
@@ -40,8 +41,10 @@ In \emph{2020 25th International Conference on Pattern Recognition (ICPR)}, 9318
 <details open><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="importance"><a href='../../xplainfi/html/FeatureImportanceMethod.html#method-FeatureImportanceMethod-importance'><code>xplainfi::FeatureImportanceMethod$importance()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="obs_loss"><a href='../../xplainfi/html/FeatureImportanceMethod.html#method-FeatureImportanceMethod-obs_loss'><code>xplainfi::FeatureImportanceMethod$obs_loss()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="print"><a href='../../xplainfi/html/FeatureImportanceMethod.html#method-FeatureImportanceMethod-print'><code>xplainfi::FeatureImportanceMethod$print()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="reset"><a href='../../xplainfi/html/FeatureImportanceMethod.html#method-FeatureImportanceMethod-reset'><code>xplainfi::FeatureImportanceMethod$reset()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="scores"><a href='../../xplainfi/html/FeatureImportanceMethod.html#method-FeatureImportanceMethod-scores'><code>xplainfi::FeatureImportanceMethod$scores()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -72,7 +75,7 @@ Creates a new instance of the RFI class
 \item{\code{conditioning_set}}{(\code{\link[=character]{character()}}) Set of features to condition on. Can be overridden in \verb{$compute()}.
 Default (\code{character(0)}) is equivalent to \code{PFI}. In \code{CFI}, this would be set to all features except tat of interest.}
 
-\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. Can be overridden in \verb{$compute()}.}
+\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. Can be overridden in \verb{$scores()}.}
 
 \item{\code{iters_perm}}{(integer(1)) Number of permutation iterations. Can be overridden in \verb{$compute()}.}
 
@@ -87,24 +90,19 @@ Default (\code{character(0)}) is equivalent to \code{PFI}. In \code{CFI}, this w
 \subsection{Method \code{compute()}}{
 Compute RFI scores
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RFI$compute(
-  relation = NULL,
-  conditioning_set = NULL,
-  iters_perm = NULL,
-  store_backends = TRUE
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RFI$compute(conditioning_set = NULL, iters_perm = NULL, store_backends = TRUE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. If \code{NULL}, uses stored value.}
-
-\item{\code{conditioning_set}}{(\code{\link[=character]{character()}}) Set of features to condition on. If \code{NULL}, uses the stored parameter value.}
+\item{\code{conditioning_set}}{(character()) Set of features to condition on. If \code{NULL}, uses the stored parameter value.}
 
 \item{\code{iters_perm}}{(integer(1)) Number of permutation iterations. If \code{NULL}, uses stored value.}
 
-\item{\code{store_backends}}{(logical(1)) Whether to store backends}
+\item{\code{store_backends}}{(logical(1)) Whether to store backends, passed to \code{\link[mlr3:resample]{mlr3::resample()}} internally
+for the initial fit of the learner.
+This may be required for certain measures and is recommended to leave enabled unless really necessary.}
 }
 \if{html}{\out{</div>}}
 }

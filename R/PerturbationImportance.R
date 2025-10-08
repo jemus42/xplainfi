@@ -54,7 +54,6 @@ PerturbationImportance = R6Class(
 	private = list(
 		# Common computation method for all perturbation-based methods
 		.compute_perturbation_importance = function(
-			relation = NULL,
 			iters_perm = NULL,
 			store_backends = TRUE,
 			sampler = NULL
@@ -62,22 +61,10 @@ PerturbationImportance = R6Class(
 			# Use provided sampler or default to self$sampler
 			sampler = sampler %||% self$sampler
 
-			# Use hierarchical parameter resolution
-			relation = resolve_param(relation, self$param_set$values$relation, "difference")
 			iters_perm = resolve_param(iters_perm, self$param_set$values$iters_perm, 1L)
 
-			relation = match.arg(relation, c("difference", "ratio"))
-
-			# Check if already computed with this relation
-			if (!is.null(self$scores) & self$param_set$values$relation == relation) {
-				return(self$importance())
-			}
-
-			# Store relation
-			self$param_set$values$relation = relation
-
 			# Initial resampling
-			rr = resample(
+			self$resample_result = resample(
 				self$task,
 				self$learner,
 				self$resampling,
@@ -85,8 +72,14 @@ PerturbationImportance = R6Class(
 				store_backends = store_backends
 			)
 
-			scores_orig = rr$score(self$measure)[, .SD, .SDcols = c("iteration", self$measure$id)]
-			setnames(scores_orig, old = self$measure$id, "scores_pre")
+			# Prepare baseline scores
+			scores_baseline = self$resample_result$score(self$measure)[,
+				.SD,
+				.SDcols = c("iteration", self$measure$id)
+			]
+
+			setnames(scores_baseline, old = self$measure$id, "score_baseline")
+			setnames(scores_baseline, old = "iteration", "iter_rsmp")
 
 			if (xplain_opt("progress")) {
 				# resampling * permutation iters suffices for update speed
@@ -97,17 +90,22 @@ PerturbationImportance = R6Class(
 					.envir = .progress_env
 				)
 			}
+			# Get predictions for each resampling iter, permutation iter, feature
+			all_preds = lapply(seq_len(self$resampling$iters), \(iter) {
+				test_dt = self$task$data(rows = self$resampling$test_set(iter))
 
-			# Compute permuted scores
-			scores = lapply(seq_len(self$resampling$iters), \(iter) {
-				test_dt = self$task$data(rows = rr$resampling$test_set(iter))
-
-				rbindlist(
-					lapply(seq_len(iters_perm), \(iter_perm) {
+				pred_per_perm = lapply(
+					seq_len(iters_perm),
+					\(iter_perm) {
 						# Extract the learner here once because apparently reassembly is expensive
-						this_learner = rr$learners[[iter]]
+						this_learner = self$resample_result$learners[[iter]]
 
-						scores_post = vapply(
+						# # Update progress bar.
+						if (xplain_opt("progress")) {
+							cli::cli_progress_update(inc = 1, .envir = .progress_env)
+						}
+
+						pred_per_feature = lapply(
 							self$features,
 							\(feature) {
 								# Sample feature - sampler handles conditioning appropriately
@@ -121,61 +119,71 @@ PerturbationImportance = R6Class(
 									task = self$task
 								)
 
-								pred = private$.construct_pred(perturbed_data, pred_raw)
-
-								score = pred$score(self$measure)
-								names(score) = feature
-								score
-							},
-							FUN.VALUE = numeric(1)
+								pred = private$.construct_pred(
+									perturbed_data,
+									pred_raw,
+									test_row_ids = self$resampling$test_set(iter)
+								)
+								# FIXME: For grouped features, `feature` needs to be
+								# the name of the list entry or list-column
+								data.table::data.table(feature = feature, prediction = list(pred))
+							}
 						)
-
-						# Update progress bar.
-						if (xplain_opt("progress")) {
-							cli::cli_progress_update(inc = 1, .envir = .progress_env)
-						}
-
-						data.table(
-							feature = names(scores_post),
-							iter_perm = iter_perm,
-							scores_post = unname(scores_post)
-						)
-					})
+						data.table::rbindlist(pred_per_feature)
+					}
 				)
+				# Append iteration id for within-resampling permutations
+				rbindlist(pred_per_perm, idcol = "iter_perm")
 			})
+			# Append iteration id for resampling
+			all_preds = data.table::rbindlist(all_preds, idcol = "iter_rsmp")
+			setkeyv(all_preds, cols = c("feature", "iter_rsmp"))
 
-			# Update progress bar.
+			# store predictions for future reference maybe?
+			self$predictions = all_preds
+
+			# Close progress bar now that we're done iterating
 			if (xplain_opt("progress")) {
 				cli::cli_progress_done(.envir = .progress_env)
 			}
 
-			# Collect permuted scores, add original scores
-			scores = rbindlist(scores, idcol = "iteration")
-			scores = scores[scores_orig, on = "iteration"]
-			setcolorder(scores, c("feature", "iteration", "iter_perm", "scores_pre", "scores_post"))
-
-			# Calculate importance depending on relation
-			scores[,
-				importance := private$.compute_score(
-					scores_pre,
-					scores_post,
-					relation = self$param_set$values$relation,
-					minimize = self$measure$minimize
+			scores = data.table::copy(all_preds)[,
+				score_post := vapply(
+					prediction,
+					\(p) p$score(measures = self$measure)[[self$measure$id]],
+					FUN.VALUE = numeric(1)
 				)
 			]
 
-			# Rename columns for clarity
-			setnames(
-				scores,
-				old = c("iteration", "scores_pre", "scores_post"),
-				new = c("iter_rsmp", paste0(self$measure$id, c("_orig", "_perm")))
-			)
+			private$.scores = scores[scores_baseline, on = c("iter_rsmp")][, .(
+				feature,
+				iter_rsmp,
+				iter_perm,
+				score_baseline,
+				score_post
+			)]
 
-			setkeyv(scores, c("feature", "iter_rsmp"))
+			# for obs_loss:
+			# Not all losses are decomposable so this is optional and depends on the provided measure
+			if (!is.null(self$measure$obs_loss)) {
+				obs_loss_all <- all_preds[,
+					{
+						pred <- prediction[[1]]
+						obs_loss_vals <- self$measure$obs_loss(
+							truth = pred$truth,
+							response = pred$response
+						)
 
-			# Store results
-			self$resample_result = rr
-			self$scores = scores
+						list(
+							row_ids = pred$row_ids,
+							loss_post = obs_loss_vals
+						)
+					},
+					by = .(feature, iter_rsmp, iter_perm)
+				]
+
+				private$.obs_losses = obs_loss_all
+			}
 		}
 	)
 )
@@ -213,6 +221,7 @@ PerturbationImportance = R6Class(
 #'   iters_perm = 3
 #' )
 #' pfi$compute()
+#' pfi$importance()
 #' @export
 PFI = R6Class(
 	"PFI",
@@ -251,13 +260,13 @@ PFI = R6Class(
 
 		#' @description
 		#' Compute PFI scores
-		#' @param relation (character(1)) How to relate perturbed scores to originals. If `NULL`, uses stored value.
 		#' @param iters_perm (integer(1)) Number of permutation iterations. If `NULL`, uses stored value.
-		#' @param store_backends (logical(1)) Whether to store backends
-		compute = function(relation = NULL, iters_perm = NULL, store_backends = TRUE) {
+		#' @param store_backends (logical(1)) Whether to store backends, passed to [mlr3::resample()] internally
+		#' for the initial fit of the learner.
+		#' This may be required for certain measures and is recommended to leave enabled unless really necessary.
+		compute = function(iters_perm = NULL, store_backends = TRUE) {
 			# PFI uses the MarginalSampler directly
 			private$.compute_perturbation_importance(
-				relation = relation,
 				iters_perm = iters_perm,
 				store_backends = store_backends,
 				sampler = self$sampler
@@ -281,6 +290,7 @@ PFI = R6Class(
 #'   measure = msr("classif.ce")
 #' )
 #' cfi$compute()
+#' cfi$importance()
 #' @export
 CFI = R6Class(
 	"CFI",
@@ -319,7 +329,6 @@ CFI = R6Class(
 				resampling = resampling,
 				features = features,
 				sampler = sampler,
-				relation = relation,
 				iters_perm = iters_perm
 			)
 
@@ -328,15 +337,14 @@ CFI = R6Class(
 
 		#' @description
 		#' Compute CFI scores
-		#' @param relation (character(1)) How to relate perturbed scores to originals. If `NULL`, uses stored value.
 		#' @param iters_perm (integer(1)) Number of permutation iterations. If `NULL`, uses stored value.
-		#' @param store_backends (logical(1)) Whether to store backends
-		compute = function(relation = NULL, iters_perm = NULL, store_backends = TRUE) {
+		#' @param store_backends (logical(1)) Whether to store backends, passed to [mlr3::resample()] internally
+		#' for the initial fit of the learner.
+		#' This may be required for certain measures and is recommended to leave enabled unless really necessary.
+		compute = function(iters_perm = NULL, store_backends = TRUE) {
 			# CFI expects sampler configured to condition on all other features for each feature
 			# Default for ARFSampler
-			# TODO: Needs more rigorous approach
 			private$.compute_perturbation_importance(
-				relation = relation,
 				iters_perm = iters_perm,
 				store_backends = store_backends,
 				sampler = self$sampler
@@ -361,6 +369,7 @@ CFI = R6Class(
 #'   conditioning_set = c("important1")
 #' )
 #' rfi$compute()
+#' rfi$importance()
 #' @export
 RFI = R6Class(
 	"RFI",
@@ -371,7 +380,7 @@ RFI = R6Class(
 		#' @param task,learner,measure,resampling,features Passed to PerturbationImportance
 		#' @param conditioning_set ([character()]) Set of features to condition on. Can be overridden in `$compute()`.
 		#'   Default (`character(0)`) is equivalent to `PFI`. In `CFI`, this would be set to all features except tat of interest.
-		#' @param relation (character(1)) How to relate perturbed scores to originals. Can be overridden in `$compute()`.
+		#' @param relation (character(1)) How to relate perturbed scores to originals. Can be overridden in `$scores()`.
 		#' @param iters_perm (integer(1)) Number of permutation iterations. Can be overridden in `$compute()`.
 		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to ARFSampler
 		initialize = function(
@@ -439,12 +448,12 @@ RFI = R6Class(
 
 		#' @description
 		#' Compute RFI scores
-		#' @param relation (character(1)) How to relate perturbed scores to originals. If `NULL`, uses stored value.
-		#' @param conditioning_set ([character()]) Set of features to condition on. If `NULL`, uses the stored parameter value.
+		#' @param conditioning_set (character()) Set of features to condition on. If `NULL`, uses the stored parameter value.
 		#' @param iters_perm (integer(1)) Number of permutation iterations. If `NULL`, uses stored value.
-		#' @param store_backends (logical(1)) Whether to store backends
+		#' @param store_backends (logical(1)) Whether to store backends, passed to [mlr3::resample()] internally
+		#' for the initial fit of the learner.
+		#' This may be required for certain measures and is recommended to leave enabled unless really necessary.
 		compute = function(
-			relation = NULL,
 			conditioning_set = NULL,
 			iters_perm = NULL,
 			store_backends = TRUE
@@ -463,7 +472,6 @@ RFI = R6Class(
 
 			# Use the (potentially modified) sampler
 			private$.compute_perturbation_importance(
-				relation = relation,
 				iters_perm = iters_perm,
 				store_backends = store_backends,
 				sampler = self$sampler

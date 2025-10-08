@@ -239,7 +239,8 @@ SAGE = R6Class(
 
 			# Store results
 			self$resample_result = rr
-			self$scores = scores
+			# iter_rsmp, feature, importance -- score_baseline or so don't apply here
+			private$.scores = scores
 		},
 
 		#' @description

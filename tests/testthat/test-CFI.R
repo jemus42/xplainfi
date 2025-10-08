@@ -20,8 +20,8 @@ test_that("CFI can be constructed with simple objects", {
 
 	cfi$compute()
 	expect_importance_dt(cfi$importance(), features = cfi$features)
-	cfi$compute(relation = "difference")
-	expect_importance_dt(cfi$importance(), features = cfi$features)
+	# Test that default is "difference"
+	expect_identical(cfi$importance(), cfi$importance(relation = "difference"))
 })
 
 test_that("CFI uses ARFSampler by default", {
@@ -110,7 +110,7 @@ test_that("CFI multiple perms", {
 	expect_importance_dt(cfi$importance(), features = cfi$features)
 
 	checkmate::expect_data_table(
-		cfi$scores,
+		cfi$scores(),
 		types = c("character", "integer", "numeric"),
 		nrows = cfi$resampling$iters *
 			cfi$param_set$values$iters_perm *
@@ -143,7 +143,7 @@ test_that("CFI only one feature", {
 	expect_importance_dt(cfi$importance(), features = "important4")
 
 	checkmate::expect_data_table(
-		cfi$scores,
+		cfi$scores(),
 		types = c("character", "integer", "numeric"),
 		nrows = cfi$resampling$iters *
 			cfi$param_set$values$iters_perm,
@@ -190,46 +190,6 @@ test_that("CFI with friedman1 produces sensible results", {
 	expect_gt(max(abs(result$importance)), 0)
 })
 
-test_that("CFI different relations (difference vs ratio)", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
-	skip_if_not_installed("arf")
-
-	set.seed(123)
-	task = mlr3::tgen("2dnormals")$generate(n = 100)
-
-	cfi = CFI$new(
-		task = task,
-		learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
-		measure = mlr3::msr("classif.ce")
-	)
-
-	# Default behavior should be sane
-	cfi$compute()
-	res_1 = cfi$importance()
-	expect_importance_dt(res_1, cfi$features)
-
-	cfi$compute()
-	res_2 = cfi$importance()
-	expect_identical(res_1, res_2)
-
-	cfi$compute("difference")
-	res_3 = cfi$importance()
-	expect_identical(res_1, res_3)
-
-	cfi$compute("ratio")
-	res_4 = cfi$importance()
-	cfi$compute("difference")
-	res_5 = cfi$importance()
-
-	expect_error(expect_equal(res_4, res_5))
-
-	expect_importance_dt(res_2, cfi$features)
-	expect_importance_dt(res_3, cfi$features)
-	expect_importance_dt(res_4, cfi$features)
-	expect_importance_dt(res_5, cfi$features)
-})
-
 test_that("CFI with resampling", {
 	skip_if_not_installed("ranger")
 	skip_if_not_installed("mlr3learners")
@@ -252,30 +212,23 @@ test_that("CFI with resampling", {
 	cfi$compute()
 	res_1 = cfi$importance()
 	expect_importance_dt(res_1, cfi$features)
-
-	cfi$compute("ratio")
-	res_2 = cfi$importance()
-	expect_importance_dt(res_2, cfi$features)
-
-	expect_error(expect_equal(res_1, res_2))
 })
 
 test_that("CFI parameter validation", {
 	skip_if_not_installed("ranger")
 	skip_if_not_installed("mlr3learners")
+	skip_if_not_installed("arf")
 
 	set.seed(123)
 	task = mlr3::tgen("2dnormals")$generate(n = 50)
 	learner = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob")
 	measure = mlr3::msr("classif.ce")
-	sampler = MarginalSampler$new(task) # Use marginal sampler to avoid arf dependency
 
 	# iters_perm must be positive integer
 	expect_error(CFI$new(
 		task = task,
 		learner = learner,
 		measure = measure,
-		sampler = sampler,
 		iters_perm = 0L
 	))
 
@@ -283,7 +236,6 @@ test_that("CFI parameter validation", {
 		task = task,
 		learner = learner,
 		measure = measure,
-		sampler = sampler,
 		iters_perm = -1L
 	))
 })

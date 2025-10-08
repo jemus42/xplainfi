@@ -8,14 +8,14 @@ editor_options:
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-",
-  out.width = "100%"
+	collapse = TRUE,
+	comment = "#>",
+	fig.path = "man/figures/README-",
+	out.width = "100%"
 )
 # Quiet down
 lgr::get_logger("mlr3")$set_threshold("warn")
-options("xplain.progress" = interactive())
+options("xplain.progress" = FALSE)
 set.seed(123)
 ```
 
@@ -59,11 +59,11 @@ learner = lrn("regr.ranger", num.trees = 100)
 measure = msr("regr.mse")
 
 pfi = PFI$new(
-  task = task,
-  learner = learner,
-  measure = measure,
-  resampling = rsmp("cv", folds = 3),
-  iters_perm = 5
+	task = task,
+	learner = learner,
+	measure = measure,
+	resampling = rsmp("cv", folds = 3),
+	iters_perm = 5
 )
 ```
 
@@ -71,50 +71,58 @@ Compute and print PFI scores:
 
 ```{r pfi-compute}
 pfi$compute()
+pfi$importance()
 ```
 
-Retrieve scores later in `pfi$importance`.
+If it aides interpretation, importances can also be calculates as the *ratio* rather then the *difference* between the baseline and post-permutation losses:
+
+```{r pfi-ratio}
+pfi$importance(relation = "ratio")
+```
 
 When PFI is computed based on resampling with multiple iterations, and / or multiple permutation iterations, the individual scores can be retrieved as a `data.table`:
 
 ```{r pfi-scores}
-str(pfi$scores)
+str(pfi$scores())
 ```
 
 Where `iter_rsmp` corresponds to the resampling iteration, i.e., 3 for 3-fold cross-validation, and `iter_perm` corresponds to the permutation iteration within each resampling iteration, 5 in this case.
-While `pfi$importance` contains the means and standard deviations across all iterations, `pfi$scores` allows you to manually aggregate them in any way you see fit.
+While `pfi$importance()` contains the means across all iterations, `pfi$scores()` allows you to manually visualize or aggregate them in any way you see fit.
 
-This of course also enables visualization across iterations:
+For example:
 
 ```{r pfi-plot}
 #| fig-width: 6
 #| fig-height: 5
 library(ggplot2)
 
-ggplot(pfi$scores, aes(x = importance, y = reorder(feature, importance))) +
-  geom_boxplot() +
-  labs(
-    title = "PFI Scores on Friedman1",
-    subtitle = "Aggregated over 3-fold CV with 5 permutations per iteration",
-    x = "Importance",
-    y = "Feature"
-  ) +
-  theme_minimal(base_size = 16) +
-  theme(
-    plot.title.position = "plot",
-    panel.grid.major.y = element_blank()
-  )
+ggplot(
+	pfi$scores(),
+	aes(x = importance, y = reorder(feature, importance))
+) +
+	geom_boxplot(color = "#f44560", fill = alpha("#f44560", 0.4)) +
+	labs(
+		title = "Permutation Feature Importance on Friedman1",
+		subtitle = "Computed over 3-fold CV with 5 permutations per iteration using Random Forest",
+		x = "Importance",
+		y = "Feature"
+	) +
+	theme_minimal(base_size = 16) +
+	theme(
+		plot.title.position = "plot",
+		panel.grid.major.y = element_blank()
+	)
 ```
 
-If the measure in question needs to be maximized ratehr than minimized (like $R^2$), the internal importance calculation takes that into account via the `$minimize` property of the measure object and calculates importances such that the "performance improvement" -> higher importance score holds:
+If the measure in question needs to be maximized rather than minimized (like $R^2$), the internal importance calculation takes that into account via the `$minimize` property of the measure and calculates importances such that the intuition "performance improvement" -> "higher importance score" still holds:
 
 ```{r pfi-rsq}
 pfi = PFI$new(
-  task = task,
-  learner = learner,
-  measure = msr("regr.rsq"),
-  iters_perm = 1
+	task = task,
+	learner = learner,
+	measure = msr("regr.rsq")
 )
 
 pfi$compute()
+pfi$importance()
 ```

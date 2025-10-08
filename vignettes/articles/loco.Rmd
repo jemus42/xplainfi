@@ -1,0 +1,237 @@
+---
+title: "LOCO (Leave-One-Covariate-Out)"
+editor_options:
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+	collapse = TRUE,
+	comment = "#>"
+)
+set.seed(123)
+# Quiet down
+lgr::get_logger("mlr3")$set_threshold("warn")
+lgr::get_logger("bbotk")$set_threshold("warn")
+options("xplain.progress" = interactive())
+```
+
+```{r setup}
+library(xplainfi)
+library(mlr3)
+library(mlr3learners)
+library(data.table)
+library(ggplot2)
+```
+
+## Example Data: Interaction Effects
+
+To illustrate LOCO feature importance, we'll use a data generating process with interaction effects:
+
+$$y = 2 \cdot x_1 \cdot x_2 + x_3 + \epsilon$$
+
+where $\epsilon \sim N(0, 0.5^2)$ and all features $x_1, x_2, x_3, noise_1, noise_2 \sim N(0,1)$ are independent.
+
+**Key characteristics:**
+
+- **$x_1, x_2$**: Have NO individual effects, only interact with each other
+- **$x_3$**: Has a direct main effect on $y$
+- **$noise_1, noise_2$**: Pure noise variables with no effect on $y$
+
+This setup demonstrates how LOCO handles interaction effects.
+
+## Leave-One-Covariate-Out (LOCO)
+
+LOCO measures feature importance by comparing model performance with and without each feature. For each feature, the learner is retrained without that feature and the performance difference indicates the feature's importance.
+
+For feature $j$, LOCO is calculated as the difference in expected loss of the model fit without the feature and the full model:
+$$\text{LOCO}_j = \mathbb{E}(L(Y, f_{-j}(X_{-j}))) - \mathbb{E}(L(Y, f(X)))$$
+
+
+Higher values indicate more important features (larger performance drop when removed).
+
+```{r loco-example}
+task <- sim_dgp_interactions(n = 500)
+learner <- lrn("regr.ranger", num.trees = 100)
+measure <- msr("regr.mse")
+
+# Use 3-fold CV for more robust estimates and reuse across comparisons
+set.seed(123)
+resampling <- rsmp("cv", folds = 3)
+resampling$instantiate(task)
+
+loco <- LOCO$new(
+	task = task,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	features = task$feature_names
+)
+
+loco$compute()
+loco$importance()
+```
+
+The `$importance()` method returns a `data.table` with aggregated importance scores per feature.
+
+## Understanding the Results
+
+**LOCO results interpretation:**
+
+- $x_3$ should show high importance due to its direct main effect
+- $x_1$ and $x_2$ show variable importance depending on the model's ability to capture interactions
+- $noise_1$ and $noise_2$ should show low or negative importance
+- This demonstrates LOCO measures each feature's contribution to model performance
+
+
+## Detailed Scores
+
+The `$scores()` method provides detailed information for each feature, resampling iteration, and refit:
+
+```{r detailed-scores}
+loco$scores() |>
+	knitr::kable(digits = 4, caption = "LOCO scores with baseline and post-refit score")
+```
+
+## Multiple Refits
+
+LOCO supports `iters_refit` for multiple refit iterations per resampling iteration, which provides variance estimates:
+
+```{r multiple-refits}
+loco_multi = LOCO$new(
+	task = task,
+	learner = learner,
+	measure = measure,
+	resampling = rsmp("cv", folds = 3),
+	iters_refit = 3L
+)
+
+loco_multi$compute()
+loco_multi$importance()
+
+# Check individual scores with multiple refits
+loco_multi$scores() |>
+	head(10) |>
+	knitr::kable(digits = 4, caption = "First 10 LOCO scores per refit and resampling fold")
+```
+
+## Using Different Measures
+
+LOCO works with any mlr3 measure. Different measures can highlight different aspects of feature importance:
+
+```{r different-measures}
+# Use same resampling for fair comparison
+loco_mae <- LOCO$new(
+	task = task,
+	learner = learner,
+	measure = msr("regr.mae"),
+	resampling = resampling
+)
+
+loco_mae$compute()
+
+# Compare results
+comparison <- merge(
+	loco$importance()[, .(feature, importance_mse = importance)],
+	loco_mae$importance()[, .(feature, importance_mae = importance)],
+	by = "feature"
+)
+
+comparison
+```
+
+## Comparison with Perturbation Methods
+
+LOCO differs from perturbation-based methods like PFI and CFI:
+
+- **LOCO**: Retrains model without each feature (computationally expensive)
+- **PFI/CFI**: Perturb feature values using existing model (faster)
+
+```{r compare-methods}
+# Compare LOCO with PFI using same resampling
+pfi <- PFI$new(task, learner, measure, resampling = resampling)
+pfi$compute()
+
+comparison <- merge(
+	loco$importance()[, .(feature, loco = importance)],
+	pfi$importance()[, .(feature, pfi = importance)],
+	by = "feature"
+)
+
+comparison
+```
+
+**Note:** Using the same instantiated resampling ensures we evaluate both methods on identical train/test splits. Even so, stochastic learners like `ranger` will produce slightly different results between methods due to the random forest's sampling.
+
+LOCO measures the value of having a feature available during training, while PFI measures the value of having informative feature values at prediction time.
+
+## WVIM: The General Framework
+
+LOCO is actually a special case of Williamson's Variable Importance Measure (WVIM), which provides a general formulation for refit-based feature importance.
+WVIM uses feature selection design matrices to specify which features should be included or excluded.
+
+### Replicating LOCO with WVIM
+
+We can manually replicate LOCO using WVIM's `"leave-out"` direction:
+
+```{r wvim-loco}
+# Create WVIM instance (LOCO's parent class) using same resampling
+wvim_loco <- WVIM$new(
+	task = task,
+	learner = learner,
+	measure = measure,
+	resampling = resampling,
+	features = task$feature_names,
+	direction = "leave-out"
+)
+wvim_loco$compute()
+
+# Compare with original LOCO results
+comparison_wvim <- merge(
+	loco$importance()[, .(feature, loco = importance)],
+	wvim_loco$importance()[, .(feature, wvim = importance)],
+	by = "feature"
+)
+
+comparison_wvim
+```
+
+**Note:** To get comparable results between methods, we must use the same instantiated resampling. Even then, stochastic learners like `ranger` will produce slightly different results due to random forest's bootstrapping and split selection, but the overall patterns should be consistent.
+
+### LOCI: Leave-One-Covariate-In
+
+WVIM allows us to compute LOCI (Leave-One-Covariate-In) by changing the direction to "leave-in". LOCI trains models with only single features and compares them to a featureless baseline.
+
+**Note:** LOCI has questionable utility in practice because it is essentially just a measure for the bivariate association between the target and each feature separately.
+However, WVIM makes it trivial to compute if desired:
+
+```{r wvim-loci}
+# LOCI: train with only one feature at a time
+wvim_loci <- WVIM$new(
+	task = task,
+	learner = learner,
+	measure = measure,
+	features = task$feature_names,
+	direction = "leave-in",
+	resampling = rsmp("cv", folds = 3),
+	iters_refit = 2
+)
+
+wvim_loci$compute()
+wvim_loci$importance()
+```
+
+LOCI interprets importance differently from LOCO:
+
+- **LOCO**: "How much does performance degrade when this feature is removed from the full model?"
+- **LOCI**: "How much does this feature alone improve over a featureless baseline?"
+
+For our interaction data where $y = 2 \cdot x_1 \cdot x_2 + x_3 + \epsilon$:
+
+- LOCI would be expected to
+  - show low importance for $x_1$ and $x_2$ individually (no main effects)
+  - show high importance for $x_3$ (strong main effect)
+- LOCO better captures the value of features that participate in interactions
+
+However, since we used a random forest learner (ranger), it can not be expected to learn any meaningful relations based on one training with onle one feature.
+This hopefully showcases that LOCI is primarily "useful" as a teaching exercise, rather than a meaningful importance measure.

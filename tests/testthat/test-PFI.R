@@ -19,8 +19,8 @@ test_that("can be constructed with simple objects", {
 
 	pfi$compute()
 	expect_importance_dt(pfi$importance(), features = pfi$features)
-	pfi$compute(relation = "difference")
-	expect_importance_dt(pfi$importance(), features = pfi$features)
+	# Test that default is "difference"
+	expect_identical(pfi$importance(), pfi$importance(relation = "difference"))
 })
 
 test_that("null result for featureless learner", {
@@ -64,7 +64,7 @@ test_that("multiple perms", {
 	expect_importance_dt(pfi$importance(), features = pfi$features)
 
 	checkmate::expect_data_table(
-		pfi$scores,
+		pfi$scores(),
 		types = c("character", "integer", "numeric"),
 		nrows = pfi$resampling$iters *
 			pfi$param_set$values$iters_perm *
@@ -96,7 +96,7 @@ test_that("only one feature", {
 	expect_importance_dt(pfi$importance(), features = "important4")
 
 	checkmate::expect_data_table(
-		pfi$scores,
+		pfi$scores(),
 		types = c("character", "integer", "numeric"),
 		nrows = pfi$resampling$iters *
 			pfi$param_set$values$iters_perm,
@@ -120,30 +120,20 @@ test_that("PFI different relations (difference vs ratio)", {
 		measure = mlr3::msr("classif.ce")
 	)
 
-	# Default behavior should be sane
+	# Compute once, test different relations
 	pfi$compute()
-	res_1 = pfi$importance()
-	expect_importance_dt(res_1, pfi$features)
+	res_diff = pfi$importance(relation = "difference")
+	res_ratio = pfi$importance(relation = "ratio")
+	res_default = pfi$importance()
 
-	pfi$compute()
-	res_2 = pfi$importance()
-	expect_identical(res_1, res_2)
+	expect_importance_dt(res_diff, pfi$features)
+	expect_importance_dt(res_ratio, pfi$features)
 
-	pfi$compute("difference")
-	res_3 = pfi$importance()
-	expect_identical(res_1, res_3)
+	# Default should be "difference"
+	expect_identical(res_default, res_diff)
 
-	pfi$compute("ratio")
-	res_4 = pfi$importance()
-	pfi$compute("difference")
-	res_5 = pfi$importance()
-
-	expect_error(expect_equal(res_4, res_5))
-
-	expect_importance_dt(res_2, pfi$features)
-	expect_importance_dt(res_3, pfi$features)
-	expect_importance_dt(res_4, pfi$features)
-	expect_importance_dt(res_5, pfi$features)
+	# Different relations should give different results
+	expect_false(isTRUE(all.equal(res_diff, res_ratio)))
 })
 
 test_that("PFI with resampling", {
@@ -165,12 +155,50 @@ test_that("PFI with resampling", {
 	)
 
 	pfi$compute()
-	res_1 = pfi$importance()
-	expect_importance_dt(res_1, pfi$features)
+	res_diff = pfi$importance(relation = "difference")
+	res_ratio = pfi$importance(relation = "ratio")
 
-	pfi$compute("ratio")
-	res_2 = pfi$importance()
-	expect_importance_dt(res_2, pfi$features)
+	expect_importance_dt(res_diff, pfi$features)
+	expect_importance_dt(res_ratio, pfi$features)
 
-	expect_error(expect_equal(res_1, res_2))
+	# Different relations should give different results
+	expect_false(isTRUE(all.equal(res_diff, res_ratio)))
+})
+
+test_that("scores and obs_losses agree", {
+	skip_if_not_installed("mlr3learners")
+
+	set.seed(123)
+	task = mlr3::tgen("friedman1")$generate(n = 200)
+
+	pfi = PFI$new(
+		task = task,
+		learner = mlr3::lrn("regr.rpart"),
+		measure = mlr3::msr("regr.mse"),
+		resampling = mlr3::rsmp("cv", folds = 3),
+		iters_perm = 2
+	)
+
+	pfi$compute()
+
+	importance_agg = pfi$importance()
+	importance_scores = pfi$scores()[, .(iter_rsmp, iter_perm, feature, importance)][
+		order(iter_rsmp, iter_perm, feature)
+	]
+	importance_obs_loss = pfi$obs_loss()
+
+	expect_equal(
+		importance_agg,
+		importance_scores[, list(importance = mean(importance)), by = "feature"],
+		ignore_attr = TRUE # ignore sorting by feature
+	)
+
+	# Aggregate squared errors to get mse per iteration, should be same as $scores()
+	# up to numerical error
+	obs_agg = importance_obs_loss[,
+		list(importance = mean(obs_importance)),
+		by = c("iter_rsmp", "iter_perm", "feature")
+	][order(iter_rsmp, iter_perm, feature)]
+
+	expect_equal(importance_scores, obs_agg, tolerance = sqrt(.Machine$double.eps))
 })
