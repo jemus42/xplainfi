@@ -164,3 +164,41 @@ test_that("PFI with resampling", {
 	# Different relations should give different results
 	expect_false(isTRUE(all.equal(res_diff, res_ratio)))
 })
+
+test_that("scores and obs_losses agree", {
+	skip_if_not_installed("mlr3learners")
+
+	set.seed(123)
+	task = mlr3::tgen("friedman1")$generate(n = 200)
+
+	pfi = PFI$new(
+		task = task,
+		learner = mlr3::lrn("regr.rpart"),
+		measure = mlr3::msr("regr.mse"),
+		resampling = mlr3::rsmp("cv", folds = 3),
+		iters_perm = 2
+	)
+
+	pfi$compute()
+
+	importance_agg = pfi$importance()
+	importance_scores = pfi$scores()[, .(iter_rsmp, iter_perm, feature, importance)][
+		order(iter_rsmp, iter_perm, feature)
+	]
+	importance_obs_loss = pfi$obs_loss()
+
+	expect_equal(
+		importance_agg,
+		importance_scores[, list(importance = mean(importance)), by = "feature"],
+		ignore_attr = TRUE # ignore sorting by feature
+	)
+
+	# Aggregate squared errors to get mse per iteration, should be same as $scores()
+	# up to numerical errot
+	obs_agg = importance_obs_loss[,
+		list(importance = mean(obs_importance)),
+		by = c("iter_rsmp", "iter_perm", "feature")
+	][order(iter_rsmp, iter_perm, feature)]
+
+	expect_equal(importance_scores, obs_agg, tolerance = sqrt(.Machine$double.eps))
+})
