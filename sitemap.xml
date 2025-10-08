@@ -4,7 +4,7 @@
 <url><loc>https://jemus42.github.io/xplainfi/LICENSE.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/articles/fippy-comparison.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/articles/index.html</loc></url>
-<url><loc>https://jemus42.github.io/xplainfi/articles/loco-loci.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/articles/loco.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/articles/perturbation-importance.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/articles/sage-methods.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/articles/simulation-settings.html</loc></url>
@@ -19,20 +19,20 @@
 <url><loc>https://jemus42.github.io/xplainfi/reference/FeatureImportanceMethod.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/FeatureSampler.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/KnockoffSampler.html</loc></url>
-<url><loc>https://jemus42.github.io/xplainfi/reference/LOCI.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/LOCO.html</loc></url>
-<url><loc>https://jemus42.github.io/xplainfi/reference/LeaveOutIn.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/MarginalSAGE.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/MarginalSampler.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/PFI.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/PerturbationImportance.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/RFI.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/SAGE.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/reference/WVIM.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/index.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/op-null-default.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/print_bib.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/sim_dgp_ewald.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/sim_dgp_scenarios.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/reference/wvim_design_matrix.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/xplainfi-package.html</loc></url>
 </urlset>
 

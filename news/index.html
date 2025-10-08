@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,28 +57,41 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9000" id="xplainfi-0109000">xplainfi 0.1.0.9000<a class="anchor" aria-label="anchor" href="#xplainfi-0109000"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9001" id="xplainfi-0109001">xplainfi 0.1.0.9001<a class="anchor" aria-label="anchor" href="#xplainfi-0109001"></a></h2>
 <p>This turns out to be still a period of major changes in the early phase, so, uhm, well.</p>
 <div class="section level3">
-<h3 id="general-changes-and-improvements-0-1-0-9000">General changes and improvements<a class="anchor" aria-label="anchor" href="#general-changes-and-improvements-0-1-0-9000"></a></h3>
+<h3 id="general-changes-and-improvements-0-1-0-9001">General changes and improvements<a class="anchor" aria-label="anchor" href="#general-changes-and-improvements-0-1-0-9001"></a></h3>
 <ul><li>
-<code>$importance</code> become a function <code>$importance()</code> with arguments <code>standardize</code> and <code>variance_method</code> (<a href="https://github.com/jemus42/xplainfi/issues/40" class="external-link">#40</a>):
+<code>$importance</code> becomes a function <code>$importance()</code> with arguments <code>standardize</code> and <code>variance_method</code> (<a href="https://github.com/jemus42/xplainfi/issues/40" class="external-link">#40</a>):
 <ul><li>
-<code>"nadeau_bengio"</code> implements the correction method by Nadeau &amp; Bengio (2003) recommended by Molnaet et al. (2023).</li>
+<code>"nadeau_bengio"</code> implements the correction method by Nadeau &amp; Bengio (2003) recommended by Molnar et al. (2023).</li>
 </ul></li>
-<li>Add <code>$obs_loss</code> and <code>$predictions</code> fields to <code>FeatureImportanceMeasure</code>, now used by <code>LOCO</code> and <code>LOCI</code>
-<ul><li>Both get arugments <code>obs_loss = FALSE</code> use the measure’s <code>$aggregator</code> for aggregation in case of <code>obs_loss = TRUE</code>, to allow for median of absolute differences calculation as in original LOCO formulation, rather than the “micro-”averaged approach calculated by default.</li>
-</ul></li>
+<li>
+<code>$scores</code> becomes <code>$scores()</code> for more fleixibility analogous to <code>$importance()</code>. Original scores are stored in <code>private$.scores</code> (for now).</li>
+<li>Both <code>$importance()</code> and <code>$scores()</code> have argument <code>relation</code> defaulting to <code>"differrence"</code> which allows to calculate importances like PFI as either the difference or the ratio of baseline and post-modification loss. The argument is moved out of <code>$compute()</code> to avoid having to recompute any predictions or model refits.</li>
 <li>Add <code><a href="../reference/sim_dgp_ewald.html">sim_dgp_ewald()</a></code> and other <code>sim_dgp_*()</code> helpers to simulate data (in <code>Task</code> form) with simple DGPs as used for illustration in Ewald et al. (2024) for example, which should make it easier to interpret the results of various importance methods.</li>
+</ul><div class="section level4">
+<h4 id="observation-wise-losses-0-1-0-9001">Observation-wise losses<a class="anchor" aria-label="anchor" href="#observation-wise-losses-0-1-0-9001"></a></h4>
+<ul><li><p><code>$obs_loss()</code> analogously to <code>$scores()</code> computes observation-wise importance scores based on losses stored in <code>$.obs_losses</code> <strong>if</strong> <code>measure</code> has a <code>Measure$obs_loss()</code> function.</p></li>
+<li><p><code>$predictions</code> will probably be removed again?</p></li>
 </ul></div>
+</div>
 <div class="section level3">
-<h3 id="method-specific-changes-0-1-0-9000">Method-specific changes<a class="anchor" aria-label="anchor" href="#method-specific-changes-0-1-0-9000"></a></h3>
+<h3 id="method-specific-changes-0-1-0-9001">Method-specific changes<a class="anchor" aria-label="anchor" href="#method-specific-changes-0-1-0-9001"></a></h3>
 <div class="section level4">
-<h4 id="perturbationimportance-0-1-0-9000"><code>PerturbationImportance</code><a class="anchor" aria-label="anchor" href="#perturbationimportance-0-1-0-9000"></a></h4>
+<h4 id="leaveoutin---wvim-0-1-0-9001">
+<code>LeaveOutIn</code> -&gt; <code>WVIM</code>
+<a class="anchor" aria-label="anchor" href="#leaveoutin---wvim-0-1-0-9001"></a></h4>
+<ul><li>Williamson’s Variable Importance Measure (WVIM) generalizes LOCO / LOCI</li>
+<li>Feature grouping API is still WIP</li>
+<li>New implementation built around <code>mlr3fselect</code>, greatly simplifying the internals</li>
+</ul></div>
+<div class="section level4">
+<h4 id="perturbationimportance-0-1-0-9001"><code>PerturbationImportance</code><a class="anchor" aria-label="anchor" href="#perturbationimportance-0-1-0-9001"></a></h4>
 <ul><li>Streamline and speedup <code>PerturbationImportance</code> implementation, also by using <code>learner$predict_newdata_fast()</code> (<a href="https://github.com/jemus42/xplainfi/issues/39" class="external-link">#39</a>), bumping the mlr3 dependency &gt;= 1.1.0.</li>
 </ul></div>
 <div class="section level4">
-<h4 id="conditional-sampling-0-1-0-9000">Conditional sampling<a class="anchor" aria-label="anchor" href="#conditional-sampling-0-1-0-9000"></a></h4>
+<h4 id="conditional-sampling-0-1-0-9001">Conditional sampling<a class="anchor" aria-label="anchor" href="#conditional-sampling-0-1-0-9001"></a></h4>
 <ul><li>Extend <code>ARFSampler</code> to store more arguments on construction, making it easier to “preconfigure” the sampler via arguments used in <code>$sample()</code>.</li>
 <li>Standardize on <code>conditioning_set</code> as the name for the character vector defining features to condition on in <code>ConditionalSampler</code> and <code>RFI</code>.</li>
 <li>Add <code>KnockoffSampler</code> (<a href="https://github.com/jemus42/xplainfi/issues/16" class="external-link">#16</a> via <a href="https://github.com/mnwright" class="external-link">@mnwright</a>)
@@ -88,9 +101,9 @@
 </ul></li>
 </ul></div>
 <div class="section level4">
-<h4 id="sage-0-1-0-9000"><code>SAGE</code><a class="anchor" aria-label="anchor" href="#sage-0-1-0-9000"></a></h4>
+<h4 id="sage-0-1-0-9001"><code>SAGE</code><a class="anchor" aria-label="anchor" href="#sage-0-1-0-9001"></a></h4>
 <ul><li>Fix accidentally marginal <code>ConditionalSAGE</code>.</li>
-<li>Also using <code>learner$predict_newdata_fast()</code> now</li>
+<li>Also using <code>learner$predict_newdata_fast()</code> now (<a href="https://github.com/jemus42/xplainfi/issues/39" class="external-link">#39</a>)</li>
 <li>
 <code>batch_size</code> controls number of observations used at once per <code>learner$predict_newdata_fast()</code> call (could lead to excessive RAM usage).</li>
 <li>convergence tracking if <code>early_stopping = TRUE</code> (<a href="https://github.com/jemus42/xplainfi/pull/29" class="external-link">#29</a>)

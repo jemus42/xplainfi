@@ -15,7 +15,7 @@ Feature Importance Method Class"><script defer src="https://umami.jemu.name/scri
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -97,11 +97,11 @@ ISBN 978-3-031-44064-9, <a href="https://doi.org/10.1007/978-3-031-44064-9_24" c
 
 
 <dt><code>resampling</code></dt>
-<dd><p>(<a href="https://mlr3.mlr-org.com/reference/Resampling.html" class="external-link">mlr3::Resampling</a>)</p></dd>
+<dd><p>(<a href="https://mlr3.mlr-org.com/reference/Resampling.html" class="external-link">mlr3::Resampling</a>), instantiated upon construction.</p></dd>
 
 
 <dt><code>resample_result</code></dt>
-<dd><p>(<a href="https://mlr3.mlr-org.com/reference/ResampleResult.html" class="external-link">mlr3::ResampleResult</a>)</p></dd>
+<dd><p>(<a href="https://mlr3.mlr-org.com/reference/ResampleResult.html" class="external-link">mlr3::ResampleResult</a>) of the original <code>learner</code> and <code>task</code>, used for baseline scores.</p></dd>
 
 
 <dt><code>features</code></dt>
@@ -112,16 +112,8 @@ ISBN 978-3-031-44064-9, <a href="https://doi.org/10.1007/978-3-031-44064-9_24" c
 <dd><p>(<code><a href="https://paradox.mlr-org.com/reference/ps.html" class="external-link">paradox::ps()</a></code>)</p></dd>
 
 
-<dt><code>scores</code></dt>
-<dd><p>(<a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a>) Individual performance scores used to compute <code>$importance()</code> per resampling iteration and permutation iteration.</p></dd>
-
-
-<dt><code>obs_losses</code></dt>
-<dd><p>(<a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a>) Observation-wise losses when available (e.g., when using obs_loss = TRUE). Contains columns for row_ids, feature, iteration indices, individual loss values, and both reference and feature-specific predictions.</p></dd>
-
-
 <dt><code>predictions</code></dt>
-<dd><p>(<a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a>) Feature-specific prediction objects when using obs_loss = TRUE. Contains columns for feature, iteration, iter_refit, and prediction objects. Similar to ResampleResult$predictions() but extended for feature-specific models.</p></dd>
+<dd><p>(<a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a>) Feature-specific prediction objects provided for some methods (<a href="PFI.html">PFI</a>, <a href="WVIM.html">WVIM</a>). Contains columns for feature of interest, resampling iteration, refit or perturbation iteration, and <a href="https://mlr3.mlr-org.com/reference/Prediction.html" class="external-link">mlr3::Prediction</a> objects.</p></dd>
 
 
 </dl><p></p></div>
@@ -135,8 +127,10 @@ ISBN 978-3-031-44064-9, <a href="https://doi.org/10.1007/978-3-031-44064-9_24" c
 <ul><li><p><a href="#method-FeatureImportanceMethod-new"><code>FeatureImportanceMethod$new()</code></a></p></li>
 <li><p><a href="#method-FeatureImportanceMethod-compute"><code>FeatureImportanceMethod$compute()</code></a></p></li>
 <li><p><a href="#method-FeatureImportanceMethod-importance"><code>FeatureImportanceMethod$importance()</code></a></p></li>
+<li><p><a href="#method-FeatureImportanceMethod-obs_loss"><code>FeatureImportanceMethod$obs_loss()</code></a></p></li>
 <li><p><a href="#method-FeatureImportanceMethod-reset"><code>FeatureImportanceMethod$reset()</code></a></p></li>
 <li><p><a href="#method-FeatureImportanceMethod-print"><code>FeatureImportanceMethod$print()</code></a></p></li>
+<li><p><a href="#method-FeatureImportanceMethod-scores"><code>FeatureImportanceMethod$scores()</code></a></p></li>
 <li><p><a href="#method-FeatureImportanceMethod-clone"><code>FeatureImportanceMethod$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-FeatureImportanceMethod-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
@@ -167,19 +161,12 @@ This is typically intended for use by derived classes.</p><div class="section">
 <h3 id="method-compute-">Method <code>compute()</code><a class="anchor" aria-label="anchor" href="#method-compute-"></a></h3>
 <p>Compute feature importance scores</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceMethod</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span></span>
-<span>  relation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"difference"</span>, <span class="st">"ratio"</span><span class="op">)</span>,</span>
-<span>  store_backends <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceMethod</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>store_backends <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>relation</code></dt>
-<dd><p>(<code>character(1): "difference"</code>) How to relate perturbed scores to originals ("difference" or "ratio")</p></dd>
-
-
-<dt><code>store_backends</code></dt>
+<p></p><div class="arguments"><dl><dt><code>store_backends</code></dt>
 <dd><p>(<code>logical(1): TRUE</code>) Whether to store backends.</p></dd>
 
 
@@ -193,6 +180,7 @@ The stored <code><a href="https://mlr3.mlr-org.com/reference/Measure.html" class
 across resampling iterations and, depending on the method use, permutations (<a href="PerturbationImportance.html">PerturbationImportance</a> or refits <a href="LOCO.html">LOCO</a>).</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceMethod</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span></span>
+<span>  relation <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  standardize <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  variance_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"raw"</span>, <span class="st">"nadeau_bengio"</span><span class="op">)</span>,</span>
 <span>  conf_level <span class="op">=</span> <span class="fl">0.95</span></span>
@@ -201,7 +189,12 @@ across resampling iterations and, depending on the method use, permutations (<a 
 
 <div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>standardize</code></dt>
+<p></p><div class="arguments"><dl><dt><code>relation</code></dt>
+<dd><p>(character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If <code>NULL</code>, uses stored parameter value. This is only applicable for methods where importance is based on some
+relation between baseline and post-modifcation loss, i.e. <a href="PerturbationImportance.html">PerturbationImportance</a> methods such as <a href="PFI.html">PFI</a> or <a href="WVIM.html">WVIM</a> / <a href="LOCO.html">LOCO</a>. Not available for <a href="SAGE.html">SAGE</a> methods.</p></dd>
+
+
+<dt><code>standardize</code></dt>
 <dd><p>(<code>logical(1)</code>: <code>FALSE</code>) If <code>TRUE</code>, importances are standardized by the highest score so all scores fall in <code>[-1, 1]</code>.</p></dd>
 
 
@@ -250,10 +243,30 @@ Analogously, the <code>"nadeau_bengio"</code> correction was recommended for the
 and depending in <code>variance_method</code> also <code>"var", "conf_lower", "conf_upper"</code>.</p>
 </div>
 
+</div><p></p><hr><a id="method-FeatureImportanceMethod-obs_loss"></a><div class="section">
+<h3 id="method-obs-loss-">Method <code>obs_loss()</code><a class="anchor" aria-label="anchor" href="#method-obs-loss-"></a></h3>
+<p>Calculate observation-wise importance scores.</p>
+<p>Requires that <code>$compute()</code> was run and that <code>measure</code> is decomposable and
+has an observation-wise loss (<code>Measure$obs_loss()</code>) associated with it.
+This is not the case for measure like <code>classif.auc</code>, which is not decomposable.</p><div class="section">
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceMethod</span><span class="op">$</span><span class="fu">obs_loss</span><span class="op">(</span>relation <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>relation</code></dt>
+<dd><p>(character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If <code>NULL</code>, uses stored parameter value. This is only applicable for methods where importance is based on some
+relation between baseline and post-modifcation loss, i.e. <a href="PerturbationImportance.html">PerturbationImportance</a> methods such as <a href="PFI.html">PFI</a> or <a href="WVIM.html">WVIM</a> / <a href="LOCO.html">LOCO</a>. Not available for <a href="SAGE.html">SAGE</a> methods.</p></dd>
+
+
+</dl><p></p></div>
+</div>
+
 </div><p></p><hr><a id="method-FeatureImportanceMethod-reset"></a><div class="section">
 <h3 id="method-reset-">Method <code>reset()</code><a class="anchor" aria-label="anchor" href="#method-reset-"></a></h3>
 <p>Resets all stored fields populated by <code>$compute</code>: <code>$resample_result</code>, <code>$scores</code>, <code>$obs_losses</code>, and <code>$predictions</code>.</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceMethod</span><span class="op">$</span><span class="fu">reset</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -261,14 +274,34 @@ and depending in <code>variance_method</code> also <code>"var", "conf_lower", "c
 </div><p></p><hr><a id="method-FeatureImportanceMethod-print"></a><div class="section">
 <h3 id="method-print-">Method <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code><a class="anchor" aria-label="anchor" href="#method-print-"></a></h3>
 <p>Print importance scores</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceMethod</span><span class="op">$</span><span class="fu">print</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>...</code></dt>
 <dd><p>Passed to <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code></p></dd>
+
+
+</dl><p></p></div>
+</div>
+
+</div><p></p><hr><a id="method-FeatureImportanceMethod-scores"></a><div class="section">
+<h3 id="method-scores-">Method <code>scores()</code><a class="anchor" aria-label="anchor" href="#method-scores-"></a></h3>
+<p>Calculate importance scores for each resampling iteration and sub-iterations
+(<code>iter_rsmp</code> in <a href="PFI.html">PFI</a> for example).</p>
+<p>Iteration-wise importance are computed on the fly depending on the chosen relation
+(<code>difference</code> or <code>ratio</code>) to avoid re-computation if only a different relation is needed.</p><div class="section">
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceMethod</span><span class="op">$</span><span class="fu">scores</span><span class="op">(</span>relation <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>relation</code></dt>
+<dd><p>(character(1)) How to relate perturbed scores to originals ("difference" or "ratio"). If <code>NULL</code>, uses stored parameter value. This is only applicable for methods where importance is based on some
+relation between baseline and post-modifcation loss, i.e. <a href="PerturbationImportance.html">PerturbationImportance</a> methods such as <a href="PFI.html">PFI</a> or <a href="WVIM.html">WVIM</a> / <a href="LOCO.html">LOCO</a>. Not available for <a href="SAGE.html">SAGE</a> methods.</p></dd>
 
 
 </dl><p></p></div>
@@ -277,12 +310,12 @@ and depending in <code>variance_method</code> also <code>"var", "conf_lower", "c
 </div><p></p><hr><a id="method-FeatureImportanceMethod-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceMethod</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

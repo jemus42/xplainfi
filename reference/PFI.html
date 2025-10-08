@@ -19,7 +19,7 @@ the feature and the target variable."><script defer src="https://umami.jemu.name
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -110,8 +110,10 @@ ISSN 1471-2105, <a href="https://doi.org/10.1186/1471-2105-9-307" class="externa
 <li><p><a href="#method-PFI-compute"><code>PFI$compute()</code></a></p></li>
 <li><p><a href="#method-PFI-clone"><code>PFI$clone()</code></a></p></li>
 </ul></div><p><details open><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="importance"><a href="FeatureImportanceMethod.html#method-importance"><code>xplainfi::FeatureImportanceMethod$importance()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="obs_loss"><a href="FeatureImportanceMethod.html#method-obs_loss"><code>xplainfi::FeatureImportanceMethod$obs_loss()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="print"><a href="FeatureImportanceMethod.html#method-print"><code>xplainfi::FeatureImportanceMethod$print()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="reset"><a href="FeatureImportanceMethod.html#method-reset"><code>xplainfi::FeatureImportanceMethod$reset()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureImportanceMethod" data-id="scores"><a href="FeatureImportanceMethod.html#method-scores"><code>xplainfi::FeatureImportanceMethod$scores()</code></a></span></li>
 </ul></details></p><hr><a id="method-PFI-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
 <p>Creates a new instance of the PFI class</p><div class="section">
@@ -148,21 +150,19 @@ ISSN 1471-2105, <a href="https://doi.org/10.1186/1471-2105-9-307" class="externa
 <h3 id="method-compute-">Method <code>compute()</code><a class="anchor" aria-label="anchor" href="#method-compute-"></a></h3>
 <p>Compute PFI scores</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PFI</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>relation <span class="op">=</span> <span class="cn">NULL</span>, iters_perm <span class="op">=</span> <span class="cn">NULL</span>, store_backends <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PFI</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>iters_perm <span class="op">=</span> <span class="cn">NULL</span>, store_backends <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>relation</code></dt>
-<dd><p>(character(1)) How to relate perturbed scores to originals. If <code>NULL</code>, uses stored value.</p></dd>
-
-
-<dt><code>iters_perm</code></dt>
+<p></p><div class="arguments"><dl><dt><code>iters_perm</code></dt>
 <dd><p>(integer(1)) Number of permutation iterations. If <code>NULL</code>, uses stored value.</p></dd>
 
 
 <dt><code>store_backends</code></dt>
-<dd><p>(logical(1)) Whether to store backends</p></dd>
+<dd><p>(logical(1)) Whether to store backends, passed to <code><a href="https://mlr3.mlr-org.com/reference/resample.html" class="external-link">mlr3::resample()</a></code> internally
+for the initial fit of the learner.
+This may be required for certain measures and is recommended to leave enabled unless really necessary.</p></dd>
 
 
 </dl><p></p></div>
@@ -200,7 +200,16 @@ ISSN 1471-2105, <a href="https://doi.org/10.1186/1471-2105-9-307" class="externa
 <span class="r-in"><span>  iters_perm <span class="op">=</span> <span class="fl">3</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Dropped unused factor level(s) in dependent variable: D.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Dropped unused factor level(s) in dependent variable: M.</span>
+<span class="r-in"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    feature importance</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;char&gt;      &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1:      x1 0.05654585</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2:      x2 0.05010893</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3:      x3 0.04991087</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4:      x4 0.04644484</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5:      x5 0.05971480</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
