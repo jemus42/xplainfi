@@ -55,42 +55,42 @@ sampler <- ARFSampler$new(task$clone()$filter(rows = resampling$train_set(1)))
 
 # Initialize results list
 results <- list(
-  model_performance = list(r_squared = perf),
-  train_indices = resampling$train_set(1),
-  test_indices = resampling$test_set(1)
+	model_performance = list(r_squared = perf),
+	train_indices = resampling$train_set(1),
+	test_indices = resampling$test_set(1)
 )
 
 # 1. PFI
 cli_progress_step("Computing PFI")
 pfi_r <- PFI$new(
-  task = task,
-  learner = learner,
-  measure = msr("regr.mse"),
-  resampling = resampling,
-  iters_perm = 5
+	task = task,
+	learner = learner,
+	measure = msr("regr.mse"),
+	resampling = resampling,
+	iters_perm = 5
 )
 
 pfi_results <- pfi_r$compute()
 results$PFI <- list(
-  feature = pfi_results$feature,
-  importance = pfi_results$importance
+	feature = pfi_results$feature,
+	importance = pfi_results$importance()
 )
 
 # 2. CFI
 cli_progress_step("Computing CFI")
 cfi_r <- CFI$new(
-  task = task,
-  learner = learner,
-  measure = msr("regr.mse"),
-  resampling = resampling,
-  iters_perm = 5,
-  sampler = sampler
+	task = task,
+	learner = learner,
+	measure = msr("regr.mse"),
+	resampling = resampling,
+	iters_perm = 5,
+	sampler = sampler
 )
 
 cfi_results <- cfi_r$compute()
 results$CFI <- list(
-  feature = cfi_results$feature,
-  importance = cfi_results$importance
+	feature = cfi_results$feature,
+	importance = cfi_results$importance()
 )
 cli_alert_success("CFI completed")
 
@@ -98,20 +98,20 @@ cli_alert_success("CFI completed")
 # 3. RFI
 cli_progress_step("Computing RFI")
 rfi_r <- RFI$new(
-  task = task,
-  learner = learner,
-  measure = msr("regr.mse"),
-  resampling = resampling,
-  conditioning_set = c("x3"),
-  iters_perm = 5,
-  sampler = sampler
+	task = task,
+	learner = learner,
+	measure = msr("regr.mse"),
+	resampling = resampling,
+	conditioning_set = c("x3"),
+	iters_perm = 5,
+	sampler = sampler
 )
 
 rfi_results <- rfi_r$compute()
 results$RFI <- list(
-  feature = rfi_results$feature,
-  importance = rfi_results$importance,
-  conditioning_set = c("x1", "x2")
+	feature = rfi_results$feature,
+	importance = rfi_results$importance(),
+	conditioning_set = c("x1", "x2")
 )
 cli_alert_success("RFI completed")
 
@@ -122,36 +122,36 @@ batch_size_sage = 5000L
 
 cli_progress_step("Computing Marginal SAGE")
 sage_marginal_r <- MarginalSAGE$new(
-  task = task,
-  learner = learner,
-  measure = msr("regr.mse"),
-  resampling = resampling,
-  n_permutations = n_perm_sage,
-  max_reference_size = max_ref_size_sage
+	task = task,
+	learner = learner,
+	measure = msr("regr.mse"),
+	resampling = resampling,
+	n_permutations = n_perm_sage,
+	max_reference_size = max_ref_size_sage
 )
 
 sage_marginal_results <- sage_marginal_r$compute(batch_size = batch_size_sage)
 results$SAGE_Marginal <- list(
-  feature = sage_marginal_results$feature,
-  importance = sage_marginal_results$importance
+	feature = sage_marginal_results$feature,
+	importance = sage_marginal_results$importance()
 )
 
 # 5. Conditional SAGE
 cli_progress_step("Computing Conditional SAGE")
 sage_conditional_r <- ConditionalSAGE$new(
-  task = task,
-  learner = learner,
-  measure = msr("regr.mse"),
-  resampling = resampling,
-  sampler = sampler,
-  n_permutations = n_perm_sage,
-  max_reference_size = max_ref_size_sage
+	task = task,
+	learner = learner,
+	measure = msr("regr.mse"),
+	resampling = resampling,
+	sampler = sampler,
+	n_permutations = n_perm_sage,
+	max_reference_size = max_ref_size_sage
 )
 
 sage_conditional_results <- sage_conditional_r$compute(batch_size = batch_size_sage)
 results$SAGE_Conditional <- list(
-  feature = sage_conditional_results$feature,
-  importance = sage_conditional_results$importance
+	feature = sage_conditional_results$feature,
+	importance = sage_conditional_results$importance()
 )
 cli_alert_success("Conditional SAGE completed")
 

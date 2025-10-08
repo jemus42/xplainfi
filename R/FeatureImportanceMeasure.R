@@ -355,7 +355,7 @@ FeatureImportanceMethod = R6Class(
 			setnames(
 				scores,
 				old = c("score_baseline", "score_post"),
-				new = c(paste0(self$measure$id, c("_baseline", "_perturbed")))
+				new = c(paste0(self$measure$id, c("_baseline", "_post")))
 			)
 
 			scores[]
