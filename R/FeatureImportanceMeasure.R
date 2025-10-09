@@ -138,6 +138,9 @@ FeatureImportanceMethod = R6Class(
 			conf_level = 0.95
 		) {
 			if (is.null(private$.scores)) {
+				cli::cli_inform(c(
+					x = "No importances computed yet!"
+				))
 				return(NULL)
 			}
 
@@ -239,6 +242,12 @@ FeatureImportanceMethod = R6Class(
 					i = "Is it decomposable?"
 				))
 			}
+			if (is.null(private$.obs_losses)) {
+				cli::cli_inform(c(
+					x = "No importances computed yet!",
+					i = "Did you run {.fun $compute}?"
+				))
+			}
 
 			relation = resolve_param(relation, self$param_set$values$relation, "difference")
 
@@ -258,7 +267,7 @@ FeatureImportanceMethod = R6Class(
 			]
 
 			obs_loss_combined[,
-				obs_importance := private$.compute_score(
+				obs_importance := compute_score(
 					loss_baseline,
 					loss_post,
 					relation = relation,
@@ -334,6 +343,12 @@ FeatureImportanceMethod = R6Class(
 		#' relation between baseline and post-modifcation loss, i.e. [PerturbationImportance] methods such as [PFI] or [WVIM] / [LOCO]. Not available for [SAGE] methods.
 		#'
 		scores = function(relation = NULL) {
+			if (is.null(private$.scores)) {
+				cli::cli_inform(c(
+					x = "No importances computed yet!",
+					i = "Did you run {.fun $compute}?"
+				))
+			}
 			if ("importance" %in% colnames(private$.scores)) {
 				# If there is already an importance variable in the stored scores like in SAGE,
 				# we can't calculate pre/post scores like in PFI, LOCO etc,
@@ -344,7 +359,7 @@ FeatureImportanceMethod = R6Class(
 			relation = resolve_param(relation, self$param_set$values$relation, "difference")
 
 			scores = data.table::copy(private$.scores)[,
-				importance := private$.compute_score(
+				importance := compute_score(
 					score_baseline,
 					score_post,
 					relation = relation,
@@ -362,33 +377,6 @@ FeatureImportanceMethod = R6Class(
 		}
 	),
 	private = list(
-		# Scoring utility for computing importance scores
-		# Computes the relation of score before a change (e.g. PFI, LOCO, ...) and after.
-		# If minimize == TRUE, then scores_post - scores_pre is computed for
-		# relation == "difference", otherwise scores_pre - scores_post is given.
-		# If minimize == FALSE, then scores_pre - scores_post is computed.
-		.compute_score = function(
-			scores_pre,
-			scores_post,
-			relation = c("difference", "ratio"),
-			minimize = TRUE
-		) {
-			checkmate::assert_numeric(scores_pre, any.missing = FALSE)
-			checkmate::assert_numeric(scores_post, any.missing = FALSE)
-			checkmate::assert_true(length(scores_pre) == length(scores_post))
-			checkmate::assert_flag(minimize)
-			relation = match.arg(relation)
-
-			# I know this could be more concise but for the time I prefer it to be very obvious in what happens when
-			# General expectation -> higher score => more important
-			if (minimize) {
-				# Lower is better, e.g. ce, where scores_pre is expected to be smaller and scores_post larger
-				switch(relation, difference = scores_post - scores_pre, ratio = scores_post / scores_pre)
-			} else {
-				# Higher is better, e.g. accuracy, where scores_pre is expected to be larger and scores_post smaller
-				switch(relation, difference = scores_pre - scores_post, ratio = scores_pre / scores_post)
-			}
-		},
 		# Take the raw predictions as returned by $predict_newdata_fast and convert to Prediction object fitting the task type to simplify type-specific handling
 		# @param test_dt `data.table` with test target values
 		# @param raw_prediction `list` with elements `reponse` (vector) or `prob` (matrix) depending on task type.
