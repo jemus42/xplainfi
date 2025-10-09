@@ -1,0 +1,252 @@
+---
+title: "Inference"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Inference}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+	collapse = TRUE,
+	comment = "#>",
+	fig.width = 8,
+	fig.height = 6
+)
+set.seed(123)
+# Quiet down
+lgr::get_logger("mlr3")$set_threshold("warn")
+options("xplain.progress" = interactive())
+```
+
+```{r setup}
+library(xplainfi)
+library(mlr3learners)
+
+# Data manip and visualization
+library(data.table)
+library(ggplot2)
+```
+
+## Setup
+
+```{r}
+task = sim_dgp_correlated(n = 2000)
+learner = lrn("regr.ranger", num.trees = 500)
+measure = msr("regr.mse")
+```
+
+```{r dag-correlated, echo=FALSE, fig.cap="DAG for correlated features DGP", fig.width=10, fig.height=4}
+DiagrammeR::grViz(
+	"
+  digraph Correlated {
+    rankdir=LR;
+    graph [ranksep=1.5];
+    node [shape=circle, style=filled, fontsize=14, width=1.2];
+    
+    X1 [fillcolor='lightcoral', label='X₁\n(β=2.0)'];
+    X2 [fillcolor='pink', label='X₂\n(β=0)'];
+    X3 [fillcolor='lightblue', label='X₃\n(β=1.0)'];
+    X4 [fillcolor='lightgray', label='X₄\n(β=0)'];
+    Y [fillcolor='greenyellow', label='Y', width=1.5];
+    
+    X1 -> X2 [color=red, style=bold, label='≈1.0'];
+    X1 -> Y [label='2.0'];
+    X2 -> Y [style=dashed, color=gray, label='0'];
+    X3 -> Y [label='1.0'];
+    X4 -> Y [style=dashed, color=gray];
+    
+    {rank=source; X1; X3; X4}
+    {rank=same; X2}
+    {rank=sink; Y}
+  }"
+)
+```
+
+See `vignette(simulation-settings)`.
+
+## Variance-correction
+
+When we calculate PFI, for example uign 
+```{r}
+pfi = PFI$new(
+	task = task,
+	learner = learner,
+	resampling = rsmp("subsampling", repeats = 15),
+	measure = measure
+)
+
+pfi$compute()
+pfi$importance()
+```
+
+```{r}
+pfi_ci_raw = pfi$importance(variance_method = "raw")
+pfi_ci_raw
+```
+
+```{r}
+pfi_ci_corrected = pfi$importance(variance_method = "nadeau_bengio")
+pfi_ci_corrected
+```
+
+```{r}
+pfi_cis = rbind(
+	pfi_ci_raw[, type := "raw"],
+	pfi_ci_corrected[, type := "corrected"]
+)
+
+ggplot(pfi_cis, aes(y = feature, color = type)) +
+	geom_errorbar(aes(xmin = conf_lower, xmax = conf_upper), position = "dodge", width = .5) +
+	geom_point(aes(x = importance), position = position_dodge(width = 0.5)) +
+	theme_minimal(base_size = 14) +
+	theme(legend.position = "bottom")
+```
+
+## Conditional predictive impact (CPI)
+
+```{r}
+library(cpi)
+
+resampling = rsmp("cv", folds = 3)
+resampling$instantiate(task)
+```
+
+```{r}
+cpi_res = cpi(
+	task = task,
+	learner = learner,
+	resampling = resampling,
+	measure = measure,
+	test = "t"
+)
+setDT(cpi_res)
+setnames(cpi_res, "Variable", "feature")
+cpi_res[, method := "CPI"]
+```
+
+```{r}
+cfi = CFI$new(
+	task = task,
+	learner = learner,
+	resampling = resampling,
+	measure = measure,
+	sampler = ARFSampler$new(task, finite_bounds = "local", arf_args = list(min_node_size = 20))
+)
+
+cfi$compute()
+
+cfi$importance()
+cfi_obs_loss = cfi$obs_loss()
+cfi_obs_loss
+```
+
+
+```{r}
+cfi_test_res = cfi_obs_loss[,
+	{
+		tt <- t.test(
+			obs_importance,
+			alternative = "greater",
+			conf.level = 0.95
+		)
+		.(
+			CPI = mean(obs_importance),
+			SE = sd(obs_importance) / sqrt(length(obs_importance)),
+			statistic = tt$statistic,
+			estimate = tt$estimate,
+			p.value = tt$p.value,
+			ci.lo = tt$conf.int[1],
+			method = "xplainfi"
+		)
+	},
+	by = feature
+]
+
+cpi_res
+cfi_test_res
+
+```
+
+```{r}
+rbindlist(list(cpi_res, cfi_test_res), fill = TRUE) |>
+	ggplot(aes(y = feature, x = CPI, color = method)) +
+	geom_point(position = position_dodge(width = 0.3)) +
+	geom_errorbar(
+		aes(xmin = CPI, xmax = ci.lo),
+		position = position_dodge(width = 0.3),
+		width = 0.5
+	) +
+	scale_color_brewer(palette = "Dark2") +
+	labs(
+		title = "CPI and CFI with ARF sampler",
+		subtitle = "RF with 3-fold CV",
+		color = NULL
+	) +
+	theme_minimal(base_size = 14) +
+	theme(legend.position = "top")
+
+```
+
+## LOCO
+
+(CITATION) proposed inference for LOCO using the median absolute differences of the baseline- and post-refit loss differences
+
+$$
+\theta_j = \mathrm{med}\left(
+	|Y - \hat{f}_{n_1}^{-j}(X)| - |Y - \hat{f}_{n_1}(X)| \big| D_1
+\right)
+$$
+
+```{r}
+measure_mae = msr("regr.mae")
+measure_mae$aggregator = median
+
+loco = LOCO$new(
+	task = task,
+	learner = learner,
+	resampling = rsmp("cv", folds = 3),
+	measure = measure_mae
+)
+
+loco$compute()
+loco$importance()
+```
+
+This is not exactly what the authors propose, because `$score()` calculates the aggregation function (`median`) for each resampling iteration first, and takes the difference afterwards, i.e.
+
+$$
+\theta_j = \mathrm{med}\left(|Y - \hat{f}_{n_1}^{-j}(X)|\right) - \mathrm{med}\left(|Y - \hat{f}_{n_1}(X)| \big| D_1
+\right)
+$$
+
+In the default case where the arithemtic mean is used, it does not matter whether we calculate the difference of the means or the mean of the differences, but using the median it does.
+
+We can reconstruct it by using the observation-wise losses (in this case, the absolute error):
+
+```{r}
+loco_obsloss = loco$obs_loss()
+loco_obsloss
+```
+
+`obs_importance` here refers to the difference `loss_post - loss_baseline`, so
+
+- `loss_baseline` $ = |Y - \hat{f}_{n_1}(X)|$
+- `loss_post` $ = |Y - \hat{f}_{n_1}^{-j}(X)|$
+- `obs_importance = loss_post - loss_baseline`
+
+Which means by taking the median for each feature $j$ within each resampling iteration, we can construct $\theta_j(D_1)$ as proposed:
+
+```{r}
+loco_thetas = loco_obsloss[, list(theta = median(obs_importance)), by = c("feature", "iter_rsmp")]
+loco_thetas
+```
+
+<!-- Note that this differs from the output of `loco$scores()`, due to the position at which the -->
+
+The authors then propose to construct distribution-free confidence intervals, e.g. using a sign- or Wilcoxon test
+
+()
