@@ -133,23 +133,9 @@ WVIM = R6Class(
 
 			archive_dt = as.data.table(instance$archive)
 			archive_base = copy(archive_dt)
-			# browser()
 			# Match features in fselect instance to features left in or out, and
 			# assign group names to "feature" var for consistency
 			archive_base[, feature := private$.foi_chr(features)]
-			# browser()
-			if (!is.null(self$groups)) {
-				# archive_base = archive_base[group_tbl[, .(group, features)], on = c("features")]
-				# add the "group" column for the group name
-				archive_base = merge(
-					archive_base[, .(batch_nr, feature)],
-					private$.groups_tbl()[, .(group, features)],
-					by.x = "feature",
-					by.y = "features"
-				)
-				archive_base[, feature := NULL]
-				setnames(archive_base, "group", "feature")
-			}
 
 			archive_base = archive_base[, .(batch_nr, feature)]
 
@@ -193,17 +179,39 @@ WVIM = R6Class(
 			}
 		},
 
+		# This is hackier than I'd like but oh well, it gets the job done.
+		# @param feature (list()) List-column of feature names in fselect instance
+		# Goal is to create a column for the feature of interest OR group name
+		# for the features of interest. Input is always list of features "left in",
+		# so we need to flip (setdiff) for the other direction.
+		# And for grouped features we do extra shenanigans to get the group names
 		.foi_chr = function(features) {
-			vapply(
-				features,
-				\(x) {
-					if (self$direction == "leave-out") {
-						x = setdiff(self$task$feature_names, x)
-					}
-					paste0(x, collapse = ";")
-				},
-				character(1)
-			)
+			if (is.null(self$groups)) {
+				switch(
+					self$direction,
+					"leave-in" = unlist(features),
+					"leave-out" = vapply(
+						features,
+						\(x) {
+							setdiff(self$task$feature_names, x)
+						},
+						character(1)
+					)
+				)
+			} else {
+				groups_tbl = private$.groups_tbl()
+				vapply(
+					features,
+					\(x) {
+						if (self$direction == "leave-out") {
+							x = setdiff(self$task$feature_names, x)
+						}
+						feature_chr = paste0(x, collapse = ";")
+						groups_tbl[feature_chr == groups_tbl$features, group]
+					},
+					character(1)
+				)
+			}
 		}
 	)
 )
