@@ -69,7 +69,7 @@ FeatureImportanceMethod = R6Class(
 			if (is.null(groups)) {
 				self$features = features %||% self$task$feature_names
 			} else {
-				self$groups = check_groups(groups, self$task)
+				self$groups = check_groups(groups, all_features = self$task$feature_names)
 				# check_groups ensures this produces a unique character vector
 				self$features = unlist(groups, use.names = FALSE)
 			}
@@ -286,11 +286,10 @@ FeatureImportanceMethod = R6Class(
 			]
 
 			obs_loss_combined[,
-				obs_importance := compute_score(
+				obs_importance := private$.compute_score(
 					loss_baseline,
 					loss_post,
-					relation = relation,
-					minimize = self$measure$minimize
+					relation = relation
 				)
 			]
 
@@ -383,11 +382,10 @@ FeatureImportanceMethod = R6Class(
 			relation = resolve_param(relation, self$param_set$values$relation, "difference")
 
 			scores = data.table::copy(private$.scores)[,
-				importance := compute_score(
+				importance := private$.compute_score(
 					score_baseline,
 					score_post,
-					relation = relation,
-					minimize = self$measure$minimize
+					relation = relation
 				)
 			]
 
@@ -423,6 +421,57 @@ FeatureImportanceMethod = R6Class(
 					response = raw_prediction$response # numeric
 				)
 			)
+		},
+
+		# Utility to convert named list of groups of features into data.table to
+		# make it a little easier to match group names and features in list columns etc
+		# Used in WVIM where mlr3fselect stores "left in" features as list columns
+		.groups_tbl = function() {
+			group_tbl = data.table::data.table(
+				group = names(self$groups),
+				features_lst = unname(self$groups)
+			)
+			group_tbl[, features := vapply(features_lst, \(x) paste0(x, collapse = ";"), character(1))]
+			group_tbl
+		},
+
+		# Scoring utility for computing importances
+		#
+		# Computes the `relation` of score before a change (e.g. PFI, LOCO, ...) and after.
+		# If `minimize == TRUE`, then `scores_post - scores_pre` is computed for
+		# `relation == "difference"`, otherwise `scores_pre - scores_post` is given.
+		# If `minimize == FALSE`, then the order is flipped, insuring that "higher value" means "more important".
+		# @param scores_pre,scores_post (`numeric()`) Vector of scores or loss values at baseline / before (`_pre`) a modification, and after (`_post`) a modification (e.g., permutation or refit).
+		# @param relation (`character(1)`: `"difference"`) Calculate the difference or `"ratio"` between pre and post modification value.
+		.compute_score = function(
+			scores_pre,
+			scores_post,
+			relation = c("difference", "ratio")
+		) {
+			checkmate::assert_numeric(scores_pre, any.missing = FALSE)
+			checkmate::assert_numeric(scores_post, any.missing = FALSE)
+			checkmate::assert_true(length(scores_pre) == length(scores_post))
+			relation = match.arg(relation)
+			minimize = self$measure$minimize
+
+			# General idea assuming a important feature:
+			# For PFI and MSE (minimize == TRUE): post - baseline gives large value -> high importance
+			# =="== and classif.acc (minimize == FALSE) -> post - baseline  = negative, so we flip
+			# For WVIM when we "leave-in", the baseline scores are the empty model,
+			# so we need to flip directions of the comparison as well to ensure "higher importance value" -> "more important"
+			if (identical(self$direction, "leave-in")) {
+				minimize = !minimize
+			}
+
+			# I know this could be more concise but for the time I prefer it to be very obvious in what happens when
+			# General expectation -> higher score => more important
+			if (minimize) {
+				# Lower is better, e.g. ce, where scores_pre is expected to be smaller and scores_post larger
+				switch(relation, difference = scores_post - scores_pre, ratio = scores_post / scores_pre)
+			} else {
+				# Higher is better, e.g. accuracy, where scores_pre is expected to be larger and scores_post smaller
+				switch(relation, difference = scores_pre - scores_post, ratio = scores_pre / scores_post)
+			}
 		},
 
 		# @field .scores ([data.table][data.table::data.table]) Iteration-wise importances scores. Essentially an aggregated form of .obs_losses (which may not be available), used as basis for the calculation in `$importance() `and `$scores()`.

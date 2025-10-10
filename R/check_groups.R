@@ -1,6 +1,6 @@
 #' Check group specification
 #' @param groups (`list`) A (named) list of groups
-#' @param task ([Task][mlr3::Task]) Used to look up valid features.
+#' @param all_features (character()) All available feature names from the task.
 #'
 #' @export
 #' @return `group`, with each element now named.
@@ -10,20 +10,20 @@
 #'
 #' # Intended use
 #' groups1 = list(effects = c("x1", "x2", "x3"), noise = c("noise1", "noise2"))
-#' check_groups(groups1, task)
+#' check_groups(groups1, task$feature_names)
 #'
 #' # Names are auto-generated where needed
-#' check_groups(list(a = "x1",  c("x2", "x1")), task)
+#' check_groups(list(a = "x1",  c("x2", "x1")), task$feature_names)
 #'
 #' \dontrun{
 #' # Unexpected features
 #' groups2 = list(effects = c("x1", "foo", "bar", "x1"))
-#' check_groups(groupos1, task)
+#' check_groups(groupos1, task$feature_names)
 #' # Too deeply nested
 #' groups3 = list(effects = c("x1", "x2", "x3"), noise = c("noise1", list(c("noise2"))))
-#' check_groups(groupos1, task)
+#' check_groups(groupos1, task$feature_names)
 #' }
-check_groups = function(groups, task) {
+check_groups = function(groups, all_features) {
 	# Unlist non-recursively so we can fail if the result is not a vector
 	group_features = unlist(groups, use.names = FALSE, recursive = FALSE)
 
@@ -41,7 +41,7 @@ check_groups = function(groups, task) {
 		)
 	}
 
-	extra_feature = setdiff(group_features, task$feature_names)
+	extra_feature = setdiff(group_features, all_features)
 	if (length(extra_feature) > 0) {
 		cli::cli_abort(
 			"Feature{?s} specified in {.code groups} not in provided {.cls Task}: {.val {extra_feature}}"

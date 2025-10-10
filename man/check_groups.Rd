@@ -4,12 +4,12 @@
 \alias{check_groups}
 \title{Check group specification}
 \usage{
-check_groups(groups, task)
+check_groups(groups, all_features)
 }
 \arguments{
 \item{groups}{(\code{list}) A (named) list of groups}
 
-\item{task}{(\link[mlr3:Task]{Task}) Used to look up valid features.}
+\item{all_features}{(character()) All available feature names from the task.}
 }
 \value{
 \code{group}, with each element now named.
@@ -23,17 +23,17 @@ task$feature_names
 
 # Intended use
 groups1 = list(effects = c("x1", "x2", "x3"), noise = c("noise1", "noise2"))
-check_groups(groups1, task)
+check_groups(groups1, task$feature_names)
 
 # Names are auto-generated where needed
-check_groups(list(a = "x1",  c("x2", "x1")), task)
+check_groups(list(a = "x1",  c("x2", "x1")), task$feature_names)
 
 \dontrun{
 # Unexpected features
 groups2 = list(effects = c("x1", "foo", "bar", "x1"))
-check_groups(groupos1, task)
+check_groups(groupos1, task$feature_names)
 # Too deeply nested
 groups3 = list(effects = c("x1", "x2", "x3"), noise = c("noise1", list(c("noise2"))))
-check_groups(groupos1, task)
+check_groups(groupos1, task$feature_names)
 }
 }
