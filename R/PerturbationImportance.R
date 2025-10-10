@@ -95,43 +95,58 @@ PerturbationImportance = R6Class(
 			# browser()
 			# Get predictions for each resampling iter, permutation iter, feature
 			all_preds = lapply(seq_len(self$resampling$iters), \(iter) {
-				test_dt = self$task$data(rows = self$resampling$test_set(iter))
 				# Extract the learner here once because apparently reassembly is expensive
 				this_learner = self$resample_result$learners[[iter]]
 
-				pred_per_perm = lapply(
-					seq_len(iters_perm),
-					\(iter_perm) {
-						# Update progress bar.
-						if (xplain_opt("progress")) {
-							cli::cli_progress_update(inc = 1, .envir = .progress_env)
-						}
+				test_dt = self$task$data(rows = self$resampling$test_set(iter))
 
-						if (is.null(self$groups)) {
-							iteration_proxy = self$features
-							# name so lapply returns named list, used as idcol in rbindlist()
-							names(iteration_proxy) = iteration_proxy
-						} else {
-							iteration_proxy = self$groups
-						}
+				# Update progress bar.
+				# if (xplain_opt("progress")) {
+				# 	cli::cli_progress_update(inc = 1, .envir = .progress_env)
+				# }
 
-						pred_per_feature = lapply(
-							iteration_proxy,
-							\(foi) {
-								# Sample feature - sampler handles conditioning appropriately
-								# If CFI, ConditionalSampler must use all non-FOI features as conditioning set
-								# If RFI, `conditioning_set` must be pre-configured!
-								# foi can be one or more feature names
-								perturbed_data = sampler$sample(foi, test_dt)
+				if (is.null(self$groups)) {
+					iteration_proxy = self$features
+					# name so lapply returns named list, used as idcol in rbindlist()
+					names(iteration_proxy) = iteration_proxy
+				} else {
+					iteration_proxy = self$groups
+				}
 
+				pred_per_feature = lapply(
+					iteration_proxy,
+					\(foi) {
+						# Sample feature - sampler handles conditioning appropriately
+						# If CFI, ConditionalSampler must use all non-FOI features as conditioning set
+						# If RFI, `conditioning_set` must be pre-configured!
+						# foi can be one or more feature names
+						# We also try to minimize the number of times we call $sample(),
+						# so we get the perturbed data for all iters_perm at once
+						test_dt_batch = data.table::rbindlist(replicate(
+							n = iters_perm,
+							test_dt,
+							simplify = FALSE
+						))
+						perturbed_data = sampler$sample(foi, test_dt_batch)
+						# ... and then we split it in a list again to make it easier
+						# to retrieve the correct data for any particular iter_perm
+						# to avoid having to juggle indices with obligatory off-by-one errors or whatever
+						perturbed_data_list <- split(
+							perturbed_data,
+							rep(1:(nrow(perturbed_data) / nrow(test_dt)), each = nrow(test_dt))
+						)
+
+						pred_per_perm = lapply(
+							seq_len(iters_perm),
+							\(iter_perm) {
 								# Predict and score
 								pred_raw = this_learner$predict_newdata_fast(
-									newdata = perturbed_data,
+									newdata = perturbed_data_list[[iter_perm]],
 									task = self$task
 								)
 
 								pred = private$.construct_pred(
-									perturbed_data,
+									perturbed_data_list[[iter_perm]],
 									pred_raw,
 									test_row_ids = self$resampling$test_set(iter)
 								)
@@ -140,13 +155,13 @@ PerturbationImportance = R6Class(
 							}
 						)
 
-						# When groups are defined, "feature" is the group name
-						# mild misnomever for convenience because if-else'ing the column name is annoying
-						data.table::rbindlist(pred_per_feature, idcol = "feature")
+						# Append iteration id for within-resampling permutations
+						rbindlist(pred_per_perm, idcol = "iter_perm")
 					}
 				)
-				# Append iteration id for within-resampling permutations
-				rbindlist(pred_per_perm, idcol = "iter_perm")
+				# When groups are defined, "feature" is the group name
+				# mild misnomever for convenience because if-else'ing the column name is annoying
+				data.table::rbindlist(pred_per_feature, idcol = "feature")
 			})
 
 			# Append iteration id for resampling
