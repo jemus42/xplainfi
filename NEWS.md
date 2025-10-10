@@ -9,25 +9,30 @@ This turns out to be still a period of major changes in the early phase, so, uhm
 - `$scores` becomes `$scores()` for more fleixibility analogous to `$importance()`. Original scores are stored in `private$.scores` (for now).
 - Both `$importance()` and `$scores()` have argument `relation` defaulting to `"differrence"` which allows to calculate importances like PFI as either the difference or the ratio of baseline and post-modification loss. The argument is moved out of `$compute()` to avoid having to recompute any predictions or model refits.
 - Add `sim_dgp_ewald()` and other `sim_dgp_*()` helpers to simulate data (in `Task` form) with simple DGPs as used for illustration in Ewald et al. (2024) for example, which should make it easier to interpret the results of various importance methods.
-- Move `.compute_score` to an external helper function again as it didn't need to be a class-specific method.
 
 ### Observation-wise losses
 
--  `$obs_loss()` analogously to `$scores()` computes observation-wise importance scores based on losses stored in `$.obs_losses` **if** `measure` has a `Measure$obs_loss()` function.
+- `$obs_loss()` analogously to `$scores()` computes observation-wise importance scores based on losses stored in `$.obs_losses` **if** `measure` has a `Measure$obs_loss()` function.
+- `$predictions` are kept for now just in case they're useful
 
-- `$predictions` will probably be removed again?
+### Groups of features
+
+- `PerturbationImportance` and `WVIM` gain `groups` argument which overrides `features` and enables the definition of groups of features
+- Example: `groups = list(effects = c("x1", "x2", "x3"), noise = c("noise1", "noise2"))`
+- In the output of `$importance()`, `$scores()`, `$obs_loss()` the `feature` column gets the name of the group, which effectively becomes a "meta feature" as far as the output is concerned.
 
 ## Method-specific changes
 
 ### `LeaveOutIn` -> `WVIM`
 
 - Williamson's Variable Importance Measure (WVIM) generalizes LOCO / LOCI
-- Feature grouping API is still WIP
 - New implementation built around `mlr3fselect`, greatly simplifying the internals
 
 ### `PerturbationImportance`
 
 - Streamline and speedup `PerturbationImportance` implementation, also by using `learner$predict_newdata_fast()` (#39), bumping the mlr3 dependency >= 1.1.0.
+- Now batches `iter_perms` internally to reduce the number of calls to `sampler$sample()`. 
+  - May need further adjustment in case of large data / large `iters_perm` as intermediate data could grow too large
 
 ### Conditional sampling
 
