@@ -73,7 +73,7 @@ articles:
       - articles/sage-methods
   - title: Testing and Validation
     contents:
-      - articles/simulation-settings
+      - simulation-settings
       - contains("fippy")
 
 navbar:
