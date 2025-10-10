@@ -82,6 +82,7 @@ Creates a new instance of the PFI class
   measure,
   resampling = NULL,
   features = NULL,
+  groups = NULL,
   relation = "difference",
   iters_perm = 1L
 )}\if{html}{\out{</div>}}
@@ -90,7 +91,7 @@ Creates a new instance of the PFI class
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task, learner, measure, resampling, features}}{Passed to PerturbationImportance}
+\item{\code{task, learner, measure, resampling, features, groups}}{Passed to PerturbationImportance}
 
 \item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. Can be overridden in \verb{$compute()}.}
 

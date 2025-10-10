@@ -12,9 +12,9 @@ PerturbationImportance = R6Class(
 
 		#' @description
 		#' Creates a new instance of the PerturbationImportance class
-		#' @param task,learner,measure,resampling,features Passed to FeatureImportanceMethod
-		#' @param sampler ([FeatureSampler]) Sampler to use for feature perturbation
-		#' @param relation (character(1)) How to relate perturbed scores to originals. Can be overridden in `$compute()`.
+		#' @param task,learner,measure,resampling,features,groups Passed to [FeatureImportanceMethod].
+		#' @param sampler ([FeatureSampler]) Sampler to use for feature perturbation.
+		#' @param relation (character(1): `"difference"`) How to relate perturbed and baseline scores. Can also be `"ratio"`.
 		#' @param iters_perm (integer(1)) Number of permutation iterations. Can be overridden in `$compute()`.
 		initialize = function(
 			task,
@@ -22,6 +22,7 @@ PerturbationImportance = R6Class(
 			measure,
 			resampling = NULL,
 			features = NULL,
+			groups = NULL,
 			sampler = NULL,
 			relation = "difference",
 			iters_perm = 1L
@@ -32,6 +33,7 @@ PerturbationImportance = R6Class(
 				measure = measure,
 				resampling = resampling,
 				features = features,
+				groups = groups,
 				label = "Feature Importance (Abstract Class)"
 			)
 
@@ -90,28 +92,37 @@ PerturbationImportance = R6Class(
 					.envir = .progress_env
 				)
 			}
+			# browser()
 			# Get predictions for each resampling iter, permutation iter, feature
 			all_preds = lapply(seq_len(self$resampling$iters), \(iter) {
 				test_dt = self$task$data(rows = self$resampling$test_set(iter))
+				# Extract the learner here once because apparently reassembly is expensive
+				this_learner = self$resample_result$learners[[iter]]
 
 				pred_per_perm = lapply(
 					seq_len(iters_perm),
 					\(iter_perm) {
-						# Extract the learner here once because apparently reassembly is expensive
-						this_learner = self$resample_result$learners[[iter]]
-
-						# # Update progress bar.
+						# Update progress bar.
 						if (xplain_opt("progress")) {
 							cli::cli_progress_update(inc = 1, .envir = .progress_env)
 						}
 
+						if (is.null(self$groups)) {
+							iteration_proxy = self$features
+							# name so lapply returns named list, used as idcol in rbindlist()
+							names(iteration_proxy) = iteration_proxy
+						} else {
+							iteration_proxy = self$groups
+						}
+
 						pred_per_feature = lapply(
-							self$features,
-							\(feature) {
+							iteration_proxy,
+							\(foi) {
 								# Sample feature - sampler handles conditioning appropriately
 								# If CFI, ConditionalSampler must use all non-FOI features as conditioning set
 								# If RFI, `conditioning_set` must be pre-configured!
-								perturbed_data = sampler$sample(feature, test_dt)
+								# foi can be one or more feature names
+								perturbed_data = sampler$sample(foi, test_dt)
 
 								# Predict and score
 								pred_raw = this_learner$predict_newdata_fast(
@@ -124,20 +135,23 @@ PerturbationImportance = R6Class(
 									pred_raw,
 									test_row_ids = self$resampling$test_set(iter)
 								)
-								# FIXME: For grouped features, `feature` needs to be
-								# the name of the list entry or list-column
-								data.table::data.table(feature = feature, prediction = list(pred))
+
+								data.table::data.table(prediction = list(pred))
 							}
 						)
-						data.table::rbindlist(pred_per_feature)
+
+						# When groups are defined, "feature" is the group name
+						# mild misnomever for convenience because if-else'ing the column name is annoying
+						data.table::rbindlist(pred_per_feature, idcol = "feature")
 					}
 				)
 				# Append iteration id for within-resampling permutations
 				rbindlist(pred_per_perm, idcol = "iter_perm")
 			})
+
 			# Append iteration id for resampling
 			all_preds = data.table::rbindlist(all_preds, idcol = "iter_rsmp")
-			setkeyv(all_preds, cols = c("feature", "iter_rsmp"))
+			# setkeyv(all_preds, cols = c("feature", "iter_rsmp"))
 
 			# store predictions for future reference maybe?
 			self$predictions = all_preds
@@ -154,18 +168,15 @@ PerturbationImportance = R6Class(
 					FUN.VALUE = numeric(1)
 				)
 			]
-
-			private$.scores = scores[scores_baseline, on = c("iter_rsmp")][, .(
-				feature,
-				iter_rsmp,
-				iter_perm,
-				score_baseline,
-				score_post
-			)]
+			vars_to_keep = c("feature", "iter_rsmp", "iter_perm", "score_baseline", "score_post")
+			scores = scores[scores_baseline, on = c("iter_rsmp")]
+			private$.scores = scores[, .SD, .SDcols = vars_to_keep]
 
 			# for obs_loss:
 			# Not all losses are decomposable so this is optional and depends on the provided measure
 			if (!is.null(self$measure$obs_loss)) {
+				grouping_vars = c("feature", "iter_rsmp", "iter_perm")
+
 				obs_loss_all <- all_preds[,
 					{
 						pred <- prediction[[1]]
@@ -179,7 +190,7 @@ PerturbationImportance = R6Class(
 							loss_post = obs_loss_vals
 						)
 					},
-					by = .(feature, iter_rsmp, iter_perm)
+					by = grouping_vars
 				]
 
 				private$.obs_losses = obs_loss_all
@@ -229,7 +240,7 @@ PFI = R6Class(
 	public = list(
 		#' @description
 		#' Creates a new instance of the PFI class
-		#' @param task,learner,measure,resampling,features Passed to PerturbationImportance
+		#' @param task,learner,measure,resampling,features,groups Passed to PerturbationImportance
 		#' @param relation (character(1)) How to relate perturbed scores to originals. Can be overridden in `$compute()`.
 		#' @param iters_perm (integer(1)) Number of permutation iterations. Can be overridden in `$compute()`.
 		initialize = function(
@@ -238,19 +249,18 @@ PFI = R6Class(
 			measure,
 			resampling = NULL,
 			features = NULL,
+			groups = NULL,
 			relation = "difference",
 			iters_perm = 1L
 		) {
-			# Create a marginal sampler for PFI
-			sampler = MarginalSampler$new(task)
-
 			super$initialize(
 				task = task,
 				learner = learner,
 				measure = measure,
 				resampling = resampling,
 				features = features,
-				sampler = sampler,
+				groups = groups,
+				sampler = MarginalSampler$new(task),
 				relation = relation,
 				iters_perm = iters_perm
 			)
@@ -298,7 +308,7 @@ CFI = R6Class(
 	public = list(
 		#' @description
 		#' Creates a new instance of the CFI class
-		#' @param task,learner,measure,resampling,features Passed to `PerturbationImportance`.
+		#' @param task,learner,measure,resampling,features,groups Passed to `PerturbationImportance`.
 		#' @param relation (character(1)) How to relate perturbed scores to originals. Can be overridden in `$compute()`.
 		#' @param iters_perm (integer(1)) Number of sampling iterations. Can be overridden in `$compute()`.
 		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to instantiationg `ARFSampler` internally with default parameters.
@@ -308,6 +318,7 @@ CFI = R6Class(
 			measure,
 			resampling = NULL,
 			features = NULL,
+			groups = NULL,
 			relation = "difference",
 			iters_perm = 1L,
 			sampler = NULL
@@ -328,6 +339,7 @@ CFI = R6Class(
 				measure = measure,
 				resampling = resampling,
 				features = features,
+				groups = groups,
 				sampler = sampler,
 				iters_perm = iters_perm
 			)
@@ -377,7 +389,7 @@ RFI = R6Class(
 	public = list(
 		#' @description
 		#' Creates a new instance of the RFI class
-		#' @param task,learner,measure,resampling,features Passed to PerturbationImportance
+		#' @param task,learner,measure,resampling,features,groups Passed to PerturbationImportance
 		#' @param conditioning_set ([character()]) Set of features to condition on. Can be overridden in `$compute()`.
 		#'   Default (`character(0)`) is equivalent to `PFI`. In `CFI`, this would be set to all features except tat of interest.
 		#' @param relation (character(1)) How to relate perturbed scores to originals. Can be overridden in `$scores()`.
@@ -389,6 +401,7 @@ RFI = R6Class(
 			measure,
 			resampling = NULL,
 			features = NULL,
+			groups = NULL,
 			conditioning_set = NULL,
 			relation = "difference",
 			iters_perm = 1L,
@@ -410,6 +423,7 @@ RFI = R6Class(
 				measure = measure,
 				resampling = resampling,
 				features = features,
+				groups = groups,
 				sampler = sampler,
 				relation = relation,
 				iters_perm = iters_perm
@@ -419,10 +433,11 @@ RFI = R6Class(
 			if (!is.null(conditioning_set)) {
 				conditioning_set = checkmate::assert_subset(conditioning_set, self$task$feature_names)
 			} else {
-				# Default to empty set (equivalent to PFI)
-				cli::cli_alert_info(
-					"Using empty conditioning set. Set {.code conditioning_set} to condition on features."
-				)
+				# Default to empty set (equivalent(ish) to PFI)
+				cli::cli_warn(c(
+					"Using empty conditioning set",
+					i = "Set {.code conditioning_set} to condition on features."
+				))
 				conditioning_set = character(0)
 			}
 

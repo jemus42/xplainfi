@@ -17,8 +17,16 @@ FeatureImportanceMethod = R6Class(
 		#' @field resample_result ([mlr3::ResampleResult]) of the original `learner` and `task`, used for baseline scores.
 		resample_result = NULL,
 		# TODO: list of features, for grouped importance
-		#' @field features (`character`)
+		#' @field features (`character`: `NULL`) Features of interest. By default, importances will be computed for each feature
+		#'   in `task`, but optionally this can be restricted to at least one feature. Ignored if `groups` is specified.
 		features = NULL,
+		#' @field groups (`list`: `NULL`) A (named) list of features (names or indices as in `task`).
+		#'   If `groups` is specified, `features` is ignored.
+		#'   Importances will be calculated for group of features at a time, e.g., in [PFI] not one but the group of features will be permuted at each step.
+		#'   Analogusly in [WVIM], each group of features will be left out (or in) for each model refit.
+		#'   Not all methods support groups (e.g., [SAGE]).
+		#'   See FIXME: vignette or examples.
+		groups = NULL,
 		#' @field param_set ([paradox::ps()])
 		param_set = ps(),
 		#' @field predictions ([data.table][data.table::data.table]) Feature-specific prediction objects provided for some methods ([PFI], [WVIM]). Contains columns for feature of interest, resampling iteration, refit or perturbation iteration, and [mlr3::Prediction] objects.
@@ -27,18 +35,20 @@ FeatureImportanceMethod = R6Class(
 		#' @description
 		#' Creates a new instance of this [R6][R6::R6Class] class.
 		#' This is typically intended for use by derived classes.
-		#' @param task,learner,measure,resampling,features,param_set,label Used to set fields
+		#' @param task,learner,measure,resampling,features,groups,param_set,label Used to set fields
 		initialize = function(
 			task,
 			learner,
 			measure,
 			resampling = NULL,
 			features = NULL,
+			groups = NULL,
 			param_set = paradox::ps(),
 			label
 		) {
 			self$task = mlr3::assert_task(task)
 			self$learner = mlr3::assert_learner(learner, task = task, task_type = task$task_type)
+
 			if (is.null(measure)) {
 				self$measure = switch(
 					task$task_type,
@@ -53,7 +63,16 @@ FeatureImportanceMethod = R6Class(
 			}
 			self$param_set = paradox::assert_param_set(param_set)
 			self$label = checkmate::assert_string(label, min.chars = 1)
-			self$features = features %||% self$task$feature_names
+
+			# Check features / groups
+			# Default to using features, unless groups is specified
+			if (is.null(groups)) {
+				self$features = features %||% self$task$feature_names
+			} else {
+				self$groups = check_groups(groups, self$task)
+				# check_groups ensures this produces a unique character vector
+				self$features = unlist(groups, use.names = FALSE)
+			}
 
 			# resampling: default to holdout with default ratio if NULL
 			if (is.null(resampling)) {
@@ -310,9 +329,20 @@ FeatureImportanceMethod = R6Class(
 		print = function(...) {
 			cli::cli_h2(self$label)
 			cli::cli_ul()
-			cli::cli_li("Learner: {.val {self$learner_id}}")
+			cli::cli_li("Learner: {.val {self$learner$id}}")
 			cli::cli_li("Task: {.val {self$task$id}}")
-			cli::cli_li("Feature{?s} of interest: {.val {self$features}}")
+			if (is.null(self$groups)) {
+				cli::cli_li(
+					"{.emph {length(self$features)}} feature{?s} of interest: {.val {self$features}}"
+				)
+			} else {
+				cli::cli_li("{.emph {length(self$groups)}} feature group{?s} of interest:")
+				ol = cli::cli_ol()
+				for (i in seq_along(groups)) {
+					cli::cli_li("{.strong {names(groups)[i]}}: {.val {groups[[i]]}}")
+				}
+				cli::cli_end(ol)
+			}
 			cli::cli_li("Resampling: {.val {self$resampling$id}} ({.val {self$resampling$iters}} iters)")
 
 			cli::cli_li("Parameters:")
@@ -322,14 +352,8 @@ FeatureImportanceMethod = R6Class(
 			sapply(pidx, \(i) {
 				cli::cli_ul("{.code {names(pv)[i]}}: {.val {pv[i]}}")
 			})
-
 			cli::cli_end()
-			imp = self$importance()
-			if (!is.null(imp)) {
-				print(imp, ...)
-			} else {
-				cli::cli_inform(c(i = "No importances computed yet."))
-			}
+			self$importance()
 		},
 
 		#' @description
