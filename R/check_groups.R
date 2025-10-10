@@ -2,6 +2,7 @@
 #' @param groups (`list`) A (named) list of groups
 #' @param task ([Task][mlr3::Task]) Used to look up valid features.
 #'
+#' @export
 #' @return `group`, with each element now named.
 #' @examples
 #' task <- sim_dgp_interactions(n = 100)
