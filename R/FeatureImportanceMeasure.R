@@ -161,7 +161,7 @@ FeatureImportanceMethod = R6Class(
 				cli::cli_inform(c(
 					x = "No importances computed yet!"
 				))
-				return(NULL)
+				return(invisible(NULL))
 			}
 
 			variance_method = match.arg(variance_method)
@@ -257,16 +257,19 @@ FeatureImportanceMethod = R6Class(
 		#'
 		obs_loss = function(relation = NULL) {
 			if (is.null(self$measure$obs_loss)) {
-				cli::cli_abort(c(
+				cli::cli_warn(c(
 					x = "{.cls Measure} {.val {self$measure$id}} does not have an observation-wise loss:",
 					i = "Is it decomposable?"
 				))
+				return(invisible(NULL))
 			}
 			if (is.null(private$.obs_losses)) {
-				cli::cli_inform(c(
-					x = "No importances computed yet!",
-					i = "Did you run {.fun $compute}?"
+				cli::cli_warn(c(
+					x = "No observation-wise losses stored!",
+					i = "Did you run {.fun $compute}?",
+					i = "Not all methods support observation-wise losses"
 				))
+				return(invisible(NULL))
 			}
 
 			relation = resolve_param(relation, self$param_set$values$relation, "difference")
@@ -368,10 +371,11 @@ FeatureImportanceMethod = R6Class(
 		#'
 		scores = function(relation = NULL) {
 			if (is.null(private$.scores)) {
-				cli::cli_inform(c(
+				cli::cli_warn(c(
 					x = "No importances computed yet!",
 					i = "Did you run {.fun $compute}?"
 				))
+				return(invisible(NULL))
 			}
 			if ("importance" %in% colnames(private$.scores)) {
 				# If there is already an importance variable in the stored scores like in SAGE,
