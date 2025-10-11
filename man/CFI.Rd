@@ -59,6 +59,7 @@ Creates a new instance of the CFI class
   measure,
   resampling = NULL,
   features = NULL,
+  groups = NULL,
   relation = "difference",
   iters_perm = 1L,
   sampler = NULL
@@ -68,7 +69,7 @@ Creates a new instance of the CFI class
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task, learner, measure, resampling, features}}{Passed to \code{PerturbationImportance}.}
+\item{\code{task, learner, measure, resampling, features, groups}}{Passed to \code{PerturbationImportance}.}
 
 \item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. Can be overridden in \verb{$compute()}.}
 

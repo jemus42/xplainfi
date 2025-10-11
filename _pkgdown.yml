@@ -17,9 +17,9 @@ template:
   math-rendering: mathjax
   light-switch: true
   bslib:
-    base_font: {google: "Roboto"}
-    heading_font: {google: "Roboto Slab"}
-    code_font: {google: "JetBrains Mono"}
+    base_font: { google: "Roboto" }
+    heading_font: { google: "Roboto Slab" }
+    code_font: { google: "JetBrains Mono" }
 
 # development:
 #   mode: auto
@@ -32,15 +32,15 @@ reference:
   - subtitle: Perturbation-Based Importance Measures
     desc: Methods which perturb features of interest either marginally (PFI) or conditionally on all (CFI) or a subset of remaining features (RFI)
   - contents:
-    - PerturbationImportance
-    - PFI
-    - CFI
-    - RFI
+      - PerturbationImportance
+      - PFI
+      - CFI
+      - RFI
   - subtitle: Model Refitting Measures
     desc: Methods which refit models with one (or more) features omitted (LOCO) or included (LOCI).
     contents:
-    - WVIM
-    - LOCO
+      - WVIM
+      - LOCO
   - subtitle: Shapley-Based Approaches
     desc: Shapley Additive Global Importance (SAGE) in marginal and conditional variants
     contents:
@@ -57,39 +57,40 @@ reference:
       - contains("Sampler")
   - title: Utilities
   - contents:
-    - wvim_design_matrix
-    - starts_with("op-")
+      - wvim_design_matrix
+      - starts_with("check")
+      - starts_with("op-")
   - title: Data simulation
   - contents:
-    - starts_with("sim_")
+      - starts_with("sim_")
 
 articles:
   - title: Feature Importance Methods
     # navbar: ~
     contents:
-    - articles/perturbation-importance
-    - articles/loco
-    - articles/sage-methods
+      - articles/perturbation-importance
+      - articles/loco
+      - articles/sage-methods
   - title: Testing and Validation
     contents:
-    - articles/simulation-settings
-    - contains("fippy")
+      - simulation-settings
+      - contains("fippy")
 
 navbar:
- components:
-   articles:
-    text: Articles
-    menu:
-    - text: Method Showcase
-    - text: Perturbation-Based Methods (PFI, CFI, RFI)
-      href: articles/perturbation-importance.html
-    - text: "Leave-Out/In Methods (LOCO, LOCI)"
-      href: articles/loco-loci.html
-    - text: "Shapley Additive Global Importance (SAGE)"
-      href: articles/sage-methods.html
-    - text: -------
-    - text: "Testing & Validation"
-    - text: Simulation Settings
-      href: articles/simulation-settings.html
-    - text: "Comparison with fippy (Python)"
-      href: articles/fippy-comparison.html
+  components:
+    articles:
+      text: Articles
+      menu:
+        - text: Method Showcase
+        - text: Perturbation-Based Methods (PFI, CFI, RFI)
+          href: articles/perturbation-importance.html
+        - text: "Leave-Out/In Methods (LOCO, LOCI)"
+          href: articles/loco-loci.html
+        - text: "Shapley Additive Global Importance (SAGE)"
+          href: articles/sage-methods.html
+        - text: -------
+        - text: "Testing & Validation"
+        - text: Simulation Settings
+          href: articles/simulation-settings.html
+        - text: "Comparison with fippy (Python)"
+          href: articles/fippy-comparison.html

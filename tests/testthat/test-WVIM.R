@@ -164,28 +164,35 @@ test_that("WVIM works with leave-in direction (LOCI)", {
 	expect_importance_dt(wvim_loci$importance(), features = wvim_loci$features)
 })
 
-test_that("WVIM with feature groups is not yet supported", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
-
+test_that("WVIM with feature groups", {
 	set.seed(123)
 	task = mlr3::tgen("friedman1")$generate(n = 150)
-	learner = mlr3::lrn("regr.ranger", num.trees = 20)
+	learner = mlr3::lrn("regr.rpart")
 	measure = mlr3::msr("regr.mse")
 
-	feature_groups = list(
-		group1 = task$feature_names[1:2],
-		group2 = task$feature_names[3:4]
+	groups = list(
+		important_set = c("important1", "important2", "important3"),
+		unimportant_set = c("unimportant1", "unimportant2")
 	)
 
 	wvim_groups = WVIM$new(
 		task = task,
 		learner = learner,
 		measure = measure,
-		features = feature_groups,
+		groups = groups,
 		direction = "leave-out"
 	)
 
-	# Feature groups not yet supported - see FIXME in WVIM.R
-	expect_error(wvim_groups$compute(), "values must be length 1")
+	checkmate::expect_r6(wvim_groups, c("FeatureImportanceMethod", "WVIM"))
+	expect_false(is.null(wvim_groups$groups))
+	expect_equal(names(wvim_groups$groups), c("important_set", "unimportant_set"))
+	expect_equal(wvim_groups$direction, "leave-out")
+
+	wvim_groups$compute()
+	result = wvim_groups$importance()
+
+	# Should have one row per group
+	expect_equal(nrow(result), length(groups))
+	expect_equal(result$feature, names(groups))
+	expect_importance_dt(result, features = names(groups))
 })

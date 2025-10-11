@@ -60,6 +60,7 @@ Creates a new instance of the RFI class
   measure,
   resampling = NULL,
   features = NULL,
+  groups = NULL,
   conditioning_set = NULL,
   relation = "difference",
   iters_perm = 1L,
@@ -70,7 +71,7 @@ Creates a new instance of the RFI class
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task, learner, measure, resampling, features}}{Passed to PerturbationImportance}
+\item{\code{task, learner, measure, resampling, features, groups}}{Passed to PerturbationImportance}
 
 \item{\code{conditioning_set}}{(\code{\link[=character]{character()}}) Set of features to condition on. Can be overridden in \verb{$compute()}.
 Default (\code{character(0)}) is equivalent to \code{PFI}. In \code{CFI}, this would be set to all features except tat of interest.}

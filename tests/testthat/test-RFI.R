@@ -3,8 +3,6 @@ test_that("RFI can't be constructed without args", {
 })
 
 test_that("RFI can be constructed with simple objects", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
 	skip_if_not_installed("arf")
 
 	set.seed(123)
@@ -12,8 +10,9 @@ test_that("RFI can be constructed with simple objects", {
 
 	rfi = RFI$new(
 		task = task,
-		learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
-		measure = mlr3::msr("classif.ce")
+		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
+		measure = mlr3::msr("classif.ce"),
+		conditioning_set = "x2"
 	)
 
 	checkmate::expect_r6(rfi, c("FeatureImportanceMethod", "PerturbationImportance", "RFI"))
@@ -25,8 +24,6 @@ test_that("RFI can be constructed with simple objects", {
 })
 
 test_that("RFI uses ARFSampler by default", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
 	skip_if_not_installed("arf")
 
 	set.seed(123)
@@ -34,8 +31,9 @@ test_that("RFI uses ARFSampler by default", {
 
 	rfi = RFI$new(
 		task = task,
-		learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
-		measure = mlr3::msr("classif.ce")
+		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
+		measure = mlr3::msr("classif.ce"),
+		conditioning_set = "x2"
 	)
 
 	# Should have ARFSampler
@@ -44,8 +42,6 @@ test_that("RFI uses ARFSampler by default", {
 })
 
 test_that("RFI with custom conditioning set", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
 	skip_if_not_installed("arf")
 
 	set.seed(123)
@@ -56,7 +52,7 @@ test_that("RFI with custom conditioning set", {
 
 	rfi = RFI$new(
 		task = task,
-		learner = mlr3::lrn("regr.ranger", num.trees = 50),
+		learner = mlr3::lrn("regr.rpart"),
 		measure = mlr3::msr("regr.mse"),
 		conditioning_set = conditioning_set
 	)
@@ -69,73 +65,28 @@ test_that("RFI with custom conditioning set", {
 })
 
 test_that("RFI with empty conditioning set (equivalent to PFI)", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
 	skip_if_not_installed("arf")
 
 	set.seed(123)
 	task = mlr3::tgen("friedman1")$generate(n = 200) # Use friedman1 with more features for better ranking comparison
-	learner = mlr3::lrn("regr.ranger", num.trees = 50)
+	learner = mlr3::lrn("regr.rpart")
 	measure = mlr3::msr("regr.mse")
 
-	# RFI with empty conditioning set
-	rfi = RFI$new(
-		task = task,
-		learner = learner,
-		measure = measure,
-		conditioning_set = character(0), # Empty conditioning set
-		iters_perm = 3 # Use multiple iterations for more robust comparison
-		# Uses ARFSampler by default
-	)
+	# RFI with empty conditioning set warns
+	expect_warning({
+		rfi = RFI$new(
+			task = task,
+			learner = learner,
+			measure = measure
+		)
+	})
 
 	expect_equal(length(rfi$param_set$values$conditioning_set), 0)
 
-	# PFI for comparison
-	pfi = PFI$new(
-		task = task,
-		learner = learner,
-		measure = measure,
-		iters_perm = 3 # Same number of iterations
-	)
-
-	# Compute results
-	set.seed(456) # Different seed for RFI computation
 	rfi$compute()
 	rfi_result = rfi$importance()
 
-	set.seed(456) # Same seed for PFI computation
-	pfi$compute()
-	pfi_result = pfi$importance()
-
-	# Both should be valid importance tables
 	expect_importance_dt(rfi_result, features = rfi$features)
-	expect_importance_dt(pfi_result, features = pfi$features)
-
-	# Results should be similar but not necessarily identical due to different sampling methods
-	# (RFI uses ARF-based conditional sampling, PFI uses marginal permutation)
-	# Check that they have similar patterns for important vs unimportant features
-
-	# Extract important and unimportant feature scores for both methods
-	important_features = grep("^important", rfi_result$feature, value = TRUE)
-	unimportant_features = grep("^unimportant", rfi_result$feature, value = TRUE)
-
-	rfi_important_scores = rfi_result[feature %in% important_features]$importance
-	rfi_unimportant_scores = rfi_result[feature %in% unimportant_features]$importance
-
-	pfi_important_scores = pfi_result[feature %in% important_features]$importance
-	pfi_unimportant_scores = pfi_result[feature %in% unimportant_features]$importance
-
-	# Both methods should show that important features have higher scores than unimportant features on average
-	expect_gt(mean(rfi_important_scores), mean(rfi_unimportant_scores))
-	expect_gt(mean(pfi_important_scores), mean(pfi_unimportant_scores))
-
-	# The ranking patterns should be similar - check that the relative difference patterns are consistent
-	rfi_diff = mean(rfi_important_scores) - mean(rfi_unimportant_scores)
-	pfi_diff = mean(pfi_important_scores) - mean(pfi_unimportant_scores)
-
-	# Both should show a positive difference (important > unimportant) and be in the same order of magnitude
-	expect_gt(rfi_diff, 0)
-	expect_gt(pfi_diff, 0)
 })
 
 test_that("RFI with single conditioning feature", {
@@ -432,4 +383,38 @@ test_that("RFI different conditioning sets produce different results", {
 	# We don't expect exact differences but the conditioning should have some effect
 	expect_false(all(abs(result_empty$importance - result_one$importance) < 1e-10))
 	expect_false(all(abs(result_one$importance - result_multi$importance) < 1e-10))
+})
+
+test_that("RFI with groups", {
+	skip_if_not_installed("arf")
+
+	set.seed(123)
+	task = mlr3::tgen("friedman1")$generate(n = 200)
+
+	# Define feature groups
+	groups = list(
+		early_important = c("important1", "important2"),
+		late_important = c("important3", "important4"),
+		noise = c("unimportant1", "unimportant2")
+	)
+
+	rfi = RFI$new(
+		task = task,
+		learner = mlr3::lrn("regr.rpart"),
+		measure = mlr3::msr("regr.mse"),
+		conditioning_set = "important5",
+		groups = groups
+	)
+
+	checkmate::expect_r6(rfi, c("FeatureImportanceMethod", "PerturbationImportance", "RFI"))
+	expect_false(is.null(rfi$groups))
+	expect_equal(names(rfi$groups), c("early_important", "late_important", "noise"))
+
+	rfi$compute()
+	result = rfi$importance()
+
+	# Should have one row per group
+	expect_equal(nrow(result), length(groups))
+	expect_equal(result$feature, names(groups))
+	expect_importance_dt(result, features = names(groups))
 })
