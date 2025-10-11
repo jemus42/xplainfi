@@ -1,5 +1,5 @@
 ---
-title: "LOCO (Leave-One-Covariate-Out)"
+title: "LOCO and WVIM"
 editor_options:
   chunk_output_type: console
 ---
@@ -12,7 +12,7 @@ knitr::opts_chunk$set(
 set.seed(123)
 # Quiet down
 lgr::get_logger("mlr3")$set_threshold("warn")
-lgr::get_logger("bbotk")$set_threshold("warn")
+# lgr::get_logger("bbotk")$set_threshold("warn")
 options("xplain.progress" = interactive())
 ```
 
@@ -51,8 +51,8 @@ $$\text{LOCO}_j = \mathbb{E}(L(Y, f_{-j}(X_{-j}))) - \mathbb{E}(L(Y, f(X)))$$
 Higher values indicate more important features (larger performance drop when removed).
 
 ```{r loco-example}
-task <- sim_dgp_interactions(n = 500)
-learner <- lrn("regr.ranger", num.trees = 100)
+task <- sim_dgp_interactions(n = 1000)
+learner <- lrn("regr.ranger", num.trees = 500)
 measure <- msr("regr.mse")
 
 # Use 3-fold CV for more robust estimates and reuse across comparisons
@@ -167,12 +167,14 @@ LOCO measures the value of having a feature available during training, while PFI
 
 ## WVIM: The General Framework
 
-LOCO is actually a special case of Williamson's Variable Importance Measure (WVIM), which provides a general formulation for refit-based feature importance.
-WVIM uses feature selection design matrices to specify which features should be included or excluded.
+LOCO is a special case of what Ewald et al. refer to as "Williamson's Variable Importance Measure" (WVIM), which provides a general formulation for refit-based feature importance.
+WVIM allows both one or more feature of interest at a time, meaning that via the `groups` argument features can be assigned groups which will always be "left out" or "left in" together.
+It also as a `direction` argument, specifying whether features are left out or in.
 
 ### Replicating LOCO with WVIM
 
-We can manually replicate LOCO using WVIM's `"leave-out"` direction:
+We can manually replicate LOCO using WVIM's `"leave-out"` direction.
+Since `features` is specified rather than `groups`, each feature well be left out one at a time, resulting in the LOCO procedure.
 
 ```{r wvim-loco}
 # Create WVIM instance (LOCO's parent class) using same resampling
@@ -223,8 +225,8 @@ wvim_loci$importance()
 
 LOCI interprets importance differently from LOCO:
 
-- **LOCO**: "How much does performance degrade when this feature is removed from the full model?"
-- **LOCI**: "How much does this feature alone improve over a featureless baseline?"
+- **LOCO**: "How much does performance degrade when this feature is removed from the *full model*?"
+- **LOCI**: "How much does this feature alone improve over a *featureless baseline*?"
 
 For our interaction data where $y = 2 \cdot x_1 \cdot x_2 + x_3 + \epsilon$:
 
@@ -235,3 +237,122 @@ For our interaction data where $y = 2 \cdot x_1 \cdot x_2 + x_3 + \epsilon$:
 
 However, since we used a random forest learner (ranger), it can not be expected to learn any meaningful relations based on one training with onle one feature.
 This hopefully showcases that LOCI is primarily "useful" as a teaching exercise, rather than a meaningful importance measure.
+
+## WVIM with Feature Groups
+
+While LOCO measures the importance of individual features, WVIM generalizes this to arbitrary feature groups. This allows us to measure the collective importance of sets of features.
+
+### Understanding Feature Groups
+
+Feature groups are useful when:
+
+- Features are naturally related (e.g., dummy-encoded categorical variables)
+- You want to measure the importance of feature subsets
+- Features have known functional relationships
+
+Let's create groups from our interaction data:
+
+```{r wvim-groups-setup}
+# Define feature groups
+groups <- list(
+	interaction_pair = c("x1", "x2"), # Features that interact
+	main_effect = "x3", # Feature with direct effect
+	noise_features = c("noise1", "noise2") # Pure noise
+)
+
+groups
+```
+
+### WVIM with Leave-Out Direction
+
+Using `direction = "leave-out"`, WVIM computes the importance of each group by measuring performance when that entire group is removed:
+
+$$\text{WVIM}_{\text{group}} = \mathbb{E}(L(Y, f_{-\text{group}}(X_{-\text{group}}))) - \mathbb{E}(L(Y, f(X)))$$
+
+This compares the model without the group to the full model.
+
+```{r wvim-groups-leaveout}
+wvim_groups_out <- WVIM$new(
+	task = task,
+	learner = learner,
+	measure = measure,
+	groups = groups,
+	direction = "leave-out",
+	resampling = rsmp("cv", folds = 3),
+	iters_refit = 10
+)
+
+wvim_groups_out$compute()
+wvim_groups_out$importance()
+```
+
+**Interpretation:**
+
+- `interaction_pair` (x1, x2) shows the joint contribution of the interacting features
+- `main_effect` (x3) shows the contribution of the direct effect
+- `noise_features` should show near-zero or negative importance
+
+### WVIM with Leave-In Direction
+
+Using `direction = "leave-in"`, WVIM trains models with only each group and compares to a featureless baseline:
+
+$$\text{WVIM}_{\text{group}} = \mathbb{E}(L(Y, f_{\emptyset})) - \mathbb{E}(L(Y, f_{\text{group}}(X_{\text{group}})))$$
+
+This measures how much each group alone improves over having no features.
+
+```{r wvim-groups-leavein}
+wvim_groups_in <- WVIM$new(
+	task = task,
+	learner = learner,
+	measure = measure,
+	groups = groups,
+	direction = "leave-in",
+	resampling = rsmp("cv", folds = 3)
+)
+
+wvim_groups_in$compute()
+wvim_groups_in$importance()
+```
+
+### Comparing Leave-Out vs Leave-In for Groups
+
+The key difference between the two directions is the baseline model used for comparison:
+
+- **Leave-out**: Baseline is the **full model** with all features
+  - Measures: "What do we lose by removing this group?"
+  - Higher values → group is more important to overall model performance
+
+- **Leave-in**: Baseline is the **empty model** without any features
+  - Measures: "What do we gain by using only this group?"
+  - Higher values → group alone provides better prediction than baseline
+
+```{r wvim-directions-comparison}
+comparison_directions <- merge(
+	wvim_groups_out$importance()[, .(feature, leave_out = importance)],
+	wvim_groups_in$importance()[, .(feature, leave_in = importance)],
+	by = "feature"
+)
+
+comparison_directions
+```
+
+For our interaction data where $y = 2 \cdot x_1 \cdot x_2 + x_3 + \epsilon$:
+
+- **Leave-out** captures how much each group contributes to the full model
+- **Leave-in** shows that the `main_effect` group (x3) provides substantial prediction alone, while the `interaction_pair` (x1, x2) has limited predictive power in isolation
+
+This highlights a key insight: features that interact strongly may show high importance in leave-out (they matter for the full model) but low importance in leave-in (they don't work well alone).
+
+### Practical Considerations
+
+**When to use feature groups:**
+
+- Analyzing categorical variables (group all dummy columns together)
+- Testing domain-specific feature sets (e.g., "demographic features", "behavioral features")
+- Measuring importance of feature engineering transformations collectively
+
+**Computational cost:**
+
+- WVIM requires retraining the model for each group in each resampling fold
+- With groups, this is more efficient than analyzing features individually
+- Use `iters_refit` parameter to control the number of refits per fold for variance estimation
