@@ -67,6 +67,7 @@ FeatureImportanceMethod = R6Class(
 			# Check features / groups
 			# Default to using features, unless groups is specified
 			if (is.null(groups)) {
+				checkmate::assert_subset(features, self$task$feature_names, empty.ok = TRUE)
 				self$features = features %||% self$task$feature_names
 			} else {
 				self$groups = check_groups(groups, all_features = self$task$feature_names)
