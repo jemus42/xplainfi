@@ -38,7 +38,7 @@ wvim_design_matrix = function(
 	direction = c("leave-out", "leave-in")
 ) {
 	if (is.list(feature_names)) {
-		lapply(feature_names, \(x) checkmate::assert_subset(x, all_features))
+		feature_names = check_groups(feature_names, all_features = all_features)
 	} else {
 		checkmate::assert_subset(feature_names, all_features)
 	}

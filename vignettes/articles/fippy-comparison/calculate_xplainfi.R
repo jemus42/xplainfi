@@ -22,7 +22,7 @@ task <- sim_dgp_ewald(n = 5000)
 data <- task$data()
 
 # Create holdout resampling for consistent train/test split
-resampling <- rsmp("holdout", ratio = 0.7)
+resampling <- rsmp("holdout", ratio = 2 / 3)
 resampling$instantiate(task)
 
 # Save separate train and test datasets for consistent comparison
@@ -71,9 +71,10 @@ pfi_r <- PFI$new(
 )
 
 pfi_r$compute()
+
 results$PFI <- list(
-	feature = pfi_r$feature,
-	importance = pfi_r$importance()
+	feature = pfi_r$features,
+	importance = pfi_r$importance()$importance
 )
 
 # 2. CFI
@@ -89,8 +90,8 @@ cfi_r <- CFI$new(
 
 cfi_r$compute()
 results$CFI <- list(
-	feature = cfi_r$feature,
-	importance = cfi_r$importance()
+	feature = cfi_r$features,
+	importance = cfi_r$importance()$importance
 )
 cli_alert_success("CFI completed")
 
@@ -109,8 +110,8 @@ rfi_r <- RFI$new(
 
 rfi_r$compute()
 results$RFI <- list(
-	feature = rfi_r$feature,
-	importance = rfi_r$importance(),
+	feature = rfi_r$features,
+	importance = rfi_r$importance()$importance,
 	conditioning_set = c("x1", "x2")
 )
 cli_alert_success("RFI completed")
@@ -132,8 +133,8 @@ sage_marginal_r <- MarginalSAGE$new(
 
 sage_marginal_r$compute(batch_size = batch_size_sage)
 results$SAGE_Marginal <- list(
-	feature = sage_marginal_r$feature,
-	importance = sage_marginal_r$importance()
+	feature = sage_marginal_r$features,
+	importance = sage_marginal_r$importance()$importance
 )
 
 # 5. Conditional SAGE
@@ -150,8 +151,8 @@ sage_conditional_r <- ConditionalSAGE$new(
 
 sage_conditional_r$compute(batch_size = batch_size_sage)
 results$SAGE_Conditional <- list(
-	feature = sage_conditional_r$feature,
-	importance = sage_conditional_r$importance()
+	feature = sage_conditional_r$features,
+	importance = sage_conditional_r$importance()$importance
 )
 cli_alert_success("Conditional SAGE completed")
 

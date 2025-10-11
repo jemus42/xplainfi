@@ -202,3 +202,33 @@ test_that("scores and obs_losses agree", {
 
 	expect_equal(importance_scores, obs_agg, tolerance = sqrt(.Machine$double.eps))
 })
+
+test_that("PFI with groups", {
+	set.seed(123)
+	task = mlr3::tgen("friedman1")$generate(n = 200)
+
+	# Define feature groups
+	groups = list(
+		important_group = c("important1", "important2", "important3"),
+		unimportant_group = c("unimportant1", "unimportant2")
+	)
+
+	pfi = PFI$new(
+		task = task,
+		learner = mlr3::lrn("regr.rpart"),
+		measure = mlr3::msr("regr.mse"),
+		groups = groups
+	)
+
+	checkmate::expect_r6(pfi, c("FeatureImportanceMethod", "PFI"))
+	expect_false(is.null(pfi$groups))
+	expect_equal(names(pfi$groups), c("important_group", "unimportant_group"))
+
+	pfi$compute()
+	result = pfi$importance()
+
+	# Should have one row per group
+	expect_equal(nrow(result), length(groups))
+	expect_equal(result$feature, names(groups))
+	expect_importance_dt(result, features = names(groups))
+})

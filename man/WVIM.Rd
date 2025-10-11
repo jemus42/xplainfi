@@ -50,6 +50,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   measure,
   resampling = NULL,
   features = NULL,
+  groups = NULL,
   direction = c("leave-out", "leave-in"),
   label = "Williamson's Variable Importance Measure (WVIM)",
   iters_refit = 1L
@@ -59,7 +60,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task, learner, measure, resampling, features}}{Passed to \code{FeatureImportanceMethod} for construction.}
+\item{\code{task, learner, measure, resampling, features, groups}}{Passed to \code{FeatureImportanceMethod} for construction.}
 
 \item{\code{direction}}{(\code{character(1)}) Either "leave-out" or "leave-in".}
 

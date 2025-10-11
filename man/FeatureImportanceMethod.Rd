@@ -33,7 +33,15 @@ ISBN 978-3-031-44064-9, \doi{10.1007/978-3-031-44064-9_24}.
 
 \item{\code{resample_result}}{(\link[mlr3:ResampleResult]{mlr3::ResampleResult}) of the original \code{learner} and \code{task}, used for baseline scores.}
 
-\item{\code{features}}{(\code{character})}
+\item{\code{features}}{(\code{character}: \code{NULL}) Features of interest. By default, importances will be computed for each feature
+in \code{task}, but optionally this can be restricted to at least one feature. Ignored if \code{groups} is specified.}
+
+\item{\code{groups}}{(\code{list}: \code{NULL}) A (named) list of features (names or indices as in \code{task}).
+If \code{groups} is specified, \code{features} is ignored.
+Importances will be calculated for group of features at a time, e.g., in \link{PFI} not one but the group of features will be permuted at each step.
+Analogusly in \link{WVIM}, each group of features will be left out (or in) for each model refit.
+Not all methods support groups (e.g., \link{SAGE}).
+See FIXME: vignette or examples.}
 
 \item{\code{param_set}}{(\code{\link[paradox:ps]{paradox::ps()}})}
 
@@ -67,6 +75,7 @@ This is typically intended for use by derived classes.
   measure,
   resampling = NULL,
   features = NULL,
+  groups = NULL,
   param_set = paradox::ps(),
   label
 )}\if{html}{\out{</div>}}
@@ -75,7 +84,7 @@ This is typically intended for use by derived classes.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task, learner, measure, resampling, features, param_set, label}}{Used to set fields}
+\item{\code{task, learner, measure, resampling, features, groups, param_set, label}}{Used to set fields}
 }
 \if{html}{\out{</div>}}
 }

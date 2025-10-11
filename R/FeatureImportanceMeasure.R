@@ -17,8 +17,16 @@ FeatureImportanceMethod = R6Class(
 		#' @field resample_result ([mlr3::ResampleResult]) of the original `learner` and `task`, used for baseline scores.
 		resample_result = NULL,
 		# TODO: list of features, for grouped importance
-		#' @field features (`character`)
+		#' @field features (`character`: `NULL`) Features of interest. By default, importances will be computed for each feature
+		#'   in `task`, but optionally this can be restricted to at least one feature. Ignored if `groups` is specified.
 		features = NULL,
+		#' @field groups (`list`: `NULL`) A (named) list of features (names or indices as in `task`).
+		#'   If `groups` is specified, `features` is ignored.
+		#'   Importances will be calculated for group of features at a time, e.g., in [PFI] not one but the group of features will be permuted at each step.
+		#'   Analogusly in [WVIM], each group of features will be left out (or in) for each model refit.
+		#'   Not all methods support groups (e.g., [SAGE]).
+		#'   See FIXME: vignette or examples.
+		groups = NULL,
 		#' @field param_set ([paradox::ps()])
 		param_set = ps(),
 		#' @field predictions ([data.table][data.table::data.table]) Feature-specific prediction objects provided for some methods ([PFI], [WVIM]). Contains columns for feature of interest, resampling iteration, refit or perturbation iteration, and [mlr3::Prediction] objects.
@@ -27,18 +35,20 @@ FeatureImportanceMethod = R6Class(
 		#' @description
 		#' Creates a new instance of this [R6][R6::R6Class] class.
 		#' This is typically intended for use by derived classes.
-		#' @param task,learner,measure,resampling,features,param_set,label Used to set fields
+		#' @param task,learner,measure,resampling,features,groups,param_set,label Used to set fields
 		initialize = function(
 			task,
 			learner,
 			measure,
 			resampling = NULL,
 			features = NULL,
+			groups = NULL,
 			param_set = paradox::ps(),
 			label
 		) {
 			self$task = mlr3::assert_task(task)
 			self$learner = mlr3::assert_learner(learner, task = task, task_type = task$task_type)
+
 			if (is.null(measure)) {
 				self$measure = switch(
 					task$task_type,
@@ -53,7 +63,17 @@ FeatureImportanceMethod = R6Class(
 			}
 			self$param_set = paradox::assert_param_set(param_set)
 			self$label = checkmate::assert_string(label, min.chars = 1)
-			self$features = features %||% self$task$feature_names
+
+			# Check features / groups
+			# Default to using features, unless groups is specified
+			if (is.null(groups)) {
+				checkmate::assert_subset(features, self$task$feature_names, empty.ok = TRUE)
+				self$features = features %||% self$task$feature_names
+			} else {
+				self$groups = check_groups(groups, all_features = self$task$feature_names)
+				# check_groups ensures this produces a unique character vector
+				self$features = unlist(groups, use.names = FALSE)
+			}
 
 			# resampling: default to holdout with default ratio if NULL
 			if (is.null(resampling)) {
@@ -141,7 +161,7 @@ FeatureImportanceMethod = R6Class(
 				cli::cli_inform(c(
 					x = "No importances computed yet!"
 				))
-				return(NULL)
+				return(invisible(NULL))
 			}
 
 			variance_method = match.arg(variance_method)
@@ -237,16 +257,19 @@ FeatureImportanceMethod = R6Class(
 		#'
 		obs_loss = function(relation = NULL) {
 			if (is.null(self$measure$obs_loss)) {
-				cli::cli_abort(c(
+				cli::cli_warn(c(
 					x = "{.cls Measure} {.val {self$measure$id}} does not have an observation-wise loss:",
 					i = "Is it decomposable?"
 				))
+				return(invisible(NULL))
 			}
 			if (is.null(private$.obs_losses)) {
-				cli::cli_inform(c(
-					x = "No importances computed yet!",
-					i = "Did you run {.fun $compute}?"
+				cli::cli_warn(c(
+					x = "No observation-wise losses stored!",
+					i = "Did you run {.fun $compute}?",
+					i = "Not all methods support observation-wise losses"
 				))
+				return(invisible(NULL))
 			}
 
 			relation = resolve_param(relation, self$param_set$values$relation, "difference")
@@ -267,11 +290,10 @@ FeatureImportanceMethod = R6Class(
 			]
 
 			obs_loss_combined[,
-				obs_importance := compute_score(
+				obs_importance := private$.compute_score(
 					loss_baseline,
 					loss_post,
-					relation = relation,
-					minimize = self$measure$minimize
+					relation = relation
 				)
 			]
 
@@ -310,9 +332,20 @@ FeatureImportanceMethod = R6Class(
 		print = function(...) {
 			cli::cli_h2(self$label)
 			cli::cli_ul()
-			cli::cli_li("Learner: {.val {self$learner_id}}")
+			cli::cli_li("Learner: {.val {self$learner$id}}")
 			cli::cli_li("Task: {.val {self$task$id}}")
-			cli::cli_li("Feature{?s} of interest: {.val {self$features}}")
+			if (is.null(self$groups)) {
+				cli::cli_li(
+					"{.emph {length(self$features)}} feature{?s} of interest: {.val {self$features}}"
+				)
+			} else {
+				cli::cli_li("{.emph {length(self$groups)}} feature group{?s} of interest:")
+				ol = cli::cli_ol()
+				for (i in seq_along(groups)) {
+					cli::cli_li("{.strong {names(groups)[i]}}: {.val {groups[[i]]}}")
+				}
+				cli::cli_end(ol)
+			}
 			cli::cli_li("Resampling: {.val {self$resampling$id}} ({.val {self$resampling$iters}} iters)")
 
 			cli::cli_li("Parameters:")
@@ -322,14 +355,8 @@ FeatureImportanceMethod = R6Class(
 			sapply(pidx, \(i) {
 				cli::cli_ul("{.code {names(pv)[i]}}: {.val {pv[i]}}")
 			})
-
 			cli::cli_end()
-			imp = self$importance()
-			if (!is.null(imp)) {
-				print(imp, ...)
-			} else {
-				cli::cli_inform(c(i = "No importances computed yet."))
-			}
+			self$importance()
 		},
 
 		#' @description
@@ -344,10 +371,11 @@ FeatureImportanceMethod = R6Class(
 		#'
 		scores = function(relation = NULL) {
 			if (is.null(private$.scores)) {
-				cli::cli_inform(c(
+				cli::cli_warn(c(
 					x = "No importances computed yet!",
 					i = "Did you run {.fun $compute}?"
 				))
+				return(invisible(NULL))
 			}
 			if ("importance" %in% colnames(private$.scores)) {
 				# If there is already an importance variable in the stored scores like in SAGE,
@@ -359,11 +387,10 @@ FeatureImportanceMethod = R6Class(
 			relation = resolve_param(relation, self$param_set$values$relation, "difference")
 
 			scores = data.table::copy(private$.scores)[,
-				importance := compute_score(
+				importance := private$.compute_score(
 					score_baseline,
 					score_post,
-					relation = relation,
-					minimize = self$measure$minimize
+					relation = relation
 				)
 			]
 
@@ -399,6 +426,57 @@ FeatureImportanceMethod = R6Class(
 					response = raw_prediction$response # numeric
 				)
 			)
+		},
+
+		# Utility to convert named list of groups of features into data.table to
+		# make it a little easier to match group names and features in list columns etc
+		# Used in WVIM where mlr3fselect stores "left in" features as list columns
+		.groups_tbl = function() {
+			group_tbl = data.table::data.table(
+				group = names(self$groups),
+				features_lst = unname(self$groups)
+			)
+			group_tbl[, features := vapply(features_lst, \(x) paste0(x, collapse = ";"), character(1))]
+			group_tbl
+		},
+
+		# Scoring utility for computing importances
+		#
+		# Computes the `relation` of score before a change (e.g. PFI, LOCO, ...) and after.
+		# If `minimize == TRUE`, then `scores_post - scores_pre` is computed for
+		# `relation == "difference"`, otherwise `scores_pre - scores_post` is given.
+		# If `minimize == FALSE`, then the order is flipped, insuring that "higher value" means "more important".
+		# @param scores_pre,scores_post (`numeric()`) Vector of scores or loss values at baseline / before (`_pre`) a modification, and after (`_post`) a modification (e.g., permutation or refit).
+		# @param relation (`character(1)`: `"difference"`) Calculate the difference or `"ratio"` between pre and post modification value.
+		.compute_score = function(
+			scores_pre,
+			scores_post,
+			relation = c("difference", "ratio")
+		) {
+			checkmate::assert_numeric(scores_pre, any.missing = FALSE)
+			checkmate::assert_numeric(scores_post, any.missing = FALSE)
+			checkmate::assert_true(length(scores_pre) == length(scores_post))
+			relation = match.arg(relation)
+			minimize = self$measure$minimize
+
+			# General idea assuming a important feature:
+			# For PFI and MSE (minimize == TRUE): post - baseline gives large value -> high importance
+			# =="== and classif.acc (minimize == FALSE) -> post - baseline  = negative, so we flip
+			# For WVIM when we "leave-in", the baseline scores are the empty model,
+			# so we need to flip directions of the comparison as well to ensure "higher importance value" -> "more important"
+			if (identical(self$direction, "leave-in")) {
+				minimize = !minimize
+			}
+
+			# I know this could be more concise but for the time I prefer it to be very obvious in what happens when
+			# General expectation -> higher score => more important
+			if (minimize) {
+				# Lower is better, e.g. ce, where scores_pre is expected to be smaller and scores_post larger
+				switch(relation, difference = scores_post - scores_pre, ratio = scores_post / scores_pre)
+			} else {
+				# Higher is better, e.g. accuracy, where scores_pre is expected to be larger and scores_post smaller
+				switch(relation, difference = scores_pre - scores_post, ratio = scores_pre / scores_post)
+			}
 		},
 
 		# @field .scores ([data.table][data.table::data.table]) Iteration-wise importances scores. Essentially an aggregated form of .obs_losses (which may not be available), used as basis for the calculation in `$importance() `and `$scores()`.

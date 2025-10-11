@@ -239,3 +239,35 @@ test_that("CFI parameter validation", {
 		iters_perm = -1L
 	))
 })
+
+test_that("CFI with groups", {
+	skip_if_not_installed("arf")
+
+	set.seed(123)
+	task = mlr3::tgen("friedman1")$generate(n = 200)
+
+	# Define feature groups
+	groups = list(
+		important_features = c("important1", "important2", "important3"),
+		unimportant_features = c("unimportant1", "unimportant2", "unimportant3")
+	)
+
+	cfi = CFI$new(
+		task = task,
+		learner = mlr3::lrn("regr.rpart"),
+		measure = mlr3::msr("regr.mse"),
+		groups = groups
+	)
+
+	checkmate::expect_r6(cfi, c("FeatureImportanceMethod", "PerturbationImportance", "CFI"))
+	expect_false(is.null(cfi$groups))
+	expect_equal(names(cfi$groups), c("important_features", "unimportant_features"))
+
+	cfi$compute()
+	result = cfi$importance()
+
+	# Should have one row per group
+	expect_equal(nrow(result), length(groups))
+	expect_equal(result$feature, names(groups))
+	expect_importance_dt(result, features = names(groups))
+})

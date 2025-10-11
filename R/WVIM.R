@@ -16,7 +16,7 @@ WVIM = R6Class(
 
 		#' @description
 		#' Creates a new instance of this [R6][R6::R6Class] class.
-		#' @param task,learner,measure,resampling,features Passed to `FeatureImportanceMethod` for construction.
+		#' @param task,learner,measure,resampling,features,groups Passed to `FeatureImportanceMethod` for construction.
 		#' @param direction (`character(1)`) Either "leave-out" or "leave-in".
 		#' @param label (`character(1)`) Method label.
 		#' @param iters_refit (`integer(1)`) Number of refit iterations per resampling iteration.
@@ -26,6 +26,7 @@ WVIM = R6Class(
 			measure,
 			resampling = NULL,
 			features = NULL,
+			groups = NULL,
 			direction = c("leave-out", "leave-in"),
 			label = "Williamson's Variable Importance Measure (WVIM)",
 			iters_refit = 1L
@@ -53,6 +54,7 @@ WVIM = R6Class(
 				measure = measure,
 				resampling = resampling,
 				features = features,
+				groups = groups,
 				param_set = ps,
 				label = label
 			)
@@ -67,9 +69,15 @@ WVIM = R6Class(
 		#'   backends in resample result.
 		#'   Required for some measures, but may increase memory footprint.
 		compute = function(store_backends = TRUE) {
+			if (is.null(self$groups)) {
+				feature_or_groups = self$features
+			} else {
+				feature_or_groups = self$groups
+			}
+
 			design = wvim_design_matrix(
 				all_features = self$task$feature_names,
-				feature_names = self$features,
+				feature_names = feature_or_groups,
 				direction = self$direction
 			)
 
@@ -83,11 +91,21 @@ WVIM = R6Class(
 	),
 
 	private = list(
-		.compute_wvim = function(design, store_backends) {
+		# Compute baseline scores for WVIM, which depend on the direction
+		# "leave-out" -> baseline is the "full" model with all features in the task used
+		# "leave-in" -> baseline is the "empty" model, so we swap in the featureless learner
+
+		.compute_baseline = function(store_models = TRUE, store_backends = TRUE) {
+			# Correct featureless learner depends on task type, there's no "surv.featureless" though
+			learner = switch(
+				self$direction,
+				"leave-out" = self$learner,
+				"leave-in" = lrn(paste(self$task$task_type, "featureless", sep = "."))
+			)
 			# Initial resampling
 			self$resample_result = resample(
 				self$task,
-				self$learner,
+				learner,
 				self$resampling,
 				store_models = TRUE,
 				store_backends = store_backends
@@ -99,6 +117,10 @@ WVIM = R6Class(
 			]
 			setnames(scores_baseline, old = self$measure$id, "score_baseline")
 			setnames(scores_baseline, old = "iteration", "iter_rsmp")
+		},
+
+		.compute_wvim = function(design, store_backends) {
+			scores_baseline = private$.compute_baseline(store_backends = store_backends)
 
 			# Fselect section
 			instance = mlr3fselect::fselect(
@@ -111,30 +133,10 @@ WVIM = R6Class(
 
 			archive_dt = as.data.table(instance$archive)
 			archive_base = copy(archive_dt)
-			if (self$direction == "leave-out") {
-				# FIXME: Needs to account for grouped features
-				archive_base[,
-					feature := vapply(
-						features,
-						\(x) {
-							setdiff(self$task$feature_names, x)
-						},
-						FUN.VALUE = character(1)
-					)
-				]
-			} else {
-				# For "leave-in", the feature column corresponds to the features that were left in
-				# FIXME: Needs to account for grouped features
-				archive_base[,
-					feature := vapply(
-						features,
-						\(x) {
-							x
-						},
-						FUN.VALUE = character(1)
-					)
-				]
-			}
+			# Match features in fselect instance to features left in or out, and
+			# assign group names to "feature" var for consistency
+			archive_base[, feature := private$.foi_chr(features)]
+
 			archive_base = archive_base[, .(batch_nr, feature)]
 
 			# Scores and predictions ---
@@ -174,6 +176,41 @@ WVIM = R6Class(
 				setnames(obs_loss_vals, self$measure$id, "loss_post")
 
 				private$.obs_losses = obs_loss_vals[, .(feature, iter_rsmp, iter_refit, row_ids, loss_post)]
+			}
+		},
+
+		# This is hackier than I'd like but oh well, it gets the job done.
+		# @param feature (list()) List-column of feature names in fselect instance
+		# Goal is to create a column for the feature of interest OR group name
+		# for the features of interest. Input is always list of features "left in",
+		# so we need to flip (setdiff) for the other direction.
+		# And for grouped features we do extra shenanigans to get the group names
+		.foi_chr = function(features) {
+			if (is.null(self$groups)) {
+				switch(
+					self$direction,
+					"leave-in" = unlist(features),
+					"leave-out" = vapply(
+						features,
+						\(x) {
+							setdiff(self$task$feature_names, x)
+						},
+						character(1)
+					)
+				)
+			} else {
+				groups_tbl = private$.groups_tbl()
+				vapply(
+					features,
+					\(x) {
+						if (self$direction == "leave-out") {
+							x = setdiff(self$task$feature_names, x)
+						}
+						feature_chr = paste0(x, collapse = ";")
+						groups_tbl[feature_chr == groups_tbl$features, group]
+					},
+					character(1)
+				)
 			}
 		}
 	)
