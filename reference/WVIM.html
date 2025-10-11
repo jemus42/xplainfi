@@ -104,6 +104,7 @@ corresponds to LOCO (Leave One Covariate Out).</p>
 <span>  <span class="va">measure</span>,</span>
 <span>  resampling <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  features <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  groups <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  direction <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"leave-out"</span>, <span class="st">"leave-in"</span><span class="op">)</span>,</span>
 <span>  label <span class="op">=</span> <span class="st">"Williamson's Variable Importance Measure (WVIM)"</span>,</span>
 <span>  iters_refit <span class="op">=</span> <span class="fl">1L</span></span>
@@ -112,7 +113,7 @@ corresponds to LOCO (Leave One Covariate Out).</p>
 
 <div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>task, learner, measure, resampling, features</code></dt>
+<p></p><div class="arguments"><dl><dt><code>task, learner, measure, resampling, features, groups</code></dt>
 <dd><p>Passed to <code>FeatureImportanceMethod</code> for construction.</p></dd>
 
 

@@ -105,7 +105,17 @@ ISBN 978-3-031-44064-9, <a href="https://doi.org/10.1007/978-3-031-44064-9_24" c
 
 
 <dt><code>features</code></dt>
-<dd><p>(<code>character</code>)</p></dd>
+<dd><p>(<code>character</code>: <code>NULL</code>) Features of interest. By default, importances will be computed for each feature
+in <code>task</code>, but optionally this can be restricted to at least one feature. Ignored if <code>groups</code> is specified.</p></dd>
+
+
+<dt><code>groups</code></dt>
+<dd><p>(<code>list</code>: <code>NULL</code>) A (named) list of features (names or indices as in <code>task</code>).
+If <code>groups</code> is specified, <code>features</code> is ignored.
+Importances will be calculated for group of features at a time, e.g., in <a href="PFI.html">PFI</a> not one but the group of features will be permuted at each step.
+Analogusly in <a href="WVIM.html">WVIM</a>, each group of features will be left out (or in) for each model refit.
+Not all methods support groups (e.g., <a href="SAGE.html">SAGE</a>).
+See FIXME: vignette or examples.</p></dd>
 
 
 <dt><code>param_set</code></dt>
@@ -143,6 +153,7 @@ This is typically intended for use by derived classes.</p><div class="section">
 <span>  <span class="va">measure</span>,</span>
 <span>  resampling <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  features <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  groups <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  param_set <span class="op">=</span> <span class="fu">paradox</span><span class="fu">::</span><span class="fu"><a href="https://paradox.mlr-org.com/reference/ps.html" class="external-link">ps</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  <span class="va">label</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
@@ -150,7 +161,7 @@ This is typically intended for use by derived classes.</p><div class="section">
 
 <div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>task, learner, measure, resampling, features, param_set, label</code></dt>
+<p></p><div class="arguments"><dl><dt><code>task, learner, measure, resampling, features, groups, param_set, label</code></dt>
 <dd><p>Used to set fields</p></dd>
 
 

@@ -6,9 +6,9 @@ articles:
   articles/loco: loco.html
   articles/perturbation-importance: perturbation-importance.html
   articles/sage-methods: sage-methods.html
-  articles/simulation-settings: simulation-settings.html
+  simulation-settings: simulation-settings.html
   xplainfi: xplainfi.html
-last_built: 2025-10-08T15:45Z
+last_built: 2025-10-11T12:05Z
 urls:
   reference: https://jemus42.github.io/xplainfi/reference
   article: https://jemus42.github.io/xplainfi/articles
