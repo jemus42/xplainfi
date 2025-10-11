@@ -140,16 +140,23 @@ PerturbationImportance = R6Class(
 							seq_len(iters_perm),
 							\(iter_perm) {
 								# Predict and score
-								pred_raw = this_learner$predict_newdata_fast(
-									newdata = perturbed_data_list[[iter_perm]],
-									task = self$task
-								)
+								if (is.function(this_learner$predict_newdata_fast)) {
+									pred_raw = this_learner$predict_newdata_fast(
+										newdata = perturbed_data_list[[iter_perm]],
+										task = self$task
+									)
 
-								pred = private$.construct_pred(
-									perturbed_data_list[[iter_perm]],
-									pred_raw,
-									test_row_ids = self$resampling$test_set(iter)
-								)
+									pred = private$.construct_pred(
+										perturbed_data_list[[iter_perm]],
+										pred_raw,
+										test_row_ids = self$resampling$test_set(iter)
+									)
+								} else {
+									pred = this_learner$predict_newdata(
+										newdata = perturbed_data_list[[iter_perm]],
+										task = self$task
+									)
+								}
 
 								data.table::data.table(prediction = list(pred))
 							}
