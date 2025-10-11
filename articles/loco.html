@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>LOCO (Leave-One-Covariate-Out) • xplainfi</title>
+<title>LOCO and WVIM • xplainfi</title>
 <!-- mathjax math --><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script><script>
   window.MathJax = {
     chtml: {
@@ -19,7 +19,7 @@
 <link href="../deps/Roboto_Slab-0.4.10/font.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="LOCO (Leave-One-Covariate-Out)">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="LOCO and WVIM">
 <script defer src="https://umami.jemu.name/script.js" data-website-id="248c8668-4908-4c63-86f7-db0a1b19758a"></script>
 </head>
 <body>
@@ -82,7 +82,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>LOCO (Leave-One-Covariate-Out)</h1>
+      <h1>LOCO and WVIM</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/jemus42/xplainfi/blob/main/vignettes/articles/loco.Rmd" class="external-link"><code>vignettes/articles/loco.Rmd</code></a></small>
@@ -137,8 +137,8 @@ the feature and the full model: <span class="math display">\[\text{LOCO}_j = \ma
 <p>Higher values indicate more important features (larger performance
 drop when removed).</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">task</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_interactions</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
-<span><span class="va">learner</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">task</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_interactions</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
+<span><span class="va">learner</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
 <span><span class="va">measure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Use 3-fold CV for more robust estimates and reuse across comparisons</span></span>
@@ -157,13 +157,13 @@ drop when removed).</p>
 <span><span class="va">loco</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">loco</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;    feature importance</span></span>
-<span><span class="co">#&gt;     &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  noise1 -0.4999140</span></span>
-<span><span class="co">#&gt; 2:  noise2 -0.3927930</span></span>
-<span><span class="co">#&gt; 3:      x1  1.1839253</span></span>
-<span><span class="co">#&gt; 4:      x2  1.5606342</span></span>
-<span><span class="co">#&gt; 5:      x3 -0.2978402</span></span></code></pre></div>
+<span><span class="co">#&gt;    feature  importance</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:  noise1 -0.34934269</span></span>
+<span><span class="co">#&gt; 2:  noise2 -0.37463147</span></span>
+<span><span class="co">#&gt; 3:      x1  1.84361893</span></span>
+<span><span class="co">#&gt; 4:      x2  2.01889198</span></span>
+<span><span class="co">#&gt; 5:      x3 -0.04674861</span></span></code></pre></div>
 <p>The <code>$importance()</code> method returns a
 <code>data.table</code> with aggregated importance scores per
 feature.</p>
@@ -217,121 +217,121 @@ each feature, resampling iteration, and refit:</p>
 <td align="left">noise1</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">3.7691</td>
-<td align="right">3.1484</td>
-<td align="right">-0.6207</td>
+<td align="right">2.5180</td>
+<td align="right">2.2809</td>
+<td align="right">-0.2371</td>
 </tr>
 <tr class="even">
 <td align="left">noise2</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">3.7691</td>
-<td align="right">3.3169</td>
-<td align="right">-0.4522</td>
+<td align="right">2.5180</td>
+<td align="right">2.2329</td>
+<td align="right">-0.2851</td>
 </tr>
 <tr class="odd">
 <td align="left">x1</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">3.7691</td>
-<td align="right">5.2170</td>
-<td align="right">1.4479</td>
+<td align="right">2.5180</td>
+<td align="right">4.2243</td>
+<td align="right">1.7063</td>
 </tr>
 <tr class="even">
 <td align="left">x2</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">3.7691</td>
-<td align="right">4.7842</td>
-<td align="right">1.0151</td>
+<td align="right">2.5180</td>
+<td align="right">4.3361</td>
+<td align="right">1.8181</td>
 </tr>
 <tr class="odd">
 <td align="left">x3</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">3.7691</td>
-<td align="right">3.7613</td>
-<td align="right">-0.0078</td>
+<td align="right">2.5180</td>
+<td align="right">2.7886</td>
+<td align="right">0.2706</td>
 </tr>
 <tr class="even">
 <td align="left">noise1</td>
 <td align="right">2</td>
 <td align="right">1</td>
-<td align="right">3.2927</td>
-<td align="right">2.9212</td>
-<td align="right">-0.3716</td>
+<td align="right">2.2218</td>
+<td align="right">1.9176</td>
+<td align="right">-0.3042</td>
 </tr>
 <tr class="odd">
 <td align="left">noise2</td>
 <td align="right">2</td>
 <td align="right">1</td>
-<td align="right">3.2927</td>
-<td align="right">2.9989</td>
-<td align="right">-0.2938</td>
+<td align="right">2.2218</td>
+<td align="right">1.8923</td>
+<td align="right">-0.3294</td>
 </tr>
 <tr class="even">
 <td align="left">x1</td>
 <td align="right">2</td>
 <td align="right">1</td>
-<td align="right">3.2927</td>
-<td align="right">5.1134</td>
-<td align="right">1.8206</td>
+<td align="right">2.2218</td>
+<td align="right">4.1674</td>
+<td align="right">1.9456</td>
 </tr>
 <tr class="odd">
 <td align="left">x2</td>
 <td align="right">2</td>
 <td align="right">1</td>
-<td align="right">3.2927</td>
-<td align="right">4.9457</td>
-<td align="right">1.6530</td>
+<td align="right">2.2218</td>
+<td align="right">4.2884</td>
+<td align="right">2.0666</td>
 </tr>
 <tr class="even">
 <td align="left">x3</td>
 <td align="right">2</td>
 <td align="right">1</td>
-<td align="right">3.2927</td>
-<td align="right">2.9386</td>
-<td align="right">-0.3541</td>
+<td align="right">2.2218</td>
+<td align="right">2.3361</td>
+<td align="right">0.1144</td>
 </tr>
 <tr class="odd">
 <td align="left">noise1</td>
 <td align="right">3</td>
 <td align="right">1</td>
-<td align="right">4.1785</td>
-<td align="right">3.6710</td>
-<td align="right">-0.5075</td>
+<td align="right">3.5769</td>
+<td align="right">3.0701</td>
+<td align="right">-0.5067</td>
 </tr>
 <tr class="even">
 <td align="left">noise2</td>
 <td align="right">3</td>
 <td align="right">1</td>
-<td align="right">4.1785</td>
-<td align="right">3.7462</td>
-<td align="right">-0.4323</td>
+<td align="right">3.5769</td>
+<td align="right">3.0676</td>
+<td align="right">-0.5093</td>
 </tr>
 <tr class="odd">
 <td align="left">x1</td>
 <td align="right">3</td>
 <td align="right">1</td>
-<td align="right">4.1785</td>
-<td align="right">4.4618</td>
-<td align="right">0.2833</td>
+<td align="right">3.5769</td>
+<td align="right">5.4559</td>
+<td align="right">1.8790</td>
 </tr>
 <tr class="even">
 <td align="left">x2</td>
 <td align="right">3</td>
 <td align="right">1</td>
-<td align="right">4.1785</td>
-<td align="right">6.1924</td>
-<td align="right">2.0139</td>
+<td align="right">3.5769</td>
+<td align="right">5.7489</td>
+<td align="right">2.1720</td>
 </tr>
 <tr class="odd">
 <td align="left">x3</td>
 <td align="right">3</td>
 <td align="right">1</td>
-<td align="right">4.1785</td>
-<td align="right">3.6469</td>
-<td align="right">-0.5316</td>
+<td align="right">3.5769</td>
+<td align="right">3.0517</td>
+<td align="right">-0.5252</td>
 </tr>
 </tbody>
 </table>
@@ -355,11 +355,11 @@ per resampling iteration, which provides variance estimates:</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature importance</span></span>
 <span><span class="co">#&gt;     &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  noise1 -0.2198319</span></span>
-<span><span class="co">#&gt; 2:  noise2 -0.2121191</span></span>
-<span><span class="co">#&gt; 3:      x1  1.3176556</span></span>
-<span><span class="co">#&gt; 4:      x2  1.6139412</span></span>
-<span><span class="co">#&gt; 5:      x3 -0.1106733</span></span>
+<span><span class="co">#&gt; 1:  noise1 -0.4165046</span></span>
+<span><span class="co">#&gt; 2:  noise2 -0.3700696</span></span>
+<span><span class="co">#&gt; 3:      x1  2.2033892</span></span>
+<span><span class="co">#&gt; 4:      x2  1.7538044</span></span>
+<span><span class="co">#&gt; 5:      x3 -0.1532176</span></span>
 <span></span>
 <span><span class="co"># Check individual scores with multiple refits</span></span>
 <span><span class="va">loco_multi</span><span class="op">$</span><span class="fu">scores</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -388,81 +388,81 @@ per resampling iteration, which provides variance estimates:</p>
 <td align="left">noise1</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">3.3328</td>
-<td align="right">3.2041</td>
-<td align="right">-0.1287</td>
+<td align="right">2.1382</td>
+<td align="right">1.7394</td>
+<td align="right">-0.3987</td>
 </tr>
 <tr class="even">
 <td align="left">noise2</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">3.3328</td>
-<td align="right">3.0209</td>
-<td align="right">-0.3119</td>
+<td align="right">2.1382</td>
+<td align="right">1.7472</td>
+<td align="right">-0.3910</td>
 </tr>
 <tr class="odd">
 <td align="left">x1</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">3.3328</td>
-<td align="right">4.2070</td>
-<td align="right">0.8742</td>
+<td align="right">2.1382</td>
+<td align="right">3.9879</td>
+<td align="right">1.8497</td>
 </tr>
 <tr class="even">
 <td align="left">x2</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">3.3328</td>
-<td align="right">4.7843</td>
-<td align="right">1.4514</td>
+<td align="right">2.1382</td>
+<td align="right">3.7278</td>
+<td align="right">1.5896</td>
 </tr>
 <tr class="odd">
 <td align="left">x3</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">3.3328</td>
-<td align="right">3.5040</td>
-<td align="right">0.1712</td>
+<td align="right">2.1382</td>
+<td align="right">2.3643</td>
+<td align="right">0.2262</td>
 </tr>
 <tr class="even">
 <td align="left">noise1</td>
 <td align="right">2</td>
 <td align="right">1</td>
-<td align="right">3.2705</td>
-<td align="right">3.1843</td>
-<td align="right">-0.0862</td>
+<td align="right">3.3253</td>
+<td align="right">2.8634</td>
+<td align="right">-0.4619</td>
 </tr>
 <tr class="odd">
 <td align="left">noise2</td>
 <td align="right">2</td>
 <td align="right">1</td>
-<td align="right">3.2705</td>
-<td align="right">3.0832</td>
-<td align="right">-0.1873</td>
+<td align="right">3.3253</td>
+<td align="right">2.9238</td>
+<td align="right">-0.4014</td>
 </tr>
 <tr class="even">
 <td align="left">x1</td>
 <td align="right">2</td>
 <td align="right">1</td>
-<td align="right">3.2705</td>
-<td align="right">4.6521</td>
-<td align="right">1.3817</td>
+<td align="right">3.3253</td>
+<td align="right">6.1709</td>
+<td align="right">2.8456</td>
 </tr>
 <tr class="odd">
 <td align="left">x2</td>
 <td align="right">2</td>
 <td align="right">1</td>
-<td align="right">3.2705</td>
-<td align="right">4.4735</td>
-<td align="right">1.2030</td>
+<td align="right">3.3253</td>
+<td align="right">5.1435</td>
+<td align="right">1.8182</td>
 </tr>
 <tr class="even">
 <td align="left">x3</td>
 <td align="right">2</td>
 <td align="right">1</td>
-<td align="right">3.2705</td>
-<td align="right">3.3208</td>
-<td align="right">0.0503</td>
+<td align="right">3.3253</td>
+<td align="right">2.8671</td>
+<td align="right">-0.4581</td>
 </tr>
 </tbody>
 </table>
@@ -494,11 +494,11 @@ different aspects of feature importance:</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature importance_mse importance_mae</span></span>
 <span><span class="co">#&gt;     &lt;char&gt;          &lt;num&gt;          &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  noise1     -0.4999140    -0.09590155</span></span>
-<span><span class="co">#&gt; 2:  noise2     -0.3927930    -0.08658274</span></span>
-<span><span class="co">#&gt; 3:      x1      1.1839253     0.21180346</span></span>
-<span><span class="co">#&gt; 4:      x2      1.5606342     0.23914601</span></span>
-<span><span class="co">#&gt; 5:      x3     -0.2978402     0.10076935</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:  noise1    -0.34934269    -0.08076442</span></span>
+<span><span class="co">#&gt; 2:  noise2    -0.37463147    -0.07994970</span></span>
+<span><span class="co">#&gt; 3:      x1     1.84361893     0.36851547</span></span>
+<span><span class="co">#&gt; 4:      x2     2.01889198     0.37336362</span></span>
+<span><span class="co">#&gt; 5:      x3    -0.04674861     0.10887527</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="comparison-with-perturbation-methods">Comparison with Perturbation Methods<a class="anchor" aria-label="anchor" href="#comparison-with-perturbation-methods"></a>
@@ -525,13 +525,13 @@ model (faster)</li>
 <span></span>
 <span><span class="va">comparison</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;    feature       loco        pfi</span></span>
-<span><span class="co">#&gt;     &lt;char&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  noise1 -0.4999140 0.05659903</span></span>
-<span><span class="co">#&gt; 2:  noise2 -0.3927930 0.01409201</span></span>
-<span><span class="co">#&gt; 3:      x1  1.1839253 1.09869340</span></span>
-<span><span class="co">#&gt; 4:      x2  1.5606342 1.57548383</span></span>
-<span><span class="co">#&gt; 5:      x3 -0.2978402 1.44143368</span></span></code></pre></div>
+<span><span class="co">#&gt;    feature        loco         pfi</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:  noise1 -0.34934269 -0.01400716</span></span>
+<span><span class="co">#&gt; 2:  noise2 -0.37463147  0.09424535</span></span>
+<span><span class="co">#&gt; 3:      x1  1.84361893  2.06667340</span></span>
+<span><span class="co">#&gt; 4:      x2  2.01889198  2.15522497</span></span>
+<span><span class="co">#&gt; 5:      x3 -0.04674861  2.11235347</span></span></code></pre></div>
 <p><strong>Note:</strong> Using the same instantiated resampling ensures
 we evaluate both methods on identical train/test splits. Even so,
 stochastic learners like <code>ranger</code> will produce slightly
@@ -544,15 +544,21 @@ values at prediction time.</p>
 <div class="section level2">
 <h2 id="wvim-the-general-framework">WVIM: The General Framework<a class="anchor" aria-label="anchor" href="#wvim-the-general-framework"></a>
 </h2>
-<p>LOCO is actually a special case of Williamson’s Variable Importance
-Measure (WVIM), which provides a general formulation for refit-based
-feature importance. WVIM uses feature selection design matrices to
-specify which features should be included or excluded.</p>
+<p>LOCO is a special case of what Ewald et al. refer to as “Williamson’s
+Variable Importance Measure” (WVIM), which provides a general
+formulation for refit-based feature importance. WVIM allows both one or
+more feature of interest at a time, meaning that via the
+<code>groups</code> argument features can be assigned groups which will
+always be “left out” or “left in” together. It also as a
+<code>direction</code> argument, specifying whether features are left
+out or in.</p>
 <div class="section level3">
 <h3 id="replicating-loco-with-wvim">Replicating LOCO with WVIM<a class="anchor" aria-label="anchor" href="#replicating-loco-with-wvim"></a>
 </h3>
 <p>We can manually replicate LOCO using WVIM’s <code>"leave-out"</code>
-direction:</p>
+direction. Since <code>features</code> is specified rather than
+<code>groups</code>, each feature well be left out one at a time,
+resulting in the LOCO procedure.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create WVIM instance (LOCO's parent class) using same resampling</span></span>
 <span><span class="va">wvim_loco</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/WVIM.html">WVIM</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
@@ -574,13 +580,13 @@ direction:</p>
 <span></span>
 <span><span class="va">comparison_wvim</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;    feature       loco       wvim</span></span>
-<span><span class="co">#&gt;     &lt;char&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  noise1 -0.4999140 -0.4256475</span></span>
-<span><span class="co">#&gt; 2:  noise2 -0.3927930 -0.3124375</span></span>
-<span><span class="co">#&gt; 3:      x1  1.1839253  1.2834096</span></span>
-<span><span class="co">#&gt; 4:      x2  1.5606342  1.5973271</span></span>
-<span><span class="co">#&gt; 5:      x3 -0.2978402 -0.1209562</span></span></code></pre></div>
+<span><span class="co">#&gt;    feature        loco        wvim</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:  noise1 -0.34934269 -0.33681664</span></span>
+<span><span class="co">#&gt; 2:  noise2 -0.37463147 -0.33799542</span></span>
+<span><span class="co">#&gt; 3:      x1  1.84361893  1.84817713</span></span>
+<span><span class="co">#&gt; 4:      x2  2.01889198  1.99826149</span></span>
+<span><span class="co">#&gt; 5:      x3 -0.04674861 -0.05849218</span></span></code></pre></div>
 <p><strong>Note:</strong> To get comparable results between methods, we
 must use the same instantiated resampling. Even then, stochastic
 learners like <code>ranger</code> will produce slightly different
@@ -614,19 +620,19 @@ trivial to compute if desired:</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature importance</span></span>
 <span><span class="co">#&gt;     &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  noise1 -1.3490393</span></span>
-<span><span class="co">#&gt; 2:  noise2 -1.8524246</span></span>
-<span><span class="co">#&gt; 3:      x1 -2.2282746</span></span>
-<span><span class="co">#&gt; 4:      x2 -1.9016513</span></span>
-<span><span class="co">#&gt; 5:      x3 -0.5280345</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:  noise1 -1.2802375</span></span>
+<span><span class="co">#&gt; 2:  noise2 -1.5113764</span></span>
+<span><span class="co">#&gt; 3:      x1 -1.6304441</span></span>
+<span><span class="co">#&gt; 4:      x2 -2.4483510</span></span>
+<span><span class="co">#&gt; 5:      x3 -0.1278984</span></span></code></pre></div>
 <p>LOCI interprets importance differently from LOCO:</p>
 <ul>
 <li>
 <strong>LOCO</strong>: “How much does performance degrade when this
-feature is removed from the full model?”</li>
+feature is removed from the <em>full model</em>?”</li>
 <li>
 <strong>LOCI</strong>: “How much does this feature alone improve
-over a featureless baseline?”</li>
+over a <em>featureless baseline</em>?”</li>
 </ul>
 <p>For our interaction data where <span class="math inline">\(y = 2
 \cdot x_1 \cdot x_2 + x_3 + \epsilon\)</span>:</p>
@@ -648,6 +654,190 @@ be expected to learn any meaningful relations based on one training with
 onle one feature. This hopefully showcases that LOCI is primarily
 “useful” as a teaching exercise, rather than a meaningful importance
 measure.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="wvim-with-feature-groups">WVIM with Feature Groups<a class="anchor" aria-label="anchor" href="#wvim-with-feature-groups"></a>
+</h2>
+<p>While LOCO measures the importance of individual features, WVIM
+generalizes this to arbitrary feature groups. This allows us to measure
+the collective importance of sets of features.</p>
+<div class="section level3">
+<h3 id="understanding-feature-groups">Understanding Feature Groups<a class="anchor" aria-label="anchor" href="#understanding-feature-groups"></a>
+</h3>
+<p>Feature groups are useful when:</p>
+<ul>
+<li>Features are naturally related (e.g., dummy-encoded categorical
+variables)</li>
+<li>You want to measure the importance of feature subsets</li>
+<li>Features have known functional relationships</li>
+</ul>
+<p>Let’s create groups from our interaction data:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Define feature groups</span></span>
+<span><span class="va">groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    interaction_pair <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span>, <span class="co"># Features that interact</span></span>
+<span>    main_effect <span class="op">=</span> <span class="st">"x3"</span>, <span class="co"># Feature with direct effect</span></span>
+<span>    noise_features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"noise1"</span>, <span class="st">"noise2"</span><span class="op">)</span> <span class="co"># Pure noise</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">groups</span></span>
+<span><span class="co">#&gt; $interaction_pair</span></span>
+<span><span class="co">#&gt; [1] "x1" "x2"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $main_effect</span></span>
+<span><span class="co">#&gt; [1] "x3"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $noise_features</span></span>
+<span><span class="co">#&gt; [1] "noise1" "noise2"</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="wvim-with-leave-out-direction">WVIM with Leave-Out Direction<a class="anchor" aria-label="anchor" href="#wvim-with-leave-out-direction"></a>
+</h3>
+<p>Using <code>direction = "leave-out"</code>, WVIM computes the
+importance of each group by measuring performance when that entire group
+is removed:</p>
+<p><span class="math display">\[\text{WVIM}_{\text{group}} =
+\mathbb{E}(L(Y, f_{-\text{group}}(X_{-\text{group}}))) - \mathbb{E}(L(Y,
+f(X)))\]</span></p>
+<p>This compares the model without the group to the full model.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">wvim_groups_out</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/WVIM.html">WVIM</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>    task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>    groups <span class="op">=</span> <span class="va">groups</span>,</span>
+<span>    direction <span class="op">=</span> <span class="st">"leave-out"</span>,</span>
+<span>    resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>    iters_refit <span class="op">=</span> <span class="fl">10</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">wvim_groups_out</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">wvim_groups_out</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;             feature importance</span></span>
+<span><span class="co">#&gt;              &lt;char&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: interaction_pair  1.8030094</span></span>
+<span><span class="co">#&gt; 2:      main_effect -0.1962295</span></span>
+<span><span class="co">#&gt; 3:   noise_features -0.3016257</span></span></code></pre></div>
+<p><strong>Interpretation:</strong></p>
+<ul>
+<li>
+<code>interaction_pair</code> (x1, x2) shows the joint contribution
+of the interacting features</li>
+<li>
+<code>main_effect</code> (x3) shows the contribution of the direct
+effect</li>
+<li>
+<code>noise_features</code> should show near-zero or negative
+importance</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="wvim-with-leave-in-direction">WVIM with Leave-In Direction<a class="anchor" aria-label="anchor" href="#wvim-with-leave-in-direction"></a>
+</h3>
+<p>Using <code>direction = "leave-in"</code>, WVIM trains models with
+only each group and compares to a featureless baseline:</p>
+<p><span class="math display">\[\text{WVIM}_{\text{group}} =
+\mathbb{E}(L(Y, f_{\emptyset})) - \mathbb{E}(L(Y,
+f_{\text{group}}(X_{\text{group}})))\]</span></p>
+<p>This measures how much each group alone improves over having no
+features.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">wvim_groups_in</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/WVIM.html">WVIM</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>    task <span class="op">=</span> <span class="va">task</span>,</span>
+<span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
+<span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
+<span>    groups <span class="op">=</span> <span class="va">groups</span>,</span>
+<span>    direction <span class="op">=</span> <span class="st">"leave-in"</span>,</span>
+<span>    resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">wvim_groups_in</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">wvim_groups_in</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;             feature  importance</span></span>
+<span><span class="co">#&gt;              &lt;char&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: interaction_pair  3.31141622</span></span>
+<span><span class="co">#&gt; 2:      main_effect -0.05618814</span></span>
+<span><span class="co">#&gt; 3:   noise_features -0.46256742</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="comparing-leave-out-vs-leave-in-for-groups">Comparing Leave-Out vs Leave-In for Groups<a class="anchor" aria-label="anchor" href="#comparing-leave-out-vs-leave-in-for-groups"></a>
+</h3>
+<p>The key difference between the two directions is the baseline model
+used for comparison:</p>
+<ul>
+<li>
+<strong>Leave-out</strong>: Baseline is the <strong>full
+model</strong> with all features
+<ul>
+<li>Measures: “What do we lose by removing this group?”</li>
+<li>Higher values → group is more important to overall model
+performance</li>
+</ul>
+</li>
+<li>
+<strong>Leave-in</strong>: Baseline is the <strong>empty
+model</strong> without any features
+<ul>
+<li>Measures: “What do we gain by using only this group?”</li>
+<li>Higher values → group alone provides better prediction than
+baseline</li>
+</ul>
+</li>
+</ul>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">comparison_directions</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span></span>
+<span>    <span class="va">wvim_groups_out</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, leave_out <span class="op">=</span> <span class="va">importance</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>    <span class="va">wvim_groups_in</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, leave_in <span class="op">=</span> <span class="va">importance</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>    by <span class="op">=</span> <span class="st">"feature"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">comparison_directions</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;             feature  leave_out    leave_in</span></span>
+<span><span class="co">#&gt;              &lt;char&gt;      &lt;num&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: interaction_pair  1.8030094  3.31141622</span></span>
+<span><span class="co">#&gt; 2:      main_effect -0.1962295 -0.05618814</span></span>
+<span><span class="co">#&gt; 3:   noise_features -0.3016257 -0.46256742</span></span></code></pre></div>
+<p>For our interaction data where <span class="math inline">\(y = 2
+\cdot x_1 \cdot x_2 + x_3 + \epsilon\)</span>:</p>
+<ul>
+<li>
+<strong>Leave-out</strong> captures how much each group contributes
+to the full model</li>
+<li>
+<strong>Leave-in</strong> shows that the <code>main_effect</code>
+group (x3) provides substantial prediction alone, while the
+<code>interaction_pair</code> (x1, x2) has limited predictive power in
+isolation</li>
+</ul>
+<p>This highlights a key insight: features that interact strongly may
+show high importance in leave-out (they matter for the full model) but
+low importance in leave-in (they don’t work well alone).</p>
+</div>
+<div class="section level3">
+<h3 id="practical-considerations">Practical Considerations<a class="anchor" aria-label="anchor" href="#practical-considerations"></a>
+</h3>
+<p><strong>When to use feature groups:</strong></p>
+<ul>
+<li>Analyzing categorical variables (group all dummy columns
+together)</li>
+<li>Testing domain-specific feature sets (e.g., “demographic features”,
+“behavioral features”)</li>
+<li>Measuring importance of feature engineering transformations
+collectively</li>
+</ul>
+<p><strong>Computational cost:</strong></p>
+<ul>
+<li>WVIM requires retraining the model for each group in each resampling
+fold</li>
+<li>With groups, this is more efficient than analyzing features
+individually</li>
+<li>Use <code>iters_refit</code> parameter to control the number of
+refits per fold for variance estimation</li>
+</ul>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
