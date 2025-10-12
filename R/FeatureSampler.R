@@ -26,9 +26,13 @@ FeatureSampler = R6Class(
 		#' @description
 		#' Sample values for feature(s)
 		#' @param feature (`character`) Feature name(s) to sample (can be single or multiple)
-		#' @param data ([`data.table`][data.table::data.table] ) Data to use for sampling context
+		#' @param row_ids (`integer()`: `NULL`) Row IDs of the stored [Task][mlr3::Task] to use as basis for sampling.
 		#' @return Modified copy of the input data with the feature(s) sampled
-		sample = function(feature, data) {
+		sample = function(feature, row_ids = NULL) {
+			stop("Abstract method. Use a concrete implementation.")
+		},
+
+		sample_newdata = function(feature, newdata) {
 			stop("Abstract method. Use a concrete implementation.")
 		},
 
@@ -54,7 +58,7 @@ FeatureSampler = R6Class(
 #' task = tgen("2dnormals")$generate(n = 100)
 #' sampler = MarginalSampler$new(task)
 #' data = task$data()
-#' sampled_data = sampler$sample("x1", data)
+#' sampled_data = sampler$sample("x1")
 MarginalSampler = R6Class(
 	"MarginalSampler",
 	inherit = FeatureSampler,
@@ -68,13 +72,29 @@ MarginalSampler = R6Class(
 		},
 
 		#' @description
-		#' Sample values for feature(s) by permutation (marginal distribution)
+		#' Sample values for feature(s) by permutation (marginal distribution) using the stored task
 		#' @param feature (`character`) Feature name(s) to sample (can be single or multiple)
-		#' @param data ([`data.table`][data.table::data.table] ) Data to permute the feature(s) in
+		#' @param row_ids (`integer()`: `NULL`) Row IDs of the stored [Task][mlr3::Task] to use as basis for sampling.
+		#'   If `NULL`, all rows of the stored tasks are used.
 		#' @return Modified copy of the input data with the feature(s) permuted
-		sample = function(feature, data) {
+		sample = function(feature, row_ids = NULL) {
+			if (is.null(row_ids)) {
+				row_ids = self$task$row_ids
+			}
+			data_copy = self$task$data(rows = row_ids)
+
+			# Handle both single and multiple features efficiently
+			data_copy[, (feature) := lapply(.SD, sample), .SDcols = feature]
+
+			data_copy[]
+		},
+		#' @description
+		#' Sample values for feature(s) by permutation (marginal distribution) using external data
+		#' @param feature (`character`) Feature name(s) to sample (can be single or multiple)
+		#' @param newdata ([`data.table`][data.table::data.table] ) External data to use for sampling.
+		sample_newdata = function(feature, newdata) {
 			# Create a copy to avoid modifying the original data
-			data_copy = data.table::copy(data)
+			data_copy = data.table::copy(newdata)
 
 			# Handle both single and multiple features efficiently
 			data_copy[, (feature) := lapply(.SD, sample), .SDcols = feature]
@@ -109,13 +129,27 @@ ConditionalSampler = R6Class(
 		},
 
 		#' @description
-		#' Sample values for feature(s) conditionally on other features
+		#' Sample values for feature(s) conditionally on other features using the stored task
 		#' @param feature (`character`) Feature name(s) to sample (can be single or multiple)
-		#' @param data ([`data.table`][data.table::data.table] ) Data containing conditioning features
+		#' @param row_ids (`integer()`: `NULL`) Row IDs of the stored [Task][mlr3::Task] to use as basis for sampling.
+		#'   If `NULL`, all rows of the stored tasks are used.
 		#' @param conditioning_set ([character]) Features to condition on (default: all other features)
 		#' @return Modified copy of the input data with the feature(s) sampled conditionally
-		sample = function(feature, data, conditioning_set = NULL) {
+		sample = function(feature, row_ids, conditioning_set = NULL) {
 			stop("Abstract method. Use a concrete implementation like ARFSampler.")
+		},
+
+		#' @description
+		#' Sample values for feature(s) conditionally on other features using external data
+		#' @param feature (`character`) Feature name(s) to sample (can be single or multiple)
+		#' @param newdata ([`data.table`][data.table::data.table] ) Data containing conditioning features
+		#' @param conditioning_set ([character]) Features to condition on (default: all other features)
+		#' @return Modified copy of the input data with the feature(s) sampled conditionally
+		sample_newdata = function(feature, newdata, conditioning_set = NULL) {
+			cli::cli_abort(c(
+				"Not implemented.",
+				i = "Only some sampler (e.g. {.cls ARFSampler}) support sampling using external data."
+			))
 		}
 	)
 )
@@ -160,21 +194,25 @@ ARFSampler = R6Class(
 		#' To fit the ARF in parallel, set `arf_args = list(parallel = TRUE)` and register a parallel backend (see [arf::arf]).
 		#' @param task ([mlr3::Task]) Task to sample from
 		#' @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`. This parameter only affects the sampling behavior, not the ARF model fitting.
-		#' @param finite_bounds (`character(1)`: `"no"`) Passed to `arf::forde()`. Default is `"no"` for compatibility. `"local"` may improve extrapolation but can cause issues with some data.
-		#' @param round (`logical(1)`: `TRUE`) Whether to round continuous variables back to their original precision.
+		#' @param finite_bounds (`character(1)`: `"no"`) Passed to [arf::forde]. Default is `"no"` for compatibility. `"local"` may improve extrapolation but can cause issues with some data.
 		#' @param stepsize (`numeric(1)`: `0`) Number of rows of evidence to process at a time wehn `parallel` is `TRUE`. Default (`0`) spreads evidence evenly over registered workers.
-		#' @param verbose (`logical(1)`: `FALSE`) Whether to print progress messages. Default is `FALSE` but default in `arf` is `TRUE`.
+		#' @param epsilon (`numeric(1)`: `0`) Passed to [arf::forde]. Slack parameter for when `finite_bounds != "no"`.
+		#' @param min_node_size (`integer(1)`: `2L`): Passed to [arf::adversarial_rf].
+		#' @param num_trees (`integer(1)`: `10L`): Passed to [arf::adversarial_rf].
+		#' @param round (`logical(1)`: `TRUE`) Whether to round continuous variables back to their original precision.
 		#' @param parallel (`logical(1)`: `FALSE`) Whether to use parallel processing via `foreach`. See examples in [arf::forge()].
-		#' @param arf_args ([list]) Additional passed to `arf::adversarial_rf`.
+		#' @param verbose (`logical(1)`: `FALSE`) Whether to print progress messages. Default is `FALSE` but default in `arf` is `TRUE`.
 		initialize = function(
 			task,
 			conditioning_set = NULL,
 			finite_bounds = "no",
 			round = TRUE,
 			stepsize = 0,
+			epsilon = 0,
 			verbose = FALSE,
 			parallel = FALSE,
-			arf_args = NULL
+			num_trees = 10L,
+			min_node_size = 2L
 		) {
 			super$initialize(task)
 			self$label = "Adversarial Random Forest sampler"
@@ -214,12 +252,19 @@ ARFSampler = R6Class(
 
 			# Train ARF and estimate distribution parameters
 
-			self$arf_model = arf::adversarial_rf(x = task_data, verbose = verbose, parallel = parallel)
+			self$arf_model = arf::adversarial_rf(
+				x = task_data,
+				num_trees = num_trees,
+				min_node_size = min_node_size,
+				verbose = verbose,
+				parallel = parallel,
+				replace = FALSE
+			)
 			self$psi = arf::forde(
 				arf = self$arf_model,
 				x = task_data,
 				finite_bounds = finite_bounds,
-				epsilon = 0.1, # Conservative value for finite_bounds = "local"
+				epsilon = epsilon, # Conservative value for finite_bounds = "local"
 				parallel = parallel
 			)
 		},
@@ -227,7 +272,8 @@ ARFSampler = R6Class(
 		#' @description
 		#' Sample values for feature(s) conditionally on other features using ARF
 		#' @param feature (`character`) Feature(s) of interest to sample (can be single or multiple)
-		#' @param data ([`data.table`][data.table::data.table]) Data containing conditioning features. Defaults to `$task$data()`, but typically a dedicated test set is provided.
+		#' @param row_ids (`integer()`: `NULL`) Row IDs of the stored [Task][mlr3::Task] to use as basis for sampling.
+		#'   If `NULL`, all rows of the stored tasks are used.
 		#' @param conditioning_set (`character(n) | NULL`) Features to condition on. If `NULL`, uses the stored parameter if available, otherwise defaults to all other features.
 		#' @param round (`logical(1) | NULL`) Whether to round continuous variables. If `NULL`, uses the stored parameter value.
 		#' @param stepsize (`numeric(1) | NULL`) Step size for variance adjustment. If `NULL`, uses the stored parameter value.
@@ -237,7 +283,7 @@ ARFSampler = R6Class(
 		#' @return Modified copy of the input data with the feature(s) sampled conditionally
 		sample = function(
 			feature,
-			data = self$task$data(),
+			row_ids = NULL,
 			conditioning_set = NULL,
 			round = NULL,
 			stepsize = NULL,
@@ -245,9 +291,67 @@ ARFSampler = R6Class(
 			parallel = NULL,
 			...
 		) {
-			# Create a copy to avoid modifying the original data
-			data_copy = data.table::copy(data)
+			if (is.null(row_ids)) {
+				row_ids = self$task$row_ids
+			}
+			data_copy = self$task$data(rows = row_ids)
 
+			private$.sample_arf(
+				feature = feature,
+				data = data_copy,
+				conditioning_set = conditioning_set,
+				round = round,
+				stepsize = stepsize,
+				verbose = verbose,
+				parallel = parallel,
+				...
+			)
+		},
+		#' Sample values for feature(s) conditionally on other features using ARF
+		#' @param feature (`character`) Feature(s) of interest to sample (can be single or multiple)
+		#' @param newdata ([`data.table`][data.table::data.table]) Data containing conditioning features. Defaults to `$task$data()`, but typically a dedicated test set is provided.
+		#' @param conditioning_set (`character(n) | NULL`) Features to condition on. If `NULL`, uses the stored parameter if available, otherwise defaults to all other features.
+		#' @param round (`logical(1) | NULL`) Whether to round continuous variables. If `NULL`, uses the stored parameter value.
+		#' @param stepsize (`numeric(1) | NULL`) Step size for variance adjustment. If `NULL`, uses the stored parameter value.
+		#' @param verbose (`logical(1) | NULL`) Whether to print progress messages. If `NULL`, uses the stored parameter value.
+		#' @param parallel (`logical(1) | NULL`) Whether to use parallel processing. If `NULL`, uses the stored parameter value.
+		#' @param ... Further arguments passed to `arf::forge()`.
+		#' @return Modified copy of the input data with the feature(s) sampled conditionally
+		sample_newdata = function(
+			feature,
+			newdata,
+			conditioning_set = NULL,
+			round = NULL,
+			stepsize = NULL,
+			verbose = NULL,
+			parallel = NULL,
+			...
+		) {
+			data_copy = data.table::copy(newdata)
+
+			private$.sample_arf(
+				feature = feature,
+				data = data_copy,
+				conditioning_set = conditioning_set,
+				round = round,
+				stepsize = stepsize,
+				verbose = verbose,
+				parallel = parallel,
+				...
+			)
+		}
+	),
+	private = list(
+		.sample_arf = function(
+			feature,
+			data,
+			conditioning_set = NULL,
+			round = NULL,
+			stepsize = NULL,
+			verbose = NULL,
+			parallel = NULL,
+			...
+		) {
 			# Determine conditioning set
 			# Priority: 1) function argument, 2) stored param_set value, 3) default (all other features)
 			conditioning_set = resolve_param(
@@ -282,7 +386,7 @@ ARFSampler = R6Class(
 					i = "Conditioning set is {.val {conditioning_set}}"
 				))
 			}
-
+			# browser()
 			# Generate conditional samples
 			synthetic = arf::forge(
 				params = self$psi,
@@ -300,9 +404,9 @@ ARFSampler = R6Class(
 
 			# Replace the feature(s) with sampled values using .SDcols pattern
 			# Both "separate" and "or" modes now return exactly nrow(data) samples
-			data_copy[, (feature) := synthetic[, .SD, .SDcols = feature]]
+			data[, (feature) := synthetic[, .SD, .SDcols = feature]]
 
-			data_copy[]
+			data[]
 		}
 	)
 )
@@ -375,32 +479,28 @@ KnockoffSampler = R6Class(
 			# Create knockoff matrix, features only
 			# TODO: Needs assertion on feature types but depends on knockoff_fun
 			self$x_tilde = as.data.table(knockoff_fun(self$task$data(cols = self$task$feature_names)))
+			checkmate::assert_subset(colnames(self$x_tile), self$task$feature_names)
+			checkmate::assert_true(nrow(self$x_tilde) == self$task$nrow)
 		},
 
 		#' @description
 		#' Sample values for feature(s) conditionally on other features using Knockoffs
 		#' @param feature (`character`) Feature(s) of interest to sample (can be single or multiple)
-		#' @param data ([`data.table`][data.table::data.table]) Data containing conditioning features. Defaults to `$task$data()`, but typically a dedicated test set is provided. Currently `KnockoffSampler` does not support this, use [ARFSampler] instead.
+		#' @param row_ids (`integer()`: `NULL`) Row IDs of the stored [Task][mlr3::Task] to use as basis for sampling.
+		#'   If `NULL`, all rows of the stored tasks are used.
 		#' @return Modified copy of the input data with the feature(s) sampled conditionally
 		sample = function(
 			feature,
-			data = self$task$data()
+			row_ids = NULL
 		) {
-			# Create a copy to avoid modifying the original data
-			data_copy = data.table::copy(data)
-
-			# Replace the feature(s) with knockoffs
-
-			# TODO: x_tilde and data issue https://github.com/jemus42/xplainfi/issues/18
-			if (nrow(data) != nrow(self$x_tilde)) {
-				cli::cli_warn(
-					"{.val data} has {.val {nrow(data)}} rows but {.val x_tilde} has {.val {nrow(self$x_tilde)}} rows"
-				)
+			if (is.null(row_ids)) {
+				row_ids = self$task$row_ids
 			}
+			data_copy = self$task$data(rows = row_ids)
 
-			# Saubsample knockoff feature to match input?
+			# Saubsample knockoff matrix (DT) to match input
 			data_copy[,
-				(feature) := self$x_tilde[, .SD, .SDcols = feature]
+				(feature) := self$x_tilde[row_ids, .SD, .SDcols = feature]
 			]
 
 			data_copy[]

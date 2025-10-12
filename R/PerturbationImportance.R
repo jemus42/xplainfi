@@ -97,8 +97,8 @@ PerturbationImportance = R6Class(
 			all_preds = lapply(seq_len(self$resampling$iters), \(iter) {
 				# Extract the learner here once because apparently reassembly is expensive
 				this_learner = self$resample_result$learners[[iter]]
-
-				test_dt = self$task$data(rows = self$resampling$test_set(iter))
+				test_row_ids = self$resampling$test_set(iter)
+				test_size = length(test_row_ids)
 
 				# Update progress bar.
 				# if (xplain_opt("progress")) {
@@ -122,18 +122,15 @@ PerturbationImportance = R6Class(
 						# foi can be one or more feature names
 						# We also try to minimize the number of times we call $sample(),
 						# so we get the perturbed data for all iters_perm at once
-						test_dt_batch = data.table::rbindlist(replicate(
-							n = iters_perm,
-							test_dt,
-							simplify = FALSE
-						))
-						perturbed_data = sampler$sample(foi, test_dt_batch)
+						test_row_ids_replicated = rep.int(test_row_ids, times = iters_perm)
+						perturbed_data = sampler$sample(foi, row_ids = test_row_ids_replicated)
+
 						# ... and then we split it in a list again to make it easier
 						# to retrieve the correct data for any particular iter_perm
 						# to avoid having to juggle indices with obligatory off-by-one errors or whatever
 						perturbed_data_list <- split(
 							perturbed_data,
-							rep(1:(nrow(perturbed_data) / nrow(test_dt)), each = nrow(test_dt))
+							rep(1:(nrow(perturbed_data) / test_size), each = test_size)
 						)
 
 						pred_per_perm = lapply(
@@ -158,7 +155,7 @@ PerturbationImportance = R6Class(
 									)
 								}
 
-								data.table::data.table(prediction = list(pred))
+								data.table(prediction = list(pred))
 							}
 						)
 
@@ -167,12 +164,12 @@ PerturbationImportance = R6Class(
 					}
 				)
 				# When groups are defined, "feature" is the group name
-				# mild misnomever for convenience because if-else'ing the column name is annoying
-				data.table::rbindlist(pred_per_feature, idcol = "feature")
+				# mild misnomer for convenience because if-else'ing the column name is annoying
+				rbindlist(pred_per_feature, idcol = "feature")
 			})
 
 			# Append iteration id for resampling
-			all_preds = data.table::rbindlist(all_preds, idcol = "iter_rsmp")
+			all_preds = rbindlist(all_preds, idcol = "iter_rsmp")
 			# setkeyv(all_preds, cols = c("feature", "iter_rsmp"))
 
 			# store predictions for future reference maybe?
