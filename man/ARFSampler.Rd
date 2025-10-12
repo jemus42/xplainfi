@@ -19,13 +19,15 @@ library(mlr3)
 task = tgen("2dnormals")$generate(n = 100)
 # Create sampler with default parameters
 sampler = ARFSampler$new(task, conditioning_set = "x2", verbose = FALSE)
+# Sample using row_ids from stored task
+sampled_data = sampler$sample("x1")
+# Or use external data
 data = task$data()
-# Will use the stored parameters
-sampled_data = sampler$sample("x1", data)
+sampled_data_ext = sampler$sample_newdata("x1", newdata = data)
 
 # Example with custom parameters
 sampler_custom = ARFSampler$new(task, round = FALSE)
-sampled_custom = sampler_custom$sample("x1", data)
+sampled_custom = sampler_custom$sample("x1")
 \dontshow{\}) # examplesIf}
 }
 \references{

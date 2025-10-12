@@ -11,8 +11,11 @@ is sampled independently of other features
 library(mlr3)
 task = tgen("2dnormals")$generate(n = 100)
 sampler = MarginalSampler$new(task)
-data = task$data()
+# Sample using row_ids from stored task
 sampled_data = sampler$sample("x1")
+# Or use external data
+data = task$data()
+sampled_data_ext = sampler$sample_newdata("x1", newdata = data)
 }
 \section{Super class}{
 \code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{MarginalSampler}

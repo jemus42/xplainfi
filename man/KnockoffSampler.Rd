@@ -15,7 +15,7 @@ library(mlr3)
 task = tgen("2dnormals")$generate(n = 100)
 # Create sampler with default parameters
 sampler = KnockoffSampler$new(task)
-# Will use the stored parameters
+# Sample using row_ids from stored task
 sampled_data = sampler$sample("x1")
 \dontrun{
 # Example with sequential knockoffs (https://github.com/kormama1/seqknockoff)

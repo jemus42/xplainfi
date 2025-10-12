@@ -49,7 +49,7 @@ Creates a new instance of the FeatureSampler class
 \if{html}{\out{<a id="method-FeatureSampler-sample"></a>}}
 \if{latex}{\out{\hypertarget{method-FeatureSampler-sample}{}}}
 \subsection{Method \code{sample()}}{
-Sample values for feature(s)
+Sample values for feature(s) from stored task
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{FeatureSampler$sample(feature, row_ids = NULL)}\if{html}{\out{</div>}}
 }
@@ -71,10 +71,20 @@ Modified copy of the input data with the feature(s) sampled
 \if{html}{\out{<a id="method-FeatureSampler-sample_newdata"></a>}}
 \if{latex}{\out{\hypertarget{method-FeatureSampler-sample_newdata}{}}}
 \subsection{Method \code{sample_newdata()}}{
+Sample values for feature(s) using external data
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{FeatureSampler$sample_newdata(feature, newdata)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{feature}}{(\code{character}) Feature name(s) to sample (can be single or multiple)}
+
+\item{\code{newdata}}{(\code{\link[data.table:data.table]{data.table}} ) External data to use for sampling.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-FeatureSampler-print"></a>}}
