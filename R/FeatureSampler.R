@@ -602,7 +602,7 @@ KnockoffGaussianSampler = R6Class(
 #'
 #' @export
 KnockoffSequentialSampler = R6Class(
-	"KnockoffGaussianSampler",
+	"KnockoffSequentialSampler",
 	inherit = KnockoffSampler,
 	public = list(
 		#' @field x_tilde Knockoff matrix
