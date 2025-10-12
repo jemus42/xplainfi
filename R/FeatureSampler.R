@@ -535,3 +535,93 @@ KnockoffSampler = R6Class(
 		}
 	)
 )
+
+
+#' @title Gaussian Knockoff Conditional Sampler
+#'
+#' @description
+#' A [KnockoffSampler] defaulting to second-order Gaussian knockoffs
+#' as created by [knockoff::create.second_order].
+#'
+#' @details
+#' This is equivalent to [KnockoffSampler] using the default `knockoff_fun`.
+#'
+#' @examplesIf requireNamespace("knockoff", quietly = TRUE)
+#' library(mlr3)
+#' task = tgen("2dnormals")$generate(n = 100)
+#' # Create sampler
+#' sampler = KnockoffGaussianSampler$new(task)
+#' # Sample using row_ids from stored task
+#' sampled_data = sampler$sample("x1")
+#' @references `r print_bib("watson_2021", "blesch_2023")`
+#'
+#' @export
+KnockoffGaussianSampler = R6Class(
+	"KnockoffGaussianSampler",
+	inherit = KnockoffSampler,
+	public = list(
+		#' @field x_tilde Knockoff matrix
+		x_tilde = NULL,
+
+		#' @description
+		#' Creates a new instance of the KnockoffSampler class.
+		#' @param task ([mlr3::Task]) Task to sample from
+		# @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`. This parameter only affects the sampling behavior, not the ARF model fitting.
+		#' @param knockoff_fun (`function`) Step size for variance adjustment. Default are second-order Gaussian knockoffs.
+		initialize = function(
+			task
+		) {
+			require_package("knockoff")
+			super$initialize(
+				task = task,
+				knockoff_fun = function(x) {
+					knockoff::create.second_order(as.matrix(x))
+				}
+			)
+			self$label = "Gaussian Knockoff sampler"
+		}
+	)
+)
+
+#' @title Gaussian Knockoff Conditional Sampler
+#'
+#' @description
+#' A [KnockoffSampler] defaulting to second-order Gaussian knockoffs
+#' as created by `seqknockoff::knockoffs_seq`.
+#'
+#' @details
+#' This is equivalent to [KnockoffSampler] using `knockoff_fun = seqknockoff::knockoffs_seq`.
+#'
+#' @examplesIf requireNamespace("seqknockoff", quietly = TRUE)
+#' # Requires seqknockoff (https://github.com/kormama1/seqknockoff)
+#' task = tgen("simplex")$generate(n = 100)
+#' sampler_seq = KnockoffSampler$new(task)
+#' sampled_seq = sampler_seq$sample("x1")
+#'
+#' @references `r print_bib("watson_2021", "blesch_2023")`
+#'
+#' @export
+KnockoffSequentialSampler = R6Class(
+	"KnockoffGaussianSampler",
+	inherit = KnockoffSampler,
+	public = list(
+		#' @field x_tilde Knockoff matrix
+		x_tilde = NULL,
+
+		#' @description
+		#' Creates a new instance of the KnockoffSampler class.
+		#' @param task ([mlr3::Task]) Task to sample from
+		# @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`. This parameter only affects the sampling behavior, not the ARF model fitting.
+		#' @param knockoff_fun (`function`) Step size for variance adjustment. Default are second-order Gaussian knockoffs.
+		initialize = function(
+			task
+		) {
+			require_package("seqknockoff", from = "https://github.com/kormama1/seqknockoff")
+			super$initialize(
+				task = task,
+				knockoff_fun = seqknockoff::knockoffs_seq
+			)
+			self$label = "Sequential Knockoff sampler"
+		}
+	)
+)
