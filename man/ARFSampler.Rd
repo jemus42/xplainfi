@@ -56,6 +56,7 @@ Blesch, Kristin, Koenen, Niklas, Kapar, Jan, Golchian, Pegah, Burk, Lukas, Loech
 \itemize{
 \item \href{#method-ARFSampler-new}{\code{ARFSampler$new()}}
 \item \href{#method-ARFSampler-sample}{\code{ARFSampler$sample()}}
+\item \href{#method-ARFSampler-sample_newdata}{\code{ARFSampler$sample_newdata()}}
 \item \href{#method-ARFSampler-clone}{\code{ARFSampler$clone()}}
 }
 }
@@ -79,9 +80,11 @@ To fit the ARF in parallel, set \code{arf_args = list(parallel = TRUE)} and regi
   finite_bounds = "no",
   round = TRUE,
   stepsize = 0,
+  epsilon = 0,
   verbose = FALSE,
   parallel = FALSE,
-  arf_args = NULL
+  num_trees = 10L,
+  min_node_size = 2L
 )}\if{html}{\out{</div>}}
 }
 
@@ -92,17 +95,21 @@ To fit the ARF in parallel, set \code{arf_args = list(parallel = TRUE)} and regi
 
 \item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Default conditioning set to use in \verb{$sample()}. This parameter only affects the sampling behavior, not the ARF model fitting.}
 
-\item{\code{finite_bounds}}{(\code{character(1)}: \code{"no"}) Passed to \code{arf::forde()}. Default is \code{"no"} for compatibility. \code{"local"} may improve extrapolation but can cause issues with some data.}
+\item{\code{finite_bounds}}{(\code{character(1)}: \code{"no"}) Passed to \link[arf:forde]{arf::forde}. Default is \code{"no"} for compatibility. \code{"local"} may improve extrapolation but can cause issues with some data.}
 
 \item{\code{round}}{(\code{logical(1)}: \code{TRUE}) Whether to round continuous variables back to their original precision.}
 
 \item{\code{stepsize}}{(\code{numeric(1)}: \code{0}) Number of rows of evidence to process at a time wehn \code{parallel} is \code{TRUE}. Default (\code{0}) spreads evidence evenly over registered workers.}
 
+\item{\code{epsilon}}{(\code{numeric(1)}: \code{0}) Passed to \link[arf:forde]{arf::forde}. Slack parameter for when \code{finite_bounds != "no"}.}
+
 \item{\code{verbose}}{(\code{logical(1)}: \code{FALSE}) Whether to print progress messages. Default is \code{FALSE} but default in \code{arf} is \code{TRUE}.}
 
 \item{\code{parallel}}{(\code{logical(1)}: \code{FALSE}) Whether to use parallel processing via \code{foreach}. See examples in \code{\link[arf:forge]{arf::forge()}}.}
 
-\item{\code{arf_args}}{(\link{list}) Additional passed to \code{arf::adversarial_rf}.}
+\item{\code{num_trees}}{(\code{integer(1)}: \code{10L}): Passed to \link[arf:adversarial_rf]{arf::adversarial_rf}.}
+
+\item{\code{min_node_size}}{(\code{integer(1)}: \code{2L}): Passed to \link[arf:adversarial_rf]{arf::adversarial_rf}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -115,7 +122,7 @@ Sample values for feature(s) conditionally on other features using ARF
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ARFSampler$sample(
   feature,
-  data = self$task$data(),
+  row_ids = NULL,
   conditioning_set = NULL,
   round = NULL,
   stepsize = NULL,
@@ -130,7 +137,51 @@ Sample values for feature(s) conditionally on other features using ARF
 \describe{
 \item{\code{feature}}{(\code{character}) Feature(s) of interest to sample (can be single or multiple)}
 
-\item{\code{data}}{(\code{\link[data.table:data.table]{data.table}}) Data containing conditioning features. Defaults to \verb{$task$data()}, but typically a dedicated test set is provided.}
+\item{\code{row_ids}}{(\code{integer()}: \code{NULL}) Row IDs of the stored \link[mlr3:Task]{Task} to use as basis for sampling.
+If \code{NULL}, all rows of the stored tasks are used.}
+
+\item{\code{conditioning_set}}{(\code{character(n) | NULL}) Features to condition on. If \code{NULL}, uses the stored parameter if available, otherwise defaults to all other features.}
+
+\item{\code{round}}{(\code{logical(1) | NULL}) Whether to round continuous variables. If \code{NULL}, uses the stored parameter value.}
+
+\item{\code{stepsize}}{(\code{numeric(1) | NULL}) Step size for variance adjustment. If \code{NULL}, uses the stored parameter value.}
+
+\item{\code{verbose}}{(\code{logical(1) | NULL}) Whether to print progress messages. If \code{NULL}, uses the stored parameter value.}
+
+\item{\code{parallel}}{(\code{logical(1) | NULL}) Whether to use parallel processing. If \code{NULL}, uses the stored parameter value.}
+
+\item{\code{...}}{Further arguments passed to \code{arf::forge()}.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Modified copy of the input data with the feature(s) sampled conditionally
+Sample values for feature(s) conditionally on other features using ARF
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ARFSampler-sample_newdata"></a>}}
+\if{latex}{\out{\hypertarget{method-ARFSampler-sample_newdata}{}}}
+\subsection{Method \code{sample_newdata()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ARFSampler$sample_newdata(
+  feature,
+  newdata,
+  conditioning_set = NULL,
+  round = NULL,
+  stepsize = NULL,
+  verbose = NULL,
+  parallel = NULL,
+  ...
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{feature}}{(\code{character}) Feature(s) of interest to sample (can be single or multiple)}
+
+\item{\code{newdata}}{(\code{\link[data.table:data.table]{data.table}}) Data containing conditioning features. Defaults to \verb{$task$data()}, but typically a dedicated test set is provided.}
 
 \item{\code{conditioning_set}}{(\code{character(n) | NULL}) Features to condition on. If \code{NULL}, uses the stored parameter if available, otherwise defaults to all other features.}
 

@@ -57,8 +57,11 @@ FeatureSampler = R6Class(
 #' library(mlr3)
 #' task = tgen("2dnormals")$generate(n = 100)
 #' sampler = MarginalSampler$new(task)
-#' data = task$data()
+#' # Sample using row_ids from stored task
 #' sampled_data = sampler$sample("x1")
+#' # Or use external data
+#' data = task$data()
+#' sampled_data_ext = sampler$sample_newdata("x1", newdata = data)
 MarginalSampler = R6Class(
 	"MarginalSampler",
 	inherit = FeatureSampler,
@@ -170,13 +173,15 @@ ConditionalSampler = R6Class(
 #' task = tgen("2dnormals")$generate(n = 100)
 #' # Create sampler with default parameters
 #' sampler = ARFSampler$new(task, conditioning_set = "x2", verbose = FALSE)
+#' # Sample using row_ids from stored task
+#' sampled_data = sampler$sample("x1")
+#' # Or use external data
 #' data = task$data()
-#' # Will use the stored parameters
-#' sampled_data = sampler$sample("x1", data)
+#' sampled_data_ext = sampler$sample_newdata("x1", newdata = data)
 #'
 #' # Example with custom parameters
 #' sampler_custom = ARFSampler$new(task, round = FALSE)
-#' sampled_custom = sampler_custom$sample("x1", data)
+#' sampled_custom = sampler_custom$sample("x1")
 #' @references `r print_bib("watson_2023", "blesch_2025")`
 #'
 #' @export
@@ -423,7 +428,7 @@ ARFSampler = R6Class(
 #' task = tgen("2dnormals")$generate(n = 100)
 #' # Create sampler with default parameters
 #' sampler = KnockoffSampler$new(task)
-#' # Will use the stored parameters
+#' # Sample using row_ids from stored task
 #' sampled_data = sampler$sample("x1")
 #' \dontrun{
 #' # Example with sequential knockoffs (https://github.com/kormama1/seqknockoff)
@@ -479,7 +484,7 @@ KnockoffSampler = R6Class(
 			# Create knockoff matrix, features only
 			# TODO: Needs assertion on feature types but depends on knockoff_fun
 			self$x_tilde = as.data.table(knockoff_fun(self$task$data(cols = self$task$feature_names)))
-			checkmate::assert_subset(colnames(self$x_tile), self$task$feature_names)
+			checkmate::assert_subset(colnames(self$x_tilde), self$task$feature_names)
 			checkmate::assert_true(nrow(self$x_tilde) == self$task$nrow)
 		},
 

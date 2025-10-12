@@ -58,6 +58,7 @@ Blesch K, Watson D, Wright M (2023).
 <details open><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureSampler" data-id="print"><a href='../../xplainfi/html/FeatureSampler.html#method-FeatureSampler-print'><code>xplainfi::FeatureSampler$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="ConditionalSampler" data-id="sample_newdata"><a href='../../xplainfi/html/ConditionalSampler.html#method-ConditionalSampler-sample_newdata'><code>xplainfi::ConditionalSampler$sample_newdata()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -89,7 +90,7 @@ Creates a new instance of the KnockoffSampler class.
 \subsection{Method \code{sample()}}{
 Sample values for feature(s) conditionally on other features using Knockoffs
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{KnockoffSampler$sample(feature, data = self$task$data())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{KnockoffSampler$sample(feature, row_ids = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -97,7 +98,8 @@ Sample values for feature(s) conditionally on other features using Knockoffs
 \describe{
 \item{\code{feature}}{(\code{character}) Feature(s) of interest to sample (can be single or multiple)}
 
-\item{\code{data}}{(\code{\link[data.table:data.table]{data.table}}) Data containing conditioning features. Defaults to \verb{$task$data()}, but typically a dedicated test set is provided. Currently \code{KnockoffSampler} does not support this, use \link{ARFSampler} instead.}
+\item{\code{row_ids}}{(\code{integer()}: \code{NULL}) Row IDs of the stored \link[mlr3:Task]{Task} to use as basis for sampling.
+If \code{NULL}, all rows of the stored tasks are used.}
 }
 \if{html}{\out{</div>}}
 }

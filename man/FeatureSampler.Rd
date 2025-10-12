@@ -23,6 +23,7 @@ for feature importance methods like PFI and CFI
 \itemize{
 \item \href{#method-FeatureSampler-new}{\code{FeatureSampler$new()}}
 \item \href{#method-FeatureSampler-sample}{\code{FeatureSampler$sample()}}
+\item \href{#method-FeatureSampler-sample_newdata}{\code{FeatureSampler$sample_newdata()}}
 \item \href{#method-FeatureSampler-print}{\code{FeatureSampler$print()}}
 \item \href{#method-FeatureSampler-clone}{\code{FeatureSampler$clone()}}
 }
@@ -50,7 +51,7 @@ Creates a new instance of the FeatureSampler class
 \subsection{Method \code{sample()}}{
 Sample values for feature(s)
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{FeatureSampler$sample(feature, data)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{FeatureSampler$sample(feature, row_ids = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -58,13 +59,22 @@ Sample values for feature(s)
 \describe{
 \item{\code{feature}}{(\code{character}) Feature name(s) to sample (can be single or multiple)}
 
-\item{\code{data}}{(\code{\link[data.table:data.table]{data.table}} ) Data to use for sampling context}
+\item{\code{row_ids}}{(\code{integer()}: \code{NULL}) Row IDs of the stored \link[mlr3:Task]{Task} to use as basis for sampling.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
 Modified copy of the input data with the feature(s) sampled
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-FeatureSampler-sample_newdata"></a>}}
+\if{latex}{\out{\hypertarget{method-FeatureSampler-sample_newdata}{}}}
+\subsection{Method \code{sample_newdata()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{FeatureSampler$sample_newdata(feature, newdata)}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-FeatureSampler-print"></a>}}

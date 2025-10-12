@@ -12,7 +12,7 @@ library(mlr3)
 task = tgen("2dnormals")$generate(n = 100)
 sampler = MarginalSampler$new(task)
 data = task$data()
-sampled_data = sampler$sample("x1", data)
+sampled_data = sampler$sample("x1")
 }
 \section{Super class}{
 \code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{MarginalSampler}
@@ -22,6 +22,7 @@ sampled_data = sampler$sample("x1", data)
 \itemize{
 \item \href{#method-MarginalSampler-new}{\code{MarginalSampler$new()}}
 \item \href{#method-MarginalSampler-sample}{\code{MarginalSampler$sample()}}
+\item \href{#method-MarginalSampler-sample_newdata}{\code{MarginalSampler$sample_newdata()}}
 \item \href{#method-MarginalSampler-clone}{\code{MarginalSampler$clone()}}
 }
 }
@@ -53,9 +54,9 @@ Creates a new instance of the MarginalSampler class
 \if{html}{\out{<a id="method-MarginalSampler-sample"></a>}}
 \if{latex}{\out{\hypertarget{method-MarginalSampler-sample}{}}}
 \subsection{Method \code{sample()}}{
-Sample values for feature(s) by permutation (marginal distribution)
+Sample values for feature(s) by permutation (marginal distribution) using the stored task
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{MarginalSampler$sample(feature, data)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{MarginalSampler$sample(feature, row_ids = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -63,12 +64,32 @@ Sample values for feature(s) by permutation (marginal distribution)
 \describe{
 \item{\code{feature}}{(\code{character}) Feature name(s) to sample (can be single or multiple)}
 
-\item{\code{data}}{(\code{\link[data.table:data.table]{data.table}} ) Data to permute the feature(s) in}
+\item{\code{row_ids}}{(\code{integer()}: \code{NULL}) Row IDs of the stored \link[mlr3:Task]{Task} to use as basis for sampling.
+If \code{NULL}, all rows of the stored tasks are used.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
 Modified copy of the input data with the feature(s) permuted
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-MarginalSampler-sample_newdata"></a>}}
+\if{latex}{\out{\hypertarget{method-MarginalSampler-sample_newdata}{}}}
+\subsection{Method \code{sample_newdata()}}{
+Sample values for feature(s) by permutation (marginal distribution) using external data
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{MarginalSampler$sample_newdata(feature, newdata)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{feature}}{(\code{character}) Feature name(s) to sample (can be single or multiple)}
+
+\item{\code{newdata}}{(\code{\link[data.table:data.table]{data.table}} ) External data to use for sampling.}
+}
+\if{html}{\out{</div>}}
 }
 }
 \if{html}{\out{<hr>}}
