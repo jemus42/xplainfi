@@ -74,7 +74,7 @@ test_that("ConditionalSAGE null result for featureless learner", {
 		task = task_multi,
 		learner = mlr3::lrn("classif.featureless", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
-		n_permutations = 2L
+		n_permutations = 10L
 	)
 	sage_multi$compute()
 	expected_multi = data.table::data.table(
