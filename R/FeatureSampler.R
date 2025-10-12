@@ -24,16 +24,25 @@ FeatureSampler = R6Class(
 		},
 
 		#' @description
-		#' Sample values for feature(s)
+		#' Sample values for feature(s) from stored task
 		#' @param feature (`character`) Feature name(s) to sample (can be single or multiple)
 		#' @param row_ids (`integer()`: `NULL`) Row IDs of the stored [Task][mlr3::Task] to use as basis for sampling.
 		#' @return Modified copy of the input data with the feature(s) sampled
 		sample = function(feature, row_ids = NULL) {
-			stop("Abstract method. Use a concrete implementation.")
+			cli::cli_abort(c(
+				"Abtract method",
+				i = "Use a concrete implementation."
+			))
 		},
-
+		#' @description
+		#' Sample values for feature(s) using external data
+		#' @param feature (`character`) Feature name(s) to sample (can be single or multiple)
+		#' @param newdata ([`data.table`][data.table::data.table] ) External data to use for sampling.
 		sample_newdata = function(feature, newdata) {
-			stop("Abstract method. Use a concrete implementation.")
+			cli::cli_abort(c(
+				"Abtract method",
+				i = "Use a concrete implementation."
+			))
 		},
 
 		#' @description
@@ -42,7 +51,12 @@ FeatureSampler = R6Class(
 		#' @param ... Ignored.
 		print = function(...) {
 			cli::cli_h1(self$label)
-			self$task$print()
+			cli::cli_ul()
+			cli::cli_li(
+				"Task: {.val {self$task$id}} ({.strong {self$task$nrow}x{self$task$n_features}})"
+			)
+			cli::cli_li("{.val {self$task$n_features}} features")
+			cli::cli_end()
 		}
 	)
 )
@@ -139,7 +153,10 @@ ConditionalSampler = R6Class(
 		#' @param conditioning_set ([character]) Features to condition on (default: all other features)
 		#' @return Modified copy of the input data with the feature(s) sampled conditionally
 		sample = function(feature, row_ids, conditioning_set = NULL) {
-			stop("Abstract method. Use a concrete implementation like ARFSampler.")
+			cli::cli_abort(c(
+				"Abtract method",
+				i = "Use a concrete implementation like {.cls ARFSampler}) or {.cls KnockoffSampler}"
+			))
 		},
 
 		#' @description
@@ -484,8 +501,10 @@ KnockoffSampler = R6Class(
 			# Create knockoff matrix, features only
 			# TODO: Needs assertion on feature types but depends on knockoff_fun
 			self$x_tilde = as.data.table(knockoff_fun(self$task$data(cols = self$task$feature_names)))
+
 			checkmate::assert_subset(colnames(self$x_tilde), self$task$feature_names)
 			checkmate::assert_true(nrow(self$x_tilde) == self$task$nrow)
+			self$x_tilde[, ..row_id := self$task$row_ids]
 		},
 
 		#' @description
@@ -503,11 +522,15 @@ KnockoffSampler = R6Class(
 			}
 			data_copy = self$task$data(rows = row_ids)
 
-			# Saubsample knockoff matrix (DT) to match input
-			data_copy[,
-				(feature) := self$x_tilde[row_ids, .SD, .SDcols = feature]
+			# Subsample knockoff DT to match input and selected feature(s)
+			# Ensure we get the x_tilde obs in the correct order as the supplied row_ids
+			# unlikely to become a bottleneck but could use collapse::fmatch
+			replacements = self$x_tilde[
+				match(row_ids, self$x_tilde[["..row_id"]]),
+				.SD,
+				.SDcols = feature
 			]
-
+			data_copy[, (feature) := replacements]
 			data_copy[]
 		}
 	)
