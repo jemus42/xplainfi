@@ -1,5 +1,5 @@
 ---
-title: "Inference"
+title: "Inference (Experimental)"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Inference}
@@ -9,7 +9,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-```{r, include = FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
 	collapse = TRUE,
 	comment = "#>",
@@ -22,7 +22,7 @@ lgr::get_logger("mlr3")$set_threshold("warn")
 options("xplain.progress" = interactive())
 ```
 
-```{r setup}
+```{r pkg}
 library(xplainfi)
 library(mlr3learners)
 
@@ -31,10 +31,18 @@ library(data.table)
 library(ggplot2)
 ```
 
+There are multiple (work in progress) inference possible with the underlying implementation, but the API around them is still being worked out.
+
 ## Setup
 
-```{r}
-task = sim_dgp_correlated(n = 2000)
+We use a simple linear DGP for demonstration purposes where
+
+- $X_1$ and $X_2$ are strongly correlated
+- $X_1$ and $X_3$ has an effect on Y
+- $X_2$ and $X_4$ don't have an effect 
+
+```{r setup-data}
+task = sim_dgp_correlated(n = 2000, r = 0.7)
 learner = lrn("regr.ranger", num.trees = 500)
 measure = msr("regr.mse")
 ```
@@ -53,7 +61,7 @@ DiagrammeR::grViz(
     X4 [fillcolor='lightgray', label='X₄\n(β=0)'];
     Y [fillcolor='greenyellow', label='Y', width=1.5];
     
-    X1 -> X2 [color=red, style=bold, label='≈1.0'];
+    X1 -> X2 [color=red, style=bold, dir=both, label='r = 0.7'];
     X1 -> Y [label='2.0'];
     X2 -> Y [style=dashed, color=gray, label='0'];
     X3 -> Y [label='1.0'];
@@ -66,34 +74,42 @@ DiagrammeR::grViz(
 )
 ```
 
-See `vignette(simulation-settings)`.
-
 ## Variance-correction
 
-When we calculate PFI, for example uign 
-```{r}
+When we calculate PFI using an appropriate resampling, such as subsampling with 15 repeats, we can use the approach recommended by Molnar et al. (2023) based on the proposed correction by Nadeay & Bengio (2003).
+
+By default, any importance measures' `$importance()` method will not output any variances or confidence intervals, it will merely compute averages over resampling iterations and repeats within resamplings (`iter_perm` here).
+
+```{r pfi-importance}
 pfi = PFI$new(
 	task = task,
 	learner = learner,
 	resampling = rsmp("subsampling", repeats = 15),
-	measure = measure
+	measure = measure,
+	iters_perm = 10 # for stability within resampling iters
 )
 
 pfi$compute()
 pfi$importance()
 ```
 
-```{r}
+If we want unadjusted confidence intervals we can ask for them, but note these are too narrow / optimistic and hence invalid for inference:
+
+```{r pfi-ci-raw}
 pfi_ci_raw = pfi$importance(variance_method = "raw")
 pfi_ci_raw
 ```
 
-```{r}
+Analogously we can retrieve the Nadeau & Bengio-adjusted standard errors and derived confidence intervals which were demonstrated to have better (but still imperfect) coverage:
+
+```{r pfi-ci-nadeau-bengio}
 pfi_ci_corrected = pfi$importance(variance_method = "nadeau_bengio")
 pfi_ci_corrected
 ```
 
-```{r}
+To highlight just how large the difference between the two can be, we quickly visualize them:
+
+```{r pfi-ci-comparison}
 pfi_cis = rbind(
 	pfi_ci_raw[, type := "raw"],
 	pfi_ci_corrected[, type := "corrected"]
@@ -108,14 +124,17 @@ ggplot(pfi_cis, aes(y = feature, color = type)) +
 
 ## Conditional predictive impact (CPI)
 
-```{r}
+CPI is implemented by [the cpi package](https://bips-hb.github.io/cpi/articles/intro.html), and provides conditional variable importance using knockoffs. 
+It works with `mlr3` and its output on our data looks like this:
+
+```{r cpi-setup}
 library(cpi)
 
-resampling = rsmp("cv", folds = 3)
+resampling = rsmp("cv", folds = 5)
 resampling$instantiate(task)
 ```
 
-```{r}
+```{r cpi-result}
 cpi_res = cpi(
 	task = task,
 	learner = learner,
@@ -126,27 +145,40 @@ cpi_res = cpi(
 setDT(cpi_res)
 setnames(cpi_res, "Variable", "feature")
 cpi_res[, method := "CPI"]
+
+cpi_res
 ```
 
-```{r}
+### CPI with knockoffs
+
+Since `xplainfi` also includes knockoffs via the `KnockoffSampler` and the `KnockoffGaussianSampler`, the latter implemented the second order Gaussian knockoffs also used per default in `{cpi}`, we can recreate its results using `CFI` with the corresponding `sampler`.
+The important result however is not the `$importance()`, but the observation-wise losses which are the base for the CPI test.
+
+```{r cfi-knockoff}
+knockoff_gaussian = KnockoffGaussianSampler$new(task)
+
 cfi = CFI$new(
 	task = task,
 	learner = learner,
 	resampling = resampling,
 	measure = measure,
-	sampler = ARFSampler$new(task, finite_bounds = "local", arf_args = list(min_node_size = 20))
+	sampler = knockoff_gaussian
 )
 
 cfi$compute()
 
+# showing importance here for illustration
 cfi$importance()
+
+# Extract observation-wise losses
 cfi_obs_loss = cfi$obs_loss()
-cfi_obs_loss
+head(cfi_obs_loss)
 ```
 
+With the observation-wise losses, we can conduct the one-sided t-test also performed by `cpi()` by default:
 
-```{r}
-cfi_test_res = cfi_obs_loss[,
+```{r cfi-cpi}
+cfi_cpi_res = cfi_obs_loss[,
 	{
 		tt <- t.test(
 			obs_importance,
@@ -160,19 +192,20 @@ cfi_test_res = cfi_obs_loss[,
 			estimate = tt$estimate,
 			p.value = tt$p.value,
 			ci.lo = tt$conf.int[1],
-			method = "xplainfi"
+			method = "CFI+Knockoffs"
 		)
 	},
 	by = feature
 ]
 
-cpi_res
-cfi_test_res
+cfi_cpi_res
 
 ```
 
-```{r}
-rbindlist(list(cpi_res, cfi_test_res), fill = TRUE) |>
+The results should be very similar to those computed by `cpi()`, so let's compare them:
+
+```{r cpi-cfi-plot}
+rbindlist(list(cpi_res, cfi_cpi_res), fill = TRUE) |>
 	ggplot(aes(y = feature, x = CPI, color = method)) +
 	geom_point(position = position_dodge(width = 0.3)) +
 	geom_errorbar(
@@ -182,8 +215,8 @@ rbindlist(list(cpi_res, cfi_test_res), fill = TRUE) |>
 	) +
 	scale_color_brewer(palette = "Dark2") +
 	labs(
-		title = "CPI and CFI with ARF sampler",
-		subtitle = "RF with 3-fold CV",
+		title = "CPI and CFI with Knockoff sampler",
+		subtitle = "RF with 5-fold CV",
 		color = NULL
 	) +
 	theme_minimal(base_size = 14) +
@@ -191,7 +224,92 @@ rbindlist(list(cpi_res, cfi_test_res), fill = TRUE) |>
 
 ```
 
-## LOCO
+A noteable caveat of the knockoff approach is that they are not readily available for mixed data (with categorical features).
+
+### CPI with ARF
+
+An alternative is available using ARF as conditional sampler rather than knockoffs (CITE cARFi), which we can perform analogously:
+
+```{r cfi-arf}
+arf_sampler = ARFSampler$new(
+	task = task,
+	finite_bounds = "local",
+	min_node_size = 20,
+	epsilon = 1e-15
+)
+
+cfi_arf = CFI$new(
+	task = task,
+	learner = learner,
+	resampling = resampling,
+	measure = measure,
+	sampler = arf_sampler
+)
+
+cfi_arf$compute()
+
+# showing importance here for illustration
+cfi_arf$importance()
+
+# Extract observation-wise losses
+cfi_arf_obs_loss = cfi_arf$obs_loss()
+head(cfi_arf_obs_loss)
+```
+
+With the observation-wise losses, we can conduct the one-sided t-test also performed by `cpi()` by default:
+
+```{r cfi-cpi-arf}
+cfi_arf_res = cfi_arf_obs_loss[,
+	{
+		tt <- t.test(
+			obs_importance,
+			alternative = "greater",
+			conf.level = 0.95
+		)
+		.(
+			CPI = mean(obs_importance),
+			SE = sd(obs_importance) / sqrt(length(obs_importance)),
+			statistic = tt$statistic,
+			estimate = tt$estimate,
+			p.value = tt$p.value,
+			ci.lo = tt$conf.int[1],
+			method = "CFI+ARF"
+		)
+	},
+	by = feature
+]
+
+cfi_arf_res
+
+```
+
+We can now compare all three methods:
+
+```{r cpi-cfi-arf-plot}
+rbindlist(list(cpi_res, cfi_cpi_res, cfi_arf_res), fill = TRUE) |>
+	ggplot(aes(y = feature, x = CPI, color = method)) +
+	geom_point(position = position_dodge(width = 0.3)) +
+	geom_errorbar(
+		aes(xmin = CPI, xmax = ci.lo),
+		position = position_dodge(width = 0.3),
+		width = 0.5
+	) +
+	scale_color_brewer(palette = "Dark2") +
+	labs(
+		title = "CPI and CFI with Knockoffs and ARF",
+		subtitle = "RF with 5-fold CV",
+		color = NULL
+	) +
+	theme_minimal(base_size = 14) +
+	theme(legend.position = "top")
+```
+
+As expected, the ARF-based approach differs more from both knockoff-based approaches, but they are all roughly in agreement.
+
+
+**Note**: `xplainfi` will gain a dedicated interface to perform CPI, but the API is yet to be worked out.
+
+## LOCO (WIP)
 
 (CITATION) proposed inference for LOCO using the median absolute differences of the baseline- and post-refit loss differences
 
@@ -201,14 +319,16 @@ $$
 \right)
 $$
 
-```{r}
+If we apply `LOCO` as implemented in `xplainfi` using the median absolute error (MAE) as our measure including the median as the aggregation function, we unfortunately get something else, though:
+
+```{r loco-mae}
 measure_mae = msr("regr.mae")
 measure_mae$aggregator = median
 
 loco = LOCO$new(
 	task = task,
 	learner = learner,
-	resampling = rsmp("cv", folds = 3),
+	resampling = rsmp("cv", folds = 10),
 	measure = measure_mae
 )
 
@@ -216,7 +336,7 @@ loco$compute()
 loco$importance()
 ```
 
-This is not exactly what the authors propose, because `$score()` calculates the aggregation function (`median`) for each resampling iteration first, and takes the difference afterwards, i.e.
+This is **not** exactly what the authors propose, because `$score()` calculates the aggregation function (`median`) for each resampling iteration first, and takes the difference afterwards, i.e.
 
 $$
 \theta_j = \mathrm{med}\left(|Y - \hat{f}_{n_1}^{-j}(X)|\right) - \mathrm{med}\left(|Y - \hat{f}_{n_1}(X)| \big| D_1
@@ -225,11 +345,11 @@ $$
 
 In the default case where the arithemtic mean is used, it does not matter whether we calculate the difference of the means or the mean of the differences, but using the median it does.
 
-We can reconstruct it by using the observation-wise losses (in this case, the absolute error):
+We can, however, reconstruct it by using the observation-wise losses (in this case, the absolute error):
 
-```{r}
+```{r loco-obsloss}
 loco_obsloss = loco$obs_loss()
-loco_obsloss
+head(loco_obsloss)
 ```
 
 `obs_importance` here refers to the difference `loss_post - loss_baseline`, so
@@ -238,15 +358,39 @@ loco_obsloss
 - `loss_post` $ = |Y - \hat{f}_{n_1}^{-j}(X)|$
 - `obs_importance = loss_post - loss_baseline`
 
-Which means by taking the median for each feature $j$ within each resampling iteration, we can construct $\theta_j(D_1)$ as proposed:
+Which means by taking the median for each feature $j$ within each resampling iteration, we can construct $\theta_j(D_1)$ as proposed, for each set $D_k$ where $k$ is the resampling iteration:
 
-```{r}
+```{r loco-thetas}
 loco_thetas = loco_obsloss[, list(theta = median(obs_importance)), by = c("feature", "iter_rsmp")]
 loco_thetas
 ```
 
-<!-- Note that this differs from the output of `loco$scores()`, due to the position at which the -->
-
 The authors then propose to construct distribution-free confidence intervals, e.g. using a sign- or Wilcoxon test
+We can for example use [wilcoxon.test] to compute confidence intervals around the estimated pseudo-median:
 
-()
+```{r}
+loco_wilcox_ci = loco_obsloss[,
+	{
+		tt <- wilcox.test(
+			obs_importance,
+			conf.int = TRUE,
+			conf.level = 0.95
+		)
+		.(
+			# SE = sd(obs_importance) / sqrt(length(obs_importance)),
+			statistic = tt$statistic,
+			estimate = tt$estimate,
+			p.value = tt$p.value,
+			conf_lower = tt$conf.int[1],
+			conf_upper = tt$conf.int[2]
+		)
+	},
+	by = feature
+]
+
+loco_wilcox_ci
+```
+
+**Note**: The above approach needs checking with the literature to ensure it's actually corresponding to what was proposed and the results are valid.  
+
+The main point of this section is to illustrate that the availability of the intermediate parts (i.e. obs losses) and flexibility regarding the used measure allows for flexibility in terms of inference. 
