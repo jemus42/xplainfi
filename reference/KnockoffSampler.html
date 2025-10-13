@@ -64,7 +64,10 @@
 
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The KnockoffSampler samples <a href="https://rdrr.io/pkg/knockoff/man/knockoff.html" class="external-link">Knockoffs</a> based on the task data.</p>
+    <p>The KnockoffSampler samples <a href="https://rdrr.io/pkg/knockoff/man/knockoff.html" class="external-link">Knockoffs</a> based on the task data.
+This class allows arbitrary <code>knockoff_fun</code>, which also means that no input checking
+against supported feature types can be done. Use <a href="KnockoffGaussianSampler.html">KnockoffGaussianSampler</a> or
+<a href="KnockoffSequentialSampler.html">KnockoffSequentialSampler</a> for these variants specifically.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
