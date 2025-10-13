@@ -135,9 +135,9 @@ sample_data[, .(y, important1, important2)]
 Now we'll conditionally sample the `important1` feature given the values of `important2` and `important3`:
 
 ```{r conditional-sampling}
-sampled_conditional <- arf_sampler$sample(
+sampled_conditional <- arf_sampler$sample_newdata(
 	feature = "important1",
-	data = sample_data,
+	newdata = sample_data,
 	conditioning_set = c("important2", "important3")
 )
 

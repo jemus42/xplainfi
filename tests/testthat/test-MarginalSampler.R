@@ -7,9 +7,9 @@ test_that("MarginalSampler works correctly", {
 	expect_equal(sampler$label, "Marginal sampler")
 	expect_true(inherits(sampler$param_set, "ParamSet"))
 
-	# Test single feature sampling
+	# Test single feature sampling using row_ids (default: all rows)
 	data = task$data()
-	sampled_data = sampler$sample("x1", data)
+	sampled_data = sampler$sample("x1")
 
 	expect_true(data.table::is.data.table(sampled_data))
 	expect_equal(nrow(sampled_data), 100)
@@ -31,9 +31,9 @@ test_that("MarginalSampler handles multiple features", {
 	sampler = MarginalSampler$new(task)
 	data = task$data()
 
-	# Test multiple feature sampling
+	# Test multiple feature sampling using row_ids
 	features = c("x1", "x2", "x3")
-	sampled_data = sampler$sample(features, data)
+	sampled_data = sampler$sample(features)
 
 	expect_true(data.table::is.data.table(sampled_data))
 	expect_equal(nrow(sampled_data), 100)
@@ -59,8 +59,8 @@ test_that("MarginalSampler preserves data.table properties", {
 	# Add a key to the data.table
 	setkey(data, x1)
 
-	# Sample the key column to ensure key is removed
-	sampled_data = sampler$sample("x1", data)
+	# Sample the key column using row_ids
+	sampled_data = sampler$sample("x1")
 
 	# Should return a data.table
 	expect_true(data.table::is.data.table(sampled_data))
@@ -77,24 +77,21 @@ test_that("MarginalSampler works with different task types", {
 	# Regression task
 	task_regr = tgen("circle", d = 4)$generate(n = 100)
 	sampler_regr = MarginalSampler$new(task_regr)
-	data_regr = task_regr$data()
-	sampled_regr = sampler_regr$sample("x1", data_regr)
+	sampled_regr = sampler_regr$sample("x1")
 	expect_true(data.table::is.data.table(sampled_regr))
 	expect_equal(nrow(sampled_regr), 100)
 
 	# Binary classification task
 	task_classif = tsk("sonar")
 	sampler_classif = MarginalSampler$new(task_classif)
-	data_classif = task_classif$data()
-	sampled_classif = sampler_classif$sample("V1", data_classif)
+	sampled_classif = sampler_classif$sample("V1")
 	expect_true(data.table::is.data.table(sampled_classif))
-	expect_equal(nrow(sampled_classif), nrow(data_classif))
+	expect_equal(nrow(sampled_classif), task_classif$nrow)
 
 	# Multiclass classification task
 	task_multi = tsk("iris")
 	sampler_multi = MarginalSampler$new(task_multi)
-	data_multi = task_multi$data()
-	sampled_multi = sampler_multi$sample("Sepal.Length", data_multi)
+	sampled_multi = sampler_multi$sample("Sepal.Length")
 	expect_true(data.table::is.data.table(sampled_multi))
 	expect_equal(nrow(sampled_multi), 150)
 })

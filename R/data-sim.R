@@ -66,15 +66,15 @@ NULL
 #' conditional contribution.
 #'
 #' **Mathematical Model:**
-#' \deqn{X_1 \sim N(0,1)}
-#' \deqn{X_2 = X_1 + \varepsilon_2, \quad \varepsilon_2 \sim N(0, 0.05^2)}
+#' \deqn{(X_1, X_2)^T \sim \text{MVN}(0, \Sigma)}
+#' where \eqn{\Sigma} is a 2×2 covariance matrix with 1 on the diagonal and correlation \eqn{r} on the off-diagonal.
 #' \deqn{X_3 \sim N(0,1), \quad X_4 \sim N(0,1)}
 #' \deqn{Y = 2 \cdot X_1 + X_3 + \varepsilon}
 #' where \eqn{\varepsilon \sim N(0, 0.2^2)}.
 #'
 #' **Feature Properties:**
-#' - `x1`: Standard normal, direct causal effect on y (β=2.0)
-#' - `x2`: Nearly perfect copy of x1 (x1 + small noise), NO causal effect on y (β=0)
+#' - `x1`: Standard normal from MVN, direct causal effect on y (β=2.0)
+#' - `x2`: Correlated with `x1` (correlation = `r`), NO causal effect on y (β=0)
 #' - `x3`: Independent standard normal, direct causal effect on y (β=1.0)
 #' - `x4`: Independent standard normal, no effect on y (β=0)
 #'
@@ -84,17 +84,23 @@ NULL
 #' - **Key insight**: x2 is a "spurious predictor" - correlated with causal feature but not causal itself
 #'
 #' @param n (`integer(1)`) Number of samples to generate.
+#' @param r (`numeric(1)`: `0.9`) Correlation between x1 and x2. Must be between -1 and 1.
 #' @return A regression task ([mlr3::TaskRegr]) with [data.table][data.table::data.table] backend.
 #' @export
 #' @examples
 #' task = sim_dgp_correlated(200)
 #' task$data()
-sim_dgp_correlated <- function(n = 500L) {
-	# Causal feature
-	x1 <- rnorm(n)
-
+#'
+#' # With different correlation
+#' task_high_cor = sim_dgp_correlated(200, r = 0.95)
+#' cor(task_high_cor$data()$x1, task_high_cor$data()$x2)
+sim_dgp_correlated <- function(n = 500L, r = 0.9) {
+	require_package("mvtnorm")
+	# Generate x1 (causal) and x2 (spurious) with fixed correlation
+	x12 <- mvtnorm::rmvnorm(n, sigma = stats::toeplitz(r^(0:1)))
+	x1 <- x12[, 1]
 	# Spurious feature: correlated with x1 but no causal effect
-	x2 <- x1 + rnorm(n, 0, 0.05) # Nearly perfect copy with small noise
+	x2 <- x12[, 2]
 
 	# Independent features
 	x3 <- rnorm(n) # Has causal effect

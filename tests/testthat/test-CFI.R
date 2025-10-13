@@ -215,13 +215,11 @@ test_that("CFI with resampling", {
 })
 
 test_that("CFI parameter validation", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
 	skip_if_not_installed("arf")
 
 	set.seed(123)
 	task = mlr3::tgen("2dnormals")$generate(n = 50)
-	learner = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob")
+	learner = mlr3::lrn("classif.rpart", predict_type = "prob")
 	measure = mlr3::msr("classif.ce")
 
 	# iters_perm must be positive integer
@@ -270,4 +268,99 @@ test_that("CFI with groups", {
 	expect_equal(nrow(result), length(groups))
 	expect_equal(result$feature, names(groups))
 	expect_importance_dt(result, features = names(groups))
+})
+
+test_that("CFI with KnockoffSampler and KnockoffGaussianSampler", {
+	skip_if_not_installed("ranger")
+	skip_if_not_installed("mlr3learners")
+	skip_if_not_installed("knockoff")
+
+	set.seed(123)
+	task = mlr3::tgen("friedman1")$generate(n = 150)
+	learner = mlr3::lrn("regr.ranger", num.trees = 50)
+	measure = mlr3::msr("regr.mse")
+
+	# Test with KnockoffSampler
+	knockoff_sampler = KnockoffSampler$new(task)
+	cfi_knockoff = CFI$new(
+		task = task,
+		learner = learner,
+		measure = measure,
+		sampler = knockoff_sampler
+	)
+
+	checkmate::expect_r6(cfi_knockoff$sampler, "KnockoffSampler")
+	cfi_knockoff$compute()
+	result_knockoff = cfi_knockoff$importance()
+	expect_importance_dt(result_knockoff, features = cfi_knockoff$features)
+
+	# Test with KnockoffGaussianSampler (convenience wrapper)
+	gaussian_sampler = KnockoffGaussianSampler$new(task)
+	cfi_gaussian = CFI$new(
+		task = task,
+		learner = learner,
+		measure = measure,
+		sampler = gaussian_sampler
+	)
+
+	checkmate::expect_r6(cfi_gaussian$sampler, "KnockoffGaussianSampler")
+	cfi_gaussian$compute()
+	result_gaussian = cfi_gaussian$importance()
+	expect_importance_dt(result_gaussian, features = cfi_gaussian$features)
+
+	# Both should produce valid importance scores
+	expect_true(all(is.finite(result_knockoff$importance)))
+	expect_true(all(is.finite(result_gaussian$importance)))
+
+	# Check that important features generally have higher scores
+	important_features = grep("^important", result_knockoff$feature, value = TRUE)
+	unimportant_features = grep("^unimportant", result_knockoff$feature, value = TRUE)
+
+	important_scores_ko = result_knockoff[feature %in% important_features]$importance
+	unimportant_scores_ko = result_knockoff[feature %in% unimportant_features]$importance
+
+	important_scores_gauss = result_gaussian[feature %in% important_features]$importance
+	unimportant_scores_gauss = result_gaussian[feature %in% unimportant_features]$importance
+
+	# On average, important features should have higher CFI values
+	expect_gt(mean(important_scores_ko), mean(unimportant_scores_ko))
+	expect_gt(mean(important_scores_gauss), mean(unimportant_scores_gauss))
+})
+
+test_that("CFI with KnockoffSequentialSampler", {
+	skip_if_not_installed("ranger")
+	skip_if_not_installed("mlr3learners")
+	skip_if_not_installed("seqknockoff")
+
+	set.seed(123)
+	task = mlr3::tgen("friedman1")$generate(n = 150)
+	learner = mlr3::lrn("regr.ranger", num.trees = 50)
+	measure = mlr3::msr("regr.mse")
+
+	# Test with KnockoffSequentialSampler
+	seq_sampler = KnockoffSequentialSampler$new(task)
+	cfi_seq = CFI$new(
+		task = task,
+		learner = learner,
+		measure = measure,
+		sampler = seq_sampler
+	)
+
+	checkmate::expect_r6(cfi_seq$sampler, "KnockoffSequentialSampler")
+	cfi_seq$compute()
+	result_seq = cfi_seq$importance()
+	expect_importance_dt(result_seq, features = cfi_seq$features)
+
+	# Should produce valid importance scores
+	expect_true(all(is.finite(result_seq$importance)))
+
+	# Check that important features generally have higher scores
+	important_features = grep("^important", result_seq$feature, value = TRUE)
+	unimportant_features = grep("^unimportant", result_seq$feature, value = TRUE)
+
+	important_scores = result_seq[feature %in% important_features]$importance
+	unimportant_scores = result_seq[feature %in% unimportant_features]$importance
+
+	# On average, important features should have higher CFI values
+	expect_gt(mean(important_scores), mean(unimportant_scores))
 })

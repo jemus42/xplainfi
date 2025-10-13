@@ -15,7 +15,7 @@ library(mlr3)
 task = tgen("2dnormals")$generate(n = 100)
 # Create sampler with default parameters
 sampler = KnockoffSampler$new(task)
-# Will use the stored parameters
+# Sample using row_ids from stored task
 sampled_data = sampler$sample("x1")
 \dontrun{
 # Example with sequential knockoffs (https://github.com/kormama1/seqknockoff)
@@ -58,6 +58,7 @@ Blesch K, Watson D, Wright M (2023).
 <details open><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureSampler" data-id="print"><a href='../../xplainfi/html/FeatureSampler.html#method-FeatureSampler-print'><code>xplainfi::FeatureSampler$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="ConditionalSampler" data-id="sample_newdata"><a href='../../xplainfi/html/ConditionalSampler.html#method-ConditionalSampler-sample_newdata'><code>xplainfi::ConditionalSampler$sample_newdata()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -87,22 +88,23 @@ Creates a new instance of the KnockoffSampler class.
 \if{html}{\out{<a id="method-KnockoffSampler-sample"></a>}}
 \if{latex}{\out{\hypertarget{method-KnockoffSampler-sample}{}}}
 \subsection{Method \code{sample()}}{
-Sample values for feature(s) conditionally on other features using Knockoffs
+Sample from stored task using knockoff values. Replaces specified feature(s) with
+their knockoff counterparts from the pre-generated knockoff matrix.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{KnockoffSampler$sample(feature, data = self$task$data())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{KnockoffSampler$sample(feature, row_ids = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\code{character}) Feature(s) of interest to sample (can be single or multiple)}
+\item{\code{feature}}{(\code{character}) Feature(s) to sample.}
 
-\item{\code{data}}{(\code{\link[data.table:data.table]{data.table}}) Data containing conditioning features. Defaults to \verb{$task$data()}, but typically a dedicated test set is provided. Currently \code{KnockoffSampler} does not support this, use \link{ARFSampler} instead.}
+\item{\code{row_ids}}{(\code{integer()} | \code{NULL}) Row IDs to use. If \code{NULL}, uses all rows.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Modified copy of the input data with the feature(s) sampled conditionally
+Modified copy with knockoff feature(s).
 }
 }
 \if{html}{\out{<hr>}}

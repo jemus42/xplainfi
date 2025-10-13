@@ -21,7 +21,7 @@ test_that("ARFSampler basic functionality", {
 
 	# Test single feature sampling with default conditioning (all other features)
 	data = task$data()
-	sampled_data = sampler$sample("x1", data)
+	sampled_data = sampler$sample("x1")
 
 	expect_true(data.table::is.data.table(sampled_data))
 	expect_equal(nrow(sampled_data), n)
@@ -47,7 +47,7 @@ test_that("ARFSampler with conditioning_set parameter at initialization", {
 
 	data = task$data()
 	# Should use the stored conditioning features
-	sampled_data = sampler$sample("x1", data)
+	sampled_data = sampler$sample("x1")
 
 	expect_true(data.table::is.data.table(sampled_data))
 	expect_equal(nrow(sampled_data), 100)
@@ -75,10 +75,10 @@ test_that("ARFSampler with empty conditioning set behaves like marginal sampling
 	original_x1 = data$x1
 
 	# Sample with ARF (empty conditioning)
-	sampled_arf = sampler_arf$sample("x1", data)
+	sampled_arf = sampler_arf$sample("x1")
 
 	# Sample with MarginalSampler for comparison
-	sampled_marginal = sampler_marginal$sample("x1", data)
+	sampled_marginal = sampler_marginal$sample("x1")
 
 	# Basic checks for ARF sampler
 	expect_false(identical(sampled_arf$x1, original_x1))
@@ -122,15 +122,15 @@ test_that("ARFSampler conditioning features priority", {
 	sampler = ARFSampler$new(task, conditioning_set = c("x2"))
 
 	# Test 1: Use stored conditioning features
-	sampled1 = sampler$sample("x1", data)
+	sampled1 = sampler$sample("x1")
 	expect_false(identical(sampled1$x1, data$x1))
 
 	# Test 2: Override with function argument
-	sampled2 = sampler$sample("x1", data, conditioning_set = c("x3", "x4"))
+	sampled2 = sampler$sample("x1", conditioning_set = c("x3", "x4"))
 	expect_false(identical(sampled2$x1, data$x1))
 
 	# Test 3: Explicit NULL should use stored value
-	sampled3 = sampler$sample("x1", data, conditioning_set = NULL)
+	sampled3 = sampler$sample("x1", conditioning_set = NULL)
 	expect_false(identical(sampled3$x1, data$x1))
 
 	# The stored value should remain unchanged
@@ -147,7 +147,7 @@ test_that("ARFSampler handles multiple features", {
 
 	# Test multiple feature sampling
 	features = c("x1", "x2")
-	sampled_data = sampler$sample(features, data)
+	sampled_data = sampler$sample(features)
 
 	expect_true(data.table::is.data.table(sampled_data))
 	expect_equal(nrow(sampled_data), 100)
@@ -170,24 +170,21 @@ test_that("ARFSampler works with different task types", {
 	# Regression task
 	task_regr = tgen("circle", d = 4)$generate(n = 100)
 	sampler_regr = ARFSampler$new(task_regr)
-	data_regr = task_regr$data()
-	sampled_regr = sampler_regr$sample("x1", data_regr)
+	sampled_regr = sampler_regr$sample("x1")
 	expect_true(data.table::is.data.table(sampled_regr))
 	expect_equal(nrow(sampled_regr), 100)
 
 	# Binary classification task
 	task_classif = tsk("sonar")
 	sampler_classif = ARFSampler$new(task_classif)
-	data_classif = task_classif$data()
-	sampled_classif = sampler_classif$sample("V1", data_classif)
+	sampled_classif = sampler_classif$sample("V1")
 	expect_true(data.table::is.data.table(sampled_classif))
-	expect_equal(nrow(sampled_classif), nrow(data_classif))
+	expect_equal(nrow(sampled_classif), task_classif$nrow)
 
 	# Multiclass classification task
 	task_multi = tsk("iris")
 	sampler_multi = ARFSampler$new(task_multi)
-	data_multi = task_multi$data()
-	sampled_multi = sampler_multi$sample("Sepal.Length", data_multi)
+	sampled_multi = sampler_multi$sample("Sepal.Length")
 	expect_true(data.table::is.data.table(sampled_multi))
 	expect_equal(nrow(sampled_multi), 150)
 })
@@ -222,11 +219,11 @@ test_that("ARFSampler finite_bounds parameter", {
 	data = task$data()
 
 	# Test no bounds (default)
-	sampled_no = sampler$sample("x1", data)
+	sampled_no = sampler$sample("x1")
 	expect_equal(nrow(sampled_no), 50)
 
 	# Test local bounds
-	sampled_local = sampler_local$sample("x1", data)
+	sampled_local = sampler_local$sample("x1")
 	expect_equal(nrow(sampled_local), 50)
 })
 
@@ -247,15 +244,15 @@ test_that("ARFSampler parameter priority and storage", {
 	)
 
 	# Test that stored parameters are used when not specified in sample()
-	sampled1 = sampler$sample("x1", data)
+	sampled1 = sampler$sample("x1")
 	expect_equal(nrow(sampled1), 50)
 
 	# Test that function arguments override stored parameters
-	sampled2 = sampler$sample("x1", data, verbose = FALSE)
+	sampled2 = sampler$sample("x1", verbose = FALSE)
 	expect_equal(nrow(sampled2), 50)
 
 	# Test overriding verbose parameter
-	sampled3 = sampler$sample("x1", data, verbose = TRUE)
+	sampled3 = sampler$sample("x1", verbose = TRUE)
 	expect_equal(nrow(sampled3), 50)
 
 	# Stored parameters should remain unchanged
@@ -330,11 +327,11 @@ test_that("ARFSampler additional arf::forge parameters", {
 	data = task$data()
 
 	# Test sampling with stored parameters (should work without warnings)
-	sampled1 = sampler$sample("x1", data)
+	sampled1 = sampler$sample("x1")
 	expect_equal(nrow(sampled1), 50)
 
 	# Test overriding parameters
-	sampled2 = sampler$sample("x1", data, round = TRUE, verbose = TRUE)
+	sampled2 = sampler$sample("x1", round = TRUE, verbose = TRUE)
 	expect_equal(nrow(sampled2), 50)
 
 	# Stored parameters should remain unchanged

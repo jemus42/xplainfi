@@ -9,7 +9,7 @@
 \alias{sim_dgp_independent}
 \title{Simulation DGPs for Feature Importance Method Comparison}
 \usage{
-sim_dgp_correlated(n = 500L)
+sim_dgp_correlated(n = 500L, r = 0.9)
 
 sim_dgp_mediated(n = 500L)
 
@@ -21,6 +21,8 @@ sim_dgp_independent(n = 500L)
 }
 \arguments{
 \item{n}{(\code{integer(1)}: \code{500L}) Number of observations to generate.}
+
+\item{r}{(\code{numeric(1)}: \code{0.9}) Correlation between x1 and x2. Must be between -1 and 1.}
 
 \item{hidden}{(\code{logical(1)}: \code{TRUE}) Whether to hide the confounder from the returned task.
 If \code{FALSE}, the confounder is included as a feature, allowing direct adjustment.
@@ -41,16 +43,16 @@ importance due to redundancy, while CFI will correctly identify each feature's
 conditional contribution.
 
 \strong{Mathematical Model:}
-\deqn{X_1 \sim N(0,1)}
-\deqn{X_2 = X_1 + \varepsilon_2, \quad \varepsilon_2 \sim N(0, 0.05^2)}
+\deqn{(X_1, X_2)^T \sim \text{MVN}(0, \Sigma)}
+where \eqn{\Sigma} is a 2×2 covariance matrix with 1 on the diagonal and correlation \eqn{r} on the off-diagonal.
 \deqn{X_3 \sim N(0,1), \quad X_4 \sim N(0,1)}
 \deqn{Y = 2 \cdot X_1 + X_3 + \varepsilon}
 where \eqn{\varepsilon \sim N(0, 0.2^2)}.
 
 \strong{Feature Properties:}
 \itemize{
-\item \code{x1}: Standard normal, direct causal effect on y (β=2.0)
-\item \code{x2}: Nearly perfect copy of x1 (x1 + small noise), NO causal effect on y (β=0)
+\item \code{x1}: Standard normal from MVN, direct causal effect on y (β=2.0)
+\item \code{x2}: Correlated with \code{x1} (correlation = \code{r}), NO causal effect on y (β=0)
 \item \code{x3}: Independent standard normal, direct causal effect on y (β=1.0)
 \item \code{x4}: Independent standard normal, no effect on y (β=0)
 }
@@ -173,6 +175,10 @@ where \eqn{X_j \sim N(0,1)} independently and \eqn{\varepsilon \sim N(0, 0.2^2)}
 \examples{
 task = sim_dgp_correlated(200)
 task$data()
+
+# With different correlation
+task_high_cor = sim_dgp_correlated(200, r = 0.95)
+cor(task_high_cor$data()$x1, task_high_cor$data()$x2)
 task = sim_dgp_mediated(200)
 task$data()
 # Hidden confounder scenario (traditional)

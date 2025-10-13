@@ -76,8 +76,10 @@ This DGP creates a highly correlated spurious predictor to illustrate the fundam
 
 ### Mathematical Model
 
-$$X_1 \sim N(0,1)$$
-$$X_2 = X_1 + \varepsilon_2, \quad \varepsilon_2 \sim N(0, 0.05^2)$$
+$$(X_1, X_2)^T \sim \text{MVN}(0, \Sigma)$$
+
+where $\Sigma$ is a 2×2 covariance matrix with 1 on the diagonal and correlation $r$ (default 0.9) on the off-diagonal.
+
 $$X_3 \sim N(0,1), \quad X_4 \sim N(0,1)$$
 $$Y = 2 \cdot X_1 + X_3 + \varepsilon$$
 

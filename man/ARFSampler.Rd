@@ -19,13 +19,15 @@ library(mlr3)
 task = tgen("2dnormals")$generate(n = 100)
 # Create sampler with default parameters
 sampler = ARFSampler$new(task, conditioning_set = "x2", verbose = FALSE)
+# Sample using row_ids from stored task
+sampled_data = sampler$sample("x1")
+# Or use external data
 data = task$data()
-# Will use the stored parameters
-sampled_data = sampler$sample("x1", data)
+sampled_data_ext = sampler$sample_newdata("x1", newdata = data)
 
 # Example with custom parameters
 sampler_custom = ARFSampler$new(task, round = FALSE)
-sampled_custom = sampler_custom$sample("x1", data)
+sampled_custom = sampler_custom$sample("x1")
 \dontshow{\}) # examplesIf}
 }
 \references{
@@ -45,9 +47,9 @@ Blesch, Kristin, Koenen, Niklas, Kapar, Jan, Golchian, Pegah, Burk, Lukas, Loech
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{arf_model}}{Adversarial Random Forest model}
+\item{\code{arf_model}}{Adversarial Random Forest model created by \link[arf:adversarial_rf]{arf::adversarial_rf}.}
 
-\item{\code{psi}}{Distribution parameters estimated from ARF}
+\item{\code{psi}}{Distribution parameters estimated from by \link[arf:forde]{arf::forde}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -56,6 +58,7 @@ Blesch, Kristin, Koenen, Niklas, Kapar, Jan, Golchian, Pegah, Burk, Lukas, Loech
 \itemize{
 \item \href{#method-ARFSampler-new}{\code{ARFSampler$new()}}
 \item \href{#method-ARFSampler-sample}{\code{ARFSampler$sample()}}
+\item \href{#method-ARFSampler-sample_newdata}{\code{ARFSampler$sample_newdata()}}
 \item \href{#method-ARFSampler-clone}{\code{ARFSampler$clone()}}
 }
 }
@@ -71,38 +74,47 @@ Blesch, Kristin, Koenen, Niklas, Kapar, Jan, Golchian, Pegah, Burk, Lukas, Loech
 \if{latex}{\out{\hypertarget{method-ARFSampler-new}{}}}
 \subsection{Method \code{new()}}{
 Creates a new instance of the ARFSampler class.
-To fit the ARF in parallel, set \code{arf_args = list(parallel = TRUE)} and register a parallel backend (see \link[arf:arf-package]{arf::arf}).
+To fit the ARF in parallel, register a parallel backend first (see \link[arf:arf-package]{arf::arf}) and set \code{parallel = TRUE}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ARFSampler$new(
   task,
   conditioning_set = NULL,
+  num_trees = 10L,
+  min_node_size = 2L,
   finite_bounds = "no",
+  epsilon = 0,
   round = TRUE,
   stepsize = 0,
   verbose = FALSE,
   parallel = FALSE,
-  arf_args = NULL
+  ...
 )}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Task to sample from}
+\item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Task to sample from.}
 
 \item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Default conditioning set to use in \verb{$sample()}. This parameter only affects the sampling behavior, not the ARF model fitting.}
 
-\item{\code{finite_bounds}}{(\code{character(1)}: \code{"no"}) Passed to \code{arf::forde()}. Default is \code{"no"} for compatibility. \code{"local"} may improve extrapolation but can cause issues with some data.}
+\item{\code{num_trees}}{(\code{integer(1)}: \code{10L}) Number of trees for ARF. Passed to \link[arf:adversarial_rf]{arf::adversarial_rf}.}
 
-\item{\code{round}}{(\code{logical(1)}: \code{TRUE}) Whether to round continuous variables back to their original precision.}
+\item{\code{min_node_size}}{(\code{integer(1)}: \code{2L}) Minimum node size for ARF. Passed to \link[arf:adversarial_rf]{arf::adversarial_rf}.}
 
-\item{\code{stepsize}}{(\code{numeric(1)}: \code{0}) Number of rows of evidence to process at a time wehn \code{parallel} is \code{TRUE}. Default (\code{0}) spreads evidence evenly over registered workers.}
+\item{\code{finite_bounds}}{(\code{character(1)}: \code{"no"}) How to handle variable bounds. Passed to \link[arf:forde]{arf::forde}. Default is \code{"no"} for compatibility. \code{"local"} may improve extrapolation but can cause issues with some data.}
 
-\item{\code{verbose}}{(\code{logical(1)}: \code{FALSE}) Whether to print progress messages. Default is \code{FALSE} but default in \code{arf} is \code{TRUE}.}
+\item{\code{epsilon}}{(\code{numeric(1)}: \code{0}) Slack parameter for when \code{finite_bounds != "no"}. Passed to \link[arf:forde]{arf::forde}.}
 
-\item{\code{parallel}}{(\code{logical(1)}: \code{FALSE}) Whether to use parallel processing via \code{foreach}. See examples in \code{\link[arf:forge]{arf::forge()}}.}
+\item{\code{round}}{(\code{logical(1)}: \code{TRUE}) Whether to round continuous variables back to their original precision in sampling. Can be overridden in \verb{$sample()} calls.}
 
-\item{\code{arf_args}}{(\link{list}) Additional passed to \code{arf::adversarial_rf}.}
+\item{\code{stepsize}}{(\code{numeric(1)}: \code{0}) Number of rows of evidence to process at a time when \code{parallel} is \code{TRUE}. Default (\code{0}) spreads evidence evenly over registered workers. Can be overridden in \verb{$sample()} calls.}
+
+\item{\code{verbose}}{(\code{logical(1)}: \code{FALSE}) Whether to print progress messages. Default is \code{FALSE} (arf's default is \code{TRUE}). Can be overridden in \verb{$sample()} calls.}
+
+\item{\code{parallel}}{(\code{logical(1)}: \code{FALSE}) Whether to use parallel processing via \code{foreach}. See examples in \code{\link[arf:forge]{arf::forge()}}. Can be overridden in \verb{$sample()} calls.}
+
+\item{\code{...}}{Additional arguments passed to \link[arf:adversarial_rf]{arf::adversarial_rf}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -111,43 +123,81 @@ To fit the ARF in parallel, set \code{arf_args = list(parallel = TRUE)} and regi
 \if{html}{\out{<a id="method-ARFSampler-sample"></a>}}
 \if{latex}{\out{\hypertarget{method-ARFSampler-sample}{}}}
 \subsection{Method \code{sample()}}{
-Sample values for feature(s) conditionally on other features using ARF
+Sample from stored task. Parameters \code{conditioning_set}, \code{round}, \code{stepsize}, \code{verbose}, and \code{parallel}
+use hierarchical resolution: function argument > stored \code{param_set} value > hard-coded default.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ARFSampler$sample(
   feature,
-  data = self$task$data(),
+  row_ids = NULL,
   conditioning_set = NULL,
   round = NULL,
   stepsize = NULL,
   verbose = NULL,
-  parallel = NULL,
-  ...
+  parallel = NULL
 )}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\code{character}) Feature(s) of interest to sample (can be single or multiple)}
+\item{\code{feature}}{(\code{character}) Feature(s) to sample.}
 
-\item{\code{data}}{(\code{\link[data.table:data.table]{data.table}}) Data containing conditioning features. Defaults to \verb{$task$data()}, but typically a dedicated test set is provided.}
+\item{\code{row_ids}}{(\code{integer()} | \code{NULL}) Row IDs to use. If \code{NULL}, uses all rows.}
 
-\item{\code{conditioning_set}}{(\code{character(n) | NULL}) Features to condition on. If \code{NULL}, uses the stored parameter if available, otherwise defaults to all other features.}
+\item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Features to condition on.}
 
-\item{\code{round}}{(\code{logical(1) | NULL}) Whether to round continuous variables. If \code{NULL}, uses the stored parameter value.}
+\item{\code{round}}{(\code{logical(1)} | \code{NULL}) Round continuous variables.}
 
-\item{\code{stepsize}}{(\code{numeric(1) | NULL}) Step size for variance adjustment. If \code{NULL}, uses the stored parameter value.}
+\item{\code{stepsize}}{(\code{numeric(1)} | \code{NULL}) Batch size for parallel processing.}
 
-\item{\code{verbose}}{(\code{logical(1) | NULL}) Whether to print progress messages. If \code{NULL}, uses the stored parameter value.}
+\item{\code{verbose}}{(\code{logical(1)} | \code{NULL}) Print progress messages.}
 
-\item{\code{parallel}}{(\code{logical(1) | NULL}) Whether to use parallel processing. If \code{NULL}, uses the stored parameter value.}
-
-\item{\code{...}}{Further arguments passed to \code{arf::forge()}.}
+\item{\code{parallel}}{(\code{logical(1)} | \code{NULL}) Use parallel processing.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Modified copy of the input data with the feature(s) sampled conditionally
+Modified copy with sampled feature(s).
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ARFSampler-sample_newdata"></a>}}
+\if{latex}{\out{\hypertarget{method-ARFSampler-sample_newdata}{}}}
+\subsection{Method \code{sample_newdata()}}{
+Sample from external data (e.g., test set). See \verb{$sample()} for parameter details.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ARFSampler$sample_newdata(
+  feature,
+  newdata,
+  conditioning_set = NULL,
+  round = NULL,
+  stepsize = NULL,
+  verbose = NULL,
+  parallel = NULL
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{feature}}{(\code{character}) Feature(s) to sample.}
+
+\item{\code{newdata}}{(\code{\link[data.table:data.table]{data.table}}) External data to use.}
+
+\item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Features to condition on.}
+
+\item{\code{round}}{(\code{logical(1)} | \code{NULL}) Round continuous variables.}
+
+\item{\code{stepsize}}{(\code{numeric(1)} | \code{NULL}) Batch size for parallel processing.}
+
+\item{\code{verbose}}{(\code{logical(1)} | \code{NULL}) Print progress messages.}
+
+\item{\code{parallel}}{(\code{logical(1)} | \code{NULL}) Use parallel processing.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Modified copy with sampled feature(s).
 }
 }
 \if{html}{\out{<hr>}}

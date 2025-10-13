@@ -951,9 +951,9 @@ ConditionalSAGE = R6Class(
 				if (length(marginalize_features) > 0) {
 					# Sample conditionally for unique test instances
 					conditioning_set = coalition
-					sampled_data = self$sampler$sample(
+					sampled_data = self$sampler$sample_newdata(
 						feature = marginalize_features,
-						data = test_dt,
+						newdata = test_dt,
 						conditioning_set = conditioning_set
 					)
 

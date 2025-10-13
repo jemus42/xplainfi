@@ -14,12 +14,13 @@ test_that("KnockoffSampler basic functionality", {
 	# Check that knockoff matrix was created
 	expect_true(data.table::is.data.table(sampler$x_tilde))
 	expect_equal(nrow(sampler$x_tilde), n)
-	expect_equal(ncol(sampler$x_tilde), length(task$feature_names))
-	expect_equal(names(sampler$x_tilde), task$feature_names)
+	# x_tilde has feature columns + internal ..row_id column
+	expect_equal(ncol(sampler$x_tilde), length(task$feature_names) + 1L)
+	expect_equal(setdiff(names(sampler$x_tilde), "..row_id"), task$feature_names)
 
 	# Test single feature sampling
 	data = task$data()
-	sampled_data = sampler$sample("important1", data)
+	sampled_data = sampler$sample("important1")
 
 	expect_true(data.table::is.data.table(sampled_data))
 	expect_equal(nrow(sampled_data), n)
@@ -45,7 +46,7 @@ test_that("KnockoffSampler handles multiple features", {
 
 	# Test multiple feature sampling
 	features = c("important1", "important2")
-	sampled_data = sampler$sample(features, data)
+	sampled_data = sampler$sample(features)
 
 	expect_true(data.table::is.data.table(sampled_data))
 	expect_equal(nrow(sampled_data), 100)
@@ -69,16 +70,14 @@ test_that("KnockoffSampler works with different numeric tasks", {
 	# Friedman1 regression task (all numeric)
 	task_friedman = tgen("friedman1")$generate(n = 100)
 	sampler_friedman = KnockoffSampler$new(task_friedman)
-	data_friedman = task_friedman$data()
-	sampled_friedman = sampler_friedman$sample("important1", data_friedman)
+	sampled_friedman = sampler_friedman$sample("important1")
 	expect_true(data.table::is.data.table(sampled_friedman))
 	expect_equal(nrow(sampled_friedman), 100)
 
 	# Circle task with specified dimensions (all numeric)
 	task_circle = tgen("circle", d = 4)$generate(n = 80)
 	sampler_circle = KnockoffSampler$new(task_circle)
-	data_circle = task_circle$data()
-	sampled_circle = sampler_circle$sample("x1", data_circle)
+	sampled_circle = sampler_circle$sample("x1")
 	expect_true(data.table::is.data.table(sampled_circle))
 	expect_equal(nrow(sampled_circle), 80)
 
@@ -92,8 +91,7 @@ test_that("KnockoffSampler works with different numeric tasks", {
 	)
 	task_custom = as_task_regr(custom_data, target = "y")
 	sampler_custom = KnockoffSampler$new(task_custom)
-	data_custom = task_custom$data()
-	sampled_custom = sampler_custom$sample("x1", data_custom)
+	sampled_custom = sampler_custom$sample("x1")
 	expect_true(data.table::is.data.table(sampled_custom))
 	expect_equal(nrow(sampled_custom), 50)
 })
@@ -109,8 +107,8 @@ test_that("KnockoffSampler preserves data structure", {
 	# Add a key to the data.table
 	setkey(data, important1)
 
-	# Sample the key column to ensure key is handled properly
-	sampled_data = sampler$sample("important1", data)
+	# Sample the key column using row_ids
+	sampled_data = sampler$sample("important1")
 
 	# Should return a data.table
 	expect_true(data.table::is.data.table(sampled_data))
@@ -129,10 +127,11 @@ test_that("KnockoffSampler knockoff matrix properties", {
 	task = tgen("friedman1")$generate(n = 100)
 	sampler = KnockoffSampler$new(task)
 
-	# Knockoff matrix should have same dimensions as feature matrix
+	# Knockoff matrix should have same dimensions as feature matrix (plus ..row_id column)
 	feature_data = task$data(cols = task$feature_names)
-	expect_equal(dim(sampler$x_tilde), dim(feature_data))
-	expect_equal(names(sampler$x_tilde), names(feature_data))
+	expect_equal(nrow(sampler$x_tilde), nrow(feature_data))
+	expect_equal(ncol(sampler$x_tilde), ncol(feature_data) + 1L)  # +1 for ..row_id
+	expect_equal(setdiff(names(sampler$x_tilde), "..row_id"), names(feature_data))
 
 	# Knockoff values should be numeric (since task is all numeric)
 	expect_true(all(sapply(sampler$x_tilde, is.numeric)))
@@ -163,11 +162,11 @@ test_that("KnockoffSampler custom knockoff function", {
 	# Check knockoff matrix was created with custom function
 	expect_true(data.table::is.data.table(sampler$x_tilde))
 	expect_equal(nrow(sampler$x_tilde), 50)
-	expect_equal(ncol(sampler$x_tilde), length(task$feature_names))
+	expect_equal(ncol(sampler$x_tilde), length(task$feature_names) + 1L)  # +1 for ..row_id
 
 	# Test sampling with custom knockoffs
 	data = task$data()
-	sampled_data = sampler$sample("important1", data)
+	sampled_data = sampler$sample("important1")
 
 	expect_true(data.table::is.data.table(sampled_data))
 	expect_equal(nrow(sampled_data), 50)
@@ -214,11 +213,14 @@ test_that("KnockoffSampler reproducibility", {
 	# At minimum, dimensions should be identical
 	expect_equal(dim(sampler1$x_tilde), dim(sampler2$x_tilde))
 	expect_equal(names(sampler1$x_tilde), names(sampler2$x_tilde))
+	# Both should have ..row_id column
+	expect_true("..row_id" %in% names(sampler1$x_tilde))
+	expect_true("..row_id" %in% names(sampler2$x_tilde))
 
 	# Sampling should be consistent within each sampler
 	data = task$data()
-	sampled1a = sampler1$sample("important1", data)
-	sampled1b = sampler1$sample("important1", data)
+	sampled1a = sampler1$sample("important1")
+	sampled1b = sampler1$sample("important1")
 
 	# Should get the same knockoff values each time (sampler is deterministic)
 	expect_identical(sampled1a$important1, sampled1b$important1)
@@ -240,12 +242,12 @@ test_that("KnockoffSampler edge cases", {
 		sampler_single = KnockoffSampler$new(task_single)
 	})
 
-	expect_equal(ncol(sampler_single$x_tilde), 1)
-	expect_equal(names(sampler_single$x_tilde), "x1")
+	expect_equal(ncol(sampler_single$x_tilde), 2L)  # x1 + ..row_id
+	expect_equal(setdiff(names(sampler_single$x_tilde), "..row_id"), "x1")
 
 	# Test sampling
 	data_single = task_single$data()
-	sampled_single = sampler_single$sample("x1", data_single)
+	sampled_single = sampler_single$sample("x1")
 	expect_true(data.table::is.data.table(sampled_single))
 	expect_equal(nrow(sampled_single), 30)
 })

@@ -16,6 +16,7 @@ that should be extended by concrete implementations.
 \itemize{
 \item \href{#method-ConditionalSampler-new}{\code{ConditionalSampler$new()}}
 \item \href{#method-ConditionalSampler-sample}{\code{ConditionalSampler$sample()}}
+\item \href{#method-ConditionalSampler-sample_newdata}{\code{ConditionalSampler$sample_newdata()}}
 \item \href{#method-ConditionalSampler-clone}{\code{ConditionalSampler$clone()}}
 }
 }
@@ -47,24 +48,48 @@ Creates a new instance of the ConditionalSampler class
 \if{html}{\out{<a id="method-ConditionalSampler-sample"></a>}}
 \if{latex}{\out{\hypertarget{method-ConditionalSampler-sample}{}}}
 \subsection{Method \code{sample()}}{
-Sample values for feature(s) conditionally on other features
+Sample from stored task conditionally on other features.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConditionalSampler$sample(feature, data, conditioning_set = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ConditionalSampler$sample(feature, row_ids, conditioning_set = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\code{character}) Feature name(s) to sample (can be single or multiple)}
+\item{\code{feature}}{(\code{character}) Feature(s) to sample.}
 
-\item{\code{data}}{(\code{\link[data.table:data.table]{data.table}} ) Data containing conditioning features}
+\item{\code{row_ids}}{(\code{integer()} | \code{NULL}) Row IDs to use. If \code{NULL}, uses all rows.}
 
-\item{\code{conditioning_set}}{(\link{character}) Features to condition on (default: all other features)}
+\item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Features to condition on. If \code{NULL}, uses all other features.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Modified copy of the input data with the feature(s) sampled conditionally
+Modified copy with sampled feature(s).
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ConditionalSampler-sample_newdata"></a>}}
+\if{latex}{\out{\hypertarget{method-ConditionalSampler-sample_newdata}{}}}
+\subsection{Method \code{sample_newdata()}}{
+Sample from external data conditionally. See \verb{$sample()} for details.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ConditionalSampler$sample_newdata(feature, newdata, conditioning_set = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{feature}}{(\code{character}) Feature(s) to sample.}
+
+\item{\code{newdata}}{(\code{\link[data.table:data.table]{data.table}}) External data to use.}
+
+\item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Features to condition on.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Modified copy with sampled feature(s).
 }
 }
 \if{html}{\out{<hr>}}

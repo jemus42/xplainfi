@@ -36,8 +36,10 @@ The key insight of SAGE is that it provides a complete decomposition of the mode
 To showcase the difference between Marginal and Conditional SAGE, we'll use the `sim_dgp_correlated()` function which creates highly correlated features. This is similar to how PFI and CFI behave differently with correlated features.
 
 **Model:**
-$$X_1 \sim N(0,1)$$
-$$X_2 = X_1 + \varepsilon_2, \quad \varepsilon_2 \sim N(0, 0.05^2)$$
+$$(X_1, X_2)^T \sim \text{MVN}(0, \Sigma)$$
+
+where $\Sigma$ is a 2×2 covariance matrix with 1 on the diagonal and correlation $r$ (default 0.9) on the off-diagonal.
+
 $$X_3 \sim N(0,1), \quad X_4 \sim N(0,1)$$
 $$Y = 2 \cdot X_1 + X_3 + \varepsilon$$
 
@@ -46,7 +48,7 @@ where $\varepsilon \sim N(0, 0.2^2)$.
 **Key properties:**
 
 - `x1` has a direct causal effect on y (β=2.0)
-- `x2` is highly correlated with x1 (r ≈ 0.999) but has **no causal effect** on y
+- `x2` is correlated with x1 (r = 0.9 from MVN) but has **no causal effect** on y
 - `x3` is independent with a causal effect (β=1.0)
 - `x4` is independent noise (β=0)
 
@@ -124,7 +126,7 @@ ggplot(marginal_results, aes(x = feature, y = importance)) +
 	) +
 	labs(
 		title = "Marginal SAGE Feature Importance",
-		subtitle = "Correlated features: x1 and x2 are highly correlated (r ≈ 0.999)\nx2 has no effect on y",
+		subtitle = "Correlated features: x1 and x2 are correlated (r = 0.9 from MVN)\nx2 has no effect on y",
 		x = "Features",
 		y = "SAGE Value"
 	) +
