@@ -11,6 +11,18 @@ FeatureSampler = R6Class(
 		task = NULL,
 		#' @field label (`character(1)`) Name of the sampler.
 		label = NULL,
+		#' @field feature_types (`character()`) Feature types supported by the sampler.
+		#'   Will be checked against the provied [mlr3::Task] to ensure compatibility.
+		feature_types = c(
+			"numeric",
+			"factor",
+			"ordered",
+			"integer",
+			"logical",
+			"Date",
+			"POSIXct",
+			"character"
+		),
 		#' @field param_set ([paradox::ParamSet]) Parameter set for the sampler.
 		param_set = NULL,
 
@@ -18,7 +30,7 @@ FeatureSampler = R6Class(
 		#' Creates a new instance of the FeatureSampler class
 		#' @param task ([mlr3::Task]) Task to sample from
 		initialize = function(task) {
-			self$task = mlr3::assert_task(task)
+			self$task = mlr3::assert_task(task, feature_types = self$feature_types)
 			# Initialize empty param_set - subclasses should define their own
 			self$param_set = paradox::ps()
 		},
@@ -204,6 +216,16 @@ ARFSampler = R6Class(
 	"ARFSampler",
 	inherit = ConditionalSampler,
 	public = list(
+		#' @field feature_types (`character()`) Feature types supported by the sampler.
+		#'   Will be checked against the provied [mlr3::Task] to ensure compatibility.
+		feature_types = c(
+			"numeric",
+			"factor",
+			"ordered",
+			"integer",
+			"logical",
+			"character"
+		),
 		#' @field arf_model Adversarial Random Forest model created by [arf::adversarial_rf].
 		arf_model = NULL,
 		#' @field psi Distribution parameters estimated from by [arf::forde].
@@ -441,6 +463,9 @@ ARFSampler = R6Class(
 #'
 #' @details
 #' The KnockoffSampler samples [Knockoffs][knockoff::knockoff] based on the task data.
+#' This class allows arbitrary `knockoff_fun`, which also means that no input checking
+#' against supported feature types can be done. Use [KnockoffGaussianSampler] or
+#' [KnockoffSequentialSampler] for these variants specifically.
 #'
 #' @examplesIf requireNamespace("knockoff", quietly = TRUE)
 #' library(mlr3)
@@ -562,6 +587,12 @@ KnockoffGaussianSampler = R6Class(
 	"KnockoffGaussianSampler",
 	inherit = KnockoffSampler,
 	public = list(
+		#' @field feature_types (`character()`) Feature types supported by the sampler.
+		#'   Will be checked against the provied [mlr3::Task] to ensure compatibility.
+		feature_types = c(
+			"numeric",
+			"integer"
+		),
 		#' @field x_tilde Knockoff matrix
 		x_tilde = NULL,
 
@@ -606,6 +637,9 @@ KnockoffSequentialSampler = R6Class(
 	"KnockoffSequentialSampler",
 	inherit = KnockoffSampler,
 	public = list(
+		#' @field feature_types (`character()`) Feature types supported by the sampler.
+		#'   Will be checked against the provied [mlr3::Task] to ensure compatibility.
+		feature_types = c("numeric", "factor"),
 		#' @field x_tilde Knockoff matrix
 		x_tilde = NULL,
 

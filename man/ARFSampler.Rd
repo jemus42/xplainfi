@@ -47,6 +47,9 @@ Blesch, Kristin, Koenen, Niklas, Kapar, Jan, Golchian, Pegah, Burk, Lukas, Loech
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
+\item{\code{feature_types}}{(\code{character()}) Feature types supported by the sampler.
+Will be checked against the provied \link[mlr3:Task]{mlr3::Task} to ensure compatibility.}
+
 \item{\code{arf_model}}{Adversarial Random Forest model created by \link[arf:adversarial_rf]{arf::adversarial_rf}.}
 
 \item{\code{psi}}{Distribution parameters estimated from by \link[arf:forde]{arf::forde}.}

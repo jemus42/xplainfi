@@ -8,6 +8,9 @@ Implements conditional sampling using Knockoffs.
 }
 \details{
 The KnockoffSampler samples \link[knockoff:knockoff]{Knockoffs} based on the task data.
+This class allows arbitrary \code{knockoff_fun}, which also means that no input checking
+against supported feature types can be done. Use \link{KnockoffGaussianSampler} or
+\link{KnockoffSequentialSampler} for these variants specifically.
 }
 \examples{
 \dontshow{if (requireNamespace("knockoff", quietly = TRUE)) withAutoprint(\{ # examplesIf}

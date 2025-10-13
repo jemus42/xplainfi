@@ -35,6 +35,9 @@ Blesch K, Watson D, Wright M (2023).
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
+\item{\code{feature_types}}{(\code{character()}) Feature types supported by the sampler.
+Will be checked against the provied \link[mlr3:Task]{mlr3::Task} to ensure compatibility.}
+
 \item{\code{x_tilde}}{Knockoff matrix}
 }
 \if{html}{\out{</div>}}

@@ -14,6 +14,9 @@ for feature importance methods like PFI and CFI
 
 \item{\code{label}}{(\code{character(1)}) Name of the sampler.}
 
+\item{\code{feature_types}}{(\code{character()}) Feature types supported by the sampler.
+Will be checked against the provied \link[mlr3:Task]{mlr3::Task} to ensure compatibility.}
+
 \item{\code{param_set}}{(\link[paradox:ParamSet]{paradox::ParamSet}) Parameter set for the sampler.}
 }
 \if{html}{\out{</div>}}
