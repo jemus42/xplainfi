@@ -54,6 +54,8 @@ reference:
       - MarginalSampler
       - ConditionalSampler
       - ARFSampler
+      - KnockoffSampler
+      - starts_with("Knockoff")
       - contains("Sampler")
   - title: Utilities
   - contents:
