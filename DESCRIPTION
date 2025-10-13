@@ -1,6 +1,6 @@
 Package: xplainfi
 Title: Feature Importance Methods for Model Interpretability
-Version: 0.1.0.9001
+Version: 0.1.0.9002
 Authors@R: 
     person("Lukas", "Burk", , "github@quantenbrot.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-7528-3795"))
