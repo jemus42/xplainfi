@@ -4,7 +4,7 @@ This turns out to be still a period of major changes in the early phase, so, uhm
 
 ## General changes and improvements
 
-- `$importance` becomes a function `$importance()` with arguments `standardize` and `variance_method` (#40):
+- `$importance` becomes a function `$importance()` with arguments `standardize` and `ci_method` (#40):
   - `"nadeau_bengio"` implements the correction method by Nadeau & Bengio (2003) recommended by Molnar et al. (2023).
 - `$scores` becomes `$scores()` for more fleixibility analogous to `$importance()`. Original scores are stored in `private$.scores` (for now).
 - Both `$importance()` and `$scores()` have argument `relation` defaulting to `"differrence"` which allows to calculate importances like PFI as either the difference or the ratio of baseline and post-modification loss. The argument is moved out of `$compute()` to avoid having to recompute any predictions or model refits.

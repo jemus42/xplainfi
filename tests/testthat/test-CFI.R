@@ -364,3 +364,65 @@ test_that("CFI with KnockoffSequentialSampler", {
 	# On average, important features should have higher CFI values
 	expect_gt(mean(important_scores), mean(unimportant_scores))
 })
+
+test_that("CFI with CPI variance method using KnockoffGaussianSampler", {
+	skip_if_not_installed("ranger")
+	skip_if_not_installed("mlr3learners")
+	skip_if_not_installed("knockoff")
+
+	set.seed(123)
+	# Use correlated DGP to test CPI - x1 and x2 are correlated, x1 is important, x2 is not
+	task = sim_dgp_correlated(n = 300, r = 0.7)
+	learner = mlr3::lrn("regr.ranger", num.trees = 100)
+	measure = mlr3::msr("regr.mse")
+
+	# CPI requires cross-validation or similar resampling with multiple folds
+	resampling = mlr3::rsmp("cv", folds = 5)
+
+	# Create CFI with KnockoffGaussianSampler
+	gaussian_sampler = KnockoffGaussianSampler$new(task)
+	cfi = CFI$new(
+		task = task,
+		learner = learner,
+		measure = measure,
+		resampling = resampling,
+		sampler = gaussian_sampler
+	)
+
+	# Check that CPI is in the variance methods registry
+	expect_true("cpi" %in% cfi$.__enclos_env__$private$.ci_methods)
+
+	cfi$compute()
+
+	# Test CPI variance method
+	cpi_result = cfi$importance(ci_method = "cpi")
+
+	# Check structure
+	expect_importance_dt(cpi_result, features = cfi$features)
+	expected_cols = c("feature", "importance", "se", "statistic", "p.value", "conf_lower", "conf_upper")
+	expect_true(all(expected_cols %in% names(cpi_result)))
+
+	# Check that all values are finite
+	expect_true(all(is.finite(cpi_result$importance)))
+	expect_true(all(is.finite(cpi_result$se)))
+	expect_true(all(is.finite(cpi_result$statistic)))
+	expect_true(all(is.finite(cpi_result$p.value)))
+	expect_true(all(is.finite(cpi_result$conf_lower)))
+
+	# Upper confidence bound should be Inf for one-sided test
+	expect_true(all(is.infinite(cpi_result$conf_upper)))
+
+	# P-values should be in [0, 1]
+	expect_true(all(cpi_result$p.value >= 0 & cpi_result$p.value <= 1))
+
+	# SE should be positive
+	expect_true(all(cpi_result$se > 0))
+
+	# For correlated DGP, x1 and x3 should have lower p-values (more important)
+	# than x2 and x4 (unimportant)
+	important_pvals = cpi_result[feature %in% c("x1", "x3")]$p.value
+	unimportant_pvals = cpi_result[feature %in% c("x2", "x4")]$p.value
+
+	# On average, important features should have smaller p-values
+	expect_lt(mean(important_pvals), mean(unimportant_pvals))
+})

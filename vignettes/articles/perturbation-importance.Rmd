@@ -890,8 +890,8 @@ pfi_var <- PFI$new(
 pfi_var$compute()
 
 # Compare variance methods
-imp_raw <- pfi_var$importance(variance_method = "raw") # Uncorrected (too narrow!)
-imp_corrected <- pfi_var$importance(variance_method = "nadeau_bengio") # Corrected
+imp_raw <- pfi_var$importance(ci_method = "raw") # Uncorrected (too narrow!)
+imp_corrected <- pfi_var$importance(ci_method = "nadeau_bengio") # Corrected
 
 # Show the difference for important features
 imp_raw[grepl("^important", feature), .(feature, importance, conf_lower, conf_upper)]
@@ -937,9 +937,9 @@ ggplot(var_comparison, aes(x = feature, y = importance, color = method)) +
 
 ### Practical Recommendations
 
-- Use `variance_method = "nadeau_bengio"` when using bootstrap or subsampling for improved (yet still flawed) confidence intervals
-- The default `variance_method = "none"` returns only point estimates without uncertainty
-- Never use `variance_method = "raw"` for actual results, the uncorrected intervals are misleadingly narrow
+- Use `ci_method = "nadeau_bengio"` when using bootstrap or subsampling for improved (yet still flawed) confidence intervals
+- The default `ci_method = "none"` returns only point estimates without uncertainty
+- Never use `ci_method = "raw"` for actual results, the uncorrected intervals are misleadingly narrow
 
 ## Key Takeaways
 

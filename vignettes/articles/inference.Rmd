@@ -96,14 +96,14 @@ pfi$importance()
 If we want unadjusted confidence intervals we can ask for them, but note these are too narrow / optimistic and hence invalid for inference:
 
 ```{r pfi-ci-raw}
-pfi_ci_raw = pfi$importance(variance_method = "raw")
+pfi_ci_raw = pfi$importance(ci_method = "raw")
 pfi_ci_raw
 ```
 
 Analogously we can retrieve the Nadeau & Bengio-adjusted standard errors and derived confidence intervals which were demonstrated to have better (but still imperfect) coverage:
 
 ```{r pfi-ci-nadeau-bengio}
-pfi_ci_corrected = pfi$importance(variance_method = "nadeau_bengio")
+pfi_ci_corrected = pfi$importance(ci_method = "nadeau_bengio")
 pfi_ci_corrected
 ```
 
