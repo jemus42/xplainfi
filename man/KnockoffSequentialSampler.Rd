@@ -30,7 +30,7 @@ Blesch K, Watson D, Wright M (2023).
 \doi{10.1007/s10182-023-00477-9}.
 }
 \section{Super classes}{
-\code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{\link[xplainfi:ConditionalSampler]{xplainfi::ConditionalSampler}} -> \code{\link[xplainfi:KnockoffSampler]{xplainfi::KnockoffSampler}} -> \code{KnockoffGaussianSampler}
+\code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{\link[xplainfi:ConditionalSampler]{xplainfi::ConditionalSampler}} -> \code{\link[xplainfi:KnockoffSampler]{xplainfi::KnockoffSampler}} -> \code{KnockoffSequentialSampler}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -42,8 +42,8 @@ Blesch K, Watson D, Wright M (2023).
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-KnockoffGaussianSampler-new}{\code{KnockoffSequentialSampler$new()}}
-\item \href{#method-KnockoffGaussianSampler-clone}{\code{KnockoffSequentialSampler$clone()}}
+\item \href{#method-KnockoffSequentialSampler-new}{\code{KnockoffSequentialSampler$new()}}
+\item \href{#method-KnockoffSequentialSampler-clone}{\code{KnockoffSequentialSampler$clone()}}
 }
 }
 \if{html}{\out{
@@ -56,8 +56,8 @@ Blesch K, Watson D, Wright M (2023).
 </details>
 }}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-KnockoffGaussianSampler-new"></a>}}
-\if{latex}{\out{\hypertarget{method-KnockoffGaussianSampler-new}{}}}
+\if{html}{\out{<a id="method-KnockoffSequentialSampler-new"></a>}}
+\if{latex}{\out{\hypertarget{method-KnockoffSequentialSampler-new}{}}}
 \subsection{Method \code{new()}}{
 Creates a new instance of the KnockoffSampler class.
 \subsection{Usage}{
@@ -75,8 +75,8 @@ Creates a new instance of the KnockoffSampler class.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-KnockoffGaussianSampler-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-KnockoffGaussianSampler-clone}{}}}
+\if{html}{\out{<a id="method-KnockoffSequentialSampler-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-KnockoffSequentialSampler-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

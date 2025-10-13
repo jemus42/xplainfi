@@ -205,9 +205,9 @@ ARFSampler = R6Class(
 	"ARFSampler",
 	inherit = ConditionalSampler,
 	public = list(
-		#' @field arf_model Adversarial Random Forest model
+		#' @field arf_model Adversarial Random Forest model created by [arf::adversarial_rf].
 		arf_model = NULL,
-		#' @field psi Distribution parameters estimated from ARF
+		#' @field psi Distribution parameters estimated from by [arf::forde].
 		psi = NULL,
 
 		#' @description

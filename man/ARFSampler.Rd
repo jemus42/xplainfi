@@ -47,9 +47,9 @@ Blesch, Kristin, Koenen, Niklas, Kapar, Jan, Golchian, Pegah, Burk, Lukas, Loech
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{arf_model}}{Adversarial Random Forest model}
+\item{\code{arf_model}}{Adversarial Random Forest model created by \link[arf:adversarial_rf]{arf::adversarial_rf}.}
 
-\item{\code{psi}}{Distribution parameters estimated from ARF}
+\item{\code{psi}}{Distribution parameters estimated from by \link[arf:forde]{arf::forde}.}
 }
 \if{html}{\out{</div>}}
 }
