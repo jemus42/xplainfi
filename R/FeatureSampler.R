@@ -55,7 +55,6 @@ FeatureSampler = R6Class(
 			cli::cli_li(
 				"Task: {.val {self$task$id}} ({.strong {self$task$nrow}x{self$task$n_features}})"
 			)
-			cli::cli_li("{.val {self$task$n_features}} features")
 			cli::cli_end()
 		}
 	)
@@ -168,7 +167,7 @@ ConditionalSampler = R6Class(
 		sample_newdata = function(feature, newdata, conditioning_set = NULL) {
 			cli::cli_abort(c(
 				"Not implemented.",
-				i = "Only some sampler (e.g. {.cls ARFSampler}) support sampling using external data."
+				i = "Only some samplers (e.g. {.cls ARFSampler}) support sampling using external data."
 			))
 		}
 	)
@@ -236,10 +235,9 @@ ARFSampler = R6Class(
 			num_trees = 10L,
 			min_node_size = 2L
 		) {
+			require_package("arf")
 			super$initialize(task)
 			self$label = "Adversarial Random Forest sampler"
-
-			require_package("arf")
 
 			# Override param_set to include ARF-specific parameters
 			self$param_set = paradox::ps(
