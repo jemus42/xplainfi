@@ -74,44 +74,47 @@ Blesch, Kristin, Koenen, Niklas, Kapar, Jan, Golchian, Pegah, Burk, Lukas, Loech
 \if{latex}{\out{\hypertarget{method-ARFSampler-new}{}}}
 \subsection{Method \code{new()}}{
 Creates a new instance of the ARFSampler class.
-To fit the ARF in parallel, set \code{arf_args = list(parallel = TRUE)} and register a parallel backend (see \link[arf:arf-package]{arf::arf}).
+To fit the ARF in parallel, register a parallel backend first (see \link[arf:arf-package]{arf::arf}) and set \code{parallel = TRUE}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ARFSampler$new(
   task,
   conditioning_set = NULL,
+  num_trees = 10L,
+  min_node_size = 2L,
   finite_bounds = "no",
+  epsilon = 0,
   round = TRUE,
   stepsize = 0,
-  epsilon = 0,
   verbose = FALSE,
   parallel = FALSE,
-  num_trees = 10L,
-  min_node_size = 2L
+  ...
 )}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Task to sample from}
+\item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Task to sample from.}
 
 \item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Default conditioning set to use in \verb{$sample()}. This parameter only affects the sampling behavior, not the ARF model fitting.}
 
-\item{\code{finite_bounds}}{(\code{character(1)}: \code{"no"}) Passed to \link[arf:forde]{arf::forde}. Default is \code{"no"} for compatibility. \code{"local"} may improve extrapolation but can cause issues with some data.}
+\item{\code{num_trees}}{(\code{integer(1)}: \code{10L}) Number of trees for ARF. Passed to \link[arf:adversarial_rf]{arf::adversarial_rf}.}
 
-\item{\code{round}}{(\code{logical(1)}: \code{TRUE}) Whether to round continuous variables back to their original precision.}
+\item{\code{min_node_size}}{(\code{integer(1)}: \code{2L}) Minimum node size for ARF. Passed to \link[arf:adversarial_rf]{arf::adversarial_rf}.}
 
-\item{\code{stepsize}}{(\code{numeric(1)}: \code{0}) Number of rows of evidence to process at a time wehn \code{parallel} is \code{TRUE}. Default (\code{0}) spreads evidence evenly over registered workers.}
+\item{\code{finite_bounds}}{(\code{character(1)}: \code{"no"}) How to handle variable bounds. Passed to \link[arf:forde]{arf::forde}. Default is \code{"no"} for compatibility. \code{"local"} may improve extrapolation but can cause issues with some data.}
 
-\item{\code{epsilon}}{(\code{numeric(1)}: \code{0}) Passed to \link[arf:forde]{arf::forde}. Slack parameter for when \code{finite_bounds != "no"}.}
+\item{\code{epsilon}}{(\code{numeric(1)}: \code{0}) Slack parameter for when \code{finite_bounds != "no"}. Passed to \link[arf:forde]{arf::forde}.}
 
-\item{\code{verbose}}{(\code{logical(1)}: \code{FALSE}) Whether to print progress messages. Default is \code{FALSE} but default in \code{arf} is \code{TRUE}.}
+\item{\code{round}}{(\code{logical(1)}: \code{TRUE}) Whether to round continuous variables back to their original precision in sampling. Can be overridden in \verb{$sample()} calls.}
 
-\item{\code{parallel}}{(\code{logical(1)}: \code{FALSE}) Whether to use parallel processing via \code{foreach}. See examples in \code{\link[arf:forge]{arf::forge()}}.}
+\item{\code{stepsize}}{(\code{numeric(1)}: \code{0}) Number of rows of evidence to process at a time when \code{parallel} is \code{TRUE}. Default (\code{0}) spreads evidence evenly over registered workers. Can be overridden in \verb{$sample()} calls.}
 
-\item{\code{num_trees}}{(\code{integer(1)}: \code{10L}): Passed to \link[arf:adversarial_rf]{arf::adversarial_rf}.}
+\item{\code{verbose}}{(\code{logical(1)}: \code{FALSE}) Whether to print progress messages. Default is \code{FALSE} (arf's default is \code{TRUE}). Can be overridden in \verb{$sample()} calls.}
 
-\item{\code{min_node_size}}{(\code{integer(1)}: \code{2L}): Passed to \link[arf:adversarial_rf]{arf::adversarial_rf}.}
+\item{\code{parallel}}{(\code{logical(1)}: \code{FALSE}) Whether to use parallel processing via \code{foreach}. See examples in \code{\link[arf:forge]{arf::forge()}}. Can be overridden in \verb{$sample()} calls.}
+
+\item{\code{...}}{Additional arguments passed to \link[arf:adversarial_rf]{arf::adversarial_rf}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -129,8 +132,7 @@ Sample values for feature(s) conditionally on other features using ARF
   round = NULL,
   stepsize = NULL,
   verbose = NULL,
-  parallel = NULL,
-  ...
+  parallel = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -151,8 +153,6 @@ If \code{NULL}, all rows of the stored tasks are used.}
 \item{\code{verbose}}{(\code{logical(1) | NULL}) Whether to print progress messages. If \code{NULL}, uses the stored parameter value.}
 
 \item{\code{parallel}}{(\code{logical(1) | NULL}) Whether to use parallel processing. If \code{NULL}, uses the stored parameter value.}
-
-\item{\code{...}}{Further arguments passed to \code{arf::forge()}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -173,8 +173,7 @@ Sample values for feature(s) conditionally on other features using ARF
   round = NULL,
   stepsize = NULL,
   verbose = NULL,
-  parallel = NULL,
-  ...
+  parallel = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -194,8 +193,6 @@ Sample values for feature(s) conditionally on other features using ARF
 \item{\code{verbose}}{(\code{logical(1) | NULL}) Whether to print progress messages. If \code{NULL}, uses the stored parameter value.}
 
 \item{\code{parallel}}{(\code{logical(1) | NULL}) Whether to use parallel processing. If \code{NULL}, uses the stored parameter value.}
-
-\item{\code{...}}{Further arguments passed to \code{arf::forge()}.}
 }
 \if{html}{\out{</div>}}
 }

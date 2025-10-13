@@ -212,53 +212,66 @@ ARFSampler = R6Class(
 
 		#' @description
 		#' Creates a new instance of the ARFSampler class.
-		#' To fit the ARF in parallel, set `arf_args = list(parallel = TRUE)` and register a parallel backend (see [arf::arf]).
-		#' @param task ([mlr3::Task]) Task to sample from
+		#' To fit the ARF in parallel, register a parallel backend first (see [arf::arf]) and set `parallel = TRUE`.
+		#' @param task ([mlr3::Task]) Task to sample from.
 		#' @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`. This parameter only affects the sampling behavior, not the ARF model fitting.
-		#' @param finite_bounds (`character(1)`: `"no"`) Passed to [arf::forde]. Default is `"no"` for compatibility. `"local"` may improve extrapolation but can cause issues with some data.
-		#' @param stepsize (`numeric(1)`: `0`) Number of rows of evidence to process at a time wehn `parallel` is `TRUE`. Default (`0`) spreads evidence evenly over registered workers.
-		#' @param epsilon (`numeric(1)`: `0`) Passed to [arf::forde]. Slack parameter for when `finite_bounds != "no"`.
-		#' @param min_node_size (`integer(1)`: `2L`): Passed to [arf::adversarial_rf].
-		#' @param num_trees (`integer(1)`: `10L`): Passed to [arf::adversarial_rf].
-		#' @param round (`logical(1)`: `TRUE`) Whether to round continuous variables back to their original precision.
-		#' @param parallel (`logical(1)`: `FALSE`) Whether to use parallel processing via `foreach`. See examples in [arf::forge()].
-		#' @param verbose (`logical(1)`: `FALSE`) Whether to print progress messages. Default is `FALSE` but default in `arf` is `TRUE`.
+		#' @param num_trees (`integer(1)`: `10L`) Number of trees for ARF. Passed to [arf::adversarial_rf].
+		#' @param min_node_size (`integer(1)`: `2L`) Minimum node size for ARF. Passed to [arf::adversarial_rf].
+		#' @param finite_bounds (`character(1)`: `"no"`) How to handle variable bounds. Passed to [arf::forde]. Default is `"no"` for compatibility. `"local"` may improve extrapolation but can cause issues with some data.
+		#' @param epsilon (`numeric(1)`: `0`) Slack parameter for when `finite_bounds != "no"`. Passed to [arf::forde].
+		#' @param round (`logical(1)`: `TRUE`) Whether to round continuous variables back to their original precision in sampling. Can be overridden in `$sample()` calls.
+		#' @param stepsize (`numeric(1)`: `0`) Number of rows of evidence to process at a time when `parallel` is `TRUE`. Default (`0`) spreads evidence evenly over registered workers. Can be overridden in `$sample()` calls.
+		#' @param verbose (`logical(1)`: `FALSE`) Whether to print progress messages. Default is `FALSE` (arf's default is `TRUE`). Can be overridden in `$sample()` calls.
+		#' @param parallel (`logical(1)`: `FALSE`) Whether to use parallel processing via `foreach`. See examples in [arf::forge()]. Can be overridden in `$sample()` calls.
+		#' @param ... Additional arguments passed to [arf::adversarial_rf].
 		initialize = function(
 			task,
 			conditioning_set = NULL,
+			num_trees = 10L,
+			min_node_size = 2L,
 			finite_bounds = "no",
+			epsilon = 0,
 			round = TRUE,
 			stepsize = 0,
-			epsilon = 0,
 			verbose = FALSE,
 			parallel = FALSE,
-			num_trees = 10L,
-			min_node_size = 2L
+			...
 		) {
 			require_package("arf")
 			super$initialize(task)
 			self$label = "Adversarial Random Forest sampler"
 
-			# Override param_set to include ARF-specific parameters
+			# Define param_set with all parameters
+			# Sampling parameters (can be overridden in $sample() calls)
+			# Model fitting parameters (only used during initialization)
 			self$param_set = paradox::ps(
+				# Sampling parameters (stored for hierarchical resolution in $sample())
 				conditioning_set = paradox::p_uty(default = NULL),
-				finite_bounds = paradox::p_fct(c("no", "local", "global"), default = "no"),
 				round = paradox::p_lgl(default = TRUE),
 				stepsize = paradox::p_dbl(lower = 0, default = 0),
 				verbose = paradox::p_lgl(default = FALSE),
-				parallel = paradox::p_lgl(default = FALSE)
+				parallel = paradox::p_lgl(default = FALSE),
+				# Model fitting parameters (used only during initialization)
+				num_trees = paradox::p_int(lower = 1L, default = 10L),
+				min_node_size = paradox::p_int(lower = 1L, default = 2L),
+				finite_bounds = paradox::p_fct(c("no", "local", "global"), default = "no"),
+				epsilon = paradox::p_dbl(lower = 0, default = 0)
 			)
 
-			# Set parameter values for later use in $sample()
-			values_to_set = list()
+			# Set parameter values
+			values_to_set = list(
+				round = round,
+				stepsize = stepsize,
+				verbose = verbose,
+				parallel = parallel,
+				num_trees = num_trees,
+				min_node_size = min_node_size,
+				finite_bounds = finite_bounds,
+				epsilon = epsilon
+			)
 			if (!is.null(conditioning_set)) {
 				values_to_set$conditioning_set = conditioning_set
 			}
-			values_to_set$finite_bounds = finite_bounds
-			values_to_set$round = round
-			values_to_set$stepsize = stepsize
-			values_to_set$verbose = verbose
-			values_to_set$parallel = parallel
 
 			self$param_set$set_values(.values = values_to_set)
 
@@ -277,13 +290,14 @@ ARFSampler = R6Class(
 				min_node_size = min_node_size,
 				verbose = verbose,
 				parallel = parallel,
-				replace = FALSE
+				replace = FALSE,
+				...
 			)
 			self$psi = arf::forde(
 				arf = self$arf_model,
 				x = task_data,
 				finite_bounds = finite_bounds,
-				epsilon = epsilon, # Conservative value for finite_bounds = "local"
+				epsilon = epsilon,
 				parallel = parallel
 			)
 		},
