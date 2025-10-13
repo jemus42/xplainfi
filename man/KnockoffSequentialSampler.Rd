@@ -59,7 +59,7 @@ Blesch K, Watson D, Wright M (2023).
 \if{html}{\out{<a id="method-KnockoffSequentialSampler-new"></a>}}
 \if{latex}{\out{\hypertarget{method-KnockoffSequentialSampler-new}{}}}
 \subsection{Method \code{new()}}{
-Creates a new instance of the KnockoffSampler class.
+Creates a new instance using sequential knockoffs via \link[seqknockoff:knockoffs_seq]{seqknockoff::knockoffs_seq}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{KnockoffSequentialSampler$new(task)}\if{html}{\out{</div>}}
 }
@@ -67,9 +67,7 @@ Creates a new instance of the KnockoffSampler class.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Task to sample from}
-
-\item{\code{knockoff_fun}}{(\code{function}) Step size for variance adjustment. Default are second-order Gaussian knockoffs.}
+\item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Task to sample from.}
 }
 \if{html}{\out{</div>}}
 }

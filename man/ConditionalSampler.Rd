@@ -48,7 +48,7 @@ Creates a new instance of the ConditionalSampler class
 \if{html}{\out{<a id="method-ConditionalSampler-sample"></a>}}
 \if{latex}{\out{\hypertarget{method-ConditionalSampler-sample}{}}}
 \subsection{Method \code{sample()}}{
-Sample values for feature(s) conditionally on other features using the stored task
+Sample from stored task conditionally on other features.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ConditionalSampler$sample(feature, row_ids, conditioning_set = NULL)}\if{html}{\out{</div>}}
 }
@@ -56,24 +56,23 @@ Sample values for feature(s) conditionally on other features using the stored ta
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\code{character}) Feature name(s) to sample (can be single or multiple)}
+\item{\code{feature}}{(\code{character}) Feature(s) to sample.}
 
-\item{\code{row_ids}}{(\code{integer()}: \code{NULL}) Row IDs of the stored \link[mlr3:Task]{Task} to use as basis for sampling.
-If \code{NULL}, all rows of the stored tasks are used.}
+\item{\code{row_ids}}{(\code{integer()} | \code{NULL}) Row IDs to use. If \code{NULL}, uses all rows.}
 
-\item{\code{conditioning_set}}{(\link{character}) Features to condition on (default: all other features)}
+\item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Features to condition on. If \code{NULL}, uses all other features.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Modified copy of the input data with the feature(s) sampled conditionally
+Modified copy with sampled feature(s).
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConditionalSampler-sample_newdata"></a>}}
 \if{latex}{\out{\hypertarget{method-ConditionalSampler-sample_newdata}{}}}
 \subsection{Method \code{sample_newdata()}}{
-Sample values for feature(s) conditionally on other features using external data
+Sample from external data conditionally. See \verb{$sample()} for details.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ConditionalSampler$sample_newdata(feature, newdata, conditioning_set = NULL)}\if{html}{\out{</div>}}
 }
@@ -81,16 +80,16 @@ Sample values for feature(s) conditionally on other features using external data
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\code{character}) Feature name(s) to sample (can be single or multiple)}
+\item{\code{feature}}{(\code{character}) Feature(s) to sample.}
 
-\item{\code{newdata}}{(\code{\link[data.table:data.table]{data.table}} ) Data containing conditioning features}
+\item{\code{newdata}}{(\code{\link[data.table:data.table]{data.table}}) External data to use.}
 
-\item{\code{conditioning_set}}{(\link{character}) Features to condition on (default: all other features)}
+\item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Features to condition on.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Modified copy of the input data with the feature(s) sampled conditionally
+Modified copy with sampled feature(s).
 }
 }
 \if{html}{\out{<hr>}}

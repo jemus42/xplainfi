@@ -57,7 +57,7 @@ Creates a new instance of the MarginalSampler class
 \if{html}{\out{<a id="method-MarginalSampler-sample"></a>}}
 \if{latex}{\out{\hypertarget{method-MarginalSampler-sample}{}}}
 \subsection{Method \code{sample()}}{
-Sample values for feature(s) by permutation (marginal distribution) using the stored task
+Sample from stored task by permutation (marginal distribution).
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{MarginalSampler$sample(feature, row_ids = NULL)}\if{html}{\out{</div>}}
 }
@@ -65,22 +65,21 @@ Sample values for feature(s) by permutation (marginal distribution) using the st
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\code{character}) Feature name(s) to sample (can be single or multiple)}
+\item{\code{feature}}{(\code{character}) Feature(s) to sample.}
 
-\item{\code{row_ids}}{(\code{integer()}: \code{NULL}) Row IDs of the stored \link[mlr3:Task]{Task} to use as basis for sampling.
-If \code{NULL}, all rows of the stored tasks are used.}
+\item{\code{row_ids}}{(\code{integer()} | \code{NULL}) Row IDs to use. If \code{NULL}, uses all rows.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Modified copy of the input data with the feature(s) permuted
+Modified copy with permuted feature(s).
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-MarginalSampler-sample_newdata"></a>}}
 \if{latex}{\out{\hypertarget{method-MarginalSampler-sample_newdata}{}}}
 \subsection{Method \code{sample_newdata()}}{
-Sample values for feature(s) by permutation (marginal distribution) using external data
+Sample from external data by permutation. See \verb{$sample()} for details.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{MarginalSampler$sample_newdata(feature, newdata)}\if{html}{\out{</div>}}
 }
@@ -88,11 +87,14 @@ Sample values for feature(s) by permutation (marginal distribution) using extern
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\code{character}) Feature name(s) to sample (can be single or multiple)}
+\item{\code{feature}}{(\code{character}) Feature(s) to sample.}
 
-\item{\code{newdata}}{(\code{\link[data.table:data.table]{data.table}} ) External data to use for sampling.}
+\item{\code{newdata}}{(\code{\link[data.table:data.table]{data.table}}) External data to use.}
 }
 \if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Modified copy with permuted feature(s).
 }
 }
 \if{html}{\out{<hr>}}

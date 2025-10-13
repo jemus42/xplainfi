@@ -88,11 +88,10 @@ MarginalSampler = R6Class(
 		},
 
 		#' @description
-		#' Sample values for feature(s) by permutation (marginal distribution) using the stored task
-		#' @param feature (`character`) Feature name(s) to sample (can be single or multiple)
-		#' @param row_ids (`integer()`: `NULL`) Row IDs of the stored [Task][mlr3::Task] to use as basis for sampling.
-		#'   If `NULL`, all rows of the stored tasks are used.
-		#' @return Modified copy of the input data with the feature(s) permuted
+		#' Sample from stored task by permutation (marginal distribution).
+		#' @param feature (`character`) Feature(s) to sample.
+		#' @param row_ids (`integer()` | `NULL`) Row IDs to use. If `NULL`, uses all rows.
+		#' @return Modified copy with permuted feature(s).
 		sample = function(feature, row_ids = NULL) {
 			if (is.null(row_ids)) {
 				row_ids = self$task$row_ids
@@ -105,9 +104,10 @@ MarginalSampler = R6Class(
 			data_copy[]
 		},
 		#' @description
-		#' Sample values for feature(s) by permutation (marginal distribution) using external data
-		#' @param feature (`character`) Feature name(s) to sample (can be single or multiple)
-		#' @param newdata ([`data.table`][data.table::data.table] ) External data to use for sampling.
+		#' Sample from external data by permutation. See `$sample()` for details.
+		#' @param feature (`character`) Feature(s) to sample.
+		#' @param newdata ([`data.table`][data.table::data.table]) External data to use.
+		#' @return Modified copy with permuted feature(s).
 		sample_newdata = function(feature, newdata) {
 			# Create a copy to avoid modifying the original data
 			data_copy = data.table::copy(newdata)
@@ -145,12 +145,11 @@ ConditionalSampler = R6Class(
 		},
 
 		#' @description
-		#' Sample values for feature(s) conditionally on other features using the stored task
-		#' @param feature (`character`) Feature name(s) to sample (can be single or multiple)
-		#' @param row_ids (`integer()`: `NULL`) Row IDs of the stored [Task][mlr3::Task] to use as basis for sampling.
-		#'   If `NULL`, all rows of the stored tasks are used.
-		#' @param conditioning_set ([character]) Features to condition on (default: all other features)
-		#' @return Modified copy of the input data with the feature(s) sampled conditionally
+		#' Sample from stored task conditionally on other features.
+		#' @param feature (`character`) Feature(s) to sample.
+		#' @param row_ids (`integer()` | `NULL`) Row IDs to use. If `NULL`, uses all rows.
+		#' @param conditioning_set (`character` | `NULL`) Features to condition on. If `NULL`, uses all other features.
+		#' @return Modified copy with sampled feature(s).
 		sample = function(feature, row_ids, conditioning_set = NULL) {
 			cli::cli_abort(c(
 				"Abtract method",
@@ -159,11 +158,11 @@ ConditionalSampler = R6Class(
 		},
 
 		#' @description
-		#' Sample values for feature(s) conditionally on other features using external data
-		#' @param feature (`character`) Feature name(s) to sample (can be single or multiple)
-		#' @param newdata ([`data.table`][data.table::data.table] ) Data containing conditioning features
-		#' @param conditioning_set ([character]) Features to condition on (default: all other features)
-		#' @return Modified copy of the input data with the feature(s) sampled conditionally
+		#' Sample from external data conditionally. See `$sample()` for details.
+		#' @param feature (`character`) Feature(s) to sample.
+		#' @param newdata ([`data.table`][data.table::data.table]) External data to use.
+		#' @param conditioning_set (`character` | `NULL`) Features to condition on.
+		#' @return Modified copy with sampled feature(s).
 		sample_newdata = function(feature, newdata, conditioning_set = NULL) {
 			cli::cli_abort(c(
 				"Not implemented.",
@@ -303,16 +302,16 @@ ARFSampler = R6Class(
 		},
 
 		#' @description
-		#' Sample values for feature(s) conditionally on other features using ARF
-		#' @param feature (`character`) Feature(s) of interest to sample (can be single or multiple)
-		#' @param row_ids (`integer()`: `NULL`) Row IDs of the stored [Task][mlr3::Task] to use as basis for sampling.
-		#'   If `NULL`, all rows of the stored tasks are used.
-		#' @param conditioning_set (`character(n) | NULL`) Features to condition on. If `NULL`, uses the stored parameter if available, otherwise defaults to all other features.
-		#' @param round (`logical(1) | NULL`) Whether to round continuous variables. If `NULL`, uses the stored parameter value.
-		#' @param stepsize (`numeric(1) | NULL`) Step size for variance adjustment. If `NULL`, uses the stored parameter value.
-		#' @param verbose (`logical(1) | NULL`) Whether to print progress messages. If `NULL`, uses the stored parameter value.
-		#' @param parallel (`logical(1) | NULL`) Whether to use parallel processing. If `NULL`, uses the stored parameter value.
-		#' @return Modified copy of the input data with the feature(s) sampled conditionally
+		#' Sample from stored task. Parameters `conditioning_set`, `round`, `stepsize`, `verbose`, and `parallel`
+		#' use hierarchical resolution: function argument > stored `param_set` value > hard-coded default.
+		#' @param feature (`character`) Feature(s) to sample.
+		#' @param row_ids (`integer()` | `NULL`) Row IDs to use. If `NULL`, uses all rows.
+		#' @param conditioning_set (`character` | `NULL`) Features to condition on.
+		#' @param round (`logical(1)` | `NULL`) Round continuous variables.
+		#' @param stepsize (`numeric(1)` | `NULL`) Batch size for parallel processing.
+		#' @param verbose (`logical(1)` | `NULL`) Print progress messages.
+		#' @param parallel (`logical(1)` | `NULL`) Use parallel processing.
+		#' @return Modified copy with sampled feature(s).
 		sample = function(
 			feature,
 			row_ids = NULL,
@@ -337,15 +336,16 @@ ARFSampler = R6Class(
 				parallel = parallel
 			)
 		},
-		#' Sample values for feature(s) conditionally on other features using ARF
-		#' @param feature (`character`) Feature(s) of interest to sample (can be single or multiple)
-		#' @param newdata ([`data.table`][data.table::data.table]) Data containing conditioning features. Defaults to `$task$data()`, but typically a dedicated test set is provided.
-		#' @param conditioning_set (`character(n) | NULL`) Features to condition on. If `NULL`, uses the stored parameter if available, otherwise defaults to all other features.
-		#' @param round (`logical(1) | NULL`) Whether to round continuous variables. If `NULL`, uses the stored parameter value.
-		#' @param stepsize (`numeric(1) | NULL`) Step size for variance adjustment. If `NULL`, uses the stored parameter value.
-		#' @param verbose (`logical(1) | NULL`) Whether to print progress messages. If `NULL`, uses the stored parameter value.
-		#' @param parallel (`logical(1) | NULL`) Whether to use parallel processing. If `NULL`, uses the stored parameter value.
-		#' @return Modified copy of the input data with the feature(s) sampled conditionally
+		#' @description
+		#' Sample from external data (e.g., test set). See `$sample()` for parameter details.
+		#' @param feature (`character`) Feature(s) to sample.
+		#' @param newdata ([`data.table`][data.table::data.table]) External data to use.
+		#' @param conditioning_set (`character` | `NULL`) Features to condition on.
+		#' @param round (`logical(1)` | `NULL`) Round continuous variables.
+		#' @param stepsize (`numeric(1)` | `NULL`) Batch size for parallel processing.
+		#' @param verbose (`logical(1)` | `NULL`) Print progress messages.
+		#' @param parallel (`logical(1)` | `NULL`) Use parallel processing.
+		#' @return Modified copy with sampled feature(s).
 		sample_newdata = function(
 			feature,
 			newdata,
@@ -510,11 +510,11 @@ KnockoffSampler = R6Class(
 		},
 
 		#' @description
-		#' Sample values for feature(s) conditionally on other features using Knockoffs
-		#' @param feature (`character`) Feature(s) of interest to sample (can be single or multiple)
-		#' @param row_ids (`integer()`: `NULL`) Row IDs of the stored [Task][mlr3::Task] to use as basis for sampling.
-		#'   If `NULL`, all rows of the stored tasks are used.
-		#' @return Modified copy of the input data with the feature(s) sampled conditionally
+		#' Sample from stored task using knockoff values. Replaces specified feature(s) with
+		#' their knockoff counterparts from the pre-generated knockoff matrix.
+		#' @param feature (`character`) Feature(s) to sample.
+		#' @param row_ids (`integer()` | `NULL`) Row IDs to use. If `NULL`, uses all rows.
+		#' @return Modified copy with knockoff feature(s).
 		sample = function(
 			feature,
 			row_ids = NULL
@@ -566,10 +566,8 @@ KnockoffGaussianSampler = R6Class(
 		x_tilde = NULL,
 
 		#' @description
-		#' Creates a new instance of the KnockoffSampler class.
-		#' @param task ([mlr3::Task]) Task to sample from
-		# @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`. This parameter only affects the sampling behavior, not the ARF model fitting.
-		#' @param knockoff_fun (`function`) Step size for variance adjustment. Default are second-order Gaussian knockoffs.
+		#' Creates a new instance using Gaussian knockoffs via [knockoff::create.second_order].
+		#' @param task ([mlr3::Task]) Task to sample from.
 		initialize = function(
 			task
 		) {
@@ -612,10 +610,8 @@ KnockoffSequentialSampler = R6Class(
 		x_tilde = NULL,
 
 		#' @description
-		#' Creates a new instance of the KnockoffSampler class.
-		#' @param task ([mlr3::Task]) Task to sample from
-		# @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`. This parameter only affects the sampling behavior, not the ARF model fitting.
-		#' @param knockoff_fun (`function`) Step size for variance adjustment. Default are second-order Gaussian knockoffs.
+		#' Creates a new instance using sequential knockoffs via [seqknockoff::knockoffs_seq].
+		#' @param task ([mlr3::Task]) Task to sample from.
 		initialize = function(
 			task
 		) {

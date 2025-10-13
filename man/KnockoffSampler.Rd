@@ -88,7 +88,8 @@ Creates a new instance of the KnockoffSampler class.
 \if{html}{\out{<a id="method-KnockoffSampler-sample"></a>}}
 \if{latex}{\out{\hypertarget{method-KnockoffSampler-sample}{}}}
 \subsection{Method \code{sample()}}{
-Sample values for feature(s) conditionally on other features using Knockoffs
+Sample from stored task using knockoff values. Replaces specified feature(s) with
+their knockoff counterparts from the pre-generated knockoff matrix.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{KnockoffSampler$sample(feature, row_ids = NULL)}\if{html}{\out{</div>}}
 }
@@ -96,15 +97,14 @@ Sample values for feature(s) conditionally on other features using Knockoffs
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\code{character}) Feature(s) of interest to sample (can be single or multiple)}
+\item{\code{feature}}{(\code{character}) Feature(s) to sample.}
 
-\item{\code{row_ids}}{(\code{integer()}: \code{NULL}) Row IDs of the stored \link[mlr3:Task]{Task} to use as basis for sampling.
-If \code{NULL}, all rows of the stored tasks are used.}
+\item{\code{row_ids}}{(\code{integer()} | \code{NULL}) Row IDs to use. If \code{NULL}, uses all rows.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Modified copy of the input data with the feature(s) sampled conditionally
+Modified copy with knockoff feature(s).
 }
 }
 \if{html}{\out{<hr>}}

@@ -123,7 +123,8 @@ To fit the ARF in parallel, register a parallel backend first (see \link[arf:arf
 \if{html}{\out{<a id="method-ARFSampler-sample"></a>}}
 \if{latex}{\out{\hypertarget{method-ARFSampler-sample}{}}}
 \subsection{Method \code{sample()}}{
-Sample values for feature(s) conditionally on other features using ARF
+Sample from stored task. Parameters \code{conditioning_set}, \code{round}, \code{stepsize}, \code{verbose}, and \code{parallel}
+use hierarchical resolution: function argument > stored \code{param_set} value > hard-coded default.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ARFSampler$sample(
   feature,
@@ -139,32 +140,31 @@ Sample values for feature(s) conditionally on other features using ARF
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\code{character}) Feature(s) of interest to sample (can be single or multiple)}
+\item{\code{feature}}{(\code{character}) Feature(s) to sample.}
 
-\item{\code{row_ids}}{(\code{integer()}: \code{NULL}) Row IDs of the stored \link[mlr3:Task]{Task} to use as basis for sampling.
-If \code{NULL}, all rows of the stored tasks are used.}
+\item{\code{row_ids}}{(\code{integer()} | \code{NULL}) Row IDs to use. If \code{NULL}, uses all rows.}
 
-\item{\code{conditioning_set}}{(\code{character(n) | NULL}) Features to condition on. If \code{NULL}, uses the stored parameter if available, otherwise defaults to all other features.}
+\item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Features to condition on.}
 
-\item{\code{round}}{(\code{logical(1) | NULL}) Whether to round continuous variables. If \code{NULL}, uses the stored parameter value.}
+\item{\code{round}}{(\code{logical(1)} | \code{NULL}) Round continuous variables.}
 
-\item{\code{stepsize}}{(\code{numeric(1) | NULL}) Step size for variance adjustment. If \code{NULL}, uses the stored parameter value.}
+\item{\code{stepsize}}{(\code{numeric(1)} | \code{NULL}) Batch size for parallel processing.}
 
-\item{\code{verbose}}{(\code{logical(1) | NULL}) Whether to print progress messages. If \code{NULL}, uses the stored parameter value.}
+\item{\code{verbose}}{(\code{logical(1)} | \code{NULL}) Print progress messages.}
 
-\item{\code{parallel}}{(\code{logical(1) | NULL}) Whether to use parallel processing. If \code{NULL}, uses the stored parameter value.}
+\item{\code{parallel}}{(\code{logical(1)} | \code{NULL}) Use parallel processing.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Modified copy of the input data with the feature(s) sampled conditionally
-Sample values for feature(s) conditionally on other features using ARF
+Modified copy with sampled feature(s).
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ARFSampler-sample_newdata"></a>}}
 \if{latex}{\out{\hypertarget{method-ARFSampler-sample_newdata}{}}}
 \subsection{Method \code{sample_newdata()}}{
+Sample from external data (e.g., test set). See \verb{$sample()} for parameter details.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ARFSampler$sample_newdata(
   feature,
@@ -180,24 +180,24 @@ Sample values for feature(s) conditionally on other features using ARF
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\code{character}) Feature(s) of interest to sample (can be single or multiple)}
+\item{\code{feature}}{(\code{character}) Feature(s) to sample.}
 
-\item{\code{newdata}}{(\code{\link[data.table:data.table]{data.table}}) Data containing conditioning features. Defaults to \verb{$task$data()}, but typically a dedicated test set is provided.}
+\item{\code{newdata}}{(\code{\link[data.table:data.table]{data.table}}) External data to use.}
 
-\item{\code{conditioning_set}}{(\code{character(n) | NULL}) Features to condition on. If \code{NULL}, uses the stored parameter if available, otherwise defaults to all other features.}
+\item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Features to condition on.}
 
-\item{\code{round}}{(\code{logical(1) | NULL}) Whether to round continuous variables. If \code{NULL}, uses the stored parameter value.}
+\item{\code{round}}{(\code{logical(1)} | \code{NULL}) Round continuous variables.}
 
-\item{\code{stepsize}}{(\code{numeric(1) | NULL}) Step size for variance adjustment. If \code{NULL}, uses the stored parameter value.}
+\item{\code{stepsize}}{(\code{numeric(1)} | \code{NULL}) Batch size for parallel processing.}
 
-\item{\code{verbose}}{(\code{logical(1) | NULL}) Whether to print progress messages. If \code{NULL}, uses the stored parameter value.}
+\item{\code{verbose}}{(\code{logical(1)} | \code{NULL}) Print progress messages.}
 
-\item{\code{parallel}}{(\code{logical(1) | NULL}) Whether to use parallel processing. If \code{NULL}, uses the stored parameter value.}
+\item{\code{parallel}}{(\code{logical(1)} | \code{NULL}) Use parallel processing.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Modified copy of the input data with the feature(s) sampled conditionally
+Modified copy with sampled feature(s).
 }
 }
 \if{html}{\out{<hr>}}
