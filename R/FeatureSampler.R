@@ -590,12 +590,13 @@ KnockoffGaussianSampler = R6Class(
 #' @details
 #' This is equivalent to [KnockoffSampler] using `knockoff_fun = seqknockoff::knockoffs_seq`.
 #'
-#' @examplesIf requireNamespace("seqknockoff", quietly = TRUE)
+#' @examples
+#' \dontrun{
 #' # Requires seqknockoff (https://github.com/kormama1/seqknockoff)
 #' task = tgen("simplex")$generate(n = 100)
 #' sampler_seq = KnockoffSampler$new(task)
 #' sampled_seq = sampler_seq$sample("x1")
-#'
+#' }
 #' @references `r print_bib("watson_2021", "blesch_2023")`
 #'
 #' @export

@@ -11,12 +11,12 @@ as created by \code{seqknockoff::knockoffs_seq}.
 This is equivalent to \link{KnockoffSampler} using \code{knockoff_fun = seqknockoff::knockoffs_seq}.
 }
 \examples{
-\dontshow{if (requireNamespace("seqknockoff", quietly = TRUE)) withAutoprint(\{ # examplesIf}
+\dontrun{
 # Requires seqknockoff (https://github.com/kormama1/seqknockoff)
 task = tgen("simplex")$generate(n = 100)
 sampler_seq = KnockoffSampler$new(task)
 sampled_seq = sampler_seq$sample("x1")
-\dontshow{\}) # examplesIf}
+}
 }
 \references{
 Watson D, Wright M (2021).
