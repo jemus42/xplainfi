@@ -271,7 +271,6 @@ ARFSampler = R6Class(
 			task_data = self$task$data(cols = self$task$feature_names)
 
 			# Train ARF and estimate distribution parameters
-
 			self$arf_model = arf::adversarial_rf(
 				x = task_data,
 				num_trees = num_trees,
@@ -299,7 +298,6 @@ ARFSampler = R6Class(
 		#' @param stepsize (`numeric(1) | NULL`) Step size for variance adjustment. If `NULL`, uses the stored parameter value.
 		#' @param verbose (`logical(1) | NULL`) Whether to print progress messages. If `NULL`, uses the stored parameter value.
 		#' @param parallel (`logical(1) | NULL`) Whether to use parallel processing. If `NULL`, uses the stored parameter value.
-		#' @param ... Further arguments passed to `arf::forge()`.
 		#' @return Modified copy of the input data with the feature(s) sampled conditionally
 		sample = function(
 			feature,
@@ -308,8 +306,7 @@ ARFSampler = R6Class(
 			round = NULL,
 			stepsize = NULL,
 			verbose = NULL,
-			parallel = NULL,
-			...
+			parallel = NULL
 		) {
 			if (is.null(row_ids)) {
 				row_ids = self$task$row_ids
@@ -323,8 +320,7 @@ ARFSampler = R6Class(
 				round = round,
 				stepsize = stepsize,
 				verbose = verbose,
-				parallel = parallel,
-				...
+				parallel = parallel
 			)
 		},
 		#' Sample values for feature(s) conditionally on other features using ARF
@@ -335,7 +331,6 @@ ARFSampler = R6Class(
 		#' @param stepsize (`numeric(1) | NULL`) Step size for variance adjustment. If `NULL`, uses the stored parameter value.
 		#' @param verbose (`logical(1) | NULL`) Whether to print progress messages. If `NULL`, uses the stored parameter value.
 		#' @param parallel (`logical(1) | NULL`) Whether to use parallel processing. If `NULL`, uses the stored parameter value.
-		#' @param ... Further arguments passed to `arf::forge()`.
 		#' @return Modified copy of the input data with the feature(s) sampled conditionally
 		sample_newdata = function(
 			feature,
@@ -344,8 +339,7 @@ ARFSampler = R6Class(
 			round = NULL,
 			stepsize = NULL,
 			verbose = NULL,
-			parallel = NULL,
-			...
+			parallel = NULL
 		) {
 			data_copy = data.table::copy(newdata)
 
@@ -356,8 +350,7 @@ ARFSampler = R6Class(
 				round = round,
 				stepsize = stepsize,
 				verbose = verbose,
-				parallel = parallel,
-				...
+				parallel = parallel
 			)
 		}
 	),
@@ -369,8 +362,7 @@ ARFSampler = R6Class(
 			round = NULL,
 			stepsize = NULL,
 			verbose = NULL,
-			parallel = NULL,
-			...
+			parallel = NULL
 		) {
 			# Determine conditioning set
 			# Priority: 1) function argument, 2) stored param_set value, 3) default (all other features)
@@ -406,7 +398,6 @@ ARFSampler = R6Class(
 					i = "Conditioning set is {.val {conditioning_set}}"
 				))
 			}
-			# browser()
 			# Generate conditional samples
 			synthetic = arf::forge(
 				params = self$psi,
@@ -418,8 +409,7 @@ ARFSampler = R6Class(
 				nomatch = "force",
 				verbose = verbose,
 				stepsize = stepsize,
-				parallel = parallel,
-				...
+				parallel = parallel
 			)
 
 			# Replace the feature(s) with sampled values using .SDcols pattern
