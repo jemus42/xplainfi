@@ -15,7 +15,7 @@ is sampled independently of other features"><script defer src="https://umami.jem
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -77,6 +77,7 @@ is sampled independently of other features</p>
 
 <ul><li><p><a href="#method-MarginalSampler-new"><code>MarginalSampler$new()</code></a></p></li>
 <li><p><a href="#method-MarginalSampler-sample"><code>MarginalSampler$sample()</code></a></p></li>
+<li><p><a href="#method-MarginalSampler-sample_newdata"><code>MarginalSampler$sample_newdata()</code></a></p></li>
 <li><p><a href="#method-MarginalSampler-clone"><code>MarginalSampler$clone()</code></a></p></li>
 </ul></div><p><details open><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureSampler" data-id="print"><a href="FeatureSampler.html#method-print"><code>xplainfi::FeatureSampler$print()</code></a></span></li>
 </ul></details></p><hr><a id="method-MarginalSampler-new"></a><div class="section">
@@ -97,37 +98,61 @@ is sampled independently of other features</p>
 
 </div><p></p><hr><a id="method-MarginalSampler-sample"></a><div class="section">
 <h3 id="method-sample-">Method <code><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample()</a></code><a class="anchor" aria-label="anchor" href="#method-sample-"></a></h3>
-<p>Sample values for feature(s) by permutation (marginal distribution)</p><div class="section">
+<p>Sample from stored task by permutation (marginal distribution).</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">MarginalSampler</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span><span class="va">feature</span>, <span class="va">data</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">MarginalSampler</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span><span class="va">feature</span>, row_ids <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>feature</code></dt>
-<dd><p>(<code>character</code>) Feature name(s) to sample (can be single or multiple)</p></dd>
+<dd><p>(<code>character</code>) Feature(s) to sample.</p></dd>
 
 
-<dt><code>data</code></dt>
-<dd><p>(<code><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></code> ) Data to permute the feature(s) in</p></dd>
+<dt><code>row_ids</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer()</a></code> | <code>NULL</code>) Row IDs to use. If <code>NULL</code>, uses all rows.</p></dd>
 
 
 </dl><p></p></div>
 </div>
 <div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
-<p>Modified copy of the input data with the feature(s) permuted</p>
+<p>Modified copy with permuted feature(s).</p>
+</div>
+
+</div><p></p><hr><a id="method-MarginalSampler-sample_newdata"></a><div class="section">
+<h3 id="method-sample-newdata-">Method <code>sample_newdata()</code><a class="anchor" aria-label="anchor" href="#method-sample-newdata-"></a></h3>
+<p>Sample from external data by permutation. See <code>$sample()</code> for details.</p><div class="section">
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">MarginalSampler</span><span class="op">$</span><span class="fu">sample_newdata</span><span class="op">(</span><span class="va">feature</span>, <span class="va">newdata</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>feature</code></dt>
+<dd><p>(<code>character</code>) Feature(s) to sample.</p></dd>
+
+
+<dt><code>newdata</code></dt>
+<dd><p>(<code><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></code>) External data to use.</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>Modified copy with permuted feature(s).</p>
 </div>
 
 </div><p></p><hr><a id="method-MarginalSampler-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">MarginalSampler</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
@@ -144,8 +169,11 @@ is sampled independently of other features</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mlr3.mlr-org.com" class="external-link">mlr3</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">task</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tgen</a></span><span class="op">(</span><span class="st">"2dnormals"</span><span class="op">)</span><span class="op">$</span><span class="fu">generate</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sampler</span> <span class="op">=</span> <span class="va">MarginalSampler</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">task</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Sample using row_ids from stored task</span></span></span>
+<span class="r-in"><span><span class="va">sampled_data</span> <span class="op">=</span> <span class="va">sampler</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span><span class="st">"x1"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Or use external data</span></span></span>
 <span class="r-in"><span><span class="va">data</span> <span class="op">=</span> <span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">sampled_data</span> <span class="op">=</span> <span class="va">sampler</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span><span class="st">"x1"</span>, <span class="va">data</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sampled_data_ext</span> <span class="op">=</span> <span class="va">sampler</span><span class="op">$</span><span class="fu">sample_newdata</span><span class="op">(</span><span class="st">"x1"</span>, newdata <span class="op">=</span> <span class="va">data</span><span class="op">)</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

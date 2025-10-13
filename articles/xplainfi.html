@@ -30,7 +30,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -286,9 +286,9 @@ sampling:</p>
 given the values of <code>important2</code> and
 <code>important3</code>:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sampled_conditional</span> <span class="op">&lt;-</span> <span class="va">arf_sampler</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">sampled_conditional</span> <span class="op">&lt;-</span> <span class="va">arf_sampler</span><span class="op">$</span><span class="fu">sample_newdata</span><span class="op">(</span></span>
 <span>    feature <span class="op">=</span> <span class="st">"important1"</span>,</span>
-<span>    data <span class="op">=</span> <span class="va">sample_data</span>,</span>
+<span>    newdata <span class="op">=</span> <span class="va">sample_data</span>,</span>
 <span>    conditioning_set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"important2"</span>, <span class="st">"important3"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -303,11 +303,11 @@ given the values of <code>important2</code> and
 <span><span class="va">sampled_conditional</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">y</span>, <span class="va">important1</span>, <span class="va">important2</span>, <span class="va">important3</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt;           y important1  important2 important3</span></span>
 <span><span class="co">#&gt;       &lt;num&gt;      &lt;num&gt;       &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1: 20.59935  0.3673758 0.784575267  0.2372297</span></span>
-<span><span class="co">#&gt; 2: 10.48474  0.4054382 0.009429905  0.6864904</span></span>
-<span><span class="co">#&gt; 3: 19.99049  0.5397342 0.779065883  0.2258184</span></span>
-<span><span class="co">#&gt; 4: 19.70521  0.8835479 0.729390652  0.3184946</span></span>
-<span><span class="co">#&gt; 5: 21.94251  0.5333147 0.630131853  0.1739838</span></span></code></pre></div>
+<span><span class="co">#&gt; 1: 20.59935  0.1717862 0.784575267  0.2372297</span></span>
+<span><span class="co">#&gt; 2: 10.48474  0.1667886 0.009429905  0.6864904</span></span>
+<span><span class="co">#&gt; 3: 19.99049  0.9076188 0.779065883  0.2258184</span></span>
+<span><span class="co">#&gt; 4: 19.70521 -0.3738736 0.729390652  0.3184946</span></span>
+<span><span class="co">#&gt; 5: 21.94251  0.4353523 0.630131853  0.1739838</span></span></code></pre></div>
 <p>This conditional sampling is essential for methods like CFI and RFI
 that need to preserve feature dependencies. See
 <code>vignette("perturbation-importance")</code> for detailed

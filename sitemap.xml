@@ -18,7 +18,9 @@
 <url><loc>https://jemus42.github.io/xplainfi/reference/ConditionalSampler.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/FeatureImportanceMethod.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/FeatureSampler.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/reference/KnockoffGaussianSampler.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/KnockoffSampler.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/reference/KnockoffSequentialSampler.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/LOCO.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/MarginalSAGE.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/MarginalSampler.html</loc></url>

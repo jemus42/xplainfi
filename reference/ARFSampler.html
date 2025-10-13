@@ -17,7 +17,7 @@ flexible conditional sampling by modeling the joint distribution."><script defer
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -93,11 +93,11 @@ In <em>Proceedings of The 26th International Conference on Artificial Intelligen
     <div class="section level2">
     <h2 id="public-fields">Public fields<a class="anchor" aria-label="anchor" href="#public-fields"></a></h2>
     <p></p><div class="r6-fields"><dl><dt><code>arf_model</code></dt>
-<dd><p>Adversarial Random Forest model</p></dd>
+<dd><p>Adversarial Random Forest model created by <a href="https://bips-hb.github.io/arf/reference/adversarial_rf.html" class="external-link">arf::adversarial_rf</a>.</p></dd>
 
 
 <dt><code>psi</code></dt>
-<dd><p>Distribution parameters estimated from ARF</p></dd>
+<dd><p>Distribution parameters estimated from by <a href="https://bips-hb.github.io/arf/reference/forde.html" class="external-link">arf::forde</a>.</p></dd>
 
 
 </dl><p></p></div>
@@ -110,57 +110,73 @@ In <em>Proceedings of The 26th International Conference on Artificial Intelligen
 
 <ul><li><p><a href="#method-ARFSampler-new"><code>ARFSampler$new()</code></a></p></li>
 <li><p><a href="#method-ARFSampler-sample"><code>ARFSampler$sample()</code></a></p></li>
+<li><p><a href="#method-ARFSampler-sample_newdata"><code>ARFSampler$sample_newdata()</code></a></p></li>
 <li><p><a href="#method-ARFSampler-clone"><code>ARFSampler$clone()</code></a></p></li>
 </ul></div><p><details open><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureSampler" data-id="print"><a href="FeatureSampler.html#method-print"><code>xplainfi::FeatureSampler$print()</code></a></span></li>
 </ul></details></p><hr><a id="method-ARFSampler-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
 <p>Creates a new instance of the ARFSampler class.
-To fit the ARF in parallel, set <code>arf_args = list(parallel = TRUE)</code> and register a parallel backend (see <a href="https://bips-hb.github.io/arf/reference/arf-package.html" class="external-link">arf::arf</a>).</p><div class="section">
+To fit the ARF in parallel, register a parallel backend first (see <a href="https://bips-hb.github.io/arf/reference/arf-package.html" class="external-link">arf::arf</a>) and set <code>parallel = TRUE</code>.</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  <span class="va">task</span>,</span>
 <span>  conditioning_set <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  num_trees <span class="op">=</span> <span class="fl">10L</span>,</span>
+<span>  min_node_size <span class="op">=</span> <span class="fl">2L</span>,</span>
 <span>  finite_bounds <span class="op">=</span> <span class="st">"no"</span>,</span>
+<span>  epsilon <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  round <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  stepsize <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  parallel <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  arf_args <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>task</code></dt>
-<dd><p>(<a href="https://mlr3.mlr-org.com/reference/Task.html" class="external-link">mlr3::Task</a>) Task to sample from</p></dd>
+<dd><p>(<a href="https://mlr3.mlr-org.com/reference/Task.html" class="external-link">mlr3::Task</a>) Task to sample from.</p></dd>
 
 
 <dt><code>conditioning_set</code></dt>
 <dd><p>(<code>character</code> | <code>NULL</code>) Default conditioning set to use in <code>$sample()</code>. This parameter only affects the sampling behavior, not the ARF model fitting.</p></dd>
 
 
+<dt><code>num_trees</code></dt>
+<dd><p>(<code>integer(1)</code>: <code>10L</code>) Number of trees for ARF. Passed to <a href="https://bips-hb.github.io/arf/reference/adversarial_rf.html" class="external-link">arf::adversarial_rf</a>.</p></dd>
+
+
+<dt><code>min_node_size</code></dt>
+<dd><p>(<code>integer(1)</code>: <code>2L</code>) Minimum node size for ARF. Passed to <a href="https://bips-hb.github.io/arf/reference/adversarial_rf.html" class="external-link">arf::adversarial_rf</a>.</p></dd>
+
+
 <dt><code>finite_bounds</code></dt>
-<dd><p>(<code>character(1)</code>: <code>"no"</code>) Passed to <code><a href="https://bips-hb.github.io/arf/reference/forde.html" class="external-link">arf::forde()</a></code>. Default is <code>"no"</code> for compatibility. <code>"local"</code> may improve extrapolation but can cause issues with some data.</p></dd>
+<dd><p>(<code>character(1)</code>: <code>"no"</code>) How to handle variable bounds. Passed to <a href="https://bips-hb.github.io/arf/reference/forde.html" class="external-link">arf::forde</a>. Default is <code>"no"</code> for compatibility. <code>"local"</code> may improve extrapolation but can cause issues with some data.</p></dd>
+
+
+<dt><code>epsilon</code></dt>
+<dd><p>(<code>numeric(1)</code>: <code>0</code>) Slack parameter for when <code>finite_bounds != "no"</code>. Passed to <a href="https://bips-hb.github.io/arf/reference/forde.html" class="external-link">arf::forde</a>.</p></dd>
 
 
 <dt><code>round</code></dt>
-<dd><p>(<code>logical(1)</code>: <code>TRUE</code>) Whether to round continuous variables back to their original precision.</p></dd>
+<dd><p>(<code>logical(1)</code>: <code>TRUE</code>) Whether to round continuous variables back to their original precision in sampling. Can be overridden in <code>$sample()</code> calls.</p></dd>
 
 
 <dt><code>stepsize</code></dt>
-<dd><p>(<code>numeric(1)</code>: <code>0</code>) Number of rows of evidence to process at a time wehn <code>parallel</code> is <code>TRUE</code>. Default (<code>0</code>) spreads evidence evenly over registered workers.</p></dd>
+<dd><p>(<code>numeric(1)</code>: <code>0</code>) Number of rows of evidence to process at a time when <code>parallel</code> is <code>TRUE</code>. Default (<code>0</code>) spreads evidence evenly over registered workers. Can be overridden in <code>$sample()</code> calls.</p></dd>
 
 
 <dt><code>verbose</code></dt>
-<dd><p>(<code>logical(1)</code>: <code>FALSE</code>) Whether to print progress messages. Default is <code>FALSE</code> but default in <code>arf</code> is <code>TRUE</code>.</p></dd>
+<dd><p>(<code>logical(1)</code>: <code>FALSE</code>) Whether to print progress messages. Default is <code>FALSE</code> (arf's default is <code>TRUE</code>). Can be overridden in <code>$sample()</code> calls.</p></dd>
 
 
 <dt><code>parallel</code></dt>
-<dd><p>(<code>logical(1)</code>: <code>FALSE</code>) Whether to use parallel processing via <code>foreach</code>. See examples in <code><a href="https://bips-hb.github.io/arf/reference/forge.html" class="external-link">arf::forge()</a></code>.</p></dd>
+<dd><p>(<code>logical(1)</code>: <code>FALSE</code>) Whether to use parallel processing via <code>foreach</code>. See examples in <code><a href="https://bips-hb.github.io/arf/reference/forge.html" class="external-link">arf::forge()</a></code>. Can be overridden in <code>$sample()</code> calls.</p></dd>
 
 
-<dt><code>arf_args</code></dt>
-<dd><p>(<a href="https://rdrr.io/r/base/list.html" class="external-link">list</a>) Additional passed to <code><a href="https://bips-hb.github.io/arf/reference/adversarial_rf.html" class="external-link">arf::adversarial_rf</a></code>.</p></dd>
+<dt><code>...</code></dt>
+<dd><p>Additional arguments passed to <a href="https://bips-hb.github.io/arf/reference/adversarial_rf.html" class="external-link">arf::adversarial_rf</a>.</p></dd>
 
 
 </dl><p></p></div>
@@ -168,70 +184,118 @@ To fit the ARF in parallel, set <code>arf_args = list(parallel = TRUE)</code> an
 
 </div><p></p><hr><a id="method-ARFSampler-sample"></a><div class="section">
 <h3 id="method-sample-">Method <code><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample()</a></code><a class="anchor" aria-label="anchor" href="#method-sample-"></a></h3>
-<p>Sample values for feature(s) conditionally on other features using ARF</p><div class="section">
+<p>Sample from stored task. Parameters <code>conditioning_set</code>, <code>round</code>, <code>stepsize</code>, <code>verbose</code>, and <code>parallel</code>
+use hierarchical resolution: function argument &gt; stored <code>param_set</code> value &gt; hard-coded default.</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ARFSampler</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span></span>
 <span>  <span class="va">feature</span>,</span>
-<span>  data <span class="op">=</span> <span class="va">self</span><span class="op">$</span><span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  row_ids <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  conditioning_set <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  round <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  stepsize <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  parallel <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">...</span></span>
+<span>  parallel <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>feature</code></dt>
-<dd><p>(<code>character</code>) Feature(s) of interest to sample (can be single or multiple)</p></dd>
+<dd><p>(<code>character</code>) Feature(s) to sample.</p></dd>
 
 
-<dt><code>data</code></dt>
-<dd><p>(<code><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></code>) Data containing conditioning features. Defaults to <code>$task$data()</code>, but typically a dedicated test set is provided.</p></dd>
+<dt><code>row_ids</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/integer.html" class="external-link">integer()</a></code> | <code>NULL</code>) Row IDs to use. If <code>NULL</code>, uses all rows.</p></dd>
 
 
 <dt><code>conditioning_set</code></dt>
-<dd><p>(<code>character(n) | NULL</code>) Features to condition on. If <code>NULL</code>, uses the stored parameter if available, otherwise defaults to all other features.</p></dd>
+<dd><p>(<code>character</code> | <code>NULL</code>) Features to condition on.</p></dd>
 
 
 <dt><code>round</code></dt>
-<dd><p>(<code>logical(1) | NULL</code>) Whether to round continuous variables. If <code>NULL</code>, uses the stored parameter value.</p></dd>
+<dd><p>(<code>logical(1)</code> | <code>NULL</code>) Round continuous variables.</p></dd>
 
 
 <dt><code>stepsize</code></dt>
-<dd><p>(<code>numeric(1) | NULL</code>) Step size for variance adjustment. If <code>NULL</code>, uses the stored parameter value.</p></dd>
+<dd><p>(<code>numeric(1)</code> | <code>NULL</code>) Batch size for parallel processing.</p></dd>
 
 
 <dt><code>verbose</code></dt>
-<dd><p>(<code>logical(1) | NULL</code>) Whether to print progress messages. If <code>NULL</code>, uses the stored parameter value.</p></dd>
+<dd><p>(<code>logical(1)</code> | <code>NULL</code>) Print progress messages.</p></dd>
 
 
 <dt><code>parallel</code></dt>
-<dd><p>(<code>logical(1) | NULL</code>) Whether to use parallel processing. If <code>NULL</code>, uses the stored parameter value.</p></dd>
-
-
-<dt><code>...</code></dt>
-<dd><p>Further arguments passed to <code><a href="https://bips-hb.github.io/arf/reference/forge.html" class="external-link">arf::forge()</a></code>.</p></dd>
+<dd><p>(<code>logical(1)</code> | <code>NULL</code>) Use parallel processing.</p></dd>
 
 
 </dl><p></p></div>
 </div>
 <div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
-<p>Modified copy of the input data with the feature(s) sampled conditionally</p>
+<p>Modified copy with sampled feature(s).</p>
+</div>
+
+</div><p></p><hr><a id="method-ARFSampler-sample_newdata"></a><div class="section">
+<h3 id="method-sample-newdata-">Method <code>sample_newdata()</code><a class="anchor" aria-label="anchor" href="#method-sample-newdata-"></a></h3>
+<p>Sample from external data (e.g., test set). See <code>$sample()</code> for parameter details.</p><div class="section">
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ARFSampler</span><span class="op">$</span><span class="fu">sample_newdata</span><span class="op">(</span></span>
+<span>  <span class="va">feature</span>,</span>
+<span>  <span class="va">newdata</span>,</span>
+<span>  conditioning_set <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  round <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  stepsize <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  parallel <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>feature</code></dt>
+<dd><p>(<code>character</code>) Feature(s) to sample.</p></dd>
+
+
+<dt><code>newdata</code></dt>
+<dd><p>(<code><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></code>) External data to use.</p></dd>
+
+
+<dt><code>conditioning_set</code></dt>
+<dd><p>(<code>character</code> | <code>NULL</code>) Features to condition on.</p></dd>
+
+
+<dt><code>round</code></dt>
+<dd><p>(<code>logical(1)</code> | <code>NULL</code>) Round continuous variables.</p></dd>
+
+
+<dt><code>stepsize</code></dt>
+<dd><p>(<code>numeric(1)</code> | <code>NULL</code>) Batch size for parallel processing.</p></dd>
+
+
+<dt><code>verbose</code></dt>
+<dd><p>(<code>logical(1)</code> | <code>NULL</code>) Print progress messages.</p></dd>
+
+
+<dt><code>parallel</code></dt>
+<dd><p>(<code>logical(1)</code> | <code>NULL</code>) Use parallel processing.</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>Modified copy with sampled feature(s).</p>
 </div>
 
 </div><p></p><hr><a id="method-ARFSampler-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ARFSampler</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
@@ -249,13 +313,15 @@ To fit the ARF in parallel, set <code>arf_args = list(parallel = TRUE)</code> an
 <span class="r-in"><span><span class="va">task</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">tgen</a></span><span class="op">(</span><span class="st">"2dnormals"</span><span class="op">)</span><span class="op">$</span><span class="fu">generate</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># Create sampler with default parameters</span></span></span>
 <span class="r-in"><span><span class="va">sampler</span> <span class="op">=</span> <span class="va">ARFSampler</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">task</span>, conditioning_set <span class="op">=</span> <span class="st">"x2"</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Sample using row_ids from stored task</span></span></span>
+<span class="r-in"><span><span class="va">sampled_data</span> <span class="op">=</span> <span class="va">sampler</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span><span class="st">"x1"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Or use external data</span></span></span>
 <span class="r-in"><span><span class="va">data</span> <span class="op">=</span> <span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># Will use the stored parameters</span></span></span>
-<span class="r-in"><span><span class="va">sampled_data</span> <span class="op">=</span> <span class="va">sampler</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span><span class="st">"x1"</span>, <span class="va">data</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sampled_data_ext</span> <span class="op">=</span> <span class="va">sampler</span><span class="op">$</span><span class="fu">sample_newdata</span><span class="op">(</span><span class="st">"x1"</span>, newdata <span class="op">=</span> <span class="va">data</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Example with custom parameters</span></span></span>
 <span class="r-in"><span><span class="va">sampler_custom</span> <span class="op">=</span> <span class="va">ARFSampler</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">task</span>, round <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">sampled_custom</span> <span class="op">=</span> <span class="va">sampler_custom</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span><span class="st">"x1"</span>, <span class="va">data</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sampled_custom</span> <span class="op">=</span> <span class="va">sampler_custom</span><span class="op">$</span><span class="fu">sample</span><span class="op">(</span><span class="st">"x1"</span><span class="op">)</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
