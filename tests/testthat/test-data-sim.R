@@ -34,7 +34,7 @@ test_that("sim_dgp_independent generates correct structure", {
 })
 
 test_that("sim_dgp_correlated generates correlated features", {
-	task <- sim_dgp_correlated(n = 200)
+	task <- sim_dgp_correlated(n = 200, r = 0.9)
 	data <- task$data()
 
 	# Basic structure tests
@@ -45,7 +45,7 @@ test_that("sim_dgp_correlated generates correlated features", {
 
 	# Check high correlation between x1 and x2
 	cor_x1_x2 <- cor(data$x1, data$x2)
-	expect_gt(cor_x1_x2, 0.9) # Should be highly correlated
+	expect_gt(cor_x1_x2, 0.8) # Should be highly correlated
 
 	# Check that x3 and x4 are less correlated with x1, x2
 	expect_lt(abs(cor(data$x1, data$x3)), 0.3)
@@ -57,8 +57,18 @@ test_that("sim_dgp_correlated generates correlated features", {
 
 	# Also check a model with just the true causal features
 	lm_causal <- lm(y ~ x1 + x3, data = data)
-	expect_gt(summary(lm_causal)$r.squared, 0.7) # Causal features alone should explain most variance
+	expect_gt(summary(lm_causal)$r.squared, 0.9) # Causal features alone should explain most variance
 })
+
+test_that("sim_dgp_correlated generates correlated features with different strength", {
+	for (r in c(0.2, 0.5, 0.8)) {
+		task <- sim_dgp_correlated(n = 1000, r = r)
+		cor_x1_x2 <- cor(task$data(cols = c("x1", "x2")))[1, 2]
+		expect_gt(cor_x1_x2, r - 0.1)
+		expect_lt(cor_x1_x2, r + 0.1)
+	}
+})
+
 
 test_that("sim_dgp_mediated generates mediation structure", {
 	task <- sim_dgp_mediated(n = 150)
