@@ -73,6 +73,7 @@ articles:
       - articles/perturbation-importance
       - articles/loco
       - articles/sage-methods
+      - articles/inference
   - title: Testing and Validation
     contents:
       - simulation-settings
@@ -90,6 +91,8 @@ navbar:
           href: articles/loco-loci.html
         - text: "Shapley Additive Global Importance (SAGE)"
           href: articles/sage-methods.html
+        - text: "Inference for Feature Importances"
+          href: articles/inference.html
         - text: -------
         - text: "Testing & Validation"
         - text: Simulation Settings
