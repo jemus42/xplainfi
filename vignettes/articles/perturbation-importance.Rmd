@@ -563,7 +563,7 @@ digraph correlated_dag {
   # x2 has NO direct effect on y despite high correlation with x1
   
   # Correlation between x1 and x2 (bidirectional dashed line)
-  x1 -> x2 [dir=both, style=dashed, color='purple', label='r≈0.999'];
+  x1 -> x2 [dir=both, style=dashed, color='purple', label='r=0.9'];
   
   # Layout
   {rank=same; x1, x2, x3, x4}
@@ -572,7 +572,7 @@ digraph correlated_dag {
 )
 ```
 
-**Key feature**: x1 and x2 are nearly identical (correlation ≈ 0.999) but only x1 has a causal effect on y. x2 is a spurious predictor - highly correlated with the causal feature but not causal itself.
+**Key feature**: x1 and x2 are highly correlated (r = 0.9 from MVN) but only x1 has a causal effect on y. x2 is a spurious predictor - correlated with the causal feature but not causal itself.
 
 ### Analysis
 
@@ -674,7 +674,7 @@ ggplot(comp_cor_long, aes(x = feature, y = importance, fill = method)) +
 	scale_fill_manual(values = c("PFI" = "steelblue", "CFI" = "darkgreen")) +
 	labs(
 		title = "PFI vs CFI on Highly Correlated Features",
-		subtitle = "x1 and x2 have correlation ≈ 0.999 but both have true causal effects",
+		subtitle = "x1 and x2 have correlation r ≈ 0.9 (from MVN), only x1 is causal",
 		y = "Importance Score",
 		x = "Feature",
 		fill = "Method"
