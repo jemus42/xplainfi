@@ -58,7 +58,8 @@ test_that("ConditionalSAGE null result for featureless learner", {
 		task = task_binary,
 		learner = mlr3::lrn("classif.featureless", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
-		n_permutations = 2L
+		n_permutations = 10L,
+		batch_size = 2e4
 	)
 	sage_binary$compute()
 	expected_binary = data.table::data.table(
@@ -74,7 +75,8 @@ test_that("ConditionalSAGE null result for featureless learner", {
 		task = task_multi,
 		learner = mlr3::lrn("classif.featureless", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
-		n_permutations = 10L
+		n_permutations = 30L,
+		batch_size = 2e4
 	)
 	sage_multi$compute()
 	expected_multi = data.table::data.table(
@@ -90,7 +92,8 @@ test_that("ConditionalSAGE null result for featureless learner", {
 		task = task_regr,
 		learner = mlr3::lrn("regr.featureless"),
 		measure = mlr3::msr("regr.mse"),
-		n_permutations = 2L
+		n_permutations = 10,
+		batch_size = 2e4
 	)
 	sage_regr$compute()
 	expected_regr = data.table::data.table(
