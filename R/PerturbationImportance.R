@@ -83,27 +83,22 @@ PerturbationImportance = R6Class(
 			setnames(scores_baseline, old = self$measure$id, "score_baseline")
 			setnames(scores_baseline, old = "iteration", "iter_rsmp")
 
+			# Get predictions for each resampling iter, permutation iter, feature
+			# Create progress bar that tracks resampling_iter × feature/group combinations
 			if (xplain_opt("progress")) {
-				# resampling * permutation iters suffices for update speed
-				# Need dedicated env to pass around
-				cli::cli_progress_bar(
+				n_features_or_groups = length(self$groups %||% self$features)
+				total_iterations = self$resampling$iters * n_features_or_groups
+				progress_bar_id = cli::cli_progress_bar(
 					"Computing importances",
-					total = self$resampling$iters * iters_perm,
-					.envir = .progress_env
+					total = total_iterations
 				)
 			}
-			# browser()
-			# Get predictions for each resampling iter, permutation iter, feature
+
 			all_preds = lapply(seq_len(self$resampling$iters), \(iter) {
 				# Extract the learner here once because apparently reassembly is expensive
 				this_learner = self$resample_result$learners[[iter]]
 				test_row_ids = self$resampling$test_set(iter)
 				test_size = length(test_row_ids)
-
-				# Update progress bar.
-				# if (xplain_opt("progress")) {
-				# 	cli::cli_progress_update(inc = 1, .envir = .progress_env)
-				# }
 
 				if (is.null(self$groups)) {
 					iteration_proxy = self$features
@@ -159,6 +154,11 @@ PerturbationImportance = R6Class(
 							}
 						)
 
+						# Update progress bar after processing all permutations for this feature
+						if (xplain_opt("progress")) {
+							cli::cli_progress_update(id = progress_bar_id)
+						}
+
 						# Append iteration id for within-resampling permutations
 						rbindlist(pred_per_perm, idcol = "iter_perm")
 					}
@@ -175,9 +175,9 @@ PerturbationImportance = R6Class(
 			# store predictions for future reference maybe?
 			self$predictions = all_preds
 
-			# Close progress bar now that we're done iterating
+			# Close progress bar
 			if (xplain_opt("progress")) {
-				cli::cli_progress_done(.envir = .progress_env)
+				cli::cli_progress_done(id = progress_bar_id)
 			}
 
 			scores = data.table::copy(all_preds)[,
