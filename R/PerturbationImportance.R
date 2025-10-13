@@ -364,6 +364,9 @@ CFI = R6Class(
 			)
 
 			self$label = "Conditional Feature Importance"
+
+			# Add CPI to variance methods registry
+			private$.ci_methods = c(private$.ci_methods, "cpi")
 		},
 
 		#' @description
@@ -380,6 +383,52 @@ CFI = R6Class(
 				store_backends = store_backends,
 				sampler = self$sampler
 			)
+		}
+	),
+	private = list(
+		# Conditional Predictive Impact (CPI) using one-sided t-test
+		# CPI is specifically designed for CFI with knockoff samplers
+		# Based on Watson et al. (2021) and implemented in the cpi package
+		# @param scores data.table with feature and importance columns (not used, we use obs_loss directly)
+		# @param aggregator function (not used for CPI)
+		# @param conf_level confidence level for one-sided CI
+		.importance_cpi = function(scores, aggregator, conf_level) {
+			# CPI requires observation-wise losses
+			if (is.null(private$.obs_losses)) {
+				cli::cli_abort(c(
+					"CPI requires observation-wise losses.",
+					i = "Ensure {.code measure} has an {.code obs_loss} method.",
+					i = "Did you run {.fun $compute}?"
+				))
+			}
+
+			# Get observation-wise importances (already computed as differences)
+			obs_loss_data = self$obs_loss()
+
+			# For each feature, perform one-sided t-test (alternative = "greater")
+			# H0: importance <= 0, H1: importance > 0
+			result_list = lapply(unique(obs_loss_data$feature), function(feat) {
+				feat_obs = obs_loss_data[feature == feat, obs_importance]
+
+				# One-sided t-test
+				ttest = t.test(
+					feat_obs,
+					alternative = "greater",
+					conf.level = conf_level
+				)
+
+				data.table(
+					feature = feat,
+					importance = mean(feat_obs),
+					se = sd(feat_obs) / sqrt(length(feat_obs)),
+					statistic = ttest$statistic,
+					p.value = ttest$p.value,
+					conf_lower = ttest$conf.int[1],
+					conf_upper = Inf  # One-sided test upper bound is infinity
+				)
+			})
+
+			rbindlist(result_list)
 		}
 	)
 )
