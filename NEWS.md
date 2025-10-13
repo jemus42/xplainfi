@@ -36,11 +36,9 @@ This turns out to be still a period of major changes in the early phase, so, uhm
 
 ### Conditional sampling
 
-- **Breaking**: Refactor `FeatureSampler` API to separate task-based and external data sampling:
+- **Breaking**: Refactor `FeatureSampler` API to separate task-based and external data sampling (#49):
   - `$sample(feature, row_ids = NULL)` now samples from stored task using row IDs
   - `$sample_newdata(feature, newdata)` samples from external data (e.g., test set)
-  - This clarifies the semantics and improves efficiency for both use cases
-  - All samplers (`MarginalSampler`, `ARFSampler`, `KnockoffSampler`) updated accordingly
 - Extend `ARFSampler` to store more arguments on construction, making it easier to "preconfigure" the sampler via arguments used in `$sample()`.
 - Standardize on `conditioning_set` as the name for the character vector defining features to condition on in `ConditionalSampler` and `RFI`.
 - Add `KnockoffSampler` (#16 via @mnwright)
