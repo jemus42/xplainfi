@@ -176,10 +176,13 @@ methods.</p>
 <div class="section level3">
 <h3 id="mathematical-model">Mathematical Model<a class="anchor" aria-label="anchor" href="#mathematical-model"></a>
 </h3>
-<p><span class="math display">\[X_1 \sim N(0,1)\]</span> <span class="math display">\[X_2 = X_1 + \varepsilon_2, \quad \varepsilon_2
-\sim N(0, 0.05^2)\]</span> <span class="math display">\[X_3 \sim N(0,1),
-\quad X_4 \sim N(0,1)\]</span> <span class="math display">\[Y = 2 \cdot
-X_1 + X_3 + \varepsilon\]</span></p>
+<p><span class="math display">\[(X_1, X_2)^T \sim \text{MVN}(0,
+\Sigma)\]</span></p>
+<p>where <span class="math inline">\(\Sigma\)</span> is a 2×2 covariance
+matrix with 1 on the diagonal and correlation <span class="math inline">\(r\)</span> (default 0.9) on the off-diagonal.</p>
+<p><span class="math display">\[X_3 \sim N(0,1), \quad X_4 \sim
+N(0,1)\]</span> <span class="math display">\[Y = 2 \cdot X_1 + X_3 +
+\varepsilon\]</span></p>
 <p>where <span class="math inline">\(\varepsilon \sim N(0,
 0.2^2)\)</span>.</p>
 </div>
@@ -202,9 +205,9 @@ DAG for correlated features DGP
 <span></span>
 <span><span class="co"># Check correlation between X1 and X2</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt;           x1        x2</span></span>
-<span><span class="co">#&gt; x1 1.0000000 0.9986492</span></span>
-<span><span class="co">#&gt; x2 0.9986492 1.0000000</span></span>
+<span><span class="co">#&gt;          x1       x2</span></span>
+<span><span class="co">#&gt; x1 1.000000 0.885718</span></span>
+<span><span class="co">#&gt; x2 0.885718 1.000000</span></span>
 <span></span>
 <span><span class="co"># True coefficients: x1=2.0, x2=0, x3=1.0, x4=0</span></span>
 <span><span class="co"># Note: x2 is highly correlated with x1 but has NO causal effect!</span></span></code></pre></div>

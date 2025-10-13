@@ -602,10 +602,10 @@ correlated:</p>
 <span><span class="va">data_cor</span> <span class="op">&lt;-</span> <span class="va">task_cor</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Causal Structure:</strong></p>
 <div class="grViz html-widget html-fill-item" id="htmlwidget-36aa3d2a04d42bbc2145" style="width:576px;height:384px;"></div>
-<script type="application/json" data-for="htmlwidget-36aa3d2a04d42bbc2145">{"x":{"diagram":"\ndigraph correlated_dag {\n  rankdir=TB;\n  node [shape=circle, style=filled, fontname=\"Arial\", fontsize=12];\n  \n  # Feature nodes\n  x1 [fillcolor=\"lightblue\", label=\"x1\"];\n  x2 [fillcolor=\"lightblue\", label=\"x2\"];\n  x3 [fillcolor=\"lightblue\", label=\"x3\"];\n  x4 [fillcolor=\"lightgray\", label=\"x4\"];\n  \n  # Outcome\n  y [fillcolor=\"greenyellow\", label=\"y\"];\n  \n  # Direct effects\n  x1 -> y [label=\"2.0\", color=\"blue\"];\n  x3 -> y [label=\"1.0\", color=\"blue\"];\n  # x2 has NO direct effect on y despite high correlation with x1\n  \n  # Correlation between x1 and x2 (bidirectional dashed line)\n  x1 -> x2 [dir=both, style=dashed, color=\"purple\", label=\"r≈0.999\"];\n  \n  # Layout\n  {rank=same; x1, x2, x3, x4}\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p><strong>Key feature</strong>: x1 and x2 are nearly identical
-(correlation ≈ 0.999) but only x1 has a causal effect on y. x2 is a
-spurious predictor - highly correlated with the causal feature but not
-causal itself.</p>
+<script type="application/json" data-for="htmlwidget-36aa3d2a04d42bbc2145">{"x":{"diagram":"\ndigraph correlated_dag {\n  rankdir=TB;\n  node [shape=circle, style=filled, fontname=\"Arial\", fontsize=12];\n  \n  # Feature nodes\n  x1 [fillcolor=\"lightblue\", label=\"x1\"];\n  x2 [fillcolor=\"lightblue\", label=\"x2\"];\n  x3 [fillcolor=\"lightblue\", label=\"x3\"];\n  x4 [fillcolor=\"lightgray\", label=\"x4\"];\n  \n  # Outcome\n  y [fillcolor=\"greenyellow\", label=\"y\"];\n  \n  # Direct effects\n  x1 -> y [label=\"2.0\", color=\"blue\"];\n  x3 -> y [label=\"1.0\", color=\"blue\"];\n  # x2 has NO direct effect on y despite high correlation with x1\n  \n  # Correlation between x1 and x2 (bidirectional dashed line)\n  x1 -> x2 [dir=both, style=dashed, color=\"purple\", label=\"r=0.9\"];\n  \n  # Layout\n  {rank=same; x1, x2, x3, x4}\n}\n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><p><strong>Key feature</strong>: x1 and x2 are highly correlated (r =
+0.9 from MVN) but only x1 has a causal effect on y. x2 is a spurious
+predictor - correlated with the causal feature but not causal
+itself.</p>
 <div class="section level3">
 <h3 id="analysis-2">Analysis<a class="anchor" aria-label="anchor" href="#analysis-2"></a>
 </h3>
@@ -626,12 +626,12 @@ features:</p>
 <span><span class="va">pfi_cor</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">pfi_cor</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;    feature  importance</span></span>
-<span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:      x1 2.200815774</span></span>
-<span><span class="co">#&gt; 2:      x2 1.894655153</span></span>
-<span><span class="co">#&gt; 3:      x3 1.573530373</span></span>
-<span><span class="co">#&gt; 4:      x4 0.003203088</span></span></code></pre></div>
+<span><span class="co">#&gt;    feature    importance</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;         &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      x1  4.9467554101</span></span>
+<span><span class="co">#&gt; 2:      x2  0.4571068286</span></span>
+<span><span class="co">#&gt; 3:      x3  1.5871692231</span></span>
+<span><span class="co">#&gt; 4:      x4 -0.0007608982</span></span></code></pre></div>
 <p>Expected: PFI will show high importance for BOTH x1 and x2, even
 though only x1 has a true causal effect. This happens because x2 is
 highly correlated with x1, so permuting x2 destroys predictive
@@ -658,10 +658,10 @@ information about x1.</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature   importance</span></span>
 <span><span class="co">#&gt;     &lt;char&gt;        &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:      x1 0.1642762808</span></span>
-<span><span class="co">#&gt; 2:      x2 0.1270797932</span></span>
-<span><span class="co">#&gt; 3:      x3 1.1934853684</span></span>
-<span><span class="co">#&gt; 4:      x4 0.0005012697</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:      x1  1.185632402</span></span>
+<span><span class="co">#&gt; 2:      x2  0.033752664</span></span>
+<span><span class="co">#&gt; 3:      x3  1.160991550</span></span>
+<span><span class="co">#&gt; 4:      x4 -0.002213671</span></span></code></pre></div>
 <p>Expected: CFI should show high importance for x1 (the true causal
 feature) but near-zero importance for x2 (the spurious correlated
 feature) because conditional sampling preserves the correlation
@@ -695,9 +695,9 @@ predictors.</p>
 <span>    sampler <span class="op">=</span> <span class="va">sampler_cor</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">rfi_cor_x2</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><strong>RFI Results:</strong> - <strong>x2 given x1</strong>: 0.120
+<p><strong>RFI Results:</strong> - <strong>x2 given x1</strong>: 0.017
 (How much does x2 add when we already know x1?) - <strong>x1 given
-x2</strong>: 0.163 (How much does x1 add when we already know x2?)</p>
+x2</strong>: 1.543 (How much does x1 add when we already know x2?)</p>
 <p>Expected: When conditioning on x1, the importance of x2 should be
 near zero (and vice versa) because they’re almost identical - knowing
 one tells you almost everything about the other.</p>
@@ -728,15 +728,15 @@ one tells you almost everything about the other.</p>
 <tbody>
 <tr class="odd">
 <td align="left">x1</td>
-<td align="right">0.164</td>
-<td align="right">2.201</td>
-<td align="right">0.075</td>
+<td align="right">1.186</td>
+<td align="right">4.947</td>
+<td align="right">0.240</td>
 </tr>
 <tr class="even">
 <td align="left">x2</td>
-<td align="right">0.127</td>
-<td align="right">1.895</td>
-<td align="right">0.067</td>
+<td align="right">0.034</td>
+<td align="right">0.457</td>
+<td align="right">0.074</td>
 </tr>
 </tbody>
 </table>
@@ -853,33 +853,33 @@ different sampler:</p>
 <tbody>
 <tr class="odd">
 <td align="left">important1</td>
-<td align="right">5.290</td>
-<td align="right">0.283</td>
+<td align="right">5.627</td>
+<td align="right">0.293</td>
 <td align="left">Low</td>
 </tr>
 <tr class="even">
 <td align="left">important2</td>
-<td align="right">1.215</td>
-<td align="right">0.260</td>
+<td align="right">1.352</td>
+<td align="right">0.273</td>
 <td align="left">Low</td>
 </tr>
 <tr class="odd">
 <td align="left">important3</td>
-<td align="right">0.417</td>
-<td align="right">0.550</td>
+<td align="right">0.334</td>
+<td align="right">0.346</td>
 <td align="left">Low</td>
 </tr>
 <tr class="even">
 <td align="left">unimportant1</td>
-<td align="right">-0.003</td>
-<td align="right">-1.742</td>
-<td align="left">High</td>
+<td align="right">0.002</td>
+<td align="right">1.868</td>
+<td align="left">Low</td>
 </tr>
 <tr class="odd">
 <td align="left">unimportant2</td>
-<td align="right">0.008</td>
-<td align="right">1.518</td>
-<td align="left">Low</td>
+<td align="right">-0.001</td>
+<td align="right">-7.596</td>
+<td align="left">High</td>
 </tr>
 </tbody>
 </table>
@@ -938,16 +938,16 @@ observations appear in multiple resampling folds.</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;       feature importance conf_lower conf_upper</span></span>
 <span><span class="co">#&gt;        &lt;char&gt;      &lt;num&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1: important1  5.4985008  4.7873266  6.2096749</span></span>
-<span><span class="co">#&gt; 2: important2  1.2325455  1.0897172  1.3753738</span></span>
-<span><span class="co">#&gt; 3: important3  0.1899716  0.1544575  0.2254857</span></span>
+<span><span class="co">#&gt; 1: important1  6.3666377  5.4822167  7.2510588</span></span>
+<span><span class="co">#&gt; 2: important2  1.2365842  1.1076790  1.3654893</span></span>
+<span><span class="co">#&gt; 3: important3  0.2942564  0.2670453  0.3214676</span></span>
 <span><span class="va">imp_corrected</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"^important"</span>, <span class="va">feature</span><span class="op">)</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, <span class="va">importance</span>, <span class="va">conf_lower</span>, <span class="va">conf_upper</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;       feature importance conf_lower conf_upper</span></span>
 <span><span class="co">#&gt;        &lt;char&gt;      &lt;num&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1: important1  5.4985008  4.1680157  6.8289858</span></span>
-<span><span class="co">#&gt; 2: important2  1.2325455  0.9653382  1.4997527</span></span>
-<span><span class="co">#&gt; 3: important3  0.1899716  0.1235308  0.2564124</span></span></code></pre></div>
+<span><span class="co">#&gt; 1: important1  6.3666377  4.7120375  8.0212380</span></span>
+<span><span class="co">#&gt; 2: important2  1.2365842  0.9954247  1.4777437</span></span>
+<span><span class="co">#&gt; 3: important3  0.2942564  0.2433491  0.3451638</span></span></code></pre></div>
 <p><img src="perturbation-importance_files/figure-html/variance-comparison-plot-1.png" width="768"></p>
 </div>
 <div class="section level3">

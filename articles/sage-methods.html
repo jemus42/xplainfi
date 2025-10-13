@@ -127,10 +127,12 @@ conditionally using ARF sampling</li>
 we’ll use the <code><a href="../reference/sim_dgp_scenarios.html">sim_dgp_correlated()</a></code> function which creates
 highly correlated features. This is similar to how PFI and CFI behave
 differently with correlated features.</p>
-<p><strong>Model:</strong> <span class="math display">\[X_1 \sim
-N(0,1)\]</span> <span class="math display">\[X_2 = X_1 + \varepsilon_2,
-\quad \varepsilon_2 \sim N(0, 0.05^2)\]</span> <span class="math display">\[X_3 \sim N(0,1), \quad X_4 \sim N(0,1)\]</span>
-<span class="math display">\[Y = 2 \cdot X_1 + X_3 +
+<p><strong>Model:</strong> <span class="math display">\[(X_1, X_2)^T
+\sim \text{MVN}(0, \Sigma)\]</span></p>
+<p>where <span class="math inline">\(\Sigma\)</span> is a 2×2 covariance
+matrix with 1 on the diagonal and correlation <span class="math inline">\(r\)</span> (default 0.9) on the off-diagonal.</p>
+<p><span class="math display">\[X_3 \sim N(0,1), \quad X_4 \sim
+N(0,1)\]</span> <span class="math display">\[Y = 2 \cdot X_1 + X_3 +
 \varepsilon\]</span></p>
 <p>where <span class="math inline">\(\varepsilon \sim N(0,
 0.2^2)\)</span>.</p>
@@ -139,7 +141,7 @@ N(0,1)\]</span> <span class="math display">\[X_2 = X_1 + \varepsilon_2,
 <li>
 <code>x1</code> has a direct causal effect on y (β=2.0)</li>
 <li>
-<code>x2</code> is highly correlated with x1 (r ≈ 0.999) but has
+<code>x2</code> is correlated with x1 (r = 0.9 from MVN) but has
 <strong>no causal effect</strong> on y</li>
 <li>
 <code>x3</code> is independent with a causal effect (β=1.0)</li>
@@ -155,10 +157,10 @@ N(0,1)\]</span> <span class="math display">\[X_2 = X_1 + \varepsilon_2,
 <span><span class="va">correlation_matrix</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">task_data</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span>, <span class="st">"x3"</span>, <span class="st">"x4"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">correlation_matrix</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        x1     x2     x3     x4</span></span>
-<span><span class="co">#&gt; x1  1.000  0.999 -0.019 -0.003</span></span>
-<span><span class="co">#&gt; x2  0.999  1.000 -0.018 -0.003</span></span>
-<span><span class="co">#&gt; x3 -0.019 -0.018  1.000  0.051</span></span>
-<span><span class="co">#&gt; x4 -0.003 -0.003  0.051  1.000</span></span></code></pre></div>
+<span><span class="co">#&gt; x1  1.000  0.886 -0.021 -0.057</span></span>
+<span><span class="co">#&gt; x2  0.886  1.000 -0.041 -0.059</span></span>
+<span><span class="co">#&gt; x3 -0.021 -0.041  1.000  0.051</span></span>
+<span><span class="co">#&gt; x4 -0.057 -0.059  0.051  1.000</span></span></code></pre></div>
 <p><strong>Expected behavior:</strong></p>
 <ul>
 <li>
