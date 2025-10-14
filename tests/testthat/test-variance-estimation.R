@@ -16,10 +16,14 @@ test_that("importance() accepts all ci_method values", {
 	imp_none = pfi$importance(ci_method = "none")
 	imp_raw = pfi$importance(ci_method = "raw")
 	imp_nb = pfi$importance(ci_method = "nadeau_bengio")
+	imp_wilcox = pfi$importance(ci_method = "wilcoxon")
+	imp_quantile = pfi$importance(ci_method = "quantile")
 
 	expect_importance_dt(imp_none, features = pfi$features)
 	expect_importance_dt(imp_raw, features = pfi$features)
 	expect_importance_dt(imp_nb, features = pfi$features)
+	expect_importance_dt(imp_wilcox, features = pfi$features)
+	expect_importance_dt(imp_quantile, features = pfi$features)
 })
 
 test_that("ci_method='none' produces no variance columns", {
@@ -208,4 +212,65 @@ test_that("wilcoxon CIs differ from parametric methods", {
 		merged = imp_raw[valid_wilcox, on = "feature"]
 		expect_false(all(merged$conf_lower == merged$i.conf_lower, na.rm = TRUE))
 	}
+})
+
+test_that("quantile variance method works", {
+	set.seed(123)
+	task = sim_dgp_independent(n = 200)
+
+	pfi = PFI$new(
+		task = task,
+		learner = mlr3::lrn("regr.rpart"),
+		measure = mlr3::msr("regr.mse"),
+		resampling = mlr3::rsmp("subsampling", repeats = 10),
+		iters_perm = 2
+	)
+
+	pfi$compute()
+
+	imp_quantile = pfi$importance(ci_method = "quantile")
+
+	# Check structure
+	expect_importance_dt(imp_quantile, features = pfi$features)
+
+	# Verify CI columns exist (no se for quantile method)
+	expected_cols = c("feature", "importance", "conf_lower", "conf_upper")
+	expect_true(all(expected_cols %in% names(imp_quantile)))
+	expect_false("se" %in% names(imp_quantile))
+
+	# All CIs should be valid intervals
+	expect_true(all(imp_quantile$conf_lower <= imp_quantile$conf_upper))
+
+	# Point estimates should be between lower and upper bounds (or close)
+	# Due to using mean vs quantiles, this is not guaranteed but usually holds
+	expect_true(all(imp_quantile$importance >= imp_quantile$conf_lower |
+		abs(imp_quantile$importance - imp_quantile$conf_lower) < 0.01))
+	expect_true(all(imp_quantile$importance <= imp_quantile$conf_upper |
+		abs(imp_quantile$importance - imp_quantile$conf_upper) < 0.01))
+})
+
+test_that("quantile CIs differ from parametric methods", {
+	set.seed(123)
+	task = sim_dgp_independent(n = 200)
+
+	pfi = PFI$new(
+		task = task,
+		learner = mlr3::lrn("regr.rpart"),
+		measure = mlr3::msr("regr.mse"),
+		resampling = mlr3::rsmp("subsampling", repeats = 15),
+		iters_perm = 3
+	)
+
+	pfi$compute()
+
+	imp_raw = pfi$importance(ci_method = "raw")
+	imp_quantile = pfi$importance(ci_method = "quantile")
+
+	# Point estimates should be the same (both use mean)
+	expect_equal(imp_raw$importance, imp_quantile$importance)
+
+	# CIs should generally differ between methods
+	# (quantile is non-parametric, raw assumes normality)
+	expect_false(all(imp_raw$conf_lower == imp_quantile$conf_lower))
+	expect_false(all(imp_raw$conf_upper == imp_quantile$conf_upper))
 })

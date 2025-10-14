@@ -110,6 +110,7 @@ FeatureImportanceMethod = R6Class(
 		#'   If `"raw"`, uncorrected variance estimates are provided purely for informative purposes with **invalid** (too narrow) confidence intervals.
 		#'   If `"nadeau_bengio"`, variance correction is performed according to Nadeau & Bengio (2003) as suggested by Molnar et al. (2023).
 		#'   If `"wilcoxon"`, non-parametric confidence intervals based on Wilcoxon signed-rank test are computed.
+		#'   If `"quantile"`, empirical quantiles are used to construct confidence-like intervals.
 		#'   These methods are model-agnostic and rely on suitable `resampling`s, e.g. subsampling with 15 repeats for `"nadeau_bengio"`.
 		#'   See details.
 		#' @param conf_level (`numeric(1): 0.95`): Conficence level to use for confidence interval construction when `ci_method != "none"`.
@@ -155,7 +156,7 @@ FeatureImportanceMethod = R6Class(
 		importance = function(
 			relation = NULL,
 			standardize = FALSE,
-			ci_method = c("none", "raw", "nadeau_bengio", "wilcoxon"),
+			ci_method = c("none", "raw", "nadeau_bengio", "wilcoxon", "quantile"),
 			conf_level = 0.95
 		) {
 			if (is.null(private$.scores)) {
@@ -372,7 +373,7 @@ FeatureImportanceMethod = R6Class(
 	),
 	private = list(
 		# Registry of available variance methods
-		.ci_methods = c("none", "raw", "nadeau_bengio", "wilcoxon"),
+		.ci_methods = c("none", "raw", "nadeau_bengio", "wilcoxon", "quantile"),
 
 		# Variance estimation methods
 		# Each method takes scores, aggregator, and conf_level as parameters
@@ -517,6 +518,41 @@ FeatureImportanceMethod = R6Class(
 					estimate = wtest$estimate %||% NA_real_,
 					conf_lower = wtest$conf.int[1] %||% NA_real_,
 					conf_upper = wtest$conf.int[2] %||% NA_real_
+				)
+			})
+
+			rbindlist(result_list)
+		},
+
+		# Empirical quantile-based confidence intervals
+		# Uses quantile() to construct confidence-like intervals from resampling distribution
+		# @param scores data.table with feature and importance columns
+		# @param aggregator function to aggregate importance scores (used for point estimate)
+		# @param conf_level confidence level for intervals
+		.importance_quantile = function(scores, aggregator, conf_level) {
+			# Aggregate within resamplings first to get one value per resampling iteration
+			means_rsmp = scores[,
+				list(importance = aggregator(importance)),
+				by = c("iter_rsmp", "feature")
+			]
+
+			# For each feature, compute quantiles
+			result_list = lapply(unique(means_rsmp$feature), function(feat) {
+				feat_scores = means_rsmp[feature == feat, importance]
+
+				# Point estimate using aggregator
+				point_est = aggregator(feat_scores)
+
+				# Compute empirical quantiles for CI
+				alpha = 1 - conf_level
+				probs = c(alpha / 2, 1 - alpha / 2)
+				ci_vals = quantile(feat_scores, probs = probs, na.rm = TRUE)
+
+				data.table(
+					feature = feat,
+					importance = point_est,
+					conf_lower = ci_vals[1],
+					conf_upper = ci_vals[2]
 				)
 			})
 

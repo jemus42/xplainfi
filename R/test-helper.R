@@ -6,7 +6,8 @@
 #' Validates columns
 #' - `feature` is a character value without missings
 #' - `importance` is numeric vector without missings or infinite values (TODO: too strict?)
-#' -
+#' - Variance-related columns (se, estimate, conf_lower, conf_upper, statistic, p.value) may contain NA
+#'
 #' @note This should probably be written like a custom expectation
 #' (see [testthat docs](https://testthat.r-lib.org/articles/custom-expectation.html)).
 #'
@@ -19,15 +20,18 @@ expect_importance_dt = function(x, features) {
 		x,
 		types = c("character", "numeric"),
 		nrows = length(features),
-		min.cols = 2,
-		any.missing = FALSE
+		min.cols = 2
 	)
 
+	# Core columns must not have missing values
 	checkmate::expect_character(x$feature, any.missing = FALSE)
 	checkmate::expect_numeric(x$importance, any.missing = FALSE)
 
-	# TODO: SD can be Inf/NaN in some cases, need to robustify this
-	if ("sd" %in% colnames(x)) checkmate::expect_numeric(x$sd)
+	# Variance-related columns may contain NA (e.g., wilcoxon can fail for zero/tied values)
+	variance_cols = c("se", "sd", "estimate", "conf_lower", "conf_upper", "statistic", "p.value")
+	for (col in intersect(variance_cols, colnames(x))) {
+		checkmate::expect_numeric(x[[col]], any.missing = TRUE)
+	}
 }
 
 #' Expectation for individual importance score tables
