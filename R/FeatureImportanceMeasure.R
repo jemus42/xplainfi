@@ -113,7 +113,7 @@ FeatureImportanceMethod = R6Class(
 		#'   These methods are model-agnostic and rely on suitable `resampling`s, e.g. subsampling with 15 repeats for `"nadeau_bengio"`.
 		#'   See details.
 		#' @param conf_level (`numeric(1): 0.95`): Conficence level to use for confidence interval construction when `ci_method != "none"`.
-		#'
+		#' @param ... Additional arguments passen to specialized methods, if any.
 		#' @return ([data.table][data.table::data.table]) Aggregated importance scores. with variables `"feature", "importance"`
 		#' and depending in `ci_method` also `"se", "conf_lower", "conf_upper"`.
 		#'
@@ -156,7 +156,8 @@ FeatureImportanceMethod = R6Class(
 			relation = NULL,
 			standardize = FALSE,
 			ci_method = c("none", "raw", "nadeau_bengio", "quantile"),
-			conf_level = 0.95
+			conf_level = 0.95,
+			...
 		) {
 			if (is.null(private$.scores)) {
 				cli::cli_inform(c(
@@ -205,7 +206,8 @@ FeatureImportanceMethod = R6Class(
 			agg_importance = private[[method_name]](
 				scores = scores,
 				aggregator = aggregator,
-				conf_level = conf_level
+				conf_level = conf_level,
+				...
 			)
 
 			setkeyv(agg_importance, "feature")
@@ -434,7 +436,12 @@ FeatureImportanceMethod = R6Class(
 		# @param conf_level confidence level for intervals
 		.importance_nadeau_bengio = function(scores, aggregator, conf_level) {
 			# Validate resampling type
-			checkmate::assert_subset(self$resampling$id, choices = c("bootstrap", "subsampling"))
+			if (!(self$resampling$id %in% c("bootstrap", "subsampling")) | self$resampling$iters < 10) {
+				cli::cli_warn(c(
+					"Resampling is of type {.val {self$resampling$id}} with {.val {self$resampling$iters}} iterations.",
+					i = "The Nadeau & Bengio corrected t-test is recommended for resampling types {.val {c('bootstrap', 'subsampling')}} with >= 10 iterations"
+				))
+			}
 
 			if (self$resampling$id == "bootstrap") {
 				test_train_ratio = 0.632

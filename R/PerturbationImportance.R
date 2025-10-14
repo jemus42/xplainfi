@@ -40,6 +40,17 @@ PerturbationImportance = R6Class(
 			# If no sampler is provided, create a default one (implementation dependent)
 			self$sampler = sampler
 
+			# Knockoffs only generate one x_tilde, hence iters_perm > 1 is meaningless
+			if (inherits(sampler, "KnockoffSampler") & iters_perm > 1) {
+				cli::cli_warn(c(
+					"Requested {.val {iters_perm}} permutations with {.cls {class(sampler)[[1]]}}",
+					i = "A {.cls KnockoffSampler} does not support repeated samplings",
+					i = "Resetting {.val iters_perm} to {.val 1}",
+					"Use {.cls ARFSampler} if repeated samplings is required."
+				))
+				iters_perm = 1
+			}
+
 			# Set up common parameters for all perturbation-based methods
 			ps = paradox::ps(
 				relation = paradox::p_fct(c("difference", "ratio"), default = "difference"),
@@ -392,26 +403,43 @@ CFI = R6Class(
 		# @param scores data.table with feature and importance columns (not used, we use obs_loss directly)
 		# @param aggregator function (not used for CPI)
 		# @param conf_level confidence level for one-sided CI
-		.importance_cpi = function(scores, aggregator, conf_level) {
+		.importance_cpi = function(scores, aggregator, conf_level, test = c("t", "wilcoxon")) {
 			# CPI requires observation-wise losses
 			if (is.null(private$.obs_losses)) {
 				cli::cli_abort(c(
 					"CPI requires observation-wise losses.",
-					i = "Ensure {.code measure} has an {.fun $obs_loss} method.",
-					i = "Did you run {.fun $compute}?"
+					i = "Ensure {.code measure} has an {.fun $obs_loss} method."
 				))
 			}
 
 			# Get observation-wise importances (already computed as differences)
-			obs_loss_data = self$obs_loss()
+			obs_loss_data = self$obs_loss(relation = "difference")
+			# We need one row per feature and row_id for valid inference, so we aggregate over iter_rsmp
+			obs_loss_agg = obs_loss_data[,
+				list(obs_importance = mean(obs_importance)),
+				by = c("row_ids", "feature")
+			]
+
+			if (!(setequal(obs_loss_agg$row_ids, self$task$row_ids))) {
+				cli::cli_warn(c(
+					"Resampling is of type {.val {self$resampling$id}} with {.val {self$resampling$iters}} iterations.",
+					"Found {.val {length(setdiff(self$task$row_ids, obs_loss_agg$row_ids))}} observation{?s} missing predictions",
+					x = "Confidence intervals will have wrong coverage!",
+					i = "CPI requires each observation to have been in the test set at least once",
+					i = "Use cross-validation or holdout resamplings instead"
+				))
+			}
+
+			test = match.arg(test)
+			test_function = switch(test, t = stats::t.test, wilcoxon = stats::wilcox.test)
 
 			# For each feature, perform one-sided t-test (alternative = "greater")
 			# H0: importance <= 0, H1: importance > 0
-			result_list = lapply(unique(obs_loss_data$feature), function(feat) {
-				feat_obs = obs_loss_data[feature == feat, obs_importance]
+			result_list = lapply(unique(obs_loss_agg$feature), function(feat) {
+				feat_obs = obs_loss_agg[feature == feat, obs_importance]
 
-				# One-sided t-test
-				ttest = stats::t.test(
+				# One-sided test
+				htest_result = test_function(
 					feat_obs,
 					alternative = "greater",
 					conf.level = conf_level
@@ -421,9 +449,9 @@ CFI = R6Class(
 					feature = feat,
 					importance = mean(feat_obs),
 					se = sd(feat_obs) / sqrt(length(feat_obs)),
-					statistic = ttest$statistic,
-					p.value = ttest$p.value,
-					conf_lower = ttest$conf.int[1],
+					statistic = htest_result$statistic,
+					p.value = htest_result$p.value,
+					conf_lower = htest_result$conf.int[1],
 					conf_upper = Inf # One-sided test upper bound is infinity
 				)
 			})
