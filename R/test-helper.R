@@ -27,7 +27,7 @@ expect_importance_dt = function(x, features) {
 	checkmate::expect_character(x$feature, any.missing = FALSE)
 	checkmate::expect_numeric(x$importance, any.missing = FALSE)
 
-	# Variance-related columns may contain NA (e.g., wilcoxon can fail for zero/tied values)
+	# Variance-related columns may contain NA (e.g., CPI test statistics can fail for some features)
 	variance_cols = c("se", "sd", "estimate", "conf_lower", "conf_upper", "statistic", "p.value")
 	for (col in intersect(variance_cols, colnames(x))) {
 		checkmate::expect_numeric(x[[col]], any.missing = TRUE)

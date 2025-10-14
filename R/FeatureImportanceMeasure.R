@@ -109,7 +109,6 @@ FeatureImportanceMethod = R6Class(
 		#' @param ci_method (`character(1)`: `"none"`) Variance estimation method to use, defaulting to omitting variance estimation (`"none"`).
 		#'   If `"raw"`, uncorrected variance estimates are provided purely for informative purposes with **invalid** (too narrow) confidence intervals.
 		#'   If `"nadeau_bengio"`, variance correction is performed according to Nadeau & Bengio (2003) as suggested by Molnar et al. (2023).
-		#'   If `"wilcoxon"`, non-parametric confidence intervals based on Wilcoxon signed-rank test are computed.
 		#'   If `"quantile"`, empirical quantiles are used to construct confidence-like intervals.
 		#'   These methods are model-agnostic and rely on suitable `resampling`s, e.g. subsampling with 15 repeats for `"nadeau_bengio"`.
 		#'   See details.
@@ -156,7 +155,7 @@ FeatureImportanceMethod = R6Class(
 		importance = function(
 			relation = NULL,
 			standardize = FALSE,
-			ci_method = c("none", "raw", "nadeau_bengio", "wilcoxon", "quantile"),
+			ci_method = c("none", "raw", "nadeau_bengio", "quantile"),
 			conf_level = 0.95
 		) {
 			if (is.null(private$.scores)) {
@@ -373,7 +372,7 @@ FeatureImportanceMethod = R6Class(
 	),
 	private = list(
 		# Registry of available variance methods
-		.ci_methods = c("none", "raw", "nadeau_bengio", "wilcoxon", "quantile"),
+		.ci_methods = c("none", "raw", "nadeau_bengio", "quantile"),
 
 		# Variance estimation methods
 		# Each method takes scores, aggregator, and conf_level as parameters
@@ -478,50 +477,6 @@ FeatureImportanceMethod = R6Class(
 			)]
 
 			agg_importance
-		},
-
-		# Wilcoxon signed-rank test based confidence intervals
-		# Non-parametric approach using wilcox.test for each feature
-		# @param scores data.table with feature and importance columns
-		# @param aggregator function to aggregate importance scores (used for point estimate)
-		# @param conf_level confidence level for intervals
-		.importance_wilcoxon = function(scores, aggregator, conf_level) {
-			# Using CV would violate independence assumption similar to Nadeau & Bengio approach
-			checkmate::assert_subset(self$resampling$id, choices = c("bootstrap", "subsampling"))
-
-			# Aggregate within resamplings first to get one value per resampling iteration
-			means_rsmp = scores[,
-				list(importance = aggregator(importance)),
-				by = c("iter_rsmp", "feature")
-			]
-
-			# For each feature, run wilcox.test to get CI
-			result_list = lapply(unique(means_rsmp$feature), function(feat) {
-				feat_scores = means_rsmp[feature == feat, importance]
-
-				# Point estimate using aggregator
-				point_est = aggregator(feat_scores)
-
-				# Wilcoxon test for CI
-				# Test against null hypothesis of median = 0
-				# Use tryCatch to handle cases where wilcox.test fails (e.g., all zeros/ties)
-				wtest = tryCatch(
-					suppressWarnings(wilcox.test(feat_scores, conf.int = TRUE, conf.level = conf_level)),
-					error = function(e) NULL
-				)
-
-				# if wilcoxon fails or CIs are unavailable, wtest or elements are NULL
-				# hence using %||% here with NA placeholders
-				data.table(
-					feature = feat,
-					importance = point_est,
-					estimate = wtest$estimate %||% NA_real_,
-					conf_lower = wtest$conf.int[1] %||% NA_real_,
-					conf_upper = wtest$conf.int[2] %||% NA_real_
-				)
-			})
-
-			rbindlist(result_list)
 		},
 
 		# Empirical quantile-based confidence intervals

@@ -16,13 +16,11 @@ test_that("importance() accepts all ci_method values", {
 	imp_none = pfi$importance(ci_method = "none")
 	imp_raw = pfi$importance(ci_method = "raw")
 	imp_nb = pfi$importance(ci_method = "nadeau_bengio")
-	imp_wilcox = pfi$importance(ci_method = "wilcoxon")
 	imp_quantile = pfi$importance(ci_method = "quantile")
 
 	expect_importance_dt(imp_none, features = pfi$features)
 	expect_importance_dt(imp_raw, features = pfi$features)
 	expect_importance_dt(imp_nb, features = pfi$features)
-	expect_importance_dt(imp_wilcox, features = pfi$features)
 	expect_importance_dt(imp_quantile, features = pfi$features)
 })
 
@@ -151,67 +149,6 @@ test_that("variance estimation works with bootstrap resampling", {
 	# Verify variance columns exist
 	expect_true(all(c("se", "conf_lower", "conf_upper") %in% names(imp_raw)))
 	expect_true(all(c("se", "conf_lower", "conf_upper") %in% names(imp_nb)))
-})
-
-test_that("wilcoxon variance method works", {
-	set.seed(123)
-	task = sim_dgp_independent(n = 500)
-
-	pfi = PFI$new(
-		task = task,
-		learner = mlr3::lrn("regr.rpart"),
-		measure = mlr3::msr("regr.mse"),
-		resampling = mlr3::rsmp("subsampling", repeats = 5),
-		iters_perm = 5
-	)
-
-	pfi$compute()
-
-	imp_wilcox = pfi$importance(ci_method = "wilcoxon")
-
-	# Check structure (NA values are allowed for features with zero/constant importance)
-	checkmate::expect_data_table(imp_wilcox, nrows = length(pfi$features))
-	expect_setequal(imp_wilcox$feature, pfi$features)
-
-	# Verify CI columns exist (no se for wilcoxon)
-	expect_true(all(c("feature", "importance", "conf_lower", "conf_upper") %in% names(imp_wilcox)))
-	expect_false("se" %in% names(imp_wilcox))
-
-	# For features with non-NA CIs, they should be valid intervals
-	valid_cis = imp_wilcox[!is.na(conf_lower) & !is.na(conf_upper)]
-	if (nrow(valid_cis) > 0) {
-		expect_true(all(valid_cis$conf_lower < valid_cis$conf_upper))
-	}
-})
-
-test_that("wilcoxon CIs differ from parametric methods", {
-	set.seed(123)
-	task = sim_dgp_independent(n = 200)
-
-	pfi = PFI$new(
-		task = task,
-		learner = mlr3::lrn("regr.rpart"),
-		measure = mlr3::msr("regr.mse"),
-		resampling = mlr3::rsmp("subsampling", repeats = 15),
-		iters_perm = 3
-	)
-
-	pfi$compute()
-
-	imp_raw = pfi$importance(ci_method = "raw")
-	imp_wilcox = pfi$importance(ci_method = "wilcoxon")
-
-	# Point estimates should be the same (both use mean)
-	expect_equal(imp_raw$importance, imp_wilcox$importance)
-
-	# For features with valid wilcoxon CIs, they should differ from parametric CIs
-	# (some may be NA due to zero/tied scores)
-	valid_wilcox = imp_wilcox[!is.na(conf_lower) & !is.na(conf_upper)]
-	if (nrow(valid_wilcox) > 0) {
-		# At least some features should have different CIs
-		merged = imp_raw[valid_wilcox, on = "feature"]
-		expect_false(all(merged$conf_lower == merged$i.conf_lower, na.rm = TRUE))
-	}
 })
 
 test_that("quantile variance method works", {

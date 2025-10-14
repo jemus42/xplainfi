@@ -2,7 +2,7 @@
 title: "Inference (Experimental)"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Inference}
+  %\VignetteIndexEntry{Inference (Experimental)}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -37,7 +37,7 @@ There are multiple (work in progress) inference possible with the underlying imp
 
 We use a simple linear DGP for demonstration purposes where
 
-- $X_1$ and $X_2$ are strongly correlated
+- $X_1$ and $X_2$ are strongly correlated (r = 0.7)
 - $X_1$ and $X_3$ has an effect on Y
 - $X_2$ and $X_4$ don't have an effect 
 
@@ -93,34 +93,61 @@ pfi$compute()
 pfi$importance()
 ```
 
-If we want unadjusted confidence intervals we can ask for them, but note these are too narrow / optimistic and hence invalid for inference:
+If we want **unadjusted** confidence intervals we can ask for them, but note these are too narrow / optimistic and hence invalid for inference:
 
 ```{r pfi-ci-raw}
 pfi_ci_raw = pfi$importance(ci_method = "raw")
 pfi_ci_raw
 ```
 
-Analogously we can retrieve the Nadeau & Bengio-adjusted standard errors and derived confidence intervals which were demonstrated to have better (but still imperfect) coverage:
+Analogously we can retrieve the **Nadeau & Bengio**-adjusted standard errors and derived confidence intervals which were demonstrated to have better (but still imperfect) coverage:
 
 ```{r pfi-ci-nadeau-bengio}
 pfi_ci_corrected = pfi$importance(ci_method = "nadeau_bengio")
 pfi_ci_corrected
 ```
 
-To highlight just how large the difference between the two can be, we quickly visualize them:
+### Non-parametric alternative: Empirical quantiles
+
+Both `"raw"` and `"nadeau_bengio"` methods assume normally distributed importance scores and use parametric confidence intervals based on the t-distribution. As a non-parametric alternative, we can use empirical quantiles that directly use the resampling distribution to construct confidence-like intervals.
+
+Like the Nadeau & Bengio approach, this method requires independent resampling splits. This means it works with subsampling or bootstrap, but not with cross-validation.
+
+```{r pfi-ci-quantile}
+pfi_ci_quantile = pfi$importance(ci_method = "quantile")
+pfi_ci_quantile
+```
+
+To highlight the differences between parametric and non-parametric approaches, we visualize all methods:
 
 ```{r pfi-ci-comparison}
-pfi_cis = rbind(
-	pfi_ci_raw[, type := "raw"],
-	pfi_ci_corrected[, type := "corrected"]
+pfi_cis = rbindlist(
+	list(
+		pfi_ci_raw[, type := "raw"],
+		pfi_ci_corrected[, type := "nadeau_bengio"],
+		pfi_ci_quantile[, type := "quantile"]
+	),
+	fill = TRUE
 )
 
 ggplot(pfi_cis, aes(y = feature, color = type)) +
-	geom_errorbar(aes(xmin = conf_lower, xmax = conf_upper), position = "dodge", width = .5) +
-	geom_point(aes(x = importance), position = position_dodge(width = 0.5)) +
+	geom_errorbar(
+		aes(xmin = conf_lower, xmax = conf_upper),
+		position = position_dodge(width = 0.6),
+		width = .5
+	) +
+	geom_point(aes(x = importance), position = position_dodge(width = 0.6)) +
+	scale_color_brewer(palette = "Set2") +
+	labs(
+		title = "Parametric & non-parametric CI methods",
+		subtitle = "RF with 15 subsampling iterations",
+		color = NULL
+	) +
 	theme_minimal(base_size = 14) +
 	theme(legend.position = "bottom")
 ```
+
+The parametric methods (`"raw"` and `"nadeau_bengio"`) differ primarily in interval width due to the variance correction, while the non-parametric `"quantile"` method can produce asymmetric intervals that better reflect the actual resampling distribution.
 
 ## Conditional predictive impact (CPI)
 
