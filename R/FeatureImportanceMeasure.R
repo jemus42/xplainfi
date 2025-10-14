@@ -485,6 +485,9 @@ FeatureImportanceMethod = R6Class(
 		# @param aggregator function to aggregate importance scores (used for point estimate)
 		# @param conf_level confidence level for intervals
 		.importance_wilcoxon = function(scores, aggregator, conf_level) {
+			# Using CV would violate independence assumption similar to Nadeau & Bengio approach
+			checkmate::assert_subset(self$resampling$id, choices = c("bootstrap", "subsampling"))
+
 			# Aggregate within resamplings first to get one value per resampling iteration
 			means_rsmp = scores[,
 				list(importance = aggregator(importance)),
