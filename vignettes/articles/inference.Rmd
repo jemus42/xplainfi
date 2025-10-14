@@ -151,8 +151,9 @@ cpi_res
 
 ### CPI with knockoffs
 
-Since `xplainfi` also includes knockoffs via the `KnockoffSampler` and the `KnockoffGaussianSampler`, the latter implemented the second order Gaussian knockoffs also used per default in `{cpi}`, we can recreate its results using `CFI` with the corresponding `sampler`.
-The important result however is not the `$importance()`, but the observation-wise losses which are the base for the CPI test.
+Since `xplainfi` also includes knockoffs via the `KnockoffSampler` and the `KnockoffGaussianSampler`, the latter implementing the second order Gaussian knockoffs also used by default in `{cpi}`, we can recreate its results using `CFI` with the corresponding `sampler`.
+
+`CFI` with a knockoff sampler supports CPI inference directly via `ci_method = "cpi"`:
 
 ```{r cfi-knockoff}
 knockoff_gaussian = KnockoffGaussianSampler$new(task)
@@ -167,39 +168,13 @@ cfi = CFI$new(
 
 cfi$compute()
 
-# showing importance here for illustration
-cfi$importance()
-
-# Extract observation-wise losses
-cfi_obs_loss = cfi$obs_loss()
-head(cfi_obs_loss)
-```
-
-With the observation-wise losses, we can conduct the one-sided t-test also performed by `cpi()` by default:
-
-```{r cfi-cpi}
-cfi_cpi_res = cfi_obs_loss[,
-	{
-		tt <- t.test(
-			obs_importance,
-			alternative = "greater",
-			conf.level = 0.95
-		)
-		.(
-			CPI = mean(obs_importance),
-			SE = sd(obs_importance) / sqrt(length(obs_importance)),
-			statistic = tt$statistic,
-			estimate = tt$estimate,
-			p.value = tt$p.value,
-			ci.lo = tt$conf.int[1],
-			method = "CFI+Knockoffs"
-		)
-	},
-	by = feature
-]
-
+# CPI uses observation-wise losses with one-sided t-test
+cfi_cpi_res = cfi$importance(ci_method = "cpi")
 cfi_cpi_res
 
+# Rename columns to match cpi package output for comparison
+setnames(cfi_cpi_res, c("importance", "conf_lower"), c("CPI", "ci.lo"))
+cfi_cpi_res[, method := "CFI+Knockoffs"]
 ```
 
 The results should be very similar to those computed by `cpi()`, so let's compare them:
@@ -248,38 +223,13 @@ cfi_arf = CFI$new(
 
 cfi_arf$compute()
 
-# showing importance here for illustration
-cfi_arf$importance()
-
-# Extract observation-wise losses
-cfi_arf_obs_loss = cfi_arf$obs_loss()
-head(cfi_arf_obs_loss)
-```
-
-With the observation-wise losses, we can conduct the one-sided t-test also performed by `cpi()` by default:
-
-```{r cfi-cpi-arf}
-cfi_arf_res = cfi_arf_obs_loss[,
-	{
-		tt <- t.test(
-			obs_importance,
-			alternative = "greater",
-			conf.level = 0.95
-		)
-		.(
-			CPI = mean(obs_importance),
-			SE = sd(obs_importance) / sqrt(length(obs_importance)),
-			statistic = tt$statistic,
-			estimate = tt$estimate,
-			p.value = tt$p.value,
-			ci.lo = tt$conf.int[1],
-			method = "CFI+ARF"
-		)
-	},
-	by = feature
-]
-
+# CPI uses observation-wise losses with one-sided t-test
+cfi_arf_res = cfi_arf$importance(ci_method = "cpi")
 cfi_arf_res
+
+# Rename columns to match cpi package output for comparison
+setnames(cfi_arf_res, c("importance", "conf_lower"), c("CPI", "ci.lo"))
+cfi_arf_res[, method := "CFI+ARF"]
 
 ```
 
@@ -368,7 +318,7 @@ loco_thetas
 The authors then propose to construct distribution-free confidence intervals, e.g. using a sign- or Wilcoxon test
 We can for example use [wilcoxon.test] to compute confidence intervals around the estimated pseudo-median:
 
-```{r}
+```{r loco-wilcox-ci}
 loco_wilcox_ci = loco_obsloss[,
 	{
 		tt <- wilcox.test(
@@ -377,9 +327,8 @@ loco_wilcox_ci = loco_obsloss[,
 			conf.level = 0.95
 		)
 		.(
-			# SE = sd(obs_importance) / sqrt(length(obs_importance)),
 			statistic = tt$statistic,
-			estimate = tt$estimate,
+			estimate = tt$estimate, # the pseudomedian importance
 			p.value = tt$p.value,
 			conf_lower = tt$conf.int[1],
 			conf_upper = tt$conf.int[2]

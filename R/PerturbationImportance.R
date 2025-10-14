@@ -397,7 +397,7 @@ CFI = R6Class(
 			if (is.null(private$.obs_losses)) {
 				cli::cli_abort(c(
 					"CPI requires observation-wise losses.",
-					i = "Ensure {.code measure} has an {.code obs_loss} method.",
+					i = "Ensure {.code measure} has an {.fun $obs_loss} method.",
 					i = "Did you run {.fun $compute}?"
 				))
 			}
@@ -411,7 +411,7 @@ CFI = R6Class(
 				feat_obs = obs_loss_data[feature == feat, obs_importance]
 
 				# One-sided t-test
-				ttest = t.test(
+				ttest = stats::t.test(
 					feat_obs,
 					alternative = "greater",
 					conf.level = conf_level
@@ -424,7 +424,7 @@ CFI = R6Class(
 					statistic = ttest$statistic,
 					p.value = ttest$p.value,
 					conf_lower = ttest$conf.int[1],
-					conf_upper = Inf  # One-sided test upper bound is infinity
+					conf_upper = Inf # One-sided test upper bound is infinity
 				)
 			})
 

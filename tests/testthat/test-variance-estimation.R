@@ -151,14 +151,14 @@ test_that("variance estimation works with bootstrap resampling", {
 
 test_that("wilcoxon variance method works", {
 	set.seed(123)
-	task = sim_dgp_independent(n = 100)
+	task = sim_dgp_independent(n = 500)
 
 	pfi = PFI$new(
 		task = task,
 		learner = mlr3::lrn("regr.rpart"),
 		measure = mlr3::msr("regr.mse"),
-		resampling = mlr3::rsmp("subsampling", repeats = 10),
-		iters_perm = 2
+		resampling = mlr3::rsmp("subsampling", repeats = 5),
+		iters_perm = 5
 	)
 
 	pfi$compute()
