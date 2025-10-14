@@ -147,7 +147,7 @@ ggplot(pfi_cis, aes(y = feature, color = type)) +
 	theme(legend.position = "bottom")
 ```
 
-The parametric methods (`"raw"` and `"nadeau_bengio"`) differ primarily in interval width due to the variance correction, while the non-parametric `"quantile"` method can produce asymmetric intervals that better reflect the actual resampling distribution.
+The results highlight just how optimistic the unadjusted, raw confidence intervals are.
 
 ## Conditional predictive impact (CPI)
 
