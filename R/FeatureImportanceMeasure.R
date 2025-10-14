@@ -506,26 +506,15 @@ FeatureImportanceMethod = R6Class(
 					error = function(e) NULL
 				)
 
-				if (is.null(wtest) || any(is.na(wtest$conf.int))) {
-					# Fall back to NA for CIs when wilcox.test fails or returns NA
-					data.table(
-						feature = feat,
-						importance = point_est,
-						statistic = wtest$statistic,
-						estimate = wtest$estimate,
-						conf_lower = NA_real_,
-						conf_upper = NA_real_
-					)
-				} else {
-					data.table(
-						feature = feat,
-						importance = point_est,
-						statistic = wtest$statistic,
-						estimate = wtest$estimate,
-						conf_lower = wtest$conf.int[1],
-						conf_upper = wtest$conf.int[2]
-					)
-				}
+				# if wilcoxon fails or CIs are unavailable, wtest or elements are NULL
+				# hence using %||% here with NA placeholders
+				data.table(
+					feature = feat,
+					importance = point_est,
+					estimate = wtest$estimate %||% NA_real_,
+					conf_lower = wtest$conf.int[1] %||% NA_real_,
+					conf_upper = wtest$conf.int[2] %||% NA_real_
+				)
 			})
 
 			rbindlist(result_list)

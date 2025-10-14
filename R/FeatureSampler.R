@@ -526,7 +526,7 @@ KnockoffSampler = R6Class(
 			self$param_set$set_values(.values = values_to_set)
 
 			# Create knockoff matrix, features only
-			# TODO: Needs assertion on feature types but depends on knockoff_fun
+			# No assertions here on feature types, the user has been warned in the doc
 			self$x_tilde = as.data.table(knockoff_fun(self$task$data(cols = self$task$feature_names)))
 
 			checkmate::assert_subset(colnames(self$x_tilde), self$task$feature_names)
