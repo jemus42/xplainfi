@@ -3,17 +3,13 @@ test_that("MarginalSAGE can't be constructed without args", {
 })
 
 test_that("MarginalSAGE can be constructed with simple objects", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
-
 	# Test with binary classification
 	set.seed(123)
 	task_binary = mlr3::tgen("2dnormals")$generate(n = 100)
 	sage_binary = MarginalSAGE$new(
 		task = task_binary,
-		learner = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob"),
+		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
-		# resampling = rsmp("cv", folds = 3),
 		n_permutations = 2L
 	)
 	checkmate::expect_r6(sage_binary, c("FeatureImportanceMethod", "SAGE", "MarginalSAGE"))
@@ -25,7 +21,7 @@ test_that("MarginalSAGE can be constructed with simple objects", {
 	task_multi = mlr3::tgen("cassini")$generate(n = 100)
 	sage_multi = MarginalSAGE$new(
 		task = task_multi,
-		learner = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob"),
+		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
 		n_permutations = 2L
 	)
@@ -38,7 +34,7 @@ test_that("MarginalSAGE can be constructed with simple objects", {
 	task_regr = mlr3::tgen("friedman1")$generate(n = 100)
 	sage_regr = MarginalSAGE$new(
 		task = task_regr,
-		learner = mlr3::lrn("regr.ranger", num.trees = 10),
+		learner = mlr3::lrn("regr.rpart"),
 		measure = mlr3::msr("regr.mse"),
 		n_permutations = 2L
 	)
@@ -100,12 +96,9 @@ test_that("MarginalSAGE null result for featureless learner", {
 })
 
 test_that("MarginalSAGE with friedman1 produces sensible results", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
-
 	set.seed(123)
 	task = mlr3::tgen("friedman1")$generate(n = 200)
-	learner = mlr3::lrn("regr.ranger", num.trees = 50)
+	learner = mlr3::lrn("regr.rpart")
 	measure = mlr3::msr("regr.mse")
 
 	sage = MarginalSAGE$new(
@@ -137,16 +130,13 @@ test_that("MarginalSAGE with friedman1 produces sensible results", {
 })
 
 test_that("MarginalSAGE with multiple resampling iterations", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
-
 	set.seed(123)
 
 	# Test with binary classification
 	task_binary = mlr3::tgen("xor")$generate(n = 200)
 	sage_binary = MarginalSAGE$new(
 		task = task_binary,
-		learner = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob"),
+		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
 		resampling = mlr3::rsmp("cv", folds = 3),
 		n_permutations = 2L
@@ -166,7 +156,7 @@ test_that("MarginalSAGE with multiple resampling iterations", {
 	task_regr = mlr3::tgen("friedman1")$generate(n = 200)
 	sage_regr = MarginalSAGE$new(
 		task = task_regr,
-		learner = mlr3::lrn("regr.ranger", num.trees = 10),
+		learner = mlr3::lrn("regr.rpart"),
 		measure = mlr3::msr("regr.mse"),
 		resampling = mlr3::rsmp("cv", folds = 3),
 		n_permutations = 2L
@@ -184,15 +174,12 @@ test_that("MarginalSAGE with multiple resampling iterations", {
 })
 
 test_that("MarginalSAGE only one feature", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
-
 	set.seed(123)
 	task = mlr3::tgen("friedman1")$generate(n = 100)
 
 	sage = MarginalSAGE$new(
 		task = task,
-		learner = mlr3::lrn("regr.ranger", num.trees = 50),
+		learner = mlr3::lrn("regr.rpart"),
 		measure = mlr3::msr("regr.mse"),
 		features = "important4",
 		n_permutations = 2L
@@ -207,9 +194,6 @@ test_that("MarginalSAGE only one feature", {
 })
 
 test_that("MarginalSAGE with custom reference data", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
-
 	set.seed(123)
 
 	# Test with binary classification
@@ -223,7 +207,7 @@ test_that("MarginalSAGE with custom reference data", {
 	)
 	sage_binary = MarginalSAGE$new(
 		task = task_binary,
-		learner = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob"),
+		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
 		reference_data = reference_data_binary,
 		n_permutations = 2L
@@ -240,7 +224,7 @@ test_that("MarginalSAGE with custom reference data", {
 	reference_data_regr = task_regr$data(rows = partition_regr$test, cols = task_regr$feature_names)
 	sage_regr = MarginalSAGE$new(
 		task = task_regr,
-		learner = mlr3::lrn("regr.ranger", num.trees = 10),
+		learner = mlr3::lrn("regr.rpart"),
 		measure = mlr3::msr("regr.mse"),
 		reference_data = reference_data_regr,
 		n_permutations = 2L
@@ -251,16 +235,13 @@ test_that("MarginalSAGE with custom reference data", {
 })
 
 test_that("MarginalSAGE with max_reference_size parameter", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
-
 	set.seed(123)
 
 	# Test with binary classification
 	task_binary = mlr3::tgen("2dnormals")$generate(n = 200)
 	sage_binary = MarginalSAGE$new(
 		task = task_binary,
-		learner = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob"),
+		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
 		max_reference_size = 30L,
 		n_permutations = 2L
@@ -273,7 +254,7 @@ test_that("MarginalSAGE with max_reference_size parameter", {
 	task_regr = mlr3::tgen("friedman1")$generate(n = 200)
 	sage_regr = MarginalSAGE$new(
 		task = task_regr,
-		learner = mlr3::lrn("regr.ranger", num.trees = 10),
+		learner = mlr3::lrn("regr.rpart"),
 		measure = mlr3::msr("regr.mse"),
 		max_reference_size = 30L,
 		n_permutations = 2L
@@ -286,7 +267,7 @@ test_that("MarginalSAGE with max_reference_size parameter", {
 	task_multi = mlr3::tgen("cassini")$generate(n = 200)
 	sage_multi = MarginalSAGE$new(
 		task = task_multi,
-		learner = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob"),
+		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
 		max_reference_size = 30L,
 		n_permutations = 2L
@@ -297,12 +278,9 @@ test_that("MarginalSAGE with max_reference_size parameter", {
 })
 
 test_that("MarginalSAGE reproducibility with same seed", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
-
 	set.seed(123)
 	task = mlr3::tgen("2dnormals")$generate(n = 100)
-	learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob")
+	learner = mlr3::lrn("classif.rpart", predict_type = "prob")
 	measure = mlr3::msr("classif.ce")
 
 	set.seed(42)
@@ -330,12 +308,9 @@ test_that("MarginalSAGE reproducibility with same seed", {
 })
 
 test_that("MarginalSAGE parameter validation", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
-
 	set.seed(123)
 	task = mlr3::tgen("2dnormals")$generate(n = 50)
-	learner = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob")
+	learner = mlr3::lrn("classif.rpart", predict_type = "prob")
 	measure = mlr3::msr("classif.ce")
 
 	# n_permutations must be positive integer
@@ -355,12 +330,9 @@ test_that("MarginalSAGE parameter validation", {
 })
 
 test_that("MarginalSAGE requires predict_type='prob' for classification", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
-
 	set.seed(123)
 	task = mlr3::tgen("2dnormals")$generate(n = 50)
-	learner = mlr3::lrn("classif.ranger", num.trees = 10) # Default is response
+	learner = mlr3::lrn("classif.rpart", predict_type = "response") # Default is response
 	measure = mlr3::msr("classif.ce")
 
 	# Should error for classification without predict_type = "prob"
@@ -375,25 +347,22 @@ test_that("MarginalSAGE requires predict_type='prob' for classification", {
 
 	# Should work fine for regression
 	task_regr = mlr3::tgen("friedman1")$generate(n = 50)
-	learner_regr = mlr3::lrn("regr.ranger", num.trees = 10)
+	learner_regr = mlr3::lrn("regr.rpart")
 
 	expect_silent(
 		MarginalSAGE$new(
 			task = task_regr,
 			learner = learner_regr,
-			resampling = rsmp("holdout"),
+			resampling = mlr3::rsmp("holdout"),
 			measure = mlr3::msr("regr.mse")
 		)
 	)
 })
 
 test_that("MarginalSAGE works with multiclass classification", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
-
 	set.seed(123)
 	task = mlr3::tgen("cassini")$generate(n = 200)
-	learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob")
+	learner = mlr3::lrn("classif.rpart", predict_type = "prob")
 	measure = mlr3::msr("classif.ce")
 
 	sage = MarginalSAGE$new(
@@ -416,96 +385,11 @@ test_that("MarginalSAGE works with multiclass classification", {
 	expect_equal(length(task$class_names), 3L)
 })
 
-# FIXME: I don't understand yet why this test fails and need to focus on other stuff first
-
-# test_that("MarginalSAGE batching produces consistent results", {
-#   skip_if_not_installed("ranger")
-#   skip_if_not_installed("mlr3learners")
-#   skip_if_not_installed("withr")
-
-#   # Test with regression
-#   task_regr = mlr3::tgen("friedman1")$generate(n = 30)
-#   learner_regr = mlr3::lrn("regr.ranger", num.trees = 10)
-#   measure_regr = mlr3::msr("regr.mse")
-
-#   # Test with binary classification
-#   task_binary = mlr3::tgen("2dnormals")$generate(n = 30)
-#   learner_binary = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob")
-#   measure_binary = mlr3::msr("classif.ce")
-
-#   # Test with multiclass classification
-#   task_multi = mlr3::tgen("cassini")$generate(n = 90)
-#   learner_multi = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob")
-#   measure_multi = mlr3::msr("classif.ce")
-
-#   # Test each task type
-#   test_configs = list(
-#     list(task = task_regr, learner = learner_regr, measure = measure_regr, type = "regression"),
-#     list(task = task_binary, learner = learner_binary, measure = measure_binary, type = "binary"),
-#     list(task = task_multi, learner = learner_multi, measure = measure_multi, type = "multiclass")
-#   )
-
-#   for (config in test_configs) {
-#     # Create all SAGE objects first with same seed to ensure same reference data
-#     withr::with_seed(123, {
-#       sage_no_batch = MarginalSAGE$new(
-#         task = config$task,
-#         learner = config$learner,
-#         measure = config$measure,
-#         n_permutations = 3L,
-#         max_reference_size = 20L
-#       )
-#       sage_small_batch = MarginalSAGE$new(
-#         task = config$task,
-#         learner = config$learner,
-#         measure = config$measure,
-#         n_permutations = 3L,
-#         max_reference_size = 20L
-#       )
-#       sage_tiny_batch = MarginalSAGE$new(
-#         task = config$task,
-#         learner = config$learner,
-#         measure = config$measure,
-#         n_permutations = 3L,
-#         max_reference_size = 20L
-#       )
-#     })
-
-#     # Now compute with same seed for each
-#     result_no_batch = withr::with_seed(42, {
-#       sage_no_batch$compute()
-#       sage_no_batch$importance()
-#     })
-#     result_small_batch = withr::with_seed(42, {
-#       sage_small_batch$compute(batch_size = 50)
-#       sage_small_batch$importance()
-#     })
-#     result_tiny_batch = withr::with_seed(42, {
-#       sage_tiny_batch$compute(batch_size = 10)
-#       sage_tiny_batch$importance()
-#     })
-
-#     # MarginalSAGE batching should produce similar results
-#     expect_equal(
-#       result_no_batch$importance,
-#       result_tiny_batch$importance,
-#       tolerance = 0.5
-#     )
-#     expect_equal(
-#       result_small_batch$importance,
-#       result_tiny_batch$importance,
-#       tolerance = 0.5
-#     )
-#   }
-# })
 
 test_that("MarginalSAGE SE tracking in convergence_history", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
-
 	set.seed(123)
 	task = mlr3::tgen("friedman1")$generate(n = 50)
-	learner = mlr3::lrn("regr.ranger", num.trees = 10)
+	learner = mlr3::lrn("regr.rpart")
 	measure = mlr3::msr("regr.mse")
 
 	sage = MarginalSAGE$new(
@@ -557,8 +441,8 @@ test_that("MarginalSAGE SE-based convergence detection", {
 	skip_if_not_installed("mlr3learners")
 
 	set.seed(123)
-	task = mlr3::tgen("friedman1")$generate(n = 40)
-	learner = mlr3::lrn("regr.ranger", num.trees = 10)
+	task = mlr3::tgen("friedman1")$generate(n = 100)
+	learner = mlr3::lrn("regr.ranger", num.trees = 50)
 	measure = mlr3::msr("regr.mse")
 
 	sage = MarginalSAGE$new(

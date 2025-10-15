@@ -163,19 +163,16 @@ test_that("ConditionalSAGE uses ARFSampler by default", {
 })
 
 test_that("ConditionalSAGE with custom sampler", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
-
 	set.seed(123)
 	task = mlr3::tgen("spirals")$generate(n = 200)
 	custom_sampler = ARFSampler$new(task, finite_bounds = "local")
 
 	sage = ConditionalSAGE$new(
 		task = task,
-		learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
+		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
 		sampler = custom_sampler,
-		n_permutations = 2L
+		n_permutations = 10L
 	)
 
 	# Should use the custom sampler
@@ -185,12 +182,9 @@ test_that("ConditionalSAGE with custom sampler", {
 })
 
 test_that("ConditionalSAGE requires predict_type='prob' for classification", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
-
 	set.seed(123)
 	task = mlr3::tgen("2dnormals")$generate(n = 50)
-	learner = mlr3::lrn("classif.ranger", num.trees = 10) # Default is response
+	learner = mlr3::lrn("classif.rpart") # Default is response
 	measure = mlr3::msr("classif.ce")
 
 	# Should error for ConditionalSAGE
@@ -205,13 +199,11 @@ test_that("ConditionalSAGE requires predict_type='prob' for classification", {
 })
 
 test_that("ConditionalSAGE works with multiclass classification", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
 	skip_if_not_installed("arf")
 
 	set.seed(123)
 	task = mlr3::tgen("simplex")$generate(n = 150)
-	learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob")
+	learner = mlr3::lrn("classif.rpart", predict_type = "prob")
 	measure = mlr3::msr("classif.ce")
 
 	sage = ConditionalSAGE$new(
@@ -236,16 +228,15 @@ test_that("ConditionalSAGE works with multiclass classification", {
 
 
 test_that("ConditionalSAGE batching handles edge cases", {
-	skip_if_not_installed("ranger")
 	skip_if_not_installed("arf")
 	skip_if_not_installed("withr")
 
 	set.seed(123)
 	task = mlr3::tgen("friedman1")$generate(n = 20)
-	learner = mlr3::lrn("regr.ranger", num.trees = 10)
+	learner = mlr3::lrn("regr.rpart")
 	measure = mlr3::msr("regr.mse")
 
-	# Test with batch_size = 1 (extreme case)
+	# Test with batch_size = 1
 	result_batch_1 = withr::with_seed(42, {
 		sage = ConditionalSAGE$new(
 			task = task,
@@ -276,22 +267,15 @@ test_that("ConditionalSAGE batching handles edge cases", {
 		result_normal$importance,
 		tolerance = 1e-10
 	)
-
-	# Note: Resampling tests are omitted here because mlr3's internal random state
-	# management during resampling may interact differently with batching,
-	# making exact reproducibility challenging. The core batching functionality
-	# is thoroughly tested above without resampling.
 })
 
 test_that("ConditionalSAGE batching with custom sampler", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
 	skip_if_not_installed("arf")
 	skip_if_not_installed("withr")
 
 	set.seed(123)
 	task = mlr3::tgen("friedman1")$generate(n = 25)
-	learner = mlr3::lrn("regr.ranger", num.trees = 10)
+	learner = mlr3::lrn("regr.rpart")
 	measure = mlr3::msr("regr.mse")
 
 	# Create custom ARF sampler
