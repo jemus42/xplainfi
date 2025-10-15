@@ -84,10 +84,8 @@ Creates a new instance of the SAGE class.
   resampling = NULL,
   features = NULL,
   n_permutations = 10L,
-  reference_data = NULL,
   batch_size = 5000L,
   sampler = NULL,
-  max_reference_size = 100L,
   early_stopping = FALSE,
   convergence_threshold = 0.01,
   se_threshold = Inf,
@@ -104,14 +102,9 @@ Creates a new instance of the SAGE class.
 \item{\code{n_permutations}}{(\code{integer(1): 10L}) Number of permutations \emph{per coalition} to sample for Shapley value estimation.
 The total number of evaluated coalitions is \code{1 (empty) + n_permutations * n_features}.}
 
-\item{\code{reference_data}}{(\code{\link[data.table:data.table]{data.table}} | \code{NULL}) Optional reference dataset. If \code{NULL}, uses training data.
-For each coalition to evaluate, an expanded datasets of size \code{n_test * n_reference} is created and evaluted in batches of \code{batch_size}.}
-
 \item{\code{batch_size}}{(\code{integer(1): 5000L}) Maximum number of observations to process in a single prediction call.}
 
 \item{\code{sampler}}{(\link{FeatureSampler}) Sampler for marginalization. Only relevant for \code{ConditionalSAGE}.}
-
-\item{\code{max_reference_size}}{(\code{integer(1): 100L}) Maximum size of reference dataset. If reference is larger, it will be subsampled.}
 
 \item{\code{early_stopping}}{(\code{logical(1): FALSE}) Whether to enable early stopping based on convergence detection.}
 
@@ -122,6 +115,9 @@ For each coalition to evaluate, an expanded datasets of size \code{n_test * n_re
 \item{\code{min_permutations}}{(\code{integer(1): 10L}) Minimum permutations before checking convergence.}
 
 \item{\code{check_interval}}{(\code{integer(1): 2L}) Check convergence every N permutations.}
+
+\item{\code{reference_data}}{(\code{\link[data.table:data.table]{data.table}} | \code{NULL}) Optional reference dataset. If \code{NULL}, uses training data.
+For each coalition to evaluate, an expanded datasets of size \code{n_test * n_reference} is created and evaluted in batches of \code{batch_size}.}
 }
 \if{html}{\out{</div>}}
 }

@@ -117,8 +117,9 @@ across resampling iterations and, depending on the method use, permutations (\li
 \if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$importance(
   relation = NULL,
   standardize = FALSE,
-  ci_method = c("none", "raw", "nadeau_bengio", "wilcoxon"),
-  conf_level = 0.95
+  ci_method = c("none", "raw", "nadeau_bengio", "quantile"),
+  conf_level = 0.95,
+  ...
 )}\if{html}{\out{</div>}}
 }
 
@@ -133,11 +134,13 @@ relation between baseline and post-modifcation loss, i.e. \link{PerturbationImpo
 \item{\code{ci_method}}{(\code{character(1)}: \code{"none"}) Variance estimation method to use, defaulting to omitting variance estimation (\code{"none"}).
 If \code{"raw"}, uncorrected variance estimates are provided purely for informative purposes with \strong{invalid} (too narrow) confidence intervals.
 If \code{"nadeau_bengio"}, variance correction is performed according to Nadeau & Bengio (2003) as suggested by Molnar et al. (2023).
-If \code{"wilcoxon"}, non-parametric confidence intervals based on Wilcoxon signed-rank test are computed.
+If \code{"quantile"}, empirical quantiles are used to construct confidence-like intervals.
 These methods are model-agnostic and rely on suitable \code{resampling}s, e.g. subsampling with 15 repeats for \code{"nadeau_bengio"}.
 See details.}
 
 \item{\code{conf_level}}{(\code{numeric(1): 0.95}): Conficence level to use for confidence interval construction when \code{ci_method != "none"}.}
+
+\item{\code{...}}{Additional arguments passen to specialized methods, if any.}
 }
 \if{html}{\out{</div>}}
 }

@@ -85,7 +85,7 @@ To fit the ARF in parallel, register a parallel backend first (see \link[arf:arf
   num_trees = 10L,
   min_node_size = 2L,
   finite_bounds = "no",
-  epsilon = 0,
+  epsilon = 1e-15,
   round = TRUE,
   stepsize = 0,
   verbose = FALSE,
