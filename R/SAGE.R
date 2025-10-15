@@ -50,7 +50,6 @@ SAGE = R6Class(
 		#'   For each coalition to evaluate, an expanded datasets of size `n_test * n_reference` is created and evaluted in batches of `batch_size`.
 		#' @param batch_size (`integer(1): 5000L`) Maximum number of observations to process in a single prediction call.
 		#' @param sampler ([FeatureSampler]) Sampler for marginalization. Only relevant for `ConditionalSAGE`.
-		#' @param max_reference_size (`integer(1): 100L`) Maximum size of reference dataset. If reference is larger, it will be subsampled.
 		#' @param early_stopping (`logical(1): FALSE`) Whether to enable early stopping based on convergence detection.
 		#' @param convergence_threshold (`numeric(1): 0.01`) Relative change threshold for convergence detection.
 		#' @param se_threshold (`numeric(1): Inf`) Standard error threshold for convergence detection.
@@ -63,10 +62,8 @@ SAGE = R6Class(
 			resampling = NULL,
 			features = NULL,
 			n_permutations = 10L,
-			reference_data = NULL,
 			batch_size = 5000L,
 			sampler = NULL,
-			max_reference_size = 100L,
 			early_stopping = FALSE,
 			convergence_threshold = 0.01,
 			se_threshold = Inf,
@@ -254,7 +251,7 @@ SAGE = R6Class(
 					ggplot2::aes(ymin = importance - se, ymax = importance + se),
 					alpha = 1 / 3
 				) +
-				ggplot2::geom_line(size = 1) +
+				ggplot2::geom_line(linewidth = 1) +
 				ggplot2::geom_point(size = 2) +
 				ggplot2::labs(
 					title = "SAGE Value Convergence",
