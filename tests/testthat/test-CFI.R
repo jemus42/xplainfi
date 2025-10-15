@@ -460,7 +460,7 @@ test_that("CFI with CPI warning on problematic resampling", {
 
 	# Test CPI variance method
 	expect_warning(
-		cfi$importance(ci_method = "cpi"),
+		cpi_result <- cfi$importance(ci_method = "cpi"),
 		regexp = "duplicated observation"
 	)
 

@@ -397,8 +397,7 @@ test_that("KnockoffGaussianSampler fails with factor features", {
 
 	expect_error(
 		KnockoffGaussianSampler$new(task_factor),
-		regexp = "following unspported feature types",
-		class = "error" # Should fail with non-numeric features
+		regexp = "following unsupported feature types"
 	)
 
 	# Test with mixed numeric and character
@@ -412,6 +411,6 @@ test_that("KnockoffGaussianSampler fails with factor features", {
 
 	expect_error(
 		KnockoffGaussianSampler$new(task_char),
-		class = "error"
+		regexp = "following unsupported feature types"
 	)
 })

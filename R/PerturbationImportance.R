@@ -417,7 +417,7 @@ CFI = R6Class(
 			# We need **at most** one row per feature and row_id for valid inference
 			# so we aggregate over iter_rsmp
 			dupes = obs_loss_data[, .N, by = c("feature", "row_ids")][N > 1]
-			browser()
+
 			if (nrow(dupes) >= 1) {
 				cli::cli_warn(c(
 					"Resampling is of type {.val {self$resampling$id}} with {.val {self$resampling$iters}} iterations.",
@@ -446,7 +446,9 @@ CFI = R6Class(
 				if (mean(feat_obs) == 0) {
 					htest_result = list(
 						estimate = 0,
-						statistic = 0
+						statistic = 0,
+						p.value = 1,
+						conf.int = 0
 					)
 				} else {
 					# One-sided test
