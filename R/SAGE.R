@@ -99,24 +99,10 @@ SAGE = R6Class(
 				self$sampler = sampler
 			}
 
-			# Use training data as reference if not provided
-			if (is.null(reference_data)) {
-				self$reference_data = self$task$data(cols = self$task$feature_names)
-			} else {
-				self$reference_data = checkmate::assert_data_table(reference_data)
-			}
-
-			# Subsample reference data if it's too large for efficiency
-			if (!is.null(max_reference_size) && nrow(self$reference_data) > max_reference_size) {
-				sample_idx = sample(nrow(self$reference_data), size = max_reference_size)
-				self$reference_data = self$reference_data[sample_idx, ]
-			}
-
 			# Set parameters
 			ps = ps(
 				n_permutations = paradox::p_int(lower = 1L, default = 10L),
 				batch_size = paradox::p_int(lower = 1L, default = 5000L),
-				max_reference_size = paradox::p_int(lower = 1L, default = 100L),
 				early_stopping = paradox::p_lgl(default = FALSE),
 				convergence_threshold = paradox::p_dbl(lower = 0, upper = 1, default = 0.01),
 				se_threshold = paradox::p_dbl(lower = 0, default = Inf),
@@ -125,7 +111,6 @@ SAGE = R6Class(
 			)
 			ps$values$n_permutations = n_permutations
 			ps$values$batch_size = batch_size
-			ps$values$max_reference_size = max_reference_size
 			ps$values$early_stopping = early_stopping
 			ps$values$convergence_threshold = convergence_threshold
 			ps$values$se_threshold = se_threshold
@@ -617,15 +602,33 @@ MarginalSAGE = R6Class(
 				resampling = resampling,
 				features = features,
 				n_permutations = n_permutations,
-				reference_data = reference_data,
 				batch_size = batch_size,
-				max_reference_size = max_reference_size,
 				early_stopping = early_stopping,
 				convergence_threshold = convergence_threshold,
 				se_threshold = se_threshold,
 				min_permutations = min_permutations,
 				check_interval = check_interval
 			)
+			# Use training data as reference if not provided
+			if (is.null(reference_data)) {
+				self$reference_data = self$task$data(cols = self$task$feature_names)
+			} else {
+				self$reference_data = checkmate::assert_data_table(reference_data)
+			}
+
+			# Subsample reference data if it's too large for efficiency
+			if (!is.null(max_reference_size) && nrow(self$reference_data) > max_reference_size) {
+				sample_idx = sample(nrow(self$reference_data), size = max_reference_size)
+				self$reference_data = self$reference_data[sample_idx, ]
+			}
+
+			# Add params specifi to marginal sampling
+			ps = ps(
+				max_reference_size = paradox::p_int(lower = 1L, default = 100L)
+			)
+			ps$values$max_reference_size = max_reference_size
+
+			self$param_set = paradox::ps_union(list(self$param_set, ps))
 
 			self$label = "Marginal SAGE"
 		}
