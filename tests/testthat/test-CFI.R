@@ -434,3 +434,58 @@ test_that("CFI with CPI variance method using KnockoffGaussianSampler", {
 	# On average, important features should have smaller p-values
 	expect_lt(mean(important_pvals), mean(unimportant_pvals))
 })
+
+test_that("CFI with CPI warning on problematic resampling", {
+	skip_if_not_installed("knockoff")
+
+	set.seed(123)
+	# Use correlated DGP to test CPI - x1 and x2 are correlated, x1 is important, x2 is not
+	task = sim_dgp_correlated(n = 50)
+	learner = mlr3::lrn("regr.rpart")
+	measure = mlr3::msr("regr.mse")
+
+	# CPI requires cross-validation or similar resampling with multiple folds
+	resampling = mlr3::rsmp("subsampling", repeats = 5)
+
+	# Create CFI with KnockoffGaussianSampler
+	gaussian_sampler = KnockoffGaussianSampler$new(task)
+	cfi = CFI$new(
+		task = task,
+		learner = learner,
+		measure = measure,
+		resampling = resampling,
+		sampler = gaussian_sampler
+	)
+	cfi$compute()
+
+	# Test CPI variance method
+	expect_warning(
+		cfi$importance(ci_method = "cpi"),
+		regexp = "duplicated observation"
+	)
+
+	# Check structure
+	expect_importance_dt(cpi_result, features = cfi$features)
+	expected_cols = c(
+		"feature",
+		"importance",
+		"se",
+		"statistic",
+		"p.value",
+		"conf_lower",
+		"conf_upper"
+	)
+
+	resampling = mlr3::rsmp("cv", folds = 5)
+	cfi = CFI$new(
+		task = task,
+		learner = learner,
+		measure = measure,
+		resampling = resampling,
+		sampler = gaussian_sampler
+	)
+	cfi$compute()
+	expect_silent(
+		cfi$importance(ci_method = "cpi")
+	)
+})

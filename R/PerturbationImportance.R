@@ -414,21 +414,26 @@ CFI = R6Class(
 
 			# Get observation-wise importances (already computed as differences)
 			obs_loss_data = self$obs_loss(relation = "difference")
-			# We need one row per feature and row_id for valid inference, so we aggregate over iter_rsmp
-			obs_loss_agg = obs_loss_data[,
-				list(obs_importance = mean(obs_importance)),
-				by = c("row_ids", "feature")
-			]
-
-			if (length(anyDuplicated(obs_loss_agg$row_ids)) > 0) {
+			# We need **at most** one row per feature and row_id for valid inference
+			# so we aggregate over iter_rsmp
+			dupes = obs_loss_data[, .N, by = c("feature", "row_ids")][N > 1]
+			browser()
+			if (nrow(dupes) >= 1) {
 				cli::cli_warn(c(
 					"Resampling is of type {.val {self$resampling$id}} with {.val {self$resampling$iters}} iterations.",
-					"Found {.val {length(anyDuplicated(obs_loss_agg$row_ids))}} duplicated observation{?s} in test sets",
+					"Found {.val {length(unique(dupes[, row_ids]))}} duplicated observation{?s} in test sets",
 					x = "Confidence intervals will have wrong coverage!",
 					i = "CPI requires each observation to appear {.emph at most once} in the test set(s)",
 					i = "Use holdout resampling to ensure valid inference"
 				))
 			}
+			# No need to aggregate here because with each row_id appearing <= 1 times per feature
+			# and the check above that should not be an issue, but we might want to investigate
+			# the effect of that so we allow it with a loud warning
+			obs_loss_agg = obs_loss_data[,
+				list(obs_importance = mean(obs_importance)),
+				by = c("row_ids", "feature")
+			]
 
 			test = match.arg(test)
 			test_function = switch(test, t = stats::t.test, wilcoxon = stats::wilcox.test)
