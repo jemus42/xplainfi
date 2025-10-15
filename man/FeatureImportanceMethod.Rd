@@ -117,7 +117,7 @@ across resampling iterations and, depending on the method use, permutations (\li
 \if{html}{\out{<div class="r">}}\preformatted{FeatureImportanceMethod$importance(
   relation = NULL,
   standardize = FALSE,
-  variance_method = c("none", "raw", "nadeau_bengio"),
+  ci_method = c("none", "raw", "nadeau_bengio", "wilcoxon"),
   conf_level = 0.95
 )}\if{html}{\out{</div>}}
 }
@@ -130,13 +130,14 @@ relation between baseline and post-modifcation loss, i.e. \link{PerturbationImpo
 
 \item{\code{standardize}}{(\code{logical(1)}: \code{FALSE}) If \code{TRUE}, importances are standardized by the highest score so all scores fall in \verb{[-1, 1]}.}
 
-\item{\code{variance_method}}{(\code{character(1)}: \code{"none"}) Variance estimation method to use, defaulting to omitting variance estimation (\code{"none"}).
+\item{\code{ci_method}}{(\code{character(1)}: \code{"none"}) Variance estimation method to use, defaulting to omitting variance estimation (\code{"none"}).
 If \code{"raw"}, uncorrected variance estimates are provided purely for informative purposes with \strong{invalid} (too narrow) confidence intervals.
 If \code{"nadeau_bengio"}, variance correction is performed according to Nadeau & Bengio (2003) as suggested by Molnar et al. (2023).
+If \code{"wilcoxon"}, non-parametric confidence intervals based on Wilcoxon signed-rank test are computed.
 These methods are model-agnostic and rely on suitable \code{resampling}s, e.g. subsampling with 15 repeats for \code{"nadeau_bengio"}.
 See details.}
 
-\item{\code{conf_level}}{(\code{numeric(1): 0.95}): Conficence level to use for confidence interval construction when \code{variance_method != "none"}.}
+\item{\code{conf_level}}{(\code{numeric(1): 0.95}): Conficence level to use for confidence interval construction when \code{ci_method != "none"}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -173,7 +174,7 @@ Note that even if \code{measure} uses an \code{aggregator} function that is not 
 
 \subsection{Returns}{
 (\link[data.table:data.table]{data.table}) Aggregated importance scores. with variables \verb{"feature", "importance"}
-and depending in \code{variance_method} also \verb{"var", "conf_lower", "conf_upper"}.
+and depending in \code{ci_method} also \verb{"se", "conf_lower", "conf_upper"}.
 }
 }
 \if{html}{\out{<hr>}}

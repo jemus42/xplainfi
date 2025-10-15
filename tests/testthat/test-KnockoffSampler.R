@@ -130,7 +130,7 @@ test_that("KnockoffSampler knockoff matrix properties", {
 	# Knockoff matrix should have same dimensions as feature matrix (plus ..row_id column)
 	feature_data = task$data(cols = task$feature_names)
 	expect_equal(nrow(sampler$x_tilde), nrow(feature_data))
-	expect_equal(ncol(sampler$x_tilde), ncol(feature_data) + 1L)  # +1 for ..row_id
+	expect_equal(ncol(sampler$x_tilde), ncol(feature_data) + 1L) # +1 for ..row_id
 	expect_equal(setdiff(names(sampler$x_tilde), "..row_id"), names(feature_data))
 
 	# Knockoff values should be numeric (since task is all numeric)
@@ -162,7 +162,7 @@ test_that("KnockoffSampler custom knockoff function", {
 	# Check knockoff matrix was created with custom function
 	expect_true(data.table::is.data.table(sampler$x_tilde))
 	expect_equal(nrow(sampler$x_tilde), 50)
-	expect_equal(ncol(sampler$x_tilde), length(task$feature_names) + 1L)  # +1 for ..row_id
+	expect_equal(ncol(sampler$x_tilde), length(task$feature_names) + 1L) # +1 for ..row_id
 
 	# Test sampling with custom knockoffs
 	data = task$data()
@@ -242,7 +242,7 @@ test_that("KnockoffSampler edge cases", {
 		sampler_single = KnockoffSampler$new(task_single)
 	})
 
-	expect_equal(ncol(sampler_single$x_tilde), 2L)  # x1 + ..row_id
+	expect_equal(ncol(sampler_single$x_tilde), 2L) # x1 + ..row_id
 	expect_equal(setdiff(names(sampler_single$x_tilde), "..row_id"), "x1")
 
 	# Test sampling
@@ -309,5 +309,108 @@ test_that("KnockoffSampler fails with non-numeric features", {
 	expect_error(
 		KnockoffSampler$new(task_ordered),
 		class = "error"
+	)
+})
+
+test_that("KnockoffGaussianSampler works with all-numeric features", {
+	skip_if_not_installed("knockoff")
+	library(mlr3)
+
+	# Test with friedman1 (all numeric)
+	task = tgen("friedman1")$generate(n = 100)
+	sampler = KnockoffGaussianSampler$new(task)
+
+	expect_true(inherits(sampler, "KnockoffGaussianSampler"))
+	expect_true(inherits(sampler, "KnockoffSampler"))
+	expect_equal(sampler$label, "Gaussian Knockoff sampler")
+
+	# Check that knockoff matrix was created
+	expect_true(data.table::is.data.table(sampler$x_tilde))
+	expect_equal(nrow(sampler$x_tilde), 100)
+	expect_equal(ncol(sampler$x_tilde), length(task$feature_names) + 1L) # +1 for ..row_id
+
+	# Test sampling
+	data = task$data()
+	sampled_data = sampler$sample("important1")
+
+	expect_true(data.table::is.data.table(sampled_data))
+	expect_equal(nrow(sampled_data), 100)
+	expect_equal(ncol(sampled_data), ncol(data))
+	expect_false(identical(sampled_data$important1, data$important1))
+	expect_true(identical(sampled_data$important1, sampler$x_tilde$important1))
+
+	expect_equal(nrow(sampler$sample("important1", row_ids = 1:10)), 10)
+	expect_equal(nrow(sampler$sample("important1", row_ids = 32)), 1)
+
+	expect_equal(
+		sampler$sample("important1", row_ids = 32)[, c(
+			"important2",
+			"important3",
+			"important4",
+			"important5",
+			"unimportant1",
+			"unimportant2",
+			"unimportant3",
+			"unimportant4",
+			"unimportant5"
+		)],
+
+		data[
+			32,
+			c(
+				"important2",
+				"important3",
+				"important4",
+				"important5",
+				"unimportant1",
+				"unimportant2",
+				"unimportant3",
+				"unimportant4",
+				"unimportant5"
+			)
+		]
+	)
+
+	# Test with multiple numeric features
+	features = c("important1", "important2", "important3")
+	sampled_multi = sampler$sample(features)
+
+	expect_true(data.table::is.data.table(sampled_multi))
+	for (feat in features) {
+		expect_false(identical(sampled_multi[[feat]], data[[feat]]))
+		expect_true(identical(sampled_multi[[feat]], sampler$x_tilde[[feat]]))
+	}
+})
+
+test_that("KnockoffGaussianSampler fails with factor features", {
+	skip_if_not_installed("knockoff")
+	library(mlr3)
+
+	# Test with factor features
+	data_with_factor = data.table(
+		x1 = rnorm(50),
+		x2 = factor(sample(c("A", "B", "C"), 50, replace = TRUE)),
+		x3 = rnorm(50),
+		y = rnorm(50)
+	)
+	task_factor = as_task_regr(data_with_factor, target = "y")
+
+	expect_error(
+		KnockoffGaussianSampler$new(task_factor),
+		regexp = "following unsupported feature types"
+	)
+
+	# Test with mixed numeric and character
+	data_with_char = data.table(
+		x1 = rnorm(50),
+		x2 = sample(letters[1:5], 50, replace = TRUE),
+		x3 = rnorm(50),
+		y = rnorm(50)
+	)
+	task_char = as_task_regr(data_with_char, target = "y")
+
+	expect_error(
+		KnockoffGaussianSampler$new(task_char),
+		regexp = "following unsupported feature types"
 	)
 })
