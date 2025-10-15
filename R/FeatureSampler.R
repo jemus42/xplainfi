@@ -165,7 +165,7 @@ ConditionalSampler = R6Class(
 		sample = function(feature, row_ids, conditioning_set = NULL) {
 			cli::cli_abort(c(
 				"Abtract method",
-				i = "Use a concrete implementation like {.cls ARFSampler}) or {.cls KnockoffSampler}"
+				i = "Use a concrete implementation like {.cls ARFSampler}) or {.cls KnockoffSamplerGaussian}"
 			))
 		},
 
@@ -177,8 +177,8 @@ ConditionalSampler = R6Class(
 		#' @return Modified copy with sampled feature(s).
 		sample_newdata = function(feature, newdata, conditioning_set = NULL) {
 			cli::cli_abort(c(
-				"Not implemented.",
-				i = "Only some samplers (e.g. {.cls ARFSampler}) support sampling using external data."
+				"{.cls {class(self)[[1]]}} does not support sampling from external data.",
+				i = "Only some samplers (e.g., {.cls ARFSampler}) support sampling using external data."
 			))
 		}
 	)
@@ -251,7 +251,7 @@ ARFSampler = R6Class(
 			num_trees = 10L,
 			min_node_size = 2L,
 			finite_bounds = "no",
-			epsilon = 0,
+			epsilon = 1e-15,
 			round = TRUE,
 			stepsize = 0,
 			verbose = FALSE,
@@ -276,7 +276,7 @@ ARFSampler = R6Class(
 				num_trees = paradox::p_int(lower = 1L, default = 10L),
 				min_node_size = paradox::p_int(lower = 1L, default = 2L),
 				finite_bounds = paradox::p_fct(c("no", "local", "global"), default = "no"),
-				epsilon = paradox::p_dbl(lower = 0, default = 0)
+				epsilon = paradox::p_dbl(lower = 0, default = 1e-15)
 			)
 
 			# Set parameter values

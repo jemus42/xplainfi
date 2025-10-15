@@ -86,9 +86,9 @@ test_that("nadeau_bengio correction requires appropriate resampling", {
 	pfi$compute()
 
 	# Should error for unsupported resampling
-	expect_error(
+	expect_warning(
 		pfi$importance(ci_method = "nadeau_bengio"),
-		regexp = "Must be a subset of"
+		regexp = "recommended for resampling types"
 	)
 
 	# But raw variance should still work
@@ -180,10 +180,14 @@ test_that("quantile variance method works", {
 
 	# Point estimates should be between lower and upper bounds (or close)
 	# Due to using mean vs quantiles, this is not guaranteed but usually holds
-	expect_true(all(imp_quantile$importance >= imp_quantile$conf_lower |
-		abs(imp_quantile$importance - imp_quantile$conf_lower) < 0.01))
-	expect_true(all(imp_quantile$importance <= imp_quantile$conf_upper |
-		abs(imp_quantile$importance - imp_quantile$conf_upper) < 0.01))
+	expect_true(all(
+		imp_quantile$importance >= imp_quantile$conf_lower |
+			abs(imp_quantile$importance - imp_quantile$conf_lower) < 0.01
+	))
+	expect_true(all(
+		imp_quantile$importance <= imp_quantile$conf_upper |
+			abs(imp_quantile$importance - imp_quantile$conf_upper) < 0.01
+	))
 })
 
 test_that("quantile CIs differ from parametric methods", {

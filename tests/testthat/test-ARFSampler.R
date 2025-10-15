@@ -216,8 +216,6 @@ test_that("ARFSampler finite_bounds parameter", {
 	sampler_local = ARFSampler$new(task, finite_bounds = "local")
 	expect_equal(sampler_local$param_set$values$finite_bounds, "local")
 
-	data = task$data()
-
 	# Test no bounds (default)
 	sampled_no = sampler$sample("x1")
 	expect_equal(nrow(sampled_no), 50)
