@@ -150,8 +150,7 @@ conditional_sage = ConditionalSAGE$new(
 	learner = learner,
 	measure = measure,
 	resampling = resampling,
-	n_permutations = 30L,
-	max_reference_size = 100L
+	n_permutations = 30L
 )
 
 # Compute SAGE values
