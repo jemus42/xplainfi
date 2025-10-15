@@ -42,11 +42,11 @@ PerturbationImportance = R6Class(
 
 			# Knockoffs only generate one x_tilde, hence iters_perm > 1 is meaningless
 			if (inherits(sampler, "KnockoffSampler") & iters_perm > 1) {
-				cli::cli_warn(c(
-					"Requested {.val {iters_perm}} permutations with {.cls {class(sampler)[[1]]}}",
-					i = "A {.cls KnockoffSampler} does not support repeated samplings",
-					i = "Resetting {.val iters_perm} to {.val 1}",
-					"Use {.cls ARFSampler} if repeated samplings is required."
+				cli::cli_inform(c(
+					"Requested {.code iters_perm = {iters_perm}} permutations with {.cls {class(sampler)[[1]]}}",
+					x = "A {.cls KnockoffSampler} does not support repeated samplings",
+					i = "Proceeding with {.code iters_perm = 1}",
+					i = "Use {.cls ARFSampler} if repeated sampling is required."
 				))
 				iters_perm = 1
 			}
@@ -420,13 +420,13 @@ CFI = R6Class(
 				by = c("row_ids", "feature")
 			]
 
-			if (!(setequal(obs_loss_agg$row_ids, self$task$row_ids))) {
+			if (length(anyDuplicated(obs_loss_agg$row_ids)) > 0) {
 				cli::cli_warn(c(
 					"Resampling is of type {.val {self$resampling$id}} with {.val {self$resampling$iters}} iterations.",
-					"Found {.val {length(setdiff(self$task$row_ids, obs_loss_agg$row_ids))}} observation{?s} missing predictions",
+					"Found {.val {length(anyDuplicated(obs_loss_agg$row_ids))}} duplicated observation{?s} in test sets",
 					x = "Confidence intervals will have wrong coverage!",
-					i = "CPI requires each observation to have been in the test set at least once",
-					i = "Use cross-validation or holdout resamplings instead"
+					i = "CPI requires each observation to appear {.emph at most once} in the test set(s)",
+					i = "Use holdout resampling to ensure valid inference"
 				))
 			}
 
@@ -438,12 +438,19 @@ CFI = R6Class(
 			result_list = lapply(unique(obs_loss_agg$feature), function(feat) {
 				feat_obs = obs_loss_agg[feature == feat, obs_importance]
 
-				# One-sided test
-				htest_result = test_function(
-					feat_obs,
-					alternative = "greater",
-					conf.level = conf_level
-				)
+				if (mean(feat_obs) == 0) {
+					htest_result = list(
+						estimate = 0,
+						statistic = 0
+					)
+				} else {
+					# One-sided test
+					htest_result = test_function(
+						feat_obs,
+						alternative = "greater",
+						conf.level = conf_level
+					)
+				}
 
 				data.table(
 					feature = feat,
