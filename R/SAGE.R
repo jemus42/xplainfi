@@ -189,6 +189,8 @@ SAGE = R6Class(
 				store_models = TRUE,
 				store_backends = store_backends
 			)
+			# Store results
+			self$resample_result = rr
 
 			# For convergence tracking, we'll use the first resampling iteration
 			# (convergence is about permutation count, not resampling)
@@ -237,8 +239,6 @@ SAGE = R6Class(
 			# Combine results across resampling iterations
 			scores = rbindlist(all_scores, idcol = "iter_rsmp")
 
-			# Store results
-			self$resample_result = rr
 			# iter_rsmp, feature, importance -- score_baseline or so don't apply here
 			private$.scores = scores
 		},
@@ -555,6 +555,83 @@ SAGE = R6Class(
 			)
 		},
 
+		.marginalize_features = function(test_data, reference_data, marginalize_features) {
+			# Abstract method - must be implemented by subclasses
+			cli::cli_abort(c(
+				"Abstract method: {.fun marginalize_features} must be implemented by subclasses.",
+				"i" = "Use {.cls MarginalSAGE} or {.cls ConditionalSAGE} instead of the abstract {.cls SAGE} class."
+			))
+		}
+	)
+)
+
+#' @title Marginal SAGE
+#'
+#' @description [SAGE] with marginal sampling (features are marginalized independently).
+#' This is the standard SAGE implementation.
+#'
+#' @seealso [ConditionalSAGE]
+#'
+#' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
+#' library(mlr3)
+#' task = tgen("friedman1")$generate(n = 100)
+#' sage = MarginalSAGE$new(
+#'   task = task,
+#'   learner = lrn("regr.ranger", num.trees = 50),
+#'   measure = msr("regr.mse"),
+#'   n_permutations = 3L
+#' )
+#' sage$compute()
+#'
+#' # Use batching for memory efficiency with large datasets
+#' sage$compute(batch_size = 1000)
+#' @export
+MarginalSAGE = R6Class(
+	"MarginalSAGE",
+	inherit = SAGE,
+	public = list(
+		#' @description
+		#' Creates a new instance of the MarginalSAGE class.
+		#' @param task,learner,measure,resampling,features,n_permutations,reference_data,batch_size,max_reference_size,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
+		initialize = function(
+			task,
+			learner,
+			measure,
+			resampling = NULL,
+			features = NULL,
+			n_permutations = 10L,
+			reference_data = NULL,
+			batch_size = 5000L,
+			max_reference_size = 100L,
+			early_stopping = FALSE,
+			convergence_threshold = 0.01,
+			se_threshold = Inf,
+			min_permutations = 10L,
+			check_interval = 2L
+		) {
+			# No need to initialize sampler as marginal sampling is done differently here
+			super$initialize(
+				task = task,
+				learner = learner,
+				measure = measure,
+				resampling = resampling,
+				features = features,
+				n_permutations = n_permutations,
+				reference_data = reference_data,
+				batch_size = batch_size,
+				max_reference_size = max_reference_size,
+				early_stopping = early_stopping,
+				convergence_threshold = convergence_threshold,
+				se_threshold = se_threshold,
+				min_permutations = min_permutations,
+				check_interval = check_interval
+			)
+
+			self$label = "Marginal SAGE"
+		}
+	),
+
+	private = list(
 		.evaluate_coalitions_batch = function(learner, test_dt, all_coalitions, batch_size = NULL) {
 			# This function evaluates the model's performance (loss) for a batch of feature coalitions.
 			# It constructs expanded datasets for each coalition and then processes them in batches for prediction.
@@ -765,83 +842,6 @@ SAGE = R6Class(
 		},
 
 		.marginalize_features = function(test_data, reference_data, marginalize_features) {
-			# Abstract method - must be implemented by subclasses
-			cli::cli_abort(c(
-				"Abstract method: {.fun marginalize_features} must be implemented by subclasses.",
-				"i" = "Use {.cls MarginalSAGE} or {.cls ConditionalSAGE} instead of the abstract {.cls SAGE} class."
-			))
-		}
-	)
-)
-
-#' @title Marginal SAGE
-#'
-#' @description [SAGE] with marginal sampling (features are marginalized independently).
-#' This is the standard SAGE implementation.
-#'
-#' @seealso [ConditionalSAGE]
-#'
-#' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
-#' library(mlr3)
-#' task = tgen("friedman1")$generate(n = 100)
-#' sage = MarginalSAGE$new(
-#'   task = task,
-#'   learner = lrn("regr.ranger", num.trees = 50),
-#'   measure = msr("regr.mse"),
-#'   n_permutations = 3L
-#' )
-#' sage$compute()
-#'
-#' # Use batching for memory efficiency with large datasets
-#' sage$compute(batch_size = 1000)
-#' @export
-MarginalSAGE = R6Class(
-	"MarginalSAGE",
-	inherit = SAGE,
-	public = list(
-		#' @description
-		#' Creates a new instance of the MarginalSAGE class.
-		#' @param task,learner,measure,resampling,features,n_permutations,reference_data,batch_size,max_reference_size,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
-		initialize = function(
-			task,
-			learner,
-			measure,
-			resampling = NULL,
-			features = NULL,
-			n_permutations = 10L,
-			reference_data = NULL,
-			batch_size = 5000L,
-			max_reference_size = 100L,
-			early_stopping = FALSE,
-			convergence_threshold = 0.01,
-			se_threshold = Inf,
-			min_permutations = 10L,
-			check_interval = 2L
-		) {
-			# No need to initialize sampler as marginal sampling is done differently here
-			super$initialize(
-				task = task,
-				learner = learner,
-				measure = measure,
-				resampling = resampling,
-				features = features,
-				n_permutations = n_permutations,
-				reference_data = reference_data,
-				batch_size = batch_size,
-				max_reference_size = max_reference_size,
-				early_stopping = early_stopping,
-				convergence_threshold = convergence_threshold,
-				se_threshold = se_threshold,
-				min_permutations = min_permutations,
-				check_interval = check_interval
-			)
-
-			self$label = "Marginal SAGE"
-		}
-	),
-
-	private = list(
-		.marginalize_features = function(test_data, reference_data, marginalize_features) {
 			# Marginal sampling implementation: replace with reference data
 			test_data[,
 				(marginalize_features) := reference_data[, .SD, .SDcols = marginalize_features]
@@ -878,7 +878,7 @@ ConditionalSAGE = R6Class(
 	public = list(
 		#' @description
 		#' Creates a new instance of the ConditionalSAGE class.
-		#' @param task,learner,measure,resampling,features,n_permutations,reference_data,batch_size,max_reference_size,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
+		#' @param task,learner,measure,resampling,features,n_permutations,batch_size,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
 		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to [ARFSampler].
 		initialize = function(
 			task,
@@ -887,10 +887,8 @@ ConditionalSAGE = R6Class(
 			resampling = NULL,
 			features = NULL,
 			n_permutations = 10L,
-			reference_data = NULL,
 			sampler = NULL,
 			batch_size = 5000L,
-			max_reference_size = 100L,
 			early_stopping = FALSE,
 			convergence_threshold = 0.01,
 			se_threshold = Inf,
@@ -914,10 +912,8 @@ ConditionalSAGE = R6Class(
 				resampling = resampling,
 				features = features,
 				n_permutations = n_permutations,
-				reference_data = reference_data,
 				sampler = sampler,
 				batch_size = batch_size,
-				max_reference_size = max_reference_size,
 				early_stopping = early_stopping,
 				convergence_threshold = convergence_threshold,
 				se_threshold = se_threshold,
@@ -950,11 +946,10 @@ ConditionalSAGE = R6Class(
 
 				if (length(marginalize_features) > 0) {
 					# Sample conditionally - returns test_dt with marginalized features replaced
-					conditioning_set = coalition
 					marginalized_test = self$sampler$sample_newdata(
 						feature = marginalize_features,
 						newdata = test_dt,
-						conditioning_set = conditioning_set
+						conditioning_set = coalition
 					)
 				} else {
 					# No marginalization needed

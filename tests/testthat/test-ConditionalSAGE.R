@@ -118,8 +118,7 @@ test_that("ConditionalSAGE with friedman1 produces sensible results", {
 		task = task,
 		learner = learner,
 		measure = measure,
-		n_permutations = 3L, # Keep small for fast testing
-		max_reference_size = 50L
+		n_permutations = 3L
 	)
 
 	sage$compute()
@@ -210,8 +209,7 @@ test_that("ConditionalSAGE works with multiclass classification", {
 		task = task,
 		learner = learner,
 		measure = measure,
-		n_permutations = 2L, # Keep small for fast testing
-		max_reference_size = 30L
+		n_permutations = 2L # Keep small for fast testing
 	)
 
 	sage$compute()
@@ -242,8 +240,7 @@ test_that("ConditionalSAGE batching handles edge cases", {
 			task = task,
 			learner = learner,
 			measure = measure,
-			n_permutations = 2L,
-			max_reference_size = 10L
+			n_permutations = 2L
 		)
 		sage$compute(batch_size = 1)
 		sage$importance()
@@ -255,8 +252,7 @@ test_that("ConditionalSAGE batching handles edge cases", {
 			task = task,
 			learner = learner,
 			measure = measure,
-			n_permutations = 2L,
-			max_reference_size = 10L
+			n_permutations = 2L
 		)
 		sage$compute()
 		sage$importance()
@@ -288,8 +284,7 @@ test_that("ConditionalSAGE batching with custom sampler", {
 			learner = learner,
 			measure = measure,
 			sampler = custom_sampler,
-			n_permutations = 2L,
-			max_reference_size = 15L
+			n_permutations = 2L
 		)
 		sage$compute()
 		sage$importance()
@@ -302,8 +297,7 @@ test_that("ConditionalSAGE batching with custom sampler", {
 			learner = learner,
 			measure = measure,
 			sampler = custom_sampler,
-			n_permutations = 2L,
-			max_reference_size = 15L
+			n_permutations = 2L
 		)
 		sage$compute(batch_size = 30)
 		sage$importance()
@@ -331,8 +325,7 @@ test_that("ConditionalSAGE SE tracking in convergence_history", {
 		task = task,
 		learner = learner,
 		measure = measure,
-		n_permutations = 10L,
-		max_reference_size = 30L
+		n_permutations = 10L
 	)
 
 	# Compute with early stopping to get convergence history
