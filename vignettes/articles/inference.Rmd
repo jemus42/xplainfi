@@ -305,7 +305,7 @@ measure_mae$aggregator = median
 loco = LOCO$new(
 	task = task,
 	learner = learner,
-	resampling = rsmp("cv", folds = 10),
+	resampling = rsmp("cv", folds = 3),
 	measure = measure_mae
 )
 
