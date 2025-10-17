@@ -90,7 +90,7 @@ against supported feature types can be done. Use <a href="KnockoffGaussianSample
     <div class="section level2">
     <h2 id="public-fields">Public fields<a class="anchor" aria-label="anchor" href="#public-fields"></a></h2>
     <p></p><div class="r6-fields"><dl><dt><code>x_tilde</code></dt>
-<dd><p>Knockoff matrix</p></dd>
+<dd><p>Knockoff matrix with one (or <code>iters</code>) row(s) per original observation in <code>task</code>.</p></dd>
 
 
 </dl><p></p></div>
@@ -112,7 +112,8 @@ against supported feature types can be done. Use <a href="KnockoffGaussianSample
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/KnockoffSampler.html">KnockoffSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  <span class="va">task</span>,</span>
-<span>  knockoff_fun <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">knockoff</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knockoff/man/create.second_order.html" class="external-link">create.second_order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
+<span>  knockoff_fun <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">knockoff</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knockoff/man/create.second_order.html" class="external-link">create.second_order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  iters <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -124,6 +125,11 @@ against supported feature types can be done. Use <a href="KnockoffGaussianSample
 
 <dt><code>knockoff_fun</code></dt>
 <dd><p>(<code>function</code>) Step size for variance adjustment. Default are second-order Gaussian knockoffs.</p></dd>
+
+
+<dt><code>iters</code></dt>
+<dd><p>(<code>integer(1)</code>: 1) Number of repetitions the <code>knockoff_fun</code> is applied to create multiple <code>x_tilde</code>
+instances per observation.</p></dd>
 
 
 </dl><p></p></div>

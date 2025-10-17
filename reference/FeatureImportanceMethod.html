@@ -194,8 +194,9 @@ across resampling iterations and, depending on the method use, permutations (<a 
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">FeatureImportanceMethod</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span></span>
 <span>  relation <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  standardize <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  ci_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"raw"</span>, <span class="st">"nadeau_bengio"</span>, <span class="st">"wilcoxon"</span><span class="op">)</span>,</span>
-<span>  conf_level <span class="op">=</span> <span class="fl">0.95</span></span>
+<span>  ci_method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"raw"</span>, <span class="st">"nadeau_bengio"</span>, <span class="st">"quantile"</span><span class="op">)</span>,</span>
+<span>  conf_level <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -214,13 +215,17 @@ relation between baseline and post-modifcation loss, i.e. <a href="PerturbationI
 <dd><p>(<code>character(1)</code>: <code>"none"</code>) Variance estimation method to use, defaulting to omitting variance estimation (<code>"none"</code>).
 If <code>"raw"</code>, uncorrected variance estimates are provided purely for informative purposes with <strong>invalid</strong> (too narrow) confidence intervals.
 If <code>"nadeau_bengio"</code>, variance correction is performed according to Nadeau &amp; Bengio (2003) as suggested by Molnar et al. (2023).
-If <code>"wilcoxon"</code>, non-parametric confidence intervals based on Wilcoxon signed-rank test are computed.
+If <code>"quantile"</code>, empirical quantiles are used to construct confidence-like intervals.
 These methods are model-agnostic and rely on suitable <code>resampling</code>s, e.g. subsampling with 15 repeats for <code>"nadeau_bengio"</code>.
 See details.</p></dd>
 
 
 <dt><code>conf_level</code></dt>
 <dd><p>(<code>numeric(1): 0.95</code>): Conficence level to use for confidence interval construction when <code>ci_method != "none"</code>.</p></dd>
+
+
+<dt><code>...</code></dt>
+<dd><p>Additional arguments passen to specialized methods, if any.</p></dd>
 
 
 </dl><p></p></div>

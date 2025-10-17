@@ -199,39 +199,39 @@ ISBN 978-3-031-63797-1, <a href="https://doi.org/10.1007/978-3-031-63797-1_22" c
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">task</span> <span class="op">=</span> <span class="fu">sim_dgp_correlated</span><span class="op">(</span><span class="fl">200</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>               y         x1          x2          x3         x4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;num&gt;      &lt;num&gt;       &lt;num&gt;       &lt;num&gt;      &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   1: -1.5072978 -0.4525705 -0.27812138 -0.78294448  1.1143834</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   2: -3.9521137 -1.0535362 -1.43669866 -1.91735985  1.7768263</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   3: -0.9415860 -0.5705458 -0.07946505  0.38171014 -1.5372726</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   4:  1.2939954 -0.1329839  0.43239157  1.73401117  1.0473635</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   5:  0.8669780  0.2561404  0.14599956  0.33970835  0.7475056</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                                         </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 196:  2.4411898  1.1266496  0.83104633  0.14384699 -2.0474527</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 197: -3.6234363 -1.3461402 -0.80196394 -0.99054681  1.0255051</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 198: -0.4442953  0.1500475 -0.04715676 -1.03395662  0.9939645</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 199:  0.6326791  0.4196014  0.56237523  0.03708112  0.6278161</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 200: -2.4042932 -0.9536050 -1.17830396 -0.34692555  0.3056628</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>               y         x1          x2          x3          x4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;num&gt;      &lt;num&gt;       &lt;num&gt;       &lt;num&gt;       &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1: -1.0982610 -0.4428071 -0.23934452  0.01403434 -1.92432778</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2:  2.3117855  0.5767212  0.78106741  1.11973147 -0.06758976</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   3:  0.7147643  0.4998377  0.51543786 -0.12480321 -1.34860127</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   4: -2.6010494 -0.5858336 -1.23438347 -1.37973287 -1.39904346</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   5:  3.3845077  1.1618951  1.58321415  1.10585657 -1.27340330</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                                          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 196:  0.3773938  0.5926598  0.70238351 -0.46089361 -1.50147442</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 197: -2.4319543 -0.7763542 -0.39619007 -0.51775056 -0.34607112</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 198:  0.4942087  0.2736232  0.51007668  0.14771309  0.06188192</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 199:  0.6381516  0.1781219 -0.68733730  0.31457869 -0.09699775</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 200: -2.0318049 -0.9000224 -0.08374335  0.03561983 -0.31835398</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># With different correlation</span></span></span>
 <span class="r-in"><span><span class="va">task_high_cor</span> <span class="op">=</span> <span class="fu">sim_dgp_correlated</span><span class="op">(</span><span class="fl">200</span>, r <span class="op">=</span> <span class="fl">0.95</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">task_high_cor</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">x1</span>, <span class="va">task_high_cor</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">x2</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.9568119</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.9483875</span>
 <span class="r-in"><span><span class="va">task</span> <span class="op">=</span> <span class="fu">sim_dgp_mediated</span><span class="op">(</span><span class="fl">200</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                y     direct    exposure    mediator       noise</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>            &lt;num&gt;      &lt;num&gt;       &lt;num&gt;       &lt;num&gt;       &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   1:  2.91387075  0.7187555  0.87413657  1.59855899  0.46082757</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   2:  1.62035844  0.4558129  1.26314194  0.97806980 -0.54462789</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   3: -0.70360424  0.1952202 -1.24723840 -0.67472781  0.48951759</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   4:  1.01649568  0.4644579  0.45248371  0.63816772 -0.42293265</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   5: -1.68381398 -2.0529385  0.35899993 -0.47125573  0.65922561</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                                           </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 196: -1.63450502  0.6208184 -1.44583105 -1.10726170 -0.00888820</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 197:  1.17157044  0.8135809  0.02040195  0.52749858  0.59558971</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 198: -0.12930593 -0.3111929  0.10794389  0.04915098  0.01452813</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 199: -0.01099666  0.4708390  0.25097604  0.02223058  0.24910222</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 200:  0.38452572 -0.1453946  0.46903085  0.46311816  0.13422498</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                y     direct   exposure   mediator       noise</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            &lt;num&gt;      &lt;num&gt;      &lt;num&gt;      &lt;num&gt;       &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1:  1.22287708  0.2334889  0.9020427  0.9566474 -0.85654679</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2: -1.35314469 -1.1153974  0.1637073 -0.4203579  0.19734928</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   3:  0.87550582  0.7944294  0.7566281  0.5392914 -0.10721580</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   4:  2.54838097  0.4682312  1.3346002  1.5982313  0.23961697</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   5:  0.06452206 -1.2731247  1.5873714  0.3108156  0.36435867</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                                         </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 196:  2.97049692  2.0279691 -0.0788349  1.1664691 -0.81099497</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 197: -0.96483131 -0.5983913 -0.4993008 -0.5785399  0.10878012</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 198: -1.24951414 -0.6559367 -1.0351772 -0.5762641 -0.28405395</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 199:  2.57260012  1.2164183  0.4794212  1.3319747  0.07308749</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 200:  0.40101768 -0.7484051  0.8699730  0.3602471  0.26331659</span>
 <span class="r-in"><span><span class="co"># Hidden confounder scenario (traditional)</span></span></span>
 <span class="r-in"><span><span class="va">task_hidden</span> <span class="op">=</span> <span class="fu">sim_dgp_confounded</span><span class="op">(</span><span class="fl">200</span>, hidden <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">task_hidden</span><span class="op">$</span><span class="va">feature_names</span>  <span class="co"># proxy available but not confounder</span></span></span>
@@ -243,34 +243,34 @@ ISBN 978-3-031-63797-1, <a href="https://doi.org/10.1007/978-3-031-63797-1_22" c
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "confounder"  "independent" "proxy"       "x1"          "x2"         </span>
 <span class="r-in"><span><span class="va">task</span> <span class="op">=</span> <span class="fu">sim_dgp_interactions</span><span class="op">(</span><span class="fl">200</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                y     noise1     noise2          x1         x2         x3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>            &lt;num&gt;      &lt;num&gt;      &lt;num&gt;       &lt;num&gt;      &lt;num&gt;      &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   1: -1.86199061 -0.2582721  0.4354967  1.29405891 -0.3065851 -0.4469540</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   2:  1.57180104  0.3870135 -0.6440695  0.09829632 -0.1036248  1.9081668</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   3: -0.53679606 -0.5141481  0.1213644 -0.17582469  1.3879641 -0.2665183</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   4:  3.77179058 -1.3281730  0.6970218 -0.55615152 -2.0043741  0.8317908</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   5:  1.34982047 -0.5330513 -0.7478492 -0.53465096 -1.5782262 -0.4373769</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                                                    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 196:  1.50289872  1.1142852  0.5830465  0.58865508  1.3496369  0.2357097</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 197:  2.84097648 -0.5935648 -0.7904363 -1.06319317  0.1065967  2.2791307</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 198: -0.01252854  1.0737568 -0.1769826  1.29592810 -0.1398723  0.2248820</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 199: -1.19781351  0.4046554 -1.2699558  0.42784722 -1.6972032  0.1293267</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 200:  0.41107667  0.7683378  0.5104652  0.84607046  0.2895059 -0.4191980</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                y     noise1       noise2         x1           x2          x3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            &lt;num&gt;      &lt;num&gt;        &lt;num&gt;      &lt;num&gt;        &lt;num&gt;       &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1: -2.34441760  0.3809744  1.000097015 -0.8301725  1.600118402  0.11802796</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2:  0.09205272  0.6306800 -0.501855463 -0.2044470 -0.847032420  0.17952533</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   3:  1.94991390  0.4343245 -1.799742979 -0.1985319 -0.946624676  1.37721893</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   4: -0.12621186 -0.6064331  0.122429288  0.8434210  0.443729999 -0.86563430</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   5: -1.14535286  1.6021822  0.004124262  0.8959997 -0.562132215 -0.02117223</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                                                        </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 196: -0.02215617 -0.6696190 -0.687780279  0.5041544 -0.191231472 -0.21650299</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 197: -1.20269668 -1.4214582 -1.823299662  1.4929161  0.002221343 -0.74791788</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 198:  3.63454445  0.9606509  0.016812687  0.9097053  1.250037931  1.20002150</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 199: -1.98155581 -0.6333708  0.095992757  1.6096458 -0.637841051  0.10583840</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 200:  0.26154008  0.6757633 -1.026208950 -0.1379192  0.650368813  0.07514873</span>
 <span class="r-in"><span><span class="va">task</span> <span class="op">=</span> <span class="fu">sim_dgp_independent</span><span class="op">(</span><span class="fl">200</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>               y  important1 important2 important3 unimportant1 unimportant2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;num&gt;       &lt;num&gt;      &lt;num&gt;      &lt;num&gt;        &lt;num&gt;        &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   1: -2.3819997 -1.10534922 -0.1512583 -0.9371487   -0.2749117    0.9462914</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   2: -5.5521990 -1.50425199 -1.5663587 -1.7667262    0.9954643    0.2164607</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   3:  0.5751291  0.24298909  0.4988114 -0.8849791   -1.2235652   -0.3774641</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   4: -1.3827508 -0.45362979 -0.5601164  0.4669274   -0.1366738    1.7171515</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   5:  2.1971506  0.06469030  2.2288817 -0.1882112    0.3901852   -1.9809136</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1: -1.5859268 -1.25680880  0.6802313  0.7670612   -1.1016874   -0.7109923</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2:  0.8570409  1.33258644 -0.8954708 -1.1141991    0.1349543    0.1382692</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   3:  2.8373362  1.74140377 -1.1639628  1.2505838   -0.8021798   -0.8286302</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   4:  0.5813651  0.14446853  0.4194224 -0.4141155   -1.6935823   -0.4137860</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   5: -0.7328898 -1.09042611  1.5401146  0.4138058    1.1547045   -0.2675034</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                                                       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 196:  0.5155149 -0.07400229  0.7529557 -0.2679572    0.9050079    1.1532646</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 197: -2.6301282 -0.43082246 -1.3200192 -1.2688268    1.3549549    1.5349585</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 198:  1.9619550  0.66843998  0.5173415  0.1756539   -1.9179000   -2.1783296</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 199:  1.4409969  0.27543943  0.8000451  0.2310513   -0.4965188    0.2593446</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 200:  1.0390057  1.05954092 -0.3158155 -1.1069111   -0.4167293    0.4262541</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 196:  1.6822291  1.57359319 -1.3516758  0.2246197    2.1591702   -2.0814301</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 197: -1.8574093 -0.01768991 -1.2648662 -0.7914148    0.3847277   -1.0074660</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 198:  3.8384382  2.06874695  0.1575735 -0.3963316    1.3714221   -0.7201743</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 199: -2.3929911 -0.15628985 -1.6930708 -0.8685832   -1.7598634    0.9546445</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 200: -2.1081653 -0.48938595 -0.6110942 -0.5727449   -0.2107130    2.0563720</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
