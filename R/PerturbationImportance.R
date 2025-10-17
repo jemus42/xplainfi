@@ -150,8 +150,7 @@ PerturbationImportance = R6Class(
 									)
 
 									pred = private$.construct_pred(
-										perturbed_data_list[[iter_perm]],
-										pred_raw,
+										raw_prediction = pred_raw,
 										test_row_ids = self$resampling$test_set(iter)
 									)
 								} else {
@@ -178,7 +177,6 @@ PerturbationImportance = R6Class(
 				# mild misnomer for convenience because if-else'ing the column name is annoying
 				rbindlist(pred_per_feature, idcol = "feature")
 			})
-
 			# Append iteration id for resampling
 			all_preds = rbindlist(all_preds, idcol = "iter_rsmp")
 			# setkeyv(all_preds, cols = c("feature", "iter_rsmp"))

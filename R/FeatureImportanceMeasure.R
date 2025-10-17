@@ -522,12 +522,10 @@ FeatureImportanceMethod = R6Class(
 		},
 
 		# Take the raw predictions as returned by $predict_newdata_fast and convert to Prediction object fitting the task type to simplify type-specific handling
-		# @param test_dt `data.table` with test target values
 		# @param raw_prediction `list` with elements `reponse` (vector) or `prob` (matrix) depending on task type.
 		# @param test_row_ids `integer()` test set row ids, important to ensure predictions can be matched with original observations / baseline predictions
-		.construct_pred = function(test_dt, raw_prediction, test_row_ids) {
-			truth = test_dt[[self$task$target_names]]
-			stopifnot(nrow(truth) == length(test_row_ids))
+		.construct_pred = function(raw_prediction, test_row_ids) {
+			truth = self$task$truth(rows = test_row_ids)
 
 			switch(
 				self$task$task_type,
