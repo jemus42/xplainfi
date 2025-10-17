@@ -45,7 +45,7 @@ Blesch K, Watson D, Wright M (2023).
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{x_tilde}}{Knockoff matrix}
+\item{\code{x_tilde}}{Knockoff matrix with one (or \code{iters}) row(s) per original observation in \code{task}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -73,7 +73,8 @@ Creates a new instance of the KnockoffSampler class.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{KnockoffSampler$new(
   task,
-  knockoff_fun = function(x) knockoff::create.second_order(as.matrix(x))
+  knockoff_fun = function(x) knockoff::create.second_order(as.matrix(x)),
+  iters = 1
 )}\if{html}{\out{</div>}}
 }
 
@@ -83,6 +84,9 @@ Creates a new instance of the KnockoffSampler class.
 \item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Task to sample from}
 
 \item{\code{knockoff_fun}}{(\code{function}) Step size for variance adjustment. Default are second-order Gaussian knockoffs.}
+
+\item{\code{iters}}{(\code{integer(1)}: 1) Number of repetitions the \code{knockoff_fun} is applied to create multiple \code{x_tilde}
+instances per observation.}
 }
 \if{html}{\out{</div>}}
 }

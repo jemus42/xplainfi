@@ -66,13 +66,16 @@ Will be checked against the provied \link[mlr3:Task]{mlr3::Task} to ensure compa
 \subsection{Method \code{new()}}{
 Creates a new instance using Gaussian knockoffs via \link[knockoff:create.second_order]{knockoff::create.second_order}.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{KnockoffGaussianSampler$new(task)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{KnockoffGaussianSampler$new(task, iters = 1)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Task to sample from.}
+
+\item{\code{iters}}{(\code{integer(1)}: 1) Number of repetitions the \code{knockoff_fun} is applied to create multiple \code{x_tilde}
+instances per observation.}
 }
 \if{html}{\out{</div>}}
 }

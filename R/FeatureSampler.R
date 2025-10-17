@@ -67,7 +67,19 @@ FeatureSampler = R6Class(
 			cli::cli_li(
 				"Task: {.val {self$task$id}} ({.strong {self$task$nrow}x{self$task$n_features}})"
 			)
+			cli::cli_li("Supported feature type{?s}: {.val {self$feature_types}}")
 			cli::cli_end()
+		}
+	),
+	private = list(
+		.get_task_data_by_row_id = function(row_ids) {
+			if (!checkmate::test_subset(row_ids, self$task$row_ids)) {
+				cli::cli_abort(c(
+					x = "Requested {.val {length(setdiff(row_ids, self$task$row_ids))}} row_id{?s} not in stored {.cls Task}.",
+					"!" = "For {.code $sample}, the row_ids must match those of the stored {.cls Task}."
+				))
+			}
+			self$task$data(rows = row_ids, cols = self$task$feature_names)
 		}
 	)
 )
@@ -105,10 +117,7 @@ MarginalSampler = R6Class(
 		#' @param row_ids (`integer()` | `NULL`) Row IDs to use. If `NULL`, uses all rows.
 		#' @return Modified copy with permuted feature(s).
 		sample = function(feature, row_ids = NULL) {
-			if (is.null(row_ids)) {
-				row_ids = self$task$row_ids
-			}
-			data_copy = self$task$data(rows = row_ids)
+			data_copy = private$.get_task_data_by_row_id(row_ids)
 
 			# Handle both single and multiple features efficiently
 			data_copy[, (feature) := lapply(.SD, sample), .SDcols = feature]
@@ -122,7 +131,11 @@ MarginalSampler = R6Class(
 		#' @return Modified copy with permuted feature(s).
 		sample_newdata = function(feature, newdata) {
 			# Create a copy to avoid modifying the original data
-			data_copy = data.table::copy(newdata)
+			if (inherits(newdata, "data.table")) {
+				data_copy = data.table::copy(newdata)
+			} else {
+				setDT(newdata)
+			}
 
 			# Handle both single and multiple features efficiently
 			data_copy[, (feature) := lapply(.SD, sample), .SDcols = feature]
@@ -343,10 +356,7 @@ ARFSampler = R6Class(
 			verbose = NULL,
 			parallel = NULL
 		) {
-			if (is.null(row_ids)) {
-				row_ids = self$task$row_ids
-			}
-			data_copy = self$task$data(rows = row_ids)
+			data_copy = private$.get_task_data_by_row_id(row_ids)
 
 			private$.sample_arf(
 				feature = feature,
@@ -377,7 +387,12 @@ ARFSampler = R6Class(
 			verbose = NULL,
 			parallel = NULL
 		) {
-			data_copy = data.table::copy(newdata)
+			# Create a copy to avoid modifying the original data
+			if (inherits(newdata, "data.table")) {
+				data_copy = data.table::copy(newdata)
+			} else {
+				setDT(newdata)
+			}
 
 			private$.sample_arf(
 				feature = feature,
@@ -487,7 +502,7 @@ KnockoffSampler = R6Class(
 	"KnockoffSampler",
 	inherit = ConditionalSampler,
 	public = list(
-		#' @field x_tilde Knockoff matrix
+		#' @field x_tilde Knockoff matrix with one (or `iters`) row(s) per original observation in `task`.
 		x_tilde = NULL,
 
 		#' @description
@@ -495,10 +510,13 @@ KnockoffSampler = R6Class(
 		#' @param task ([mlr3::Task]) Task to sample from
 		# @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`. This parameter only affects the sampling behavior, not the ARF model fitting.
 		#' @param knockoff_fun (`function`) Step size for variance adjustment. Default are second-order Gaussian knockoffs.
+		#' @param iters (`integer(1)`: 1) Number of repetitions the `knockoff_fun` is applied to create multiple `x_tilde`
+		#' instances per observation.
 		initialize = function(
 			task,
 			# conditioning_set = NULL,
-			knockoff_fun = function(x) knockoff::create.second_order(as.matrix(x))
+			knockoff_fun = function(x) knockoff::create.second_order(as.matrix(x)),
+			iters = 1
 		) {
 			super$initialize(task)
 			self$label = "Knockoff sampler"
@@ -513,25 +531,34 @@ KnockoffSampler = R6Class(
 					custom_check = function(x) {
 						if (is.function(x)) TRUE else "knockoff_fun must be a function."
 					}
-				)
+				),
+				iters = paradox::p_int(lower = 1, default = 1)
 			)
 
 			# Set parameter values
 			values_to_set = list()
-			# if (!is.null(conditioning_set)) {
-			#   values_to_set$conditioning_set = conditioning_set
-			# }
 			values_to_set$knockoff_fun = knockoff_fun
-
+			values_to_set$iters = iters
 			self$param_set$set_values(.values = values_to_set)
 
 			# Create knockoff matrix, features only
 			# No assertions here on feature types, the user has been warned in the doc
-			self$x_tilde = as.data.table(knockoff_fun(self$task$data(cols = self$task$feature_names)))
+			if (iters == 1) {
+				self$x_tilde = as.data.table(knockoff_fun(self$task$data(cols = self$task$feature_names)))
+				self$x_tilde[, ..row_ids := self$task$row_ids]
+			} else {
+				self$x_tilde = rbindlist(replicate(
+					iters,
+					{
+						x_tilde = as.data.table(knockoff_fun(self$task$data(cols = self$task$feature_names)))
+						x_tilde[, ..row_ids := self$task$row_ids]
+					},
+					simplify = FALSE
+				))
+			}
 
-			checkmate::assert_subset(colnames(self$x_tilde), self$task$feature_names)
-			checkmate::assert_true(nrow(self$x_tilde) == self$task$nrow)
-			self$x_tilde[, ..row_id := self$task$row_ids]
+			checkmate::assert_subset(colnames(self$x_tilde), c(self$task$feature_names, "..row_ids"))
+			checkmate::assert_true(nrow(self$x_tilde) == (iters * self$task$nrow))
 		},
 
 		#' @description
@@ -547,18 +574,63 @@ KnockoffSampler = R6Class(
 			if (is.null(row_ids)) {
 				row_ids = self$task$row_ids
 			}
-			data_copy = self$task$data(rows = row_ids)
+			data_copy = private$.get_task_data_by_row_id(row_ids)
+			# Add row_ids because we need them
+			data_copy[, ..row_ids := row_ids]
+			# Make room for feature(s) from x_tilde
+			data_copy[, (feature) := NULL]
+			# Add a sequence number within each ..row_ids group in data_copy
+			# Needed to match multiple instances per row_id if requested
+			data_copy[, seq_id := seq_len(.N), by = ..row_ids]
+			# Count occurrences and sample from x_tilde
+			# if row_id is requested 4 times but it's present in x_tilde 10 times that must be downsampled
+			counts = data_copy[, .N, by = ..row_ids]
+			# browser()
 
+			# Decide whether to sample from x_tilde with replacement -- only do so if needed
+			replace = FALSE
+			if (any(counts$N > self$param_set$values$iters)) {
+				cli::cli_warn(c(
+					"!" = "Some instances requested more often than they are present in generated knockoff matrix",
+					i = "Will sample with replacement, so some knockoff values will be duplicated",
+					i = "Create {.cls {class(self)[[1]]}} with {.code iters = {max(counts$N)}} or higher to prevent this"
+				))
+				replace = TRUE
+			}
+
+			x_tilde_sampled = self$x_tilde[counts, on = "..row_ids", allow.cartesian = TRUE]
+			# shuffle and only keep feature(s) from x_tilde to avoid duplicates on join later
+			x_tilde_sampled = x_tilde_sampled[,
+				.SD[sample(.N, N[1], replace = replace)],
+				.SDcols = feature,
+				by = ..row_ids
+			]
+			x_tilde_sampled[, seq_id := seq_len(.N), by = ..row_ids]
+
+			# Inner join on both ..row_ids and seq_id
+			data_copy = data_copy[
+				x_tilde_sampled,
+				nomatch = 0L,
+				on = c("..row_ids", "seq_id")
+			]
+
+			data_copy[, ..row_ids := NULL]
+			data_copy[, seq_id := NULL]
+
+			setcolorder(data_copy, self$task$feature_names)
+			data_copy[]
+
+			# Old / simpler approach doesn't work with duplicates
 			# Subsample knockoff DT to match input and selected feature(s)
 			# Ensure we get the x_tilde obs in the correct order as the supplied row_ids
 			# unlikely to become a bottleneck but could use collapse::fmatch
-			replacements = self$x_tilde[
-				match(row_ids, self$x_tilde[["..row_id"]]),
-				.SD,
-				.SDcols = feature
-			]
-			data_copy[, (feature) := replacements]
-			data_copy[]
+			# replacements = self$x_tilde[
+			# 	match(row_ids, self$x_tilde[["..row_ids"]]),
+			# 	.SD,
+			# 	.SDcols = feature
+			# ]
+			# data_copy[, (feature) := replacements]
+			# data_copy[]
 		}
 	)
 )
@@ -599,15 +671,19 @@ KnockoffGaussianSampler = R6Class(
 		#' @description
 		#' Creates a new instance using Gaussian knockoffs via [knockoff::create.second_order].
 		#' @param task ([mlr3::Task]) Task to sample from.
+		#' @param iters (`integer(1)`: 1) Number of repetitions the `knockoff_fun` is applied to create multiple `x_tilde`
+		#' instances per observation.
 		initialize = function(
-			task
+			task,
+			iters = 1
 		) {
 			require_package("knockoff")
 			super$initialize(
 				task = task,
 				knockoff_fun = function(x) {
 					knockoff::create.second_order(as.matrix(x))
-				}
+				},
+				iters = iters
 			)
 			self$label = "Gaussian Knockoff sampler"
 		}
@@ -644,15 +720,19 @@ KnockoffSequentialSampler = R6Class(
 		x_tilde = NULL,
 
 		#' @description
-		#' Creates a new instance using sequential knockoffs via [seqknockoff::knockoffs_seq].
+		#' Creates a new instance using sequential knockoffs via `seqknockoff::knockoffs_seq`.
 		#' @param task ([mlr3::Task]) Task to sample from.
+		#' @param iters (`integer(1)`: 1) Number of repetitions the `knockoff_fun` is applied to create multiple `x_tilde`
+		#' instances per observation.
 		initialize = function(
-			task
+			task,
+			iters = 1
 		) {
 			require_package("seqknockoff", from = "https://github.com/kormama1/seqknockoff")
 			super$initialize(
 				task = task,
-				knockoff_fun = seqknockoff::knockoffs_seq
+				knockoff_fun = seqknockoff::knockoffs_seq,
+				iters = iters
 			)
 			self$label = "Sequential Knockoff sampler"
 		}

@@ -62,15 +62,18 @@ Will be checked against the provied \link[mlr3:Task]{mlr3::Task} to ensure compa
 \if{html}{\out{<a id="method-KnockoffSequentialSampler-new"></a>}}
 \if{latex}{\out{\hypertarget{method-KnockoffSequentialSampler-new}{}}}
 \subsection{Method \code{new()}}{
-Creates a new instance using sequential knockoffs via \link[seqknockoff:knockoffs_seq]{seqknockoff::knockoffs_seq}.
+Creates a new instance using sequential knockoffs via \code{seqknockoff::knockoffs_seq}.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{KnockoffSequentialSampler$new(task)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{KnockoffSequentialSampler$new(task, iters = 1)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Task to sample from.}
+
+\item{\code{iters}}{(\code{integer(1)}: 1) Number of repetitions the \code{knockoff_fun} is applied to create multiple \code{x_tilde}
+instances per observation.}
 }
 \if{html}{\out{</div>}}
 }
