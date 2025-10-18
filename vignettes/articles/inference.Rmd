@@ -93,7 +93,7 @@ pfi$compute()
 pfi$importance()
 ```
 
-If we want **unadjusted** confidence intervals we can ask for them, but note these are too narrow / optimistic and hence invalid for inference:
+If we want **unadjusted** confidence intervals based on a t-distribution, we can ask for them, but note these are too narrow / optimistic and hence invalid for inference:
 
 ```{r pfi-ci-raw}
 pfi_ci_raw = pfi$importance(ci_method = "raw")
@@ -107,18 +107,16 @@ pfi_ci_corrected = pfi$importance(ci_method = "nadeau_bengio")
 pfi_ci_corrected
 ```
 
-### Non-parametric alternative: Empirical quantiles
+## Empirical quantiles
 
-Both `"raw"` and `"nadeau_bengio"` methods assume normally distributed importance scores and use parametric confidence intervals based on the t-distribution. As a non-parametric alternative, we can use empirical quantiles that directly use the resampling distribution to construct confidence-like intervals.
-
-Like the Nadeau & Bengio approach, this method requires independent resampling splits. This means it works with subsampling or bootstrap, but not with cross-validation.
+Both `"raw"` and `"nadeau_bengio"` methods assume normally distributed importance scores and use parametric confidence intervals based on the t-distribution. As a alternative, we can use empirical quantiles to construct confidence-like intervals without any coverage guarantees.
 
 ```{r pfi-ci-quantile}
 pfi_ci_quantile = pfi$importance(ci_method = "quantile")
 pfi_ci_quantile
 ```
 
-To highlight the differences between parametric and non-parametric approaches, we visualize all methods:
+To highlight the differences between parametric and empirical approaches, we visualize all methods:
 
 ```{r pfi-ci-comparison}
 pfi_cis = rbindlist(
