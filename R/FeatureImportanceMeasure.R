@@ -144,7 +144,7 @@ FeatureImportanceMethod = R6Class(
 		#'
 		#' This appraoch can in principle also be applied to `CFI` and `RFI`, but beware that a conditional sample such as [ARFSampler] also needs to be trained on data,
 		#' which would need to be taken account by the variance estimation method.
-		#' Analogously, the `"nadeau_bengio"` correction was recommended for the use with [PFI] by Molnar et al., so it's use with [LOCO] or [MarginalSAGE] is experimental.
+		#' Analogously, the `"nadeau_bengio"` correction was recommended for the use with [PFI] by Molnar et al., so its use with other methods like [LOCO] or [SAGE] is experimental.
 		#'
 		#' Note that even if `measure` uses an `aggregator` function that is not the mean, variance estimation currently will always use [mean()] and [var()].
 		#'

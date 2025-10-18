@@ -41,14 +41,14 @@ PerturbationImportance = R6Class(
 			self$sampler = sampler
 
 			# Knockoffs only generate one x_tilde, hence iters_perm > 1 is meaningless
-			if (inherits(sampler, "KnockoffSampler") & iters_perm > 1) {
+			if (inherits(sampler, "KnockoffSampler") && iters_perm > sampler$param_set$values$iters) {
 				cli::cli_inform(c(
 					"Requested {.code iters_perm = {iters_perm}} permutations with {.cls {class(sampler)[[1]]}}",
-					x = "A {.cls KnockoffSampler} does not support repeated samplings",
-					i = "Proceeding with {.code iters_perm = 1}",
-					i = "Use {.cls ARFSampler} if repeated sampling is required."
+					"!" = "A {.cls KnockoffSampler} was constructed with {.val {sampler$param_set$values$iters}} iterations",
+					i = "Proceeding with {.code iters_perm = {sampler$param_set$values$iters}}",
+					i = "Reconstruct {.cls {class(sampler)[[1]]}} with {.code iters >= {iters_perm}} or use {.cls ARFSampler} if repeated sampling is required."
 				))
-				iters_perm = 1
+				iters_perm = sampler$param_set$values$iters
 			}
 
 			# Set up common parameters for all perturbation-based methods
@@ -59,8 +59,10 @@ PerturbationImportance = R6Class(
 
 			ps$values$relation = relation
 			ps$values$iters_perm = iters_perm
-
 			self$param_set = ps
+
+			# Add CPI to variance methods registry
+			private$.ci_methods = c(private$.ci_methods, "cpi")
 		}
 	),
 
@@ -223,6 +225,92 @@ PerturbationImportance = R6Class(
 
 				private$.obs_losses = obs_loss_all
 			}
+		},
+
+		# Conditional Predictive Impact (CPI) using one-sided t-test
+		# CPI is specifically designed for CFI with knockoff samplers
+		# Based on Watson et al. (2021) and implemented in the cpi package
+		# @param scores data.table with feature and importance columns (not used, we use obs_loss directly)
+		# @param aggregator function (not used for CPI)
+		# @param conf_level confidence level for one-sided CI
+		# @test character(1) Type of test to perform. Fisher is recommended
+		# @param B integer(1) Number of replications for Fisher test.
+		.importance_cpi = function(
+			scores,
+			aggregator,
+			conf_level,
+			test = c("t", "wilcoxon", "fisher"),
+			B = 1999
+		) {
+			# CPI requires observation-wise losses
+			if (is.null(private$.obs_losses)) {
+				cli::cli_abort(c(
+					"CPI requires observation-wise losses.",
+					i = "Ensure {.code measure} has an {.fun $obs_loss} method."
+				))
+			}
+			# Get observation-wise importances (already computed as differences)
+			obs_loss_data = self$obs_loss(relation = "difference")
+			# We need **at most** one row per feature and row_id for valid inference
+			# so we aggregate over iter_rsmp
+			dupes = obs_loss_data[, .N, by = c("feature", "row_ids", "iter_perm")][N > 1]
+
+			if (nrow(dupes) >= 1) {
+				cli::cli_warn(c(
+					"Resampling is of type {.val {self$resampling$id}} with {.val {self$resampling$iters}} iterations.",
+					"Found {.val {length(unique(dupes[, row_ids]))}} duplicated observation{?s} in test sets",
+					x = "Confidence intervals will have wrong coverage!",
+					i = "CPI requires each observation to appear {.emph at most once} in the test set(s)",
+					i = "Use holdout resampling to ensure valid inference"
+				))
+			}
+			# Aggregating here over iters_perm
+			obs_loss_agg = obs_loss_data[,
+				list(obs_importance = mean(obs_importance)),
+				by = c("row_ids", "feature")
+			]
+
+			test = match.arg(test)
+			test_function = switch(
+				test,
+				t = stats::t.test,
+				wilcoxon = stats::wilcox.test,
+				fisher = fisher_one_sided
+			)
+
+			# For each feature, perform one-sided test (alternative = "greater")
+			# H0: importance <= 0, H1: importance > 0
+			result_list = lapply(unique(obs_loss_agg$feature), function(feat) {
+				feat_obs = obs_loss_agg[feature == feat, obs_importance]
+
+				if (mean(feat_obs) == 0) {
+					htest_result = list(
+						estimate = 0,
+						statistic = 0,
+						p.value = 1,
+						conf.int = 0
+					)
+				} else {
+					# One-sided test
+					htest_result = test_function(
+						feat_obs,
+						alternative = "greater",
+						conf.level = conf_level
+					)
+				}
+
+				data.table(
+					feature = feat,
+					importance = mean(feat_obs),
+					se = sd(feat_obs) / sqrt(length(feat_obs)),
+					statistic = htest_result$statistic,
+					p.value = htest_result$p.value,
+					conf_lower = htest_result$conf.int[1],
+					conf_upper = Inf # One-sided test upper bound is infinity
+				)
+			})
+
+			rbindlist(result_list, fill = TRUE)
 		}
 	)
 )
@@ -373,9 +461,6 @@ CFI = R6Class(
 			)
 
 			self$label = "Conditional Feature Importance"
-
-			# Add CPI to variance methods registry
-			private$.ci_methods = c(private$.ci_methods, "cpi")
 		},
 
 		#' @description
@@ -392,83 +477,6 @@ CFI = R6Class(
 				store_backends = store_backends,
 				sampler = self$sampler
 			)
-		}
-	),
-	private = list(
-		# Conditional Predictive Impact (CPI) using one-sided t-test
-		# CPI is specifically designed for CFI with knockoff samplers
-		# Based on Watson et al. (2021) and implemented in the cpi package
-		# @param scores data.table with feature and importance columns (not used, we use obs_loss directly)
-		# @param aggregator function (not used for CPI)
-		# @param conf_level confidence level for one-sided CI
-		.importance_cpi = function(scores, aggregator, conf_level, test = c("t", "wilcoxon")) {
-			# CPI requires observation-wise losses
-			if (is.null(private$.obs_losses)) {
-				cli::cli_abort(c(
-					"CPI requires observation-wise losses.",
-					i = "Ensure {.code measure} has an {.fun $obs_loss} method."
-				))
-			}
-
-			# Get observation-wise importances (already computed as differences)
-			obs_loss_data = self$obs_loss(relation = "difference")
-			# We need **at most** one row per feature and row_id for valid inference
-			# so we aggregate over iter_rsmp
-			dupes = obs_loss_data[, .N, by = c("feature", "row_ids")][N > 1]
-
-			if (nrow(dupes) >= 1) {
-				cli::cli_warn(c(
-					"Resampling is of type {.val {self$resampling$id}} with {.val {self$resampling$iters}} iterations.",
-					"Found {.val {length(unique(dupes[, row_ids]))}} duplicated observation{?s} in test sets",
-					x = "Confidence intervals will have wrong coverage!",
-					i = "CPI requires each observation to appear {.emph at most once} in the test set(s)",
-					i = "Use holdout resampling to ensure valid inference"
-				))
-			}
-			# No need to aggregate here because with each row_id appearing <= 1 times per feature
-			# and the check above that should not be an issue, but we might want to investigate
-			# the effect of that so we allow it with a loud warning
-			obs_loss_agg = obs_loss_data[,
-				list(obs_importance = mean(obs_importance)),
-				by = c("row_ids", "feature")
-			]
-
-			test = match.arg(test)
-			test_function = switch(test, t = stats::t.test, wilcoxon = stats::wilcox.test)
-
-			# For each feature, perform one-sided t-test (alternative = "greater")
-			# H0: importance <= 0, H1: importance > 0
-			result_list = lapply(unique(obs_loss_agg$feature), function(feat) {
-				feat_obs = obs_loss_agg[feature == feat, obs_importance]
-
-				if (mean(feat_obs) == 0) {
-					htest_result = list(
-						estimate = 0,
-						statistic = 0,
-						p.value = 1,
-						conf.int = 0
-					)
-				} else {
-					# One-sided test
-					htest_result = test_function(
-						feat_obs,
-						alternative = "greater",
-						conf.level = conf_level
-					)
-				}
-
-				data.table(
-					feature = feat,
-					importance = mean(feat_obs),
-					se = sd(feat_obs) / sqrt(length(feat_obs)),
-					statistic = htest_result$statistic,
-					p.value = htest_result$p.value,
-					conf_lower = htest_result$conf.int[1],
-					conf_upper = Inf # One-sided test upper bound is infinity
-				)
-			})
-
-			rbindlist(result_list)
 		}
 	)
 )
