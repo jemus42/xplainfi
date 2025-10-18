@@ -40,6 +40,7 @@ test_that("KnockoffSampler handles multiple features", {
 	library(mlr3)
 
 	task = tgen("friedman1")$generate(n = 100)
+	data = task$data()
 	sampler = KnockoffSampler$new(task)
 
 	# Test multiple feature sampling
@@ -57,7 +58,7 @@ test_that("KnockoffSampler handles multiple features", {
 	}
 
 	# Check that other features remain unchanged
-	expect_true(identical(sampled_data$important3, data$important3))
+	expect_true(identical(sampled_data$important3, task$data(cols = "important3")[[1]]))
 })
 
 test_that("KnockoffSampler works with different numeric tasks", {

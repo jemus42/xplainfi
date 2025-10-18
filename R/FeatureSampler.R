@@ -37,9 +37,10 @@ FeatureSampler = R6Class(
 
 		#' @description
 		#' Sample values for feature(s) from stored task
-		#' @param feature (`character`) Feature name(s) to sample (can be single or multiple)
+		#' @param feature (`character`) Feature name(s) to sample (can be single or multiple). Must match those in the stored [Task][mlr3::Task].
 		#' @param row_ids (`integer()`: `NULL`) Row IDs of the stored [Task][mlr3::Task] to use as basis for sampling.
-		#' @return Modified copy of the input data with the feature(s) sampled
+		#' @return Modified copy of the input features with the feature(s) sampled:
+		#'   A [data.table][data.table::data.table] with `task$n_features` columns and one row matching the supplied `row_ids`
 		sample = function(feature, row_ids = NULL) {
 			cli::cli_abort(c(
 				"Abtract method",
@@ -174,6 +175,7 @@ ConditionalSampler = R6Class(
 		#' @param feature (`character`) Feature(s) to sample.
 		#' @param row_ids (`integer()` | `NULL`) Row IDs to use. If `NULL`, uses all rows.
 		#' @param conditioning_set (`character` | `NULL`) Features to condition on. If `NULL`, uses all other features.
+		#'   This is only supported by some implementations, e.g. [ARFSampler].
 		#' @return Modified copy with sampled feature(s).
 		sample = function(feature, row_ids, conditioning_set = NULL) {
 			cli::cli_abort(c(
@@ -190,7 +192,7 @@ ConditionalSampler = R6Class(
 		#' @return Modified copy with sampled feature(s).
 		sample_newdata = function(feature, newdata, conditioning_set = NULL) {
 			cli::cli_abort(c(
-				"{.cls {class(self)[[1]]}} does not support sampling from external data.",
+				x = "{.cls {class(self)[[1]]}} does not support sampling from external data.",
 				i = "Only some samplers (e.g., {.cls ARFSampler}) support sampling using external data."
 			))
 		}
@@ -545,19 +547,19 @@ KnockoffSampler = R6Class(
 			# No assertions here on feature types, the user has been warned in the doc
 			if (iters == 1) {
 				self$x_tilde = as.data.table(knockoff_fun(self$task$data(cols = self$task$feature_names)))
-				self$x_tilde[, ..row_ids := self$task$row_ids]
+				self$x_tilde[, ..row_id := self$task$row_ids]
 			} else {
 				self$x_tilde = rbindlist(replicate(
 					iters,
 					{
 						x_tilde = as.data.table(knockoff_fun(self$task$data(cols = self$task$feature_names)))
-						x_tilde[, ..row_ids := self$task$row_ids]
+						x_tilde[, ..row_id := self$task$row_ids]
 					},
 					simplify = FALSE
 				))
 			}
 
-			checkmate::assert_subset(colnames(self$x_tilde), c(self$task$feature_names, "..row_ids"))
+			checkmate::assert_subset(colnames(self$x_tilde), c(self$task$feature_names, "..row_id"))
 			checkmate::assert_true(nrow(self$x_tilde) == (iters * self$task$nrow))
 		},
 
@@ -576,16 +578,15 @@ KnockoffSampler = R6Class(
 			}
 			data_copy = private$.get_task_data_by_row_id(row_ids)
 			# Add row_ids because we need them
-			data_copy[, ..row_ids := row_ids]
+			data_copy[, ..row_id := row_ids]
 			# Make room for feature(s) from x_tilde
 			data_copy[, (feature) := NULL]
-			# Add a sequence number within each ..row_ids group in data_copy
+			# Add a sequence number within each ..row_id group in data_copy
 			# Needed to match multiple instances per row_id if requested
-			data_copy[, seq_id := seq_len(.N), by = ..row_ids]
+			data_copy[, seq_id := seq_len(.N), by = ..row_id]
 			# Count occurrences and sample from x_tilde
 			# if row_id is requested 4 times but it's present in x_tilde 10 times that must be downsampled
-			counts = data_copy[, .N, by = ..row_ids]
-			# browser()
+			counts = data_copy[, .N, by = ..row_id]
 
 			# Decide whether to sample from x_tilde with replacement -- only do so if needed
 			replace = FALSE
@@ -598,23 +599,23 @@ KnockoffSampler = R6Class(
 				replace = TRUE
 			}
 
-			x_tilde_sampled = self$x_tilde[counts, on = "..row_ids", allow.cartesian = TRUE]
+			x_tilde_sampled = self$x_tilde[counts, on = "..row_id", allow.cartesian = TRUE]
 			# shuffle and only keep feature(s) from x_tilde to avoid duplicates on join later
 			x_tilde_sampled = x_tilde_sampled[,
 				.SD[sample(.N, N[1], replace = replace)],
 				.SDcols = feature,
-				by = ..row_ids
+				by = ..row_id
 			]
-			x_tilde_sampled[, seq_id := seq_len(.N), by = ..row_ids]
+			x_tilde_sampled[, seq_id := seq_len(.N), by = ..row_id]
 
-			# Inner join on both ..row_ids and seq_id
+			# Inner join on both ..row_id and seq_id
 			data_copy = data_copy[
 				x_tilde_sampled,
 				nomatch = 0L,
-				on = c("..row_ids", "seq_id")
+				on = c("..row_id", "seq_id")
 			]
 
-			data_copy[, ..row_ids := NULL]
+			data_copy[, ..row_id := NULL]
 			data_copy[, seq_id := NULL]
 
 			setcolorder(data_copy, self$task$feature_names)
@@ -625,7 +626,7 @@ KnockoffSampler = R6Class(
 			# Ensure we get the x_tilde obs in the correct order as the supplied row_ids
 			# unlikely to become a bottleneck but could use collapse::fmatch
 			# replacements = self$x_tilde[
-			# 	match(row_ids, self$x_tilde[["..row_ids"]]),
+			# 	match(row_ids, self$x_tilde[["..row_id"]]),
 			# 	.SD,
 			# 	.SDcols = feature
 			# ]

@@ -60,7 +60,8 @@ Sample from stored task conditionally on other features.
 
 \item{\code{row_ids}}{(\code{integer()} | \code{NULL}) Row IDs to use. If \code{NULL}, uses all rows.}
 
-\item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Features to condition on. If \code{NULL}, uses all other features.}
+\item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Features to condition on. If \code{NULL}, uses all other features.
+This is only supported by some implementations, e.g. \link{ARFSampler}.}
 }
 \if{html}{\out{</div>}}
 }

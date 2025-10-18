@@ -60,14 +60,15 @@ Sample values for feature(s) from stored task
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{feature}}{(\code{character}) Feature name(s) to sample (can be single or multiple)}
+\item{\code{feature}}{(\code{character}) Feature name(s) to sample (can be single or multiple). Must match those in the stored \link[mlr3:Task]{Task}.}
 
 \item{\code{row_ids}}{(\code{integer()}: \code{NULL}) Row IDs of the stored \link[mlr3:Task]{Task} to use as basis for sampling.}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Modified copy of the input data with the feature(s) sampled
+Modified copy of the input features with the feature(s) sampled:
+A \link[data.table:data.table]{data.table} with \code{task$n_features} columns and one row matching the supplied \code{row_ids}
 }
 }
 \if{html}{\out{<hr>}}

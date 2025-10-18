@@ -13,13 +13,12 @@ test_that("MarginalSampler works correctly", {
 
 	expect_true(data.table::is.data.table(sampled_data))
 	expect_equal(nrow(sampled_data), 100)
-	expect_equal(ncol(sampled_data), ncol(data))
-	expect_equal(names(sampled_data), names(data))
+	expect_equal(ncol(sampled_data), task$n_features)
+	expect_equal(names(sampled_data), task$feature_names)
 
 	# Check that only the specified feature was permuted
 	expect_false(identical(sampled_data$x1, data$x1))
 	expect_true(identical(sampled_data$x2, data$x2))
-	expect_true(identical(sampled_data$y, data$y))
 
 	# Check that the permuted values come from the original distribution
 	expect_setequal(sampled_data$x1, data$x1)
@@ -37,7 +36,7 @@ test_that("MarginalSampler handles multiple features", {
 
 	expect_true(data.table::is.data.table(sampled_data))
 	expect_equal(nrow(sampled_data), 100)
-	expect_equal(ncol(sampled_data), ncol(data))
+	expect_equal(ncol(sampled_data), task$n_features)
 
 	# Check that only the specified features were permuted
 	for (feat in features) {
@@ -47,7 +46,6 @@ test_that("MarginalSampler handles multiple features", {
 
 	# Check that other features remain unchanged
 	expect_true(identical(sampled_data$x4, data$x4))
-	expect_true(identical(sampled_data$y, data$y))
 })
 
 test_that("MarginalSampler preserves data.table properties", {
