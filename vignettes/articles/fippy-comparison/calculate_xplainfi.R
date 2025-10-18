@@ -51,7 +51,7 @@ perf <- pred$score(msr("regr.rsq"))
 cli_alert_info("Model R² score: {.val {round(perf, 3)}}")
 
 # Fit arf for conditional sampling
-sampler <- ARFSampler$new(task$clone()$filter(rows = resampling$train_set(1)))
+sampler <- ARFSampler$new(task)
 
 # Initialize results list
 results <- list(

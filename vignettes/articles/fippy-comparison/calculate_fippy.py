@@ -90,11 +90,6 @@ def main():
     X_test = test_data.drop("y", axis=1)
     y_test = test_data["y"]
     
-    # Use smaller test set for SAGE to speed up computation
-    X_test_small = X_test.head(30)  # Small test set for speed
-    y_test_small = y_test.head(30)
-    print(f"Train: {len(X_train)}, Test: {len(X_test)}, Test (for SAGE): {len(X_test_small)} (reduced for speed)")
-
     print("Training model...")
     # Reset seeds before training
     random.seed(123)
@@ -122,7 +117,7 @@ def main():
         # Reset seeds before each method
         random.seed(123)
         np.random.seed(123)
-        ex_pfi = explainer.pfi(X_test_small, y_test_small, nr_runs=5)
+        ex_pfi = explainer.pfi(X_test, y_test_small, nr_runs=20)
         pfi_results = extract_fippy_results(ex_pfi, list(X_train.columns))
         results["PFI"] = pfi_results
         print("✓ PFI completed")
@@ -136,7 +131,7 @@ def main():
         # Reset seeds before each method
         random.seed(123)
         np.random.seed(123)
-        ex_cfi = explainer.cfi(X_test_small, y_test_small, nr_runs=5)
+        ex_cfi = explainer.cfi(X_test, y_test_small, nr_runs=20)
         cfi_results = extract_fippy_results(ex_cfi, list(X_train.columns))
         results["CFI"] = cfi_results
         print("✓ CFI completed")
@@ -153,7 +148,7 @@ def main():
         # RFI expects: rfi(G, X_eval, y_eval, ...)
         # G is the conditioning set
         conditioning_set = ["x3"]
-        ex_rfi = explainer.rfi(conditioning_set, X_test_small, y_test_small, nr_runs=5)
+        ex_rfi = explainer.rfi(conditioning_set, X_test, y_test_small, nr_runs=20)
         rfi_results = extract_fippy_results(ex_rfi, list(X_train.columns))
         if rfi_results:
             rfi_results["conditioning_set"] = conditioning_set
@@ -173,8 +168,8 @@ def main():
         np.random.seed(123)
         # Use smaller parameters to speed up computation
         ex_msage, sage_orderings = explainer.msage(
-            X_test_small, y_test_small, 
-            nr_runs=3,
+            X_test, y_test_small, 
+            nr_runs=10,
             detect_convergence=True
         )
         msage_results = extract_fippy_results(ex_msage, list(X_train.columns))
@@ -192,8 +187,8 @@ def main():
         np.random.seed(123)
         # Use smaller parameters to speed up computation
         ex_csage, sage_orderings = explainer.csage(
-            X_test_small, y_test_small, 
-            nr_runs=3,
+            X_test, y_test_small, 
+            nr_runs=10,
             detect_convergence=True
         )
         csage_results = extract_fippy_results(ex_csage, list(X_train.columns))
