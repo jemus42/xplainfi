@@ -614,7 +614,9 @@ KnockoffSampler = R6Class(
 				nomatch = 0L,
 				on = c("..row_id", "seq_id")
 			]
-
+			# Need to ensure output has matching row ids
+			setorderv(data_copy, "seq_id")
+			checkmate::assert_true(all.equal(data_copy[["..row_id"]], row_ids))
 			data_copy[, ..row_id := NULL]
 			data_copy[, seq_id := NULL]
 
