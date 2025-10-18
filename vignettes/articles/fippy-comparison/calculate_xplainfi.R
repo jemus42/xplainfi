@@ -145,8 +145,7 @@ sage_conditional_r <- ConditionalSAGE$new(
 	measure = msr("regr.mse"),
 	resampling = resampling,
 	sampler = sampler,
-	n_permutations = n_perm_sage,
-	max_reference_size = max_ref_size_sage
+	n_permutations = n_perm_sage
 )
 
 sage_conditional_r$compute(batch_size = batch_size_sage)

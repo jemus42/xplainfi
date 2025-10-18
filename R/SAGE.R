@@ -50,7 +50,6 @@ SAGE = R6Class(
 		#'   For each coalition to evaluate, an expanded datasets of size `n_test * n_reference` is created and evaluted in batches of `batch_size`.
 		#' @param batch_size (`integer(1): 5000L`) Maximum number of observations to process in a single prediction call.
 		#' @param sampler ([FeatureSampler]) Sampler for marginalization. Only relevant for `ConditionalSAGE`.
-		#' @param max_reference_size (`integer(1): 100L`) Maximum size of reference dataset. If reference is larger, it will be subsampled.
 		#' @param early_stopping (`logical(1): FALSE`) Whether to enable early stopping based on convergence detection.
 		#' @param convergence_threshold (`numeric(1): 0.01`) Relative change threshold for convergence detection.
 		#' @param se_threshold (`numeric(1): Inf`) Standard error threshold for convergence detection.
@@ -63,10 +62,8 @@ SAGE = R6Class(
 			resampling = NULL,
 			features = NULL,
 			n_permutations = 10L,
-			reference_data = NULL,
 			batch_size = 5000L,
 			sampler = NULL,
-			max_reference_size = 100L,
 			early_stopping = FALSE,
 			convergence_threshold = 0.01,
 			se_threshold = Inf,
@@ -99,24 +96,10 @@ SAGE = R6Class(
 				self$sampler = sampler
 			}
 
-			# Use training data as reference if not provided
-			if (is.null(reference_data)) {
-				self$reference_data = self$task$data(cols = self$task$feature_names)
-			} else {
-				self$reference_data = checkmate::assert_data_table(reference_data)
-			}
-
-			# Subsample reference data if it's too large for efficiency
-			if (!is.null(max_reference_size) && nrow(self$reference_data) > max_reference_size) {
-				sample_idx = sample(nrow(self$reference_data), size = max_reference_size)
-				self$reference_data = self$reference_data[sample_idx, ]
-			}
-
 			# Set parameters
 			ps = ps(
 				n_permutations = paradox::p_int(lower = 1L, default = 10L),
 				batch_size = paradox::p_int(lower = 1L, default = 5000L),
-				max_reference_size = paradox::p_int(lower = 1L, default = 100L),
 				early_stopping = paradox::p_lgl(default = FALSE),
 				convergence_threshold = paradox::p_dbl(lower = 0, upper = 1, default = 0.01),
 				se_threshold = paradox::p_dbl(lower = 0, default = Inf),
@@ -125,7 +108,6 @@ SAGE = R6Class(
 			)
 			ps$values$n_permutations = n_permutations
 			ps$values$batch_size = batch_size
-			ps$values$max_reference_size = max_reference_size
 			ps$values$early_stopping = early_stopping
 			ps$values$convergence_threshold = convergence_threshold
 			ps$values$se_threshold = se_threshold
@@ -189,6 +171,8 @@ SAGE = R6Class(
 				store_models = TRUE,
 				store_backends = store_backends
 			)
+			# Store results
+			self$resample_result = rr
 
 			# For convergence tracking, we'll use the first resampling iteration
 			# (convergence is about permutation count, not resampling)
@@ -237,8 +221,6 @@ SAGE = R6Class(
 			# Combine results across resampling iterations
 			scores = rbindlist(all_scores, idcol = "iter_rsmp")
 
-			# Store results
-			self$resample_result = rr
 			# iter_rsmp, feature, importance -- score_baseline or so don't apply here
 			private$.scores = scores
 		},
@@ -269,7 +251,7 @@ SAGE = R6Class(
 					ggplot2::aes(ymin = importance - se, ymax = importance + se),
 					alpha = 1 / 3
 				) +
-				ggplot2::geom_line(size = 1) +
+				ggplot2::geom_line(linewidth = 1) +
 				ggplot2::geom_point(size = 2) +
 				ggplot2::labs(
 					title = "SAGE Value Convergence",
@@ -555,6 +537,101 @@ SAGE = R6Class(
 			)
 		},
 
+		.marginalize_features = function(test_data, reference_data, marginalize_features) {
+			# Abstract method - must be implemented by subclasses
+			cli::cli_abort(c(
+				"Abstract method: {.fun marginalize_features} must be implemented by subclasses.",
+				"i" = "Use {.cls MarginalSAGE} or {.cls ConditionalSAGE} instead of the abstract {.cls SAGE} class."
+			))
+		}
+	)
+)
+
+#' @title Marginal SAGE
+#'
+#' @description [SAGE] with marginal sampling (features are marginalized independently).
+#' This is the standard SAGE implementation.
+#'
+#' @seealso [ConditionalSAGE]
+#'
+#' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
+#' library(mlr3)
+#' task = tgen("friedman1")$generate(n = 100)
+#' sage = MarginalSAGE$new(
+#'   task = task,
+#'   learner = lrn("regr.ranger", num.trees = 50),
+#'   measure = msr("regr.mse"),
+#'   n_permutations = 3L
+#' )
+#' sage$compute()
+#'
+#' # Use batching for memory efficiency with large datasets
+#' sage$compute(batch_size = 1000)
+#' @export
+MarginalSAGE = R6Class(
+	"MarginalSAGE",
+	inherit = SAGE,
+	public = list(
+		#' @description
+		#' Creates a new instance of the MarginalSAGE class.
+		#' @param task,learner,measure,resampling,features,n_permutations,reference_data,batch_size,max_reference_size,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
+		initialize = function(
+			task,
+			learner,
+			measure,
+			resampling = NULL,
+			features = NULL,
+			n_permutations = 10L,
+			reference_data = NULL,
+			batch_size = 5000L,
+			max_reference_size = 100L,
+			early_stopping = FALSE,
+			convergence_threshold = 0.01,
+			se_threshold = Inf,
+			min_permutations = 10L,
+			check_interval = 2L
+		) {
+			# No need to initialize sampler as marginal sampling is done differently here
+			super$initialize(
+				task = task,
+				learner = learner,
+				measure = measure,
+				resampling = resampling,
+				features = features,
+				n_permutations = n_permutations,
+				batch_size = batch_size,
+				early_stopping = early_stopping,
+				convergence_threshold = convergence_threshold,
+				se_threshold = se_threshold,
+				min_permutations = min_permutations,
+				check_interval = check_interval
+			)
+			# Use training data as reference if not provided
+			if (is.null(reference_data)) {
+				self$reference_data = self$task$data(cols = self$task$feature_names)
+			} else {
+				self$reference_data = checkmate::assert_data_table(reference_data)
+			}
+
+			# Subsample reference data if it's too large for efficiency
+			if (!is.null(max_reference_size) && nrow(self$reference_data) > max_reference_size) {
+				sample_idx = sample(nrow(self$reference_data), size = max_reference_size)
+				self$reference_data = self$reference_data[sample_idx, ]
+			}
+
+			# Add params specifi to marginal sampling
+			ps = ps(
+				max_reference_size = paradox::p_int(lower = 1L, default = 100L)
+			)
+			ps$values$max_reference_size = max_reference_size
+
+			self$param_set = paradox::ps_union(list(self$param_set, ps))
+
+			self$label = "Marginal SAGE"
+		}
+	),
+
+	private = list(
 		.evaluate_coalitions_batch = function(learner, test_dt, all_coalitions, batch_size = NULL) {
 			# This function evaluates the model's performance (loss) for a batch of feature coalitions.
 			# It constructs expanded datasets for each coalition and then processes them in batches for prediction.
@@ -765,83 +842,6 @@ SAGE = R6Class(
 		},
 
 		.marginalize_features = function(test_data, reference_data, marginalize_features) {
-			# Abstract method - must be implemented by subclasses
-			cli::cli_abort(c(
-				"Abstract method: {.fun marginalize_features} must be implemented by subclasses.",
-				"i" = "Use {.cls MarginalSAGE} or {.cls ConditionalSAGE} instead of the abstract {.cls SAGE} class."
-			))
-		}
-	)
-)
-
-#' @title Marginal SAGE
-#'
-#' @description [SAGE] with marginal sampling (features are marginalized independently).
-#' This is the standard SAGE implementation.
-#'
-#' @seealso [ConditionalSAGE]
-#'
-#' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
-#' library(mlr3)
-#' task = tgen("friedman1")$generate(n = 100)
-#' sage = MarginalSAGE$new(
-#'   task = task,
-#'   learner = lrn("regr.ranger", num.trees = 50),
-#'   measure = msr("regr.mse"),
-#'   n_permutations = 3L
-#' )
-#' sage$compute()
-#'
-#' # Use batching for memory efficiency with large datasets
-#' sage$compute(batch_size = 1000)
-#' @export
-MarginalSAGE = R6Class(
-	"MarginalSAGE",
-	inherit = SAGE,
-	public = list(
-		#' @description
-		#' Creates a new instance of the MarginalSAGE class.
-		#' @param task,learner,measure,resampling,features,n_permutations,reference_data,batch_size,max_reference_size,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
-		initialize = function(
-			task,
-			learner,
-			measure,
-			resampling = NULL,
-			features = NULL,
-			n_permutations = 10L,
-			reference_data = NULL,
-			batch_size = 5000L,
-			max_reference_size = 100L,
-			early_stopping = FALSE,
-			convergence_threshold = 0.01,
-			se_threshold = Inf,
-			min_permutations = 10L,
-			check_interval = 2L
-		) {
-			# No need to initialize sampler as marginal sampling is done differently here
-			super$initialize(
-				task = task,
-				learner = learner,
-				measure = measure,
-				resampling = resampling,
-				features = features,
-				n_permutations = n_permutations,
-				reference_data = reference_data,
-				batch_size = batch_size,
-				max_reference_size = max_reference_size,
-				early_stopping = early_stopping,
-				convergence_threshold = convergence_threshold,
-				se_threshold = se_threshold,
-				min_permutations = min_permutations,
-				check_interval = check_interval
-			)
-
-			self$label = "Marginal SAGE"
-		}
-	),
-
-	private = list(
-		.marginalize_features = function(test_data, reference_data, marginalize_features) {
 			# Marginal sampling implementation: replace with reference data
 			test_data[,
 				(marginalize_features) := reference_data[, .SD, .SDcols = marginalize_features]
@@ -878,7 +878,7 @@ ConditionalSAGE = R6Class(
 	public = list(
 		#' @description
 		#' Creates a new instance of the ConditionalSAGE class.
-		#' @param task,learner,measure,resampling,features,n_permutations,reference_data,batch_size,max_reference_size,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
+		#' @param task,learner,measure,resampling,features,n_permutations,batch_size,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
 		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to [ARFSampler].
 		initialize = function(
 			task,
@@ -887,10 +887,8 @@ ConditionalSAGE = R6Class(
 			resampling = NULL,
 			features = NULL,
 			n_permutations = 10L,
-			reference_data = NULL,
 			sampler = NULL,
 			batch_size = 5000L,
-			max_reference_size = 100L,
 			early_stopping = FALSE,
 			convergence_threshold = 0.01,
 			se_threshold = Inf,
@@ -914,10 +912,8 @@ ConditionalSAGE = R6Class(
 				resampling = resampling,
 				features = features,
 				n_permutations = n_permutations,
-				reference_data = reference_data,
 				sampler = sampler,
 				batch_size = batch_size,
-				max_reference_size = max_reference_size,
 				early_stopping = early_stopping,
 				convergence_threshold = convergence_threshold,
 				se_threshold = se_threshold,
@@ -930,56 +926,44 @@ ConditionalSAGE = R6Class(
 	),
 
 	private = list(
-		# ConditionalSAGE uses a more efficient approach that avoids expanding data unnecessarily
+		# ConditionalSAGE: No reference data expansion needed
+		# The conditional sampler already models P(X_{-S} | X_S)
 		.evaluate_coalitions_batch = function(learner, test_dt, all_coalitions, batch_size = NULL) {
 			n_coalitions = length(all_coalitions)
 			n_test = nrow(test_dt)
-			n_reference = nrow(self$reference_data)
 
 			if (xplain_opt("debug")) {
 				cli::cli_inform("Evaluating {.val {length(all_coalitions)}} coalitions (ConditionalSAGE)")
 			}
 
-			# Pre-allocate list for expanded data
-			all_expanded_data = vector("list", n_coalitions)
+			# Pre-allocate list for coalition data (NO expansion!)
+			all_coalition_data = vector("list", n_coalitions)
 
-			# For each coalition, do conditional sampling BEFORE expansion
+			# For each coalition, sample from conditional distribution
 			for (i in seq_along(all_coalitions)) {
 				coalition = all_coalitions[[i]]
 				marginalize_features = setdiff(self$features, coalition)
 
 				if (length(marginalize_features) > 0) {
-					# Sample conditionally for unique test instances
-					conditioning_set = coalition
-					sampled_data = self$sampler$sample_newdata(
+					# Sample conditionally - returns test_dt with marginalized features replaced
+					marginalized_test = self$sampler$sample_newdata(
 						feature = marginalize_features,
 						newdata = test_dt,
-						conditioning_set = conditioning_set
+						conditioning_set = coalition
 					)
-
-					# Create the marginalized test data
-					marginalized_test = copy(test_dt)
-					marginalized_test[,
-						(marginalize_features) := sampled_data[, marginalize_features, with = FALSE]
-					]
 				} else {
 					# No marginalization needed
 					marginalized_test = copy(test_dt)
 				}
 
-				# NOW expand with reference data (only once, with correct values)
-				test_expanded = marginalized_test[rep(seq_len(n_test), each = n_reference)]
-				reference_expanded = self$reference_data[rep(seq_len(n_reference), times = n_test)]
+				# Add coalition ID for tracking
+				marginalized_test[, .coalition_id := i]
 
-				# Add tracking IDs
-				test_expanded[, .coalition_id := i]
-				test_expanded[, .test_instance_id := rep(seq_len(n_test), each = n_reference)]
-
-				all_expanded_data[[i]] = test_expanded
+				all_coalition_data[[i]] = marginalized_test
 			}
 
-			# Rest of the method is the same as base implementation
-			combined_data = rbindlist(all_expanded_data)
+			# Combine all coalition data
+			combined_data = rbindlist(all_coalition_data)
 			total_rows = nrow(combined_data)
 
 			# Process data in batches if needed
@@ -1049,7 +1033,7 @@ ConditionalSAGE = R6Class(
 				combined_predictions[is.na(combined_predictions)] = 0
 			}
 
-			# Aggregate predictions by coalition and test instance
+			# Add predictions to combined_data
 			if (self$task$task_type == "classif") {
 				n_classes = ncol(combined_predictions)
 				class_names = colnames(combined_predictions)
@@ -1057,34 +1041,20 @@ ConditionalSAGE = R6Class(
 				for (j in seq_len(n_classes)) {
 					combined_data[, paste0(".pred_class_", j) := combined_predictions[, j]]
 				}
-
-				agg_cols = paste0(".pred_class_", seq_len(n_classes))
-				avg_preds_by_coalition = combined_data[,
-					lapply(.SD, function(x) mean(x, na.rm = TRUE)),
-					.SDcols = agg_cols,
-					by = .(.coalition_id, .test_instance_id)
-				]
-
-				setnames(avg_preds_by_coalition, agg_cols, class_names)
 			} else {
 				combined_data[, .prediction := combined_predictions]
-
-				avg_preds_by_coalition = combined_data[,
-					.(
-						avg_pred = mean(.prediction, na.rm = TRUE)
-					),
-					by = .(.coalition_id, .test_instance_id)
-				]
 			}
 
-			# Calculate loss for each coalition
+			# Calculate loss for each coalition (NO averaging needed!)
 			coalition_losses = numeric(n_coalitions)
 			for (i in seq_len(n_coalitions)) {
-				coalition_data = avg_preds_by_coalition[.coalition_id == i]
+				coalition_data = combined_data[.coalition_id == i]
 
 				if (self$task$task_type == "classif") {
 					class_names = self$task$class_names
-					prob_matrix = as.matrix(coalition_data[, .SD, .SDcols = class_names])
+					prob_cols = paste0(".pred_class_", seq_len(n_classes))
+					prob_matrix = as.matrix(coalition_data[, .SD, .SDcols = prob_cols])
+					colnames(prob_matrix) = class_names
 
 					pred_obj = PredictionClassif$new(
 						row_ids = seq_len(n_test),
@@ -1095,7 +1065,7 @@ ConditionalSAGE = R6Class(
 					pred_obj = PredictionRegr$new(
 						row_ids = seq_len(n_test),
 						truth = test_dt[[self$task$target_names]],
-						response = coalition_data$avg_pred
+						response = coalition_data$.prediction
 					)
 				}
 
