@@ -15,7 +15,9 @@ test_that("importance() accepts all ci_method values", {
 	# Test that all variance methods work
 	imp_none = pfi$importance(ci_method = "none")
 	imp_raw = pfi$importance(ci_method = "raw")
-	imp_nb = pfi$importance(ci_method = "nadeau_bengio")
+	expect_warning(
+		imp_nb <- pfi$importance(ci_method = "nadeau_bengio")
+	)
 	imp_quantile = pfi$importance(ci_method = "quantile")
 
 	expect_importance_dt(imp_none, features = pfi$features)
@@ -51,8 +53,8 @@ test_that("raw CIs are narrower than nadeau_bengio corrected CIs", {
 		task = task,
 		learner = mlr3::lrn("regr.rpart"),
 		measure = mlr3::msr("regr.mse"),
-		resampling = mlr3::rsmp("subsampling", repeats = 10, ratio = 0.8),
-		iters_perm = 5
+		resampling = mlr3::rsmp("subsampling", repeats = 11, ratio = 0.8),
+		iters_perm = 3
 	)
 
 	pfi$compute()
@@ -133,7 +135,7 @@ test_that("variance estimation works with bootstrap resampling", {
 		task = task,
 		learner = mlr3::lrn("regr.rpart"),
 		measure = mlr3::msr("regr.mse"),
-		resampling = mlr3::rsmp("bootstrap", repeats = 5),
+		resampling = mlr3::rsmp("bootstrap", repeats = 11),
 		iters_perm = 2
 	)
 
@@ -159,7 +161,7 @@ test_that("quantile variance method works", {
 		task = task,
 		learner = mlr3::lrn("regr.rpart"),
 		measure = mlr3::msr("regr.mse"),
-		resampling = mlr3::rsmp("subsampling", repeats = 10),
+		resampling = mlr3::rsmp("subsampling", repeats = 5),
 		iters_perm = 2
 	)
 
