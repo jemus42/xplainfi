@@ -152,10 +152,8 @@ In <em>Advances in Neural Information Processing Systems</em>, volume 33, 17212â
 <span>  resampling <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  features <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n_permutations <span class="op">=</span> <span class="fl">10L</span>,</span>
-<span>  reference_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  batch_size <span class="op">=</span> <span class="fl">5000L</span>,</span>
 <span>  sampler <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  max_reference_size <span class="op">=</span> <span class="fl">100L</span>,</span>
 <span>  early_stopping <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  convergence_threshold <span class="op">=</span> <span class="fl">0.01</span>,</span>
 <span>  se_threshold <span class="op">=</span> <span class="cn">Inf</span>,</span>
@@ -175,21 +173,12 @@ In <em>Advances in Neural Information Processing Systems</em>, volume 33, 17212â
 The total number of evaluated coalitions is <code>1 (empty) + n_permutations * n_features</code>.</p></dd>
 
 
-<dt><code>reference_data</code></dt>
-<dd><p>(<code><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></code> | <code>NULL</code>) Optional reference dataset. If <code>NULL</code>, uses training data.
-For each coalition to evaluate, an expanded datasets of size <code>n_test * n_reference</code> is created and evaluted in batches of <code>batch_size</code>.</p></dd>
-
-
 <dt><code>batch_size</code></dt>
 <dd><p>(<code>integer(1): 5000L</code>) Maximum number of observations to process in a single prediction call.</p></dd>
 
 
 <dt><code>sampler</code></dt>
 <dd><p>(<a href="FeatureSampler.html">FeatureSampler</a>) Sampler for marginalization. Only relevant for <code>ConditionalSAGE</code>.</p></dd>
-
-
-<dt><code>max_reference_size</code></dt>
-<dd><p>(<code>integer(1): 100L</code>) Maximum size of reference dataset. If reference is larger, it will be subsampled.</p></dd>
 
 
 <dt><code>early_stopping</code></dt>
@@ -210,6 +199,11 @@ For each coalition to evaluate, an expanded datasets of size <code>n_test * n_re
 
 <dt><code>check_interval</code></dt>
 <dd><p>(<code>integer(1): 2L</code>) Check convergence every N permutations.</p></dd>
+
+
+<dt><code>reference_data</code></dt>
+<dd><p>(<code><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></code> | <code>NULL</code>) Optional reference dataset. If <code>NULL</code>, uses training data.
+For each coalition to evaluate, an expanded datasets of size <code>n_test * n_reference</code> is created and evaluted in batches of <code>batch_size</code>.</p></dd>
 
 
 </dl><p></p></div>
