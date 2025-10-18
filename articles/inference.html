@@ -157,9 +157,9 @@ resamplings (<code>iter_perm</code> here).</p>
 <span><span class="co">#&gt; 2:      x2  0.097777103</span></span>
 <span><span class="co">#&gt; 3:      x3  1.801488945</span></span>
 <span><span class="co">#&gt; 4:      x4 -0.001099328</span></span></code></pre></div>
-<p>If we want <strong>unadjusted</strong> confidence intervals we can
-ask for them, but note these are too narrow / optimistic and hence
-invalid for inference:</p>
+<p>If we want <strong>unadjusted</strong> confidence intervals based on
+a t-distribution, we can ask for them, but note these are too narrow /
+optimistic and hence invalid for inference:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi_ci_raw</span> <span class="op">=</span> <span class="va">pfi</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span>ci_method <span class="op">=</span> <span class="st">"raw"</span><span class="op">)</span></span>
 <span><span class="va">pfi_ci_raw</span></span>
@@ -184,17 +184,15 @@ coverage:</p>
 <span><span class="co">#&gt; 2:      x2  0.097777103 0.0117749378  0.07252237 0.1230318328</span></span>
 <span><span class="co">#&gt; 3:      x3  1.801488945 0.0476069279  1.69938224 1.9035956504</span></span>
 <span><span class="co">#&gt; 4:      x4 -0.001099328 0.0009243869 -0.00308194 0.0008832851</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="non-parametric-alternative-empirical-quantiles">Non-parametric alternative: Empirical quantiles<a class="anchor" aria-label="anchor" href="#non-parametric-alternative-empirical-quantiles"></a>
-</h3>
+</div>
+<div class="section level2">
+<h2 id="empirical-quantiles">Empirical quantiles<a class="anchor" aria-label="anchor" href="#empirical-quantiles"></a>
+</h2>
 <p>Both <code>"raw"</code> and <code>"nadeau_bengio"</code> methods
 assume normally distributed importance scores and use parametric
-confidence intervals based on the t-distribution. As a non-parametric
-alternative, we can use empirical quantiles that directly use the
-resampling distribution to construct confidence-like intervals.</p>
-<p>Like the Nadeau &amp; Bengio approach, this method requires
-independent resampling splits. This means it works with subsampling or
-bootstrap, but not with cross-validation.</p>
+confidence intervals based on the t-distribution. As a alternative, we
+can use empirical quantiles to construct confidence-like intervals
+without any coverage guarantees.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi_ci_quantile</span> <span class="op">=</span> <span class="va">pfi</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span>ci_method <span class="op">=</span> <span class="st">"quantile"</span><span class="op">)</span></span>
 <span><span class="va">pfi_ci_quantile</span></span>
@@ -205,7 +203,7 @@ bootstrap, but not with cross-validation.</p>
 <span><span class="co">#&gt; 2:      x2  0.097777103  0.075868045 0.1226624975</span></span>
 <span><span class="co">#&gt; 3:      x3  1.801488945  1.692275614 1.8953539522</span></span>
 <span><span class="co">#&gt; 4:      x4 -0.001099328 -0.003684845 0.0005401245</span></span></code></pre></div>
-<p>To highlight the differences between parametric and non-parametric
+<p>To highlight the differences between parametric and empirical
 approaches, we visualize all methods:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi_cis</span> <span class="op">=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/rbindlist.html" class="external-link">rbindlist</a></span><span class="op">(</span></span>
@@ -235,7 +233,6 @@ approaches, we visualize all methods:</p>
 <p><img src="inference_files/figure-html/pfi-ci-comparison-1.png" width="768"></p>
 <p>The results highlight just how optimistic the unadjusted, raw
 confidence intervals are.</p>
-</div>
 </div>
 <div class="section level2">
 <h2 id="conditional-predictive-impact-cpi">Conditional predictive impact (CPI)<a class="anchor" aria-label="anchor" href="#conditional-predictive-impact-cpi"></a>
