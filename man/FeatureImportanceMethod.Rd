@@ -170,7 +170,7 @@ is used to accounter for learner variance and neccessitates variance correction 
 
 This appraoch can in principle also be applied to \code{CFI} and \code{RFI}, but beware that a conditional sample such as \link{ARFSampler} also needs to be trained on data,
 which would need to be taken account by the variance estimation method.
-Analogously, the \code{"nadeau_bengio"} correction was recommended for the use with \link{PFI} by Molnar et al., so it's use with \link{LOCO} or \link{MarginalSAGE} is experimental.
+Analogously, the \code{"nadeau_bengio"} correction was recommended for the use with \link{PFI} by Molnar et al., so its use with other methods like \link{LOCO} or \link{SAGE} is experimental.
 
 Note that even if \code{measure} uses an \code{aggregator} function that is not the mean, variance estimation currently will always use \code{\link[=mean]{mean()}} and \code{\link[=var]{var()}}.
 }

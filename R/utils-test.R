@@ -1,13 +1,12 @@
-#' @noRd
 #' Fisher test wrapper extracted from cpi pkg
 #' Only performs one sided test
+#' @noRd
 fisher_one_sided <- function(
 	x,
 	B = 1999,
 	conf.level = 0.95,
 	...
 ) {
-	# browser()
 	orig_mean = mean(x)
 	# B permutations
 	perm_means = replicate(B, {
