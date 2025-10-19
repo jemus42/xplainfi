@@ -2,5 +2,33 @@
   "model_performance": {
     "r_squared": 0.8361
   },
-  "feature_names": []
+  "feature_names": ["x1", "x2", "x3", "x4", "x5"],
+  "PFI": {
+    "feature": ["x1", "x2", "x3", "x4", "x5"],
+    "importance": [-0.0003, -0.0004, 0.0025, 0.8245, 0.399],
+    "std": [0, 0, 0, 0, 0]
+  },
+  "CFI": {
+    "feature": ["x1", "x2", "x3", "x4", "x5"],
+    "importance": [-0.0002, 0.0001, 0.001, 0.4376, 0.3555],
+    "std": [0, 0, 0, 0, 0]
+  },
+  "RFI": {
+    "feature": ["x1", "x2", "x3", "x4", "x5"],
+    "importance": [-0.0004, -0.0002, -0, 0.453, 0.3565],
+    "std": [0, 0, 0, 0, 0],
+    "conditioning_set": [
+      "x3"
+    ]
+  },
+  "SAGE_Marginal": {
+    "feature": ["x1", "x2", "x3", "x4", "x5"],
+    "importance": [0.0004, 0.0007, -0.0014, 0.4385, 0.1979],
+    "std": [0, 0, 0, 0, 0]
+  },
+  "SAGE_Conditional": {
+    "feature": ["x1", "x2", "x3", "x4", "x5"],
+    "importance": [0.0012, 0.001, 0.1057, 0.3316, 0.1943],
+    "std": [0, 0, 0, 0, 0]
+  }
 }
