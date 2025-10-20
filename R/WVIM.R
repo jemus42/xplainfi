@@ -94,7 +94,6 @@ WVIM = R6Class(
 		# Compute baseline scores for WVIM, which depend on the direction
 		# "leave-out" -> baseline is the "full" model with all features in the task used
 		# "leave-in" -> baseline is the "empty" model, so we swap in the featureless learner
-
 		.compute_baseline = function(store_models = TRUE, store_backends = TRUE) {
 			# Correct featureless learner depends on task type, there's no "surv.featureless" though
 			learner = switch(
@@ -107,7 +106,7 @@ WVIM = R6Class(
 				self$task,
 				learner,
 				self$resampling,
-				store_models = TRUE,
+				store_models = store_models,
 				store_backends = store_backends
 			)
 			# Prepare baseline scores
@@ -117,6 +116,7 @@ WVIM = R6Class(
 			]
 			setnames(scores_baseline, old = self$measure$id, "score_baseline")
 			setnames(scores_baseline, old = "iteration", "iter_rsmp")
+			scores_baseline[]
 		},
 
 		.compute_wvim = function(design, store_backends) {
@@ -227,7 +227,7 @@ WVIM = R6Class(
 #' the performance difference (reduced_model_loss - full_model_loss) indicates the
 #' feature's importance. Higher values indicate more important features.
 #'
-#' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", uietly = TRUE)
+#' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
 #' @export
 #'
 #' @references `r print_bib("lei_2018")`

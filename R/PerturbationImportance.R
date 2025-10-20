@@ -67,6 +67,24 @@ PerturbationImportance = R6Class(
 	),
 
 	private = list(
+		.compute_baseline = function(store_models = TRUE, store_backends = TRUE) {
+			self$resample_result = resample(
+				self$task,
+				self$learner,
+				self$resampling,
+				store_models = store_models,
+				store_backends = store_backends
+			)
+			# Prepare baseline scores
+			scores_baseline = self$resample_result$score(self$measure)[,
+				.SD,
+				.SDcols = c("iteration", self$measure$id)
+			]
+			setnames(scores_baseline, old = self$measure$id, "score_baseline")
+			setnames(scores_baseline, old = "iteration", "iter_rsmp")
+			scores_baseline[]
+		},
+
 		# Common computation method for all perturbation-based methods
 		.compute_perturbation_importance = function(
 			iters_perm = NULL,
@@ -78,23 +96,7 @@ PerturbationImportance = R6Class(
 
 			iters_perm = resolve_param(iters_perm, self$param_set$values$iters_perm, 1L)
 
-			# Initial resampling
-			self$resample_result = resample(
-				self$task,
-				self$learner,
-				self$resampling,
-				store_models = TRUE,
-				store_backends = store_backends
-			)
-
-			# Prepare baseline scores
-			scores_baseline = self$resample_result$score(self$measure)[,
-				.SD,
-				.SDcols = c("iteration", self$measure$id)
-			]
-
-			setnames(scores_baseline, old = self$measure$id, "score_baseline")
-			setnames(scores_baseline, old = "iteration", "iter_rsmp")
+			scores_baseline = private$.compute_baseline(store_backends = store_backends)
 
 			# Get predictions for each resampling iter, permutation iter, feature
 			# Create progress bar that tracks resampling_iter × feature/group combinations

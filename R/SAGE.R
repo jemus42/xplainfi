@@ -286,6 +286,8 @@ SAGE = R6Class(
 	),
 
 	private = list(
+		# This function computes the SAGE values for a single resampling iteration.
+		# It iterates through permutations of features, evaluates coalitions, and calculates marginal contributions.
 		.compute_sage_scores = function(
 			learner,
 			test_dt,
@@ -296,9 +298,6 @@ SAGE = R6Class(
 			min_permutations = 10L,
 			check_interval = 5L
 		) {
-			# This function computes the SAGE values for a single resampling iteration.
-			# It iterates through permutations of features, evaluates coalitions, and calculates marginal contributions.
-
 			# Initialize numeric vectors to store marginal contributions and their squares for variance calculation.
 			# We track both sum and sum of squares to calculate running variance and standard errors.
 			sage_values = numeric(length(self$features)) # Sum of marginal contributions
