@@ -295,7 +295,7 @@ directly via <code>ci_method = "cpi"</code>:</p>
 <span></span>
 <span><span class="va">cfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># CPI uses observation-wise losses with one-sided t-test</span></span>
+<span><span class="co"># CPI uses observation-wise losses with one-sided t-test by default</span></span>
 <span><span class="va">cfi_cpi_res</span> <span class="op">=</span> <span class="va">cfi</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span>ci_method <span class="op">=</span> <span class="st">"cpi"</span><span class="op">)</span></span>
 <span><span class="va">cfi_cpi_res</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
@@ -402,8 +402,78 @@ than knockoffs (CITE cARFi), which we can perform analogously:</p>
 <p><img src="inference_files/figure-html/cpi-cfi-arf-plot-1.png" width="768"></p>
 <p>As expected, the ARF-based approach differs more from both
 knockoff-based approaches, but they are all roughly in agreement.</p>
-<p><strong>Note</strong>: <code>xplainfi</code> will gain a dedicated
-interface to perform CPI, but the API is yet to be worked out.</p>
+</div>
+<div class="section level3">
+<h3 id="statistical-tests-with-cpi">Statistical tests with CPI<a class="anchor" aria-label="anchor" href="#statistical-tests-with-cpi"></a>
+</h3>
+<p>CPI can also perform additional tests besides the default t-test,
+specifically the Wilcoxon-, Fisher-, or binomial test:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">cpi_res_wilcoxon</span> <span class="op">=</span> <span class="va">cfi_arf</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span>ci_method <span class="op">=</span> <span class="st">"cpi"</span>, test <span class="op">=</span> <span class="st">"wilcoxon"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;    feature   importance           se statistic       p.value    conf_lower</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;        &lt;num&gt;        &lt;num&gt;     &lt;num&gt;         &lt;num&gt;         &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      x1  4.149913006 0.1377986710   1953168 3.197552e-300  2.5735972794</span></span>
+<span><span class="co">#&gt; 2:      x2  0.005623742 0.0036623984    996111  4.596996e-01 -0.0007400569</span></span>
+<span><span class="co">#&gt; 3:      x3  1.703418858 0.0547593855   1920472 3.391302e-281  1.1199481160</span></span>
+<span><span class="co">#&gt; 4:      x4 -0.002416235 0.0007663808    925012  9.969228e-01 -0.0010816297</span></span>
+<span><span class="co">#&gt;    conf_upper</span></span>
+<span><span class="co">#&gt;         &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:        Inf</span></span>
+<span><span class="co">#&gt; 2:        Inf</span></span>
+<span><span class="co">#&gt; 3:        Inf</span></span>
+<span><span class="co">#&gt; 4:        Inf</span></span>
+<span><span class="co"># Fisher test with same default for B as in cpi()</span></span>
+<span><span class="op">(</span><span class="va">cpi_res_fisher</span> <span class="op">=</span> <span class="va">cfi_arf</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span>ci_method <span class="op">=</span> <span class="st">"cpi"</span>, test <span class="op">=</span> <span class="st">"fisher"</span>, B <span class="op">=</span> <span class="fl">1999</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;    feature   importance           se p.value    conf_lower conf_upper</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;        &lt;num&gt;        &lt;num&gt;   &lt;num&gt;         &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      x1  4.149913006 0.1377986710  0.0005  3.8780286017        Inf</span></span>
+<span><span class="co">#&gt; 2:      x2  0.005623742 0.0036623984  0.0610 -0.0002858068        Inf</span></span>
+<span><span class="co">#&gt; 3:      x3  1.703418858 0.0547593855  0.0005  1.5933941551        Inf</span></span>
+<span><span class="co">#&gt; 4:      x4 -0.002416235 0.0007663808  0.9990 -0.0036882231        Inf</span></span>
+<span><span class="op">(</span><span class="va">cpi_res_binom</span> <span class="op">=</span> <span class="va">cfi_arf</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span>ci_method <span class="op">=</span> <span class="st">"cpi"</span>, test <span class="op">=</span> <span class="st">"binomial"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
+<span><span class="co">#&gt;    feature   importance           se statistic       p.value conf_lower</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;        &lt;num&gt;        &lt;num&gt;     &lt;num&gt;         &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      x1  4.149913006 0.1377986710      1814  0.000000e+00  0.8956202</span></span>
+<span><span class="co">#&gt; 2:      x2  0.005623742 0.0036623984       997  5.621878e-01  0.4798705</span></span>
+<span><span class="co">#&gt; 3:      x3  1.703418858 0.0547593855      1751 7.085586e-278  0.8626974</span></span>
+<span><span class="co">#&gt; 4:      x4 -0.002416235 0.0007663808       962  9.574574e-01  0.4624027</span></span>
+<span><span class="co">#&gt;    conf_upper</span></span>
+<span><span class="co">#&gt;         &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:        Inf</span></span>
+<span><span class="co">#&gt; 2:        Inf</span></span>
+<span><span class="co">#&gt; 3:        Inf</span></span>
+<span><span class="co">#&gt; 4:        Inf</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/rbindlist.html" class="external-link">rbindlist</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>        <span class="va">cfi_arf</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span>ci_method <span class="op">=</span> <span class="st">"cpi"</span><span class="op">)</span><span class="op">[</span>, <span class="va">test</span> <span class="op">:=</span> <span class="st">"t"</span><span class="op">]</span>,</span>
+<span>        <span class="va">cpi_res_wilcoxon</span><span class="op">[</span>, <span class="va">test</span> <span class="op">:=</span> <span class="st">"Wilcoxon"</span><span class="op">]</span>,</span>
+<span>        <span class="va">cpi_res_fisher</span><span class="op">[</span>, <span class="va">test</span> <span class="op">:=</span> <span class="st">"Fisher"</span><span class="op">]</span>,</span>
+<span>        <span class="va">cpi_res_binom</span><span class="op">[</span>, <span class="va">test</span> <span class="op">:=</span> <span class="st">"Binomial"</span><span class="op">]</span></span>
+<span>    <span class="op">)</span>,</span>
+<span>    fill <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">feature</span>, x <span class="op">=</span> <span class="va">importance</span>, color <span class="op">=</span> <span class="va">test</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>position <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/position_dodge.html" class="external-link">position_dodge</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_errorbar</a></span><span class="op">(</span></span>
+<span>        <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="va">importance</span>, xmax <span class="op">=</span> <span class="va">conf_lower</span><span class="op">)</span>,</span>
+<span>        position <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/position_dodge.html" class="external-link">position_dodge</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span>,</span>
+<span>        width <span class="op">=</span> <span class="fl">0.5</span></span>
+<span>    <span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_color_brewer</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Dark2"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
+<span>        title <span class="op">=</span> <span class="st">"CPI test with CFI/ARF"</span>,</span>
+<span>        subtitle <span class="op">=</span> <span class="st">"RF with 5-fold CV"</span>,</span>
+<span>        color <span class="op">=</span> <span class="st">"Test"</span></span>
+<span>    <span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="inference_files/figure-html/cpi-tests-1.png" width="768"></p>
+<p>Given the width of the resulting confidence intervals, the Fisher- or
+t-test are generally recommended.</p>
 </div>
 </div>
 <div class="section level2">
@@ -420,14 +490,14 @@ differences of the baseline- and post-refit loss differences</p>
 using the median absolute error (MAE) as our measure including the
 median as the aggregation function, we unfortunately get something else,
 though:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">measure_mae</span> <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mae"</span><span class="op">)</span></span>
 <span><span class="va">measure_mae</span><span class="op">$</span><span class="va">aggregator</span> <span class="op">=</span> <span class="va">median</span></span>
 <span></span>
 <span><span class="va">loco</span> <span class="op">=</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>    task <span class="op">=</span> <span class="va">task</span>,</span>
 <span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
-<span>    resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>    resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"holdout"</span><span class="op">)</span>,</span>
 <span>    measure <span class="op">=</span> <span class="va">measure_mae</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -436,10 +506,10 @@ though:</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature importance</span></span>
 <span><span class="co">#&gt;     &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:      x1 0.99962897</span></span>
-<span><span class="co">#&gt; 2:      x2 0.04442239</span></span>
-<span><span class="co">#&gt; 3:      x3 0.63009668</span></span>
-<span><span class="co">#&gt; 4:      x4 0.04054127</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:      x1 1.04706532</span></span>
+<span><span class="co">#&gt; 2:      x2 0.04357239</span></span>
+<span><span class="co">#&gt; 3:      x3 0.62369361</span></span>
+<span><span class="co">#&gt; 4:      x4 0.05797203</span></span></code></pre></div>
 <p>This is <strong>not</strong> exactly what the authors propose,
 because <code>$score()</code> calculates the aggregation function
 (<code>median</code>) for each resampling iteration first, and takes the
@@ -454,17 +524,25 @@ matter whether we calculate the difference of the means or the mean of
 the differences, but using the median it does.</p>
 <p>We can, however, reconstruct it by using the observation-wise losses
 (in this case, the absolute error):</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">loco_obsloss</span> <span class="op">=</span> <span class="va">loco</span><span class="op">$</span><span class="fu">obs_loss</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">loco_obsloss</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    feature iter_rsmp iter_repeat row_ids loss_baseline loss_post obs_importance</span></span>
-<span><span class="co">#&gt;     &lt;char&gt;     &lt;int&gt;       &lt;num&gt;   &lt;int&gt;         &lt;num&gt;     &lt;num&gt;          &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:      x1         1           1       5    0.26081483 1.0828744      0.8220595</span></span>
-<span><span class="co">#&gt; 2:      x1         1           1       8    0.07863945 1.4662680      1.3876286</span></span>
-<span><span class="co">#&gt; 3:      x1         1           1      18    0.12976167 0.9243277      0.7945660</span></span>
-<span><span class="co">#&gt; 4:      x1         1           1      19    0.14154518 1.3045495      1.1630043</span></span>
-<span><span class="co">#&gt; 5:      x1         1           1      20    0.25832021 0.4959166      0.2375964</span></span>
-<span><span class="co">#&gt; 6:      x1         1           1      21    0.18253098 0.7409787      0.5584477</span></span></code></pre></div>
+<span><span class="co">#&gt;    feature iter_rsmp iter_repeat row_ids loss_baseline  loss_post</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;     &lt;int&gt;       &lt;num&gt;   &lt;int&gt;         &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      x1         1           1       7    0.27047880 0.72892873</span></span>
+<span><span class="co">#&gt; 2:      x1         1           1      10    0.03289251 1.13795078</span></span>
+<span><span class="co">#&gt; 3:      x1         1           1      20    0.26357922 0.03211115</span></span>
+<span><span class="co">#&gt; 4:      x1         1           1      22    0.08341048 3.20233998</span></span>
+<span><span class="co">#&gt; 5:      x1         1           1      23    0.02031366 2.56714641</span></span>
+<span><span class="co">#&gt; 6:      x1         1           1      33    0.28275621 2.63031393</span></span>
+<span><span class="co">#&gt;    obs_importance</span></span>
+<span><span class="co">#&gt;             &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      0.4584499</span></span>
+<span><span class="co">#&gt; 2:      1.1050583</span></span>
+<span><span class="co">#&gt; 3:     -0.2314681</span></span>
+<span><span class="co">#&gt; 4:      3.1189295</span></span>
+<span><span class="co">#&gt; 5:      2.5468327</span></span>
+<span><span class="co">#&gt; 6:      2.3475577</span></span></code></pre></div>
 <p><code>obs_importance</code> here refers to the difference
 <code>loss_post - loss_baseline</code>, so</p>
 <ul>
@@ -478,28 +556,20 @@ the differences, but using the median it does.</p>
 can construct <span class="math inline">\(\theta_j(D_1)\)</span> as
 proposed, for each set <span class="math inline">\(D_k\)</span> where
 <span class="math inline">\(k\)</span> is the resampling iteration:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">loco_thetas</span> <span class="op">=</span> <span class="va">loco_obsloss</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">obs_importance</span><span class="op">)</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"feature"</span>, <span class="st">"iter_rsmp"</span><span class="op">)</span><span class="op">]</span></span>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">loco_thetas</span> <span class="op">=</span> <span class="va">loco_obsloss</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>theta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">obs_importance</span><span class="op">)</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"feature"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">loco_thetas</span></span>
-<span><span class="co">#&gt;     feature iter_rsmp      theta</span></span>
-<span><span class="co">#&gt;      &lt;char&gt;     &lt;int&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:      x1         1 0.89502517</span></span>
-<span><span class="co">#&gt;  2:      x1         2 0.86756440</span></span>
-<span><span class="co">#&gt;  3:      x1         3 0.77528481</span></span>
-<span><span class="co">#&gt;  4:      x2         1 0.02726682</span></span>
-<span><span class="co">#&gt;  5:      x2         2 0.02843028</span></span>
-<span><span class="co">#&gt;  6:      x2         3 0.01773224</span></span>
-<span><span class="co">#&gt;  7:      x3         1 0.51379135</span></span>
-<span><span class="co">#&gt;  8:      x3         2 0.54167072</span></span>
-<span><span class="co">#&gt;  9:      x3         3 0.56786544</span></span>
-<span><span class="co">#&gt; 10:      x4         1 0.01789627</span></span>
-<span><span class="co">#&gt; 11:      x4         2 0.03044097</span></span>
-<span><span class="co">#&gt; 12:      x4         3 0.02302404</span></span></code></pre></div>
+<span><span class="co">#&gt;    feature      theta</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      x1 0.88578537</span></span>
+<span><span class="co">#&gt; 2:      x2 0.02302372</span></span>
+<span><span class="co">#&gt; 3:      x3 0.56083787</span></span>
+<span><span class="co">#&gt; 4:      x4 0.02958038</span></span></code></pre></div>
 <p>The authors then propose to construct distribution-free confidence
 intervals, e.g. using a sign- or Wilcoxon test We can for example use
 [wilcoxon.test] to compute confidence intervals around the estimated
 pseudo-median:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">loco_wilcox_ci</span> <span class="op">=</span> <span class="va">loco_obsloss</span><span class="op">[</span>,</span>
 <span>    <span class="op">{</span></span>
 <span>        <span class="va">tt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/wilcox.test.html" class="external-link">wilcox.test</a></span><span class="op">(</span></span>
@@ -519,12 +589,12 @@ pseudo-median:</p>
 <span><span class="op">]</span></span>
 <span></span>
 <span><span class="va">loco_wilcox_ci</span></span>
-<span><span class="co">#&gt;    feature statistic   estimate       p.value conf_lower conf_upper</span></span>
-<span><span class="co">#&gt;     &lt;char&gt;     &lt;num&gt;      &lt;num&gt;         &lt;num&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:      x1   1943253 0.92960910 1.151861e-291 0.88933069 0.97052252</span></span>
-<span><span class="co">#&gt; 2:      x2   1262272 0.03119993  3.880922e-24 0.02514172 0.03730949</span></span>
-<span><span class="co">#&gt; 3:      x3   1891407 0.59426242 1.067356e-260 0.56662125 0.62207703</span></span>
-<span><span class="co">#&gt; 4:      x4   1351954 0.03074982  3.657070e-42 0.02623189 0.03538269</span></span></code></pre></div>
+<span><span class="co">#&gt;    feature statistic   estimate      p.value conf_lower conf_upper</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;     &lt;num&gt;      &lt;num&gt;        &lt;num&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      x1    216376 0.98333174 1.012597e-98 0.91080095 1.05819652</span></span>
+<span><span class="co">#&gt; 2:      x2    136782 0.02720829 3.386197e-07 0.01699831 0.03800531</span></span>
+<span><span class="co">#&gt; 3:      x3    211844 0.60057964 1.520715e-90 0.55405041 0.64783349</span></span>
+<span><span class="co">#&gt; 4:      x4    156376 0.04125450 1.618979e-19 0.03204118 0.05082657</span></span></code></pre></div>
 <p><strong>Note</strong>: The above approach needs checking with the
 literature to ensure it’s actually corresponding to what was proposed
 and the results are valid.</p>
