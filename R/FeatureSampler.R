@@ -583,7 +583,7 @@ KnockoffSampler = R6Class(
 			data_copy[, (feature) := NULL]
 			# Add a sequence number within each ..row_id group in data_copy
 			# Needed to match multiple instances per row_id if requested
-			data_copy[, seq_id := seq_len(.N), by = ..row_id]
+			data_copy[, ..seq_id := seq_len(.N), by = ..row_id]
 			# Count occurrences and sample from x_tilde
 			# if row_id is requested 4 times but it's present in x_tilde 10 times that must be downsampled
 			counts = data_copy[, .N, by = ..row_id]
@@ -606,19 +606,19 @@ KnockoffSampler = R6Class(
 				.SDcols = feature,
 				by = ..row_id
 			]
-			x_tilde_sampled[, seq_id := seq_len(.N), by = ..row_id]
+			x_tilde_sampled[, ..seq_id := seq_len(.N), by = ..row_id]
 
-			# Inner join on both ..row_id and seq_id
+			# Inner join on both ..row_id and ..seq_id
 			data_copy = data_copy[
 				x_tilde_sampled,
 				nomatch = 0L,
-				on = c("..row_id", "seq_id")
+				on = c("..row_id", "..seq_id")
 			]
 			# Need to ensure output has matching row ids
-			setorderv(data_copy, "seq_id")
+			setorderv(data_copy, "..seq_id")
 			checkmate::assert_true(all.equal(data_copy[["..row_id"]], row_ids))
 			data_copy[, ..row_id := NULL]
-			data_copy[, seq_id := NULL]
+			data_copy[, ..seq_id := NULL]
 
 			setcolorder(data_copy, self$task$feature_names)
 			data_copy[]

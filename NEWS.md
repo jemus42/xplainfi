@@ -1,4 +1,4 @@
-# xplainfi 0.1.0.9002
+# xplainfi 0.1.0.9003
 
 This turns out to be still a period of major changes in the early phase, so, uhm, well.
 
@@ -6,6 +6,8 @@ This turns out to be still a period of major changes in the early phase, so, uhm
 
 - `$importance` becomes a function `$importance()` with arguments `standardize` and `ci_method` (#40):
   - `"nadeau_bengio"` implements the correction method by Nadeau & Bengio (2003) recommended by Molnar et al. (2023).
+  - `"quantiles"` gives empirical quantiles covering `conf_level`.
+  - `"cpi"` implements CPI analogous to [cpi](https://bips-hb.github.io/cpi/articles/intro.html), supporting t-, Wilcoxon-, and Fisher tests.
 - `$scores` becomes `$scores()` for more fleixibility analogous to `$importance()`. Original scores are stored in `private$.scores` (for now).
 - Both `$importance()` and `$scores()` have argument `relation` defaulting to `"differrence"` which allows to calculate importances like PFI as either the difference or the ratio of baseline and post-modification loss. The argument is moved out of `$compute()` to avoid having to recompute any predictions or model refits.
 - Add `sim_dgp_ewald()` and other `sim_dgp_*()` helpers to simulate data (in `Task` form) with simple DGPs as used for illustration in Ewald et al. (2024) for example, which should make it easier to interpret the results of various importance methods.
@@ -45,6 +47,7 @@ This turns out to be still a period of major changes in the early phase, so, uhm
   - Now supports `row_ids`-based sampling from stored task data
   - Can be used with CFI (but not yet with RFI which requires `sample_newdata()`)
   - Add convenience wrappers `KnockoffGaussianSampler` and `KnockoffSequentialSampler`
+  - Added `iters` param to create multiple `x_tilde` up front, which then allow repeated samplings, so you can get multiple different knockoff values per row id
 
 ### `SAGE`
 
