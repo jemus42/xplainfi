@@ -252,7 +252,7 @@ PerturbationImportance = R6Class(
 					i = "Ensure {.code measure} has an {.fun $obs_loss} method."
 				))
 			}
-			if (class(self) != "CFI") {
+			if (class(self)[[1]] != "CFI") {
 				cli::cli_warn(c(
 					"!" = "CPI is only known to yield valid inference for {.cls CFI}.",
 					x = "Inference with {.cls PFI} is known to be invalid and other methods are not studied yet."
