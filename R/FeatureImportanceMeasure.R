@@ -178,12 +178,14 @@ FeatureImportanceMethod = R6Class(
 			aggregator = self$measure$aggregator %||% mean
 			scores = self$scores(relation = relation)
 
+			# FIXME: This had to be disabled to allow CPI with 1 holdout and 1 iter
+			# But t-based tests now fail because we get df = self$resample_result$iters - 1 = 0
 			# Skip aggregation if only one row per feature anyway
-			if (nrow(scores) == length(unique(scores$feature))) {
-				res = scores[, list(feature, importance)]
-				setkeyv(res, "feature")
-				return(res)
-			}
+			# if (nrow(scores) == length(unique(scores$feature))) {
+			# 	res = scores[, list(feature, importance)]
+			# 	setkeyv(res, "feature")
+			# 	return(res)
+			# }
 
 			# Standardize first so variance calculations use standardized values
 			if (standardize) {
