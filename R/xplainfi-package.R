@@ -9,6 +9,7 @@
 #' @importFrom mlr3 resample
 #' @importFrom paradox ps
 #' @importFrom R6 R6Class
+#' @importFrom stats binom.test
 #' @importFrom stats quantile
 #' @importFrom stats rnorm
 #' @importFrom stats runif
