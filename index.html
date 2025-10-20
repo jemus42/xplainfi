@@ -125,44 +125,44 @@
 <code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">pfi</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;          feature    importance</span></span>
-<span><span class="co">#&gt;           &lt;char&gt;         &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  7.9320281224</span></span>
-<span><span class="co">#&gt;  2:   important2  8.1368297554</span></span>
-<span><span class="co">#&gt;  3:   important3  1.9003588453</span></span>
-<span><span class="co">#&gt;  4:   important4 13.5083721272</span></span>
-<span><span class="co">#&gt;  5:   important5  2.2748507393</span></span>
-<span><span class="co">#&gt;  6: unimportant1 -0.0004293556</span></span>
-<span><span class="co">#&gt;  7: unimportant2  0.0219242406</span></span>
-<span><span class="co">#&gt;  8: unimportant3  0.0314298729</span></span>
-<span><span class="co">#&gt;  9: unimportant4  0.0091510237</span></span>
-<span><span class="co">#&gt; 10: unimportant5  0.0108304225</span></span></code></pre></div>
+<span><span class="co">#&gt;          feature   importance</span></span>
+<span><span class="co">#&gt;           &lt;char&gt;        &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:   important1  7.647695981</span></span>
+<span><span class="co">#&gt;  2:   important2  8.221675536</span></span>
+<span><span class="co">#&gt;  3:   important3  1.864822092</span></span>
+<span><span class="co">#&gt;  4:   important4 13.471577093</span></span>
+<span><span class="co">#&gt;  5:   important5  2.368559017</span></span>
+<span><span class="co">#&gt;  6: unimportant1 -0.015980444</span></span>
+<span><span class="co">#&gt;  7: unimportant2  0.007477719</span></span>
+<span><span class="co">#&gt;  8: unimportant3  0.004806562</span></span>
+<span><span class="co">#&gt;  9: unimportant4  0.019497114</span></span>
+<span><span class="co">#&gt; 10: unimportant5  0.001911799</span></span></code></pre></div>
 <p>If it aides interpretation, importances can also be calculates as the <em>ratio</em> rather then the <em>difference</em> between the baseline and post-permutation losses:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pfi</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span>relation <span class="op">=</span> <span class="st">"ratio"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;          feature importance</span></span>
 <span><span class="co">#&gt;           &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  2.6410386</span></span>
-<span><span class="co">#&gt;  2:   important2  2.6853106</span></span>
-<span><span class="co">#&gt;  3:   important3  1.3968261</span></span>
-<span><span class="co">#&gt;  4:   important4  3.8012909</span></span>
-<span><span class="co">#&gt;  5:   important5  1.4697651</span></span>
-<span><span class="co">#&gt;  6: unimportant1  0.9997936</span></span>
-<span><span class="co">#&gt;  7: unimportant2  1.0044383</span></span>
-<span><span class="co">#&gt;  8: unimportant3  1.0068725</span></span>
-<span><span class="co">#&gt;  9: unimportant4  1.0015174</span></span>
-<span><span class="co">#&gt; 10: unimportant5  1.0017192</span></span></code></pre></div>
+<span><span class="co">#&gt;  1:   important1  2.5799596</span></span>
+<span><span class="co">#&gt;  2:   important2  2.7087461</span></span>
+<span><span class="co">#&gt;  3:   important3  1.3877158</span></span>
+<span><span class="co">#&gt;  4:   important4  3.7800743</span></span>
+<span><span class="co">#&gt;  5:   important5  1.4901341</span></span>
+<span><span class="co">#&gt;  6: unimportant1  0.9963189</span></span>
+<span><span class="co">#&gt;  7: unimportant2  1.0013810</span></span>
+<span><span class="co">#&gt;  8: unimportant3  1.0014155</span></span>
+<span><span class="co">#&gt;  9: unimportant4  1.0037671</span></span>
+<span><span class="co">#&gt; 10: unimportant5  0.9999717</span></span></code></pre></div>
 <p>When PFI is computed based on resampling with multiple iterations, and / or multiple permutation iterations, the individual scores can be retrieved as a <code>data.table</code>:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">pfi</span><span class="op">$</span><span class="fu">scores</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Classes 'data.table' and 'data.frame':   150 obs. of  6 variables:</span></span>
-<span><span class="co">#&gt;  $ feature           : chr  "important1" "important1" "important1" "important1" ...</span></span>
-<span><span class="co">#&gt;  $ iter_rsmp         : int  1 1 1 1 1 1 1 1 1 1 ...</span></span>
-<span><span class="co">#&gt;  $ iter_repeat         : int  1 2 3 4 5 1 2 3 4 5 ...</span></span>
-<span><span class="co">#&gt;  $ regr.mse_baseline : num  5.3 5.3 5.3 5.3 5.3 ...</span></span>
-<span><span class="co">#&gt;  $ regr.mse_perturbed: num  13.9 14.1 12.9 12.5 12.8 ...</span></span>
-<span><span class="co">#&gt;  $ importance        : num  8.65 8.84 7.55 7.21 7.46 ...</span></span>
+<span><span class="co">#&gt;  $ feature          : chr  "important1" "important1" "important1" "important1" ...</span></span>
+<span><span class="co">#&gt;  $ iter_rsmp        : int  1 1 1 1 1 1 1 1 1 1 ...</span></span>
+<span><span class="co">#&gt;  $ iter_repeat      : int  1 2 3 4 5 1 2 3 4 5 ...</span></span>
+<span><span class="co">#&gt;  $ regr.mse_baseline: num  5.3 5.3 5.3 5.3 5.3 ...</span></span>
+<span><span class="co">#&gt;  $ regr.mse_post    : num  13.1 12.7 13.1 14.3 12.8 ...</span></span>
+<span><span class="co">#&gt;  $ importance       : num  7.79 7.44 7.85 9.02 7.52 ...</span></span>
 <span><span class="co">#&gt;  - attr(*, ".internal.selfref")=&lt;externalptr&gt;</span></span></code></pre></div>
 <p>Where <code>iter_rsmp</code> corresponds to the resampling iteration, i.e., 3 for 3-fold cross-validation, and <code>iter_repeat</code> corresponds to the permutation iteration within each resampling iteration, 5 in this case. While <code>pfi$importance()</code> contains the means across all iterations, <code>pfi$scores()</code> allows you to manually visualize or aggregate them in any way you see fit.</p>
 <p>For example:</p>
@@ -201,16 +201,16 @@
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;          feature    importance</span></span>
 <span><span class="co">#&gt;           &lt;char&gt;         &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   important1  0.2461477003</span></span>
-<span><span class="co">#&gt;  2:   important2  0.3354065147</span></span>
-<span><span class="co">#&gt;  3:   important3  0.0534960678</span></span>
-<span><span class="co">#&gt;  4:   important4  0.5744520955</span></span>
-<span><span class="co">#&gt;  5:   important5  0.1116336289</span></span>
-<span><span class="co">#&gt;  6: unimportant1 -0.0016660726</span></span>
-<span><span class="co">#&gt;  7: unimportant2 -0.0031085541</span></span>
-<span><span class="co">#&gt;  8: unimportant3 -0.0002086101</span></span>
-<span><span class="co">#&gt;  9: unimportant4  0.0037567083</span></span>
-<span><span class="co">#&gt; 10: unimportant5 -0.0022176601</span></span></code></pre></div>
+<span><span class="co">#&gt;  1:   important1  0.2705871350</span></span>
+<span><span class="co">#&gt;  2:   important2  0.3035832691</span></span>
+<span><span class="co">#&gt;  3:   important3  0.0640029372</span></span>
+<span><span class="co">#&gt;  4:   important4  0.4860720486</span></span>
+<span><span class="co">#&gt;  5:   important5  0.0720620500</span></span>
+<span><span class="co">#&gt;  6: unimportant1 -0.0022247186</span></span>
+<span><span class="co">#&gt;  7: unimportant2  0.0022554009</span></span>
+<span><span class="co">#&gt;  8: unimportant3 -0.0028430988</span></span>
+<span><span class="co">#&gt;  9: unimportant4 -0.0008701439</span></span>
+<span><span class="co">#&gt; 10: unimportant5 -0.0015809452</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
