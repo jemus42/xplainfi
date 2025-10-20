@@ -102,7 +102,7 @@
 <span>  groups <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sampler <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  relation <span class="op">=</span> <span class="st">"difference"</span>,</span>
-<span>  iters_perm <span class="op">=</span> <span class="fl">1L</span></span>
+<span>  n_repeats <span class="op">=</span> <span class="fl">1L</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -117,11 +117,11 @@
 
 
 <dt><code>relation</code></dt>
-<dd><p>(character(1): <code>"difference"</code>) How to relate perturbed and baseline scores. Can also be <code>"ratio"</code>.</p></dd>
+<dd><p>(<code>character(1):</code> <code>"difference"</code>) How to relate perturbed and baseline scores. Can also be <code>"ratio"</code>.</p></dd>
 
 
-<dt><code>iters_perm</code></dt>
-<dd><p>(integer(1)) Number of permutation iterations. Can be overridden in <code>$compute()</code>.</p></dd>
+<dt><code>n_repeats</code></dt>
+<dd><p>(<code>integer(1)</code>: <code>1L</code>) Number of permutation/conditional sampling iterations. Can be overridden in <code>$compute()</code>.</p></dd>
 
 
 </dl><p></p></div>

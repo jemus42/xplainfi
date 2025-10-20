@@ -93,7 +93,8 @@
 </div>
 <div class="section level3">
 <h3 id="method-specific-changes-0-1-0-9003">Method-specific changes<a class="anchor" aria-label="anchor" href="#method-specific-changes-0-1-0-9003"></a></h3>
-<div class="section level4">
+<ul><li>Align <code>iters_perm</code> (PerturbationImportance) and <code>iters_refit</code> (WVIM) to <code>n_repeats</code> to be more clear about the meaning and consistent across methods.</li>
+</ul><div class="section level4">
 <h4 id="leaveoutin---wvim-0-1-0-9003">
 <code>LeaveOutIn</code> -&gt; <code>WVIM</code>
 <a class="anchor" aria-label="anchor" href="#leaveoutin---wvim-0-1-0-9003"></a></h4>
@@ -103,8 +104,8 @@
 <div class="section level4">
 <h4 id="perturbationimportance-0-1-0-9003"><code>PerturbationImportance</code><a class="anchor" aria-label="anchor" href="#perturbationimportance-0-1-0-9003"></a></h4>
 <ul><li>Streamline and speedup <code>PerturbationImportance</code> implementation, also by using <code>learner$predict_newdata_fast()</code> (<a href="https://github.com/jemus42/xplainfi/issues/39" class="external-link">#39</a>), bumping the mlr3 dependency &gt;= 1.1.0.</li>
-<li>Now batches <code>iter_perms</code> internally to reduce the number of calls to <code>sampler$sample()</code>.
-<ul><li>May need further adjustment in case of large data / large <code>iters_perm</code> as intermediate data could grow too large</li>
+<li>Now batches <code>iter_repeats</code> internally to reduce the number of calls to <code>sampler$sample()</code>.
+<ul><li>May need further adjustment in case of large data / large <code>n_repeats</code> as intermediate data could grow too large</li>
 </ul></li>
 </ul></div>
 <div class="section level4">

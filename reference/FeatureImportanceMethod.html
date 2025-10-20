@@ -245,9 +245,9 @@ In such cases, observations may be used as train- and test instances simultaneou
 <span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span>,</span>
 <span>  <span class="co"># Subsampling instead of bootstrapping due to RF</span></span>
 <span>  resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"subsampling"</span>, repeats <span class="op">=</span> <span class="fl">15</span><span class="op">)</span>,</span>
-<span>  iters_perm <span class="op">=</span> <span class="fl">5</span></span>
+<span>  n_repeats <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span></code></pre><p></p></div>
-<p><code>iters_perm = 5</code> in this context only improves the stability of the PFI estimate within the resampling iteration, whereas <code>rsmp("subsampling", repeats = 15)</code>
+<p><code>n_repeats = 5</code> in this context only improves the stability of the PFI estimate within the resampling iteration, whereas <code>rsmp("subsampling", repeats = 15)</code>
 is used to accounter for learner variance and neccessitates variance correction factor.</p>
 <p>This appraoch can in principle also be applied to <code>CFI</code> and <code>RFI</code>, but beware that a conditional sample such as <a href="ARFSampler.html">ARFSampler</a> also needs to be trained on data,
 which would need to be taken account by the variance estimation method.

@@ -198,17 +198,17 @@ each feature, resampling iteration, and refit:</p>
 <table class="table">
 <caption>LOCO scores with baseline and post-refit score</caption>
 <colgroup>
-<col width="11%">
+<col width="10%">
 <col width="13%">
-<col width="15%">
-<col width="25%">
+<col width="16%">
+<col width="24%">
 <col width="19%">
 <col width="15%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">feature</th>
 <th align="right">iter_rsmp</th>
-<th align="right">iter_refit</th>
+<th align="right">iter_repeat</th>
 <th align="right">regr.mse_baseline</th>
 <th align="right">regr.mse_post</th>
 <th align="right">importance</th>
@@ -340,7 +340,7 @@ each feature, resampling iteration, and refit:</p>
 <div class="section level2">
 <h2 id="multiple-refits">Multiple Refits<a class="anchor" aria-label="anchor" href="#multiple-refits"></a>
 </h2>
-<p>LOCO supports <code>iters_refit</code> for multiple refit iterations
+<p>LOCO supports <code>n_repeats</code> for multiple refit iterations
 per resampling iteration, which provides variance estimates:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">loco_multi</span> <span class="op">=</span> <span class="va"><a href="../reference/LOCO.html">LOCO</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
@@ -348,7 +348,7 @@ per resampling iteration, which provides variance estimates:</p>
 <span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
-<span>    iters_refit <span class="op">=</span> <span class="fl">3L</span></span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">3L</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">loco_multi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
@@ -369,17 +369,17 @@ per resampling iteration, which provides variance estimates:</p>
 <table class="table">
 <caption>First 10 LOCO scores per refit and resampling fold</caption>
 <colgroup>
-<col width="11%">
+<col width="10%">
 <col width="13%">
-<col width="15%">
-<col width="25%">
+<col width="16%">
+<col width="24%">
 <col width="19%">
 <col width="15%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">feature</th>
 <th align="right">iter_rsmp</th>
-<th align="right">iter_refit</th>
+<th align="right">iter_repeat</th>
 <th align="right">regr.mse_baseline</th>
 <th align="right">regr.mse_post</th>
 <th align="right">importance</th>
@@ -613,7 +613,7 @@ trivial to compute if desired:</p>
 <span>    features <span class="op">=</span> <span class="va">task</span><span class="op">$</span><span class="va">feature_names</span>,</span>
 <span>    direction <span class="op">=</span> <span class="st">"leave-in"</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
-<span>    iters_refit <span class="op">=</span> <span class="fl">2</span></span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">wvim_loci</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
@@ -710,7 +710,7 @@ f(X)))\]</span></p>
 <span>    groups <span class="op">=</span> <span class="va">groups</span>,</span>
 <span>    direction <span class="op">=</span> <span class="st">"leave-out"</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"cv"</span>, folds <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
-<span>    iters_refit <span class="op">=</span> <span class="fl">10</span></span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">10</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">wvim_groups_out</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
@@ -836,8 +836,8 @@ collectively</li>
 fold</li>
 <li>With groups, this is more efficient than analyzing features
 individually</li>
-<li>Use <code>iters_refit</code> parameter to control the number of
-refits per fold for variance estimation</li>
+<li>Use <code>n_repeats</code> parameter to control the number of refits
+per fold for variance estimation</li>
 </ul>
 </div>
 </div>

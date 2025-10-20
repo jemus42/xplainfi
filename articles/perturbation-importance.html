@@ -150,7 +150,7 @@ destroys the crucial interaction term.</p>
 <span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>    iters_perm <span class="op">=</span> <span class="fl">5</span></span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Compute importance scores</span></span>
@@ -183,7 +183,7 @@ interaction effect:</p>
 <span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>    iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>    sampler <span class="op">=</span> <span class="va">sampler_int</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -216,7 +216,7 @@ Let’s explore what happens when we condition on different features:</p>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
 <span>    conditioning_set <span class="op">=</span> <span class="st">"x2"</span>, <span class="co"># Condition on x2</span></span>
-<span>    iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>    sampler <span class="op">=</span> <span class="va">sampler_int</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">rfi_int_x2</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
@@ -228,7 +228,7 @@ Let’s explore what happens when we condition on different features:</p>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
 <span>    conditioning_set <span class="op">=</span> <span class="st">"x1"</span>, <span class="co"># Condition on x1</span></span>
-<span>    iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>    sampler <span class="op">=</span> <span class="va">sampler_int</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">rfi_int_x1</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -355,7 +355,7 @@ affects both features and the outcome.</p>
 <span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>    iters_perm <span class="op">=</span> <span class="fl">5</span></span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pfi_conf</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
@@ -387,7 +387,7 @@ affects both features and the outcome.</p>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
 <span>    conditioning_set <span class="op">=</span> <span class="st">"proxy"</span>, <span class="co"># Condition on proxy to reduce confounding</span></span>
-<span>    iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>    sampler <span class="op">=</span> <span class="va">sampler_conf</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -410,7 +410,7 @@ affects both features and the outcome.</p>
 <span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>    iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>    sampler <span class="op">=</span> <span class="va">sampler_conf</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -448,7 +448,7 @@ performs when we can condition directly on the true confounder:</p>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
 <span>    conditioning_set <span class="op">=</span> <span class="st">"confounder"</span>, <span class="co"># Condition on true confounder</span></span>
-<span>    iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>    sampler <span class="op">=</span> <span class="va">sampler_conf_obs</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -469,7 +469,7 @@ performs when we can condition directly on the true confounder:</p>
 <span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>    iters_perm <span class="op">=</span> <span class="fl">5</span></span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">pfi_conf_obs</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">pfi_conf_obs</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
@@ -621,7 +621,7 @@ features:</p>
 <span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>    iters_perm <span class="op">=</span> <span class="fl">5</span></span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pfi_cor</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
@@ -650,7 +650,7 @@ information about x1.</p>
 <span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>    iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>    sampler <span class="op">=</span> <span class="va">sampler_cor</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -680,7 +680,7 @@ predictors.</p>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
 <span>    conditioning_set <span class="op">=</span> <span class="st">"x1"</span>,</span>
-<span>    iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>    sampler <span class="op">=</span> <span class="va">sampler_cor</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">rfi_cor_x1</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
@@ -692,7 +692,7 @@ predictors.</p>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
 <span>    conditioning_set <span class="op">=</span> <span class="st">"x2"</span>,</span>
-<span>    iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>    sampler <span class="op">=</span> <span class="va">sampler_cor</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">rfi_cor_x2</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -787,7 +787,7 @@ has only a direct effect on y (or no effect in the case of noise).</p>
 <span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>    iters_perm <span class="op">=</span> <span class="fl">5</span></span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">pfi_ind</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Now CFI with the ARF sampler:</p>
@@ -798,7 +798,7 @@ has only a direct effect on y (or no effect in the case of noise).</p>
 <span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>    iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>    sampler <span class="op">=</span> <span class="va">sampler_ind</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">cfi_ind</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -811,7 +811,7 @@ different sampler:</p>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
 <span>    conditioning_set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>, <span class="co"># Empty set</span></span>
-<span>    iters_perm <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>    sampler <span class="op">=</span> <span class="va">sampler_ind</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">rfi_ind</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -925,7 +925,7 @@ observations appear in multiple resampling folds.</p>
 <span>    learner <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">100</span><span class="op">)</span>,</span>
 <span>    measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"subsampling"</span>, repeats <span class="op">=</span> <span class="fl">10</span>, ratio <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span>,</span>
-<span>    iters_perm <span class="op">=</span> <span class="fl">5</span></span>
+<span>    n_repeats <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pfi_var</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
