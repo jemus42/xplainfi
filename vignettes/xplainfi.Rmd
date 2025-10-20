@@ -129,7 +129,7 @@ Let's demonstrate conditional sampling using Adversarial Random Forests, which p
 arf_sampler <- ARFSampler$new(task)
 
 sample_data <- task$data(rows = 1:5)
-sample_data[, .(y, important1, important2)]
+sample_data[, .(important1, important2)]
 ```
 
 Now we'll conditionally sample the `important1` feature given the values of `important2` and `important3`:
@@ -141,8 +141,8 @@ sampled_conditional <- arf_sampler$sample_newdata(
 	conditioning_set = c("important2", "important3")
 )
 
-sample_data[, .(y, important1, important2, important3)]
-sampled_conditional[, .(y, important1, important2, important3)]
+sample_data[, .(important1, important2, important3)]
+sampled_conditional[, .(important1, important2, important3)]
 ```
 
 This conditional sampling is essential for methods like CFI and RFI that need to preserve feature dependencies. See `vignette("perturbation-importance")` for detailed comparisons.

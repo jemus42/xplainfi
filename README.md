@@ -66,18 +66,18 @@ Compute and print PFI scores:
 pfi$compute()
 pfi$importance()
 #> Key: <feature>
-#>          feature    importance
-#>           <char>         <num>
-#>  1:   important1  7.9320281224
-#>  2:   important2  8.1368297554
-#>  3:   important3  1.9003588453
-#>  4:   important4 13.5083721272
-#>  5:   important5  2.2748507393
-#>  6: unimportant1 -0.0004293556
-#>  7: unimportant2  0.0219242406
-#>  8: unimportant3  0.0314298729
-#>  9: unimportant4  0.0091510237
-#> 10: unimportant5  0.0108304225
+#>          feature   importance
+#>           <char>        <num>
+#>  1:   important1  7.647695981
+#>  2:   important2  8.221675536
+#>  3:   important3  1.864822092
+#>  4:   important4 13.471577093
+#>  5:   important5  2.368559017
+#>  6: unimportant1 -0.015980444
+#>  7: unimportant2  0.007477719
+#>  8: unimportant3  0.004806562
+#>  9: unimportant4  0.019497114
+#> 10: unimportant5  0.001911799
 ```
 
 If it aides interpretation, importances can also be calculates as the
@@ -89,16 +89,16 @@ pfi$importance(relation = "ratio")
 #> Key: <feature>
 #>          feature importance
 #>           <char>      <num>
-#>  1:   important1  2.6410386
-#>  2:   important2  2.6853106
-#>  3:   important3  1.3968261
-#>  4:   important4  3.8012909
-#>  5:   important5  1.4697651
-#>  6: unimportant1  0.9997936
-#>  7: unimportant2  1.0044383
-#>  8: unimportant3  1.0068725
-#>  9: unimportant4  1.0015174
-#> 10: unimportant5  1.0017192
+#>  1:   important1  2.5799596
+#>  2:   important2  2.7087461
+#>  3:   important3  1.3877158
+#>  4:   important4  3.7800743
+#>  5:   important5  1.4901341
+#>  6: unimportant1  0.9963189
+#>  7: unimportant2  1.0013810
+#>  8: unimportant3  1.0014155
+#>  9: unimportant4  1.0037671
+#> 10: unimportant5  0.9999717
 ```
 
 When PFI is computed based on resampling with multiple iterations, and /
@@ -108,19 +108,19 @@ retrieved as a `data.table`:
 ``` r
 str(pfi$scores())
 #> Classes 'data.table' and 'data.frame':   150 obs. of  6 variables:
-#>  $ feature           : chr  "important1" "important1" "important1" "important1" ...
-#>  $ iter_rsmp         : int  1 1 1 1 1 1 1 1 1 1 ...
-#>  $ iter_repeat         : int  1 2 3 4 5 1 2 3 4 5 ...
-#>  $ regr.mse_baseline : num  5.3 5.3 5.3 5.3 5.3 ...
-#>  $ regr.mse_perturbed: num  13.9 14.1 12.9 12.5 12.8 ...
-#>  $ importance        : num  8.65 8.84 7.55 7.21 7.46 ...
+#>  $ feature          : chr  "important1" "important1" "important1" "important1" ...
+#>  $ iter_rsmp        : int  1 1 1 1 1 1 1 1 1 1 ...
+#>  $ iter_repeat      : int  1 2 3 4 5 1 2 3 4 5 ...
+#>  $ regr.mse_baseline: num  5.3 5.3 5.3 5.3 5.3 ...
+#>  $ regr.mse_post    : num  13.1 12.7 13.1 14.3 12.8 ...
+#>  $ importance       : num  7.79 7.44 7.85 9.02 7.52 ...
 #>  - attr(*, ".internal.selfref")=<externalptr>
 ```
 
 Where `iter_rsmp` corresponds to the resampling iteration, i.e., 3 for
-3-fold cross-validation, and `iter_repeat` corresponds to the permutation
-iteration within each resampling iteration, 5 in this case. While
-`pfi$importance()` contains the means across all iterations,
+3-fold cross-validation, and `iter_repeat` corresponds to the
+permutation iteration within each resampling iteration, 5 in this case.
+While `pfi$importance()` contains the means across all iterations,
 `pfi$scores()` allows you to manually visualize or aggregate them in any
 way you see fit.
 
@@ -169,14 +169,14 @@ pfi$importance()
 #> Key: <feature>
 #>          feature    importance
 #>           <char>         <num>
-#>  1:   important1  0.2461477003
-#>  2:   important2  0.3354065147
-#>  3:   important3  0.0534960678
-#>  4:   important4  0.5744520955
-#>  5:   important5  0.1116336289
-#>  6: unimportant1 -0.0016660726
-#>  7: unimportant2 -0.0031085541
-#>  8: unimportant3 -0.0002086101
-#>  9: unimportant4  0.0037567083
-#> 10: unimportant5 -0.0022176601
+#>  1:   important1  0.2705871350
+#>  2:   important2  0.3035832691
+#>  3:   important3  0.0640029372
+#>  4:   important4  0.4860720486
+#>  5:   important5  0.0720620500
+#>  6: unimportant1 -0.0022247186
+#>  7: unimportant2  0.0022554009
+#>  8: unimportant3 -0.0028430988
+#>  9: unimportant4 -0.0008701439
+#> 10: unimportant5 -0.0015809452
 ```

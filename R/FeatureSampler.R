@@ -140,8 +140,8 @@ MarginalSampler = R6Class(
 
 			# Handle both single and multiple features efficiently
 			data_copy[, (feature) := lapply(.SD, sample), .SDcols = feature]
-
-			data_copy[]
+			# Only return feature columns, and in order of original task
+			data_copy[, .SD, .SDcols = self$task$feature_names]
 		}
 	)
 )
@@ -469,7 +469,8 @@ ARFSampler = R6Class(
 			# Both "separate" and "or" modes now return exactly nrow(data) samples
 			data[, (feature) := synthetic[, .SD, .SDcols = feature]]
 
-			data[]
+			# Only return feature columns, and in order of original task
+			data[, .SD, .SDcols = self$task$feature_names]
 		}
 	)
 )
