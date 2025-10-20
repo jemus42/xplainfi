@@ -303,7 +303,7 @@ measure_mae$aggregator = median
 loco = LOCO$new(
 	task = task,
 	learner = learner,
-	resampling = rsmp("cv", folds = 3),
+	resampling = rsmp("holdout"),
 	measure = measure_mae
 )
 
@@ -336,7 +336,7 @@ head(loco_obsloss)
 Which means by taking the median for each feature $j$ within each resampling iteration, we can construct $\theta_j(D_1)$ as proposed, for each set $D_k$ where $k$ is the resampling iteration:
 
 ```{r loco-thetas}
-loco_thetas = loco_obsloss[, list(theta = median(obs_importance)), by = c("feature", "iter_rsmp")]
+loco_thetas = loco_obsloss[, list(theta = median(obs_importance)), by = c("feature")]
 loco_thetas
 ```
 
