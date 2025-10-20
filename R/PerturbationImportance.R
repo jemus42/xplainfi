@@ -242,7 +242,7 @@ PerturbationImportance = R6Class(
 			scores,
 			aggregator,
 			conf_level,
-			test = c("t", "wilcoxon", "fisher"),
+			test = c("t", "wilcoxon", "fisher", "binomial"),
 			B = 1999
 		) {
 			# CPI requires observation-wise losses
@@ -250,6 +250,12 @@ PerturbationImportance = R6Class(
 				cli::cli_abort(c(
 					"CPI requires observation-wise losses.",
 					i = "Ensure {.code measure} has an {.fun $obs_loss} method."
+				))
+			}
+			if (class(self) != "CFI") {
+				cli::cli_warn(c(
+					"!" = "CPI is only known to yield valid inference for {.cls CFI}.",
+					x = "Inference with {.cls PFI} is known to be invalid and other methods are not studied yet."
 				))
 			}
 			# Get observation-wise importances (already computed as differences)
@@ -278,9 +284,9 @@ PerturbationImportance = R6Class(
 				test,
 				t = stats::t.test,
 				wilcoxon = stats::wilcox.test,
-				fisher = fisher_one_sided
+				fisher = fisher_one_sided,
+				binomial = binom_one_sided
 			)
-
 			# For each feature, perform one-sided test (alternative = "greater")
 			# H0: importance <= 0, H1: importance > 0
 			result_list = lapply(unique(obs_loss_agg$feature), function(feat) {
@@ -298,7 +304,8 @@ PerturbationImportance = R6Class(
 					htest_result = test_function(
 						feat_obs,
 						alternative = "greater",
-						conf.level = conf_level
+						conf.level = conf_level,
+						conf.int = TRUE
 					)
 				}
 

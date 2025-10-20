@@ -193,7 +193,7 @@ cfi = CFI$new(
 
 cfi$compute()
 
-# CPI uses observation-wise losses with one-sided t-test
+# CPI uses observation-wise losses with one-sided t-test by default
 cfi_cpi_res = cfi$importance(ci_method = "cpi")
 cfi_cpi_res
 
@@ -281,8 +281,44 @@ rbindlist(list(cpi_res, cfi_cpi_res, cfi_arf_res), fill = TRUE) |>
 
 As expected, the ARF-based approach differs more from both knockoff-based approaches, but they are all roughly in agreement.
 
+### Statistical tests with CPI
 
-**Note**: `xplainfi` will gain a dedicated interface to perform CPI, but the API is yet to be worked out.
+CPI can also perform additional tests besides the default t-test, specifically the Wilcoxon-, Fisher-, or binomial test:
+
+```{r cpi-tests}
+(cpi_res_wilcoxon = cfi_arf$importance(ci_method = "cpi", test = "wilcoxon"))
+# Fisher test with same default for B as in cpi()
+(cpi_res_fisher = cfi_arf$importance(ci_method = "cpi", test = "fisher", B = 1999))
+(cpi_res_binom = cfi_arf$importance(ci_method = "cpi", test = "binomial"))
+
+rbindlist(
+	list(
+		cfi_arf$importance(ci_method = "cpi")[, test := "t"],
+		cpi_res_wilcoxon[, test := "Wilcoxon"],
+		cpi_res_fisher[, test := "Fisher"],
+		cpi_res_binom[, test := "Binomial"]
+	),
+	fill = TRUE
+) |>
+	ggplot(aes(y = feature, x = importance, color = test)) +
+	geom_point(position = position_dodge(width = 0.3)) +
+	geom_errorbar(
+		aes(xmin = importance, xmax = conf_lower),
+		position = position_dodge(width = 0.3),
+		width = 0.5
+	) +
+	scale_color_brewer(palette = "Dark2") +
+	labs(
+		title = "CPI test with CFI/ARF",
+		subtitle = "RF with 5-fold CV",
+		color = "Test"
+	) +
+	theme_minimal(base_size = 14) +
+	theme(legend.position = "top")
+```
+
+Given the width of the resulting confidence intervals, the Fisher- or t-test are generally recommended.
+
 
 ## LOCO (WIP)
 
