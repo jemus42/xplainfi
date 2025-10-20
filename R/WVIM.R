@@ -283,10 +283,8 @@ LOCO = R6Class(
 		#' @description
 		#' Compute LOCO importances.
 		#'
-		#' @param store_backends (`logical(1)`) Passed to [mlr3::resample] to store
-		#'   backends in resample result.
-		#'   Required for some measures, but may increase memory footprint.
-		compute = function(store_backends = TRUE) {
+		#' @param store_models,store_backends (`logical(1)`: `TRUE`) Whether to store fitted models / data backends, passed to [mlr3::resample] internally
+		compute = function(store_models = TRUE, store_backends = TRUE) {
 			design = wvim_design_matrix(
 				all_features = self$task$feature_names,
 				feature_names = self$features,
