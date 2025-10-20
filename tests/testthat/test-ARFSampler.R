@@ -23,14 +23,13 @@ test_that("ARFSampler basic functionality", {
 	data = task$data()
 	sampled_data = sampler$sample("x1")
 
-	expect_true(data.table::is.data.table(sampled_data))
-	expect_equal(nrow(sampled_data), n)
-	expect_equal(ncol(sampled_data), task$n_features)
-	expect_equal(names(sampled_data), task$feature_names)
-
-	# Check that only the specified feature was changed
-	expect_false(identical(sampled_data$x1, data$x1))
-	expect_true(identical(sampled_data$x2, data$x2))
+	expect_sampler_output(
+		sampled_data = sampled_data,
+		task = task,
+		original_data = data,
+		sampled_features = "x1",
+		nrows = n
+	)
 })
 
 test_that("ARFSampler with conditioning_set parameter at initialization", {
@@ -48,12 +47,13 @@ test_that("ARFSampler with conditioning_set parameter at initialization", {
 	# Should use the stored conditioning features
 	sampled_data = sampler$sample("x1")
 
-	expect_true(data.table::is.data.table(sampled_data))
-	expect_equal(nrow(sampled_data), 100)
-	expect_equal(ncol(sampled_data), task$n_features)
-	expect_false(identical(sampled_data$x1, data$x1))
-	expect_true(identical(sampled_data$x2, data$x2))
-	expect_true(identical(sampled_data$x3, data$x3))
+	expect_sampler_output(
+		sampled_data = sampled_data,
+		task = task,
+		original_data = data,
+		sampled_features = "x1",
+		nrows = 100
+	)
 })
 
 test_that("ARFSampler with empty conditioning set behaves like marginal sampling", {
@@ -148,17 +148,13 @@ test_that("ARFSampler handles multiple features", {
 	features = c("x1", "x2")
 	sampled_data = sampler$sample(features)
 
-	expect_true(data.table::is.data.table(sampled_data))
-	expect_equal(nrow(sampled_data), 100)
-	expect_equal(ncol(sampled_data), task$n_features)
-
-	# Check that only the specified features were changed
-	for (feat in features) {
-		expect_false(identical(sampled_data[[feat]], data[[feat]]))
-	}
-
-	# Check that other features remain unchanged
-	expect_true(identical(sampled_data$x3, data$x3))
+	expect_sampler_output(
+		sampled_data = sampled_data,
+		task = task,
+		original_data = data,
+		sampled_features = features,
+		nrows = 100
+	)
 })
 
 test_that("ARFSampler works with different task types", {
@@ -169,22 +165,19 @@ test_that("ARFSampler works with different task types", {
 	task_regr = tgen("circle", d = 4)$generate(n = 100)
 	sampler_regr = ARFSampler$new(task_regr)
 	sampled_regr = sampler_regr$sample("x1")
-	expect_true(data.table::is.data.table(sampled_regr))
-	expect_equal(nrow(sampled_regr), 100)
+	expect_sampler_output(sampled_regr, task_regr, nrows = 100)
 
 	# Binary classification task
 	task_classif = tsk("sonar")
 	sampler_classif = ARFSampler$new(task_classif)
 	sampled_classif = sampler_classif$sample("V1")
-	expect_true(data.table::is.data.table(sampled_classif))
-	expect_equal(nrow(sampled_classif), task_classif$nrow)
+	expect_sampler_output(sampled_classif, task_classif, nrows = task_classif$nrow)
 
 	# Multiclass classification task
 	task_multi = tsk("iris")
 	sampler_multi = ARFSampler$new(task_multi)
 	sampled_multi = sampler_multi$sample("Sepal.Length")
-	expect_true(data.table::is.data.table(sampled_multi))
-	expect_equal(nrow(sampled_multi), 150)
+	expect_sampler_output(sampled_multi, task_multi, nrows = 150)
 })
 
 test_that("ARFSampler parameter validation", {

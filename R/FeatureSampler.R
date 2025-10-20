@@ -40,7 +40,7 @@ FeatureSampler = R6Class(
 		#' @param feature (`character`) Feature name(s) to sample (can be single or multiple). Must match those in the stored [Task][mlr3::Task].
 		#' @param row_ids (`integer()`: `NULL`) Row IDs of the stored [Task][mlr3::Task] to use as basis for sampling.
 		#' @return Modified copy of the input features with the feature(s) sampled:
-		#'   A [data.table][data.table::data.table] with `task$n_features` columns and one row matching the supplied `row_ids`
+		#'   A [data.table][data.table::data.table] with same number of columns and one row matching the supplied `row_ids`
 		sample = function(feature, row_ids = NULL) {
 			cli::cli_abort(c(
 				"Abtract method",
@@ -80,7 +80,7 @@ FeatureSampler = R6Class(
 					"!" = "For {.code $sample}, the row_ids must match those of the stored {.cls Task}."
 				))
 			}
-			self$task$data(rows = row_ids, cols = self$task$feature_names)
+			self$task$data(rows = row_ids)
 		}
 	)
 )
@@ -123,7 +123,7 @@ MarginalSampler = R6Class(
 			# Handle both single and multiple features efficiently
 			data_copy[, (feature) := lapply(.SD, sample), .SDcols = feature]
 
-			data_copy[]
+			data_copy[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)]
 		},
 		#' @description
 		#' Sample from external data by permutation. See `$sample()` for details.
@@ -140,8 +140,7 @@ MarginalSampler = R6Class(
 
 			# Handle both single and multiple features efficiently
 			data_copy[, (feature) := lapply(.SD, sample), .SDcols = feature]
-			# Only return feature columns, and in order of original task
-			data_copy[, .SD, .SDcols = self$task$feature_names]
+			data_copy[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)]
 		}
 	)
 )
@@ -469,8 +468,8 @@ ARFSampler = R6Class(
 			# Both "separate" and "or" modes now return exactly nrow(data) samples
 			data[, (feature) := synthetic[, .SD, .SDcols = feature]]
 
-			# Only return feature columns, and in order of original task
-			data[, .SD, .SDcols = self$task$feature_names]
+			# Return in order of original task
+			data[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)]
 		}
 	)
 )
@@ -622,7 +621,7 @@ KnockoffSampler = R6Class(
 			data_copy[, ..seq_id := NULL]
 
 			setcolorder(data_copy, self$task$feature_names)
-			data_copy[]
+			data_copy[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)]
 
 			# Old / simpler approach doesn't work with duplicates
 			# Subsample knockoff DT to match input and selected feature(s)

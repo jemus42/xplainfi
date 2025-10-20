@@ -22,14 +22,13 @@ test_that("KnockoffSampler basic functionality", {
 	data = task$data()
 	sampled_data = sampler$sample("important1")
 
-	expect_true(data.table::is.data.table(sampled_data))
-	expect_equal(nrow(sampled_data), n)
-	expect_equal(ncol(sampled_data), task$n_features)
-	expect_equal(names(sampled_data), task$feature_names)
-
-	# Check that only the specified feature was changed (replaced with knockoff)
-	expect_false(identical(sampled_data$important1, data$important1))
-	expect_true(identical(sampled_data$important2, data$important2))
+	expect_sampler_output(
+		sampled_data = sampled_data,
+		task = task,
+		original_data = data,
+		sampled_features = "important1",
+		nrows = n
+	)
 
 	# Check that sampled feature values are from knockoff matrix
 	expect_true(identical(sampled_data$important1, sampler$x_tilde$important1))
@@ -47,18 +46,18 @@ test_that("KnockoffSampler handles multiple features", {
 	features = c("important1", "important2")
 	sampled_data = sampler$sample(features)
 
-	expect_true(data.table::is.data.table(sampled_data))
-	expect_equal(nrow(sampled_data), 100)
-	expect_equal(ncol(sampled_data), task$n_features)
+	expect_sampler_output(
+		sampled_data = sampled_data,
+		task = task,
+		original_data = data,
+		sampled_features = features,
+		nrows = 100
+	)
 
-	# Check that only the specified features were changed
+	# Check that sampled feature values are from knockoff matrix
 	for (feat in features) {
-		expect_false(identical(sampled_data[[feat]], data[[feat]]))
 		expect_true(identical(sampled_data[[feat]], sampler$x_tilde[[feat]]))
 	}
-
-	# Check that other features remain unchanged
-	expect_true(identical(sampled_data$important3, task$data(cols = "important3")[[1]]))
 })
 
 test_that("KnockoffSampler works with different numeric tasks", {
@@ -69,15 +68,13 @@ test_that("KnockoffSampler works with different numeric tasks", {
 	task_friedman = tgen("friedman1")$generate(n = 100)
 	sampler_friedman = KnockoffSampler$new(task_friedman)
 	sampled_friedman = sampler_friedman$sample("important1")
-	expect_true(data.table::is.data.table(sampled_friedman))
-	expect_equal(nrow(sampled_friedman), 100)
+	expect_sampler_output(sampled_friedman, task_friedman, nrows = 100)
 
 	# Circle task with specified dimensions (all numeric)
 	task_circle = tgen("circle", d = 4)$generate(n = 80)
 	sampler_circle = KnockoffSampler$new(task_circle)
 	sampled_circle = sampler_circle$sample("x1")
-	expect_true(data.table::is.data.table(sampled_circle))
-	expect_equal(nrow(sampled_circle), 80)
+	expect_sampler_output(sampled_circle, task_circle, nrows = 80)
 
 	# Custom numeric task
 	set.seed(123)
@@ -90,8 +87,7 @@ test_that("KnockoffSampler works with different numeric tasks", {
 	task_custom = as_task_regr(custom_data, target = "y")
 	sampler_custom = KnockoffSampler$new(task_custom)
 	sampled_custom = sampler_custom$sample("x1")
-	expect_true(data.table::is.data.table(sampled_custom))
-	expect_equal(nrow(sampled_custom), 50)
+	expect_sampler_output(sampled_custom, task_custom, nrows = 50)
 })
 
 test_that("KnockoffSampler preserves data structure", {
@@ -331,10 +327,13 @@ test_that("KnockoffGaussianSampler works with all-numeric features", {
 	data = task$data()
 	sampled_data = sampler$sample("important1")
 
-	expect_true(data.table::is.data.table(sampled_data))
-	expect_equal(nrow(sampled_data), 100)
-	expect_equal(ncol(sampled_data), task$n_features)
-	expect_false(identical(sampled_data$important1, data$important1))
+	expect_sampler_output(
+		sampled_data = sampled_data,
+		task = task,
+		original_data = data,
+		sampled_features = "important1",
+		nrows = 100
+	)
 	expect_true(identical(sampled_data$important1, sampler$x_tilde$important1))
 
 	expect_equal(nrow(sampler$sample("important1", row_ids = 1:10)), 10)
@@ -433,14 +432,15 @@ test_that("KnockoffSampler works with multiple iterations", {
 		sampler_1$sample("x1")
 	)
 
-	x_orig = task$data(rows = 2, cols = task$feature_names)
+	x_orig = task$data(rows = 2)
 	x_sampled = sampler_1$sample("x1", row_ids = 2)
 
-	# Other values are the same
-	expect_equal(x_orig[, -"x1"], x_sampled[, -"x1"])
+	# Other values are the same (excluding sampled feature x1)
+	non_sampled_cols = setdiff(names(x_sampled), "x1")
+	expect_equal(x_orig[, ..non_sampled_cols], x_sampled[, ..non_sampled_cols])
 
 	# Multiple samples
-	x_orig = task$data(rows = c(1, 1, 1), cols = task$feature_names)
+	x_orig = task$data(rows = c(1, 1, 1))
 	x_sampled = sampler_5$sample("x1", row_ids = c(1, 1, 1))
 
 	expect_equal(x_sampled$x2, x_orig$x2)

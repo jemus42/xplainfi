@@ -11,14 +11,13 @@ test_that("MarginalSampler works correctly", {
 	data = task$data()
 	sampled_data = sampler$sample("x1")
 
-	expect_true(data.table::is.data.table(sampled_data))
-	expect_equal(nrow(sampled_data), 100)
-	expect_equal(ncol(sampled_data), task$n_features)
-	expect_equal(names(sampled_data), task$feature_names)
-
-	# Check that only the specified feature was permuted
-	expect_false(identical(sampled_data$x1, data$x1))
-	expect_true(identical(sampled_data$x2, data$x2))
+	expect_sampler_output(
+		sampled_data = sampled_data,
+		task = task,
+		original_data = data,
+		sampled_features = "x1",
+		nrows = 100
+	)
 
 	# Check that the permuted values come from the original distribution
 	expect_setequal(sampled_data$x1, data$x1)
@@ -34,18 +33,18 @@ test_that("MarginalSampler handles multiple features", {
 	features = c("x1", "x2", "x3")
 	sampled_data = sampler$sample(features)
 
-	expect_true(data.table::is.data.table(sampled_data))
-	expect_equal(nrow(sampled_data), 100)
-	expect_equal(ncol(sampled_data), task$n_features)
+	expect_sampler_output(
+		sampled_data = sampled_data,
+		task = task,
+		original_data = data,
+		sampled_features = features,
+		nrows = 100
+	)
 
-	# Check that only the specified features were permuted
+	# Check that the permuted values come from the original distribution
 	for (feat in features) {
-		expect_false(identical(sampled_data[[feat]], data[[feat]]))
 		expect_setequal(sampled_data[[feat]], data[[feat]])
 	}
-
-	# Check that other features remain unchanged
-	expect_true(identical(sampled_data$x4, data$x4))
 })
 
 test_that("MarginalSampler preserves data.table properties", {
@@ -60,8 +59,11 @@ test_that("MarginalSampler preserves data.table properties", {
 	# Sample the key column using row_ids
 	sampled_data = sampler$sample("x1")
 
-	# Should return a data.table
-	expect_true(data.table::is.data.table(sampled_data))
+	expect_sampler_output(
+		sampled_data = sampled_data,
+		task = task,
+		nrows = 50
+	)
 
 	# Should not have preserved the key (since we modified the key column)
 	expect_null(key(sampled_data))
@@ -76,20 +78,17 @@ test_that("MarginalSampler works with different task types", {
 	task_regr = tgen("circle", d = 4)$generate(n = 100)
 	sampler_regr = MarginalSampler$new(task_regr)
 	sampled_regr = sampler_regr$sample("x1")
-	expect_true(data.table::is.data.table(sampled_regr))
-	expect_equal(nrow(sampled_regr), 100)
+	expect_sampler_output(sampled_regr, task_regr, nrows = 100)
 
 	# Binary classification task
 	task_classif = tsk("sonar")
 	sampler_classif = MarginalSampler$new(task_classif)
 	sampled_classif = sampler_classif$sample("V1")
-	expect_true(data.table::is.data.table(sampled_classif))
-	expect_equal(nrow(sampled_classif), task_classif$nrow)
+	expect_sampler_output(sampled_classif, task_classif, nrows = task_classif$nrow)
 
 	# Multiclass classification task
 	task_multi = tsk("iris")
 	sampler_multi = MarginalSampler$new(task_multi)
 	sampled_multi = sampler_multi$sample("Sepal.Length")
-	expect_true(data.table::is.data.table(sampled_multi))
-	expect_equal(nrow(sampled_multi), 150)
+	expect_sampler_output(sampled_multi, task_multi, nrows = 150)
 })
