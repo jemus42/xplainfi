@@ -61,7 +61,7 @@ Creates a new instance of the CFI class
   features = NULL,
   groups = NULL,
   relation = "difference",
-  iters_perm = 1L,
+  n_repeats = 1L,
   sampler = NULL
 )}\if{html}{\out{</div>}}
 }
@@ -71,9 +71,9 @@ Creates a new instance of the CFI class
 \describe{
 \item{\code{task, learner, measure, resampling, features, groups}}{Passed to \code{PerturbationImportance}.}
 
-\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. Can be overridden in \verb{$compute()}.}
+\item{\code{relation}}{(\code{character(1)}) How to relate perturbed scores to originals. Can be overridden in \verb{$compute()}.}
 
-\item{\code{iters_perm}}{(integer(1)) Number of sampling iterations. Can be overridden in \verb{$compute()}.}
+\item{\code{n_repeats}}{(\code{integer(1)}) Number of sampling iterations. Can be overridden in \verb{$compute()}.}
 
 \item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to instantiationg \code{ARFSampler} internally with default parameters.}
 }
@@ -86,15 +86,15 @@ Creates a new instance of the CFI class
 \subsection{Method \code{compute()}}{
 Compute CFI scores
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{CFI$compute(iters_perm = NULL, store_backends = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{CFI$compute(n_repeats = NULL, store_models = TRUE, store_backends = TRUE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{iters_perm}}{(integer(1)) Number of permutation iterations. If \code{NULL}, uses stored value.}
+\item{\code{n_repeats}}{(integer(1)) Number of permutation iterations. If \code{NULL}, uses stored value.}
 
-\item{\code{store_backends}}{(logical(1)) Whether to store backends, passed to \code{\link[mlr3:resample]{mlr3::resample()}} internally
+\item{\code{store_models, store_backends}}{(\code{logical(1)}: \code{TRUE}) Whether to store fitted models / data backends, passed to \link[mlr3:resample]{mlr3::resample} internally
 for the initial fit of the learner.
 This may be required for certain measures and is recommended to leave enabled unless really necessary.}
 }

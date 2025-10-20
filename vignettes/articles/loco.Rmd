@@ -95,7 +95,7 @@ loco$scores() |>
 
 ## Multiple Refits
 
-LOCO supports `iters_refit` for multiple refit iterations per resampling iteration, which provides variance estimates:
+LOCO supports `n_repeats` for multiple refit iterations per resampling iteration, which provides variance estimates:
 
 ```{r multiple-refits}
 loco_multi = LOCO$new(
@@ -103,7 +103,7 @@ loco_multi = LOCO$new(
 	learner = learner,
 	measure = measure,
 	resampling = rsmp("cv", folds = 3),
-	iters_refit = 3L
+	n_repeats = 3L
 )
 
 loco_multi$compute()
@@ -216,7 +216,7 @@ wvim_loci <- WVIM$new(
 	features = task$feature_names,
 	direction = "leave-in",
 	resampling = rsmp("cv", folds = 3),
-	iters_refit = 2
+	n_repeats = 2
 )
 
 wvim_loci$compute()
@@ -279,7 +279,7 @@ wvim_groups_out <- WVIM$new(
 	groups = groups,
 	direction = "leave-out",
 	resampling = rsmp("cv", folds = 3),
-	iters_refit = 10
+	n_repeats = 10
 )
 
 wvim_groups_out$compute()
@@ -355,4 +355,4 @@ This highlights a key insight: features that interact strongly may show high imp
 
 - WVIM requires retraining the model for each group in each resampling fold
 - With groups, this is more efficient than analyzing features individually
-- Use `iters_refit` parameter to control the number of refits per fold for variance estimation
+- Use `n_repeats` parameter to control the number of refits per fold for variance estimation

@@ -25,6 +25,8 @@ This turns out to be still a period of major changes in the early phase, so, uhm
 
 ## Method-specific changes
 
+- Align `iters_perm` (PerturbationImportance) and `iters_refit` (WVIM) to `n_repeats` to be more clear about the meaning and consistent across methods.
+
 ### `LeaveOutIn` -> `WVIM`
 
 - Williamson's Variable Importance Measure (WVIM) generalizes LOCO / LOCI
@@ -33,8 +35,8 @@ This turns out to be still a period of major changes in the early phase, so, uhm
 ### `PerturbationImportance`
 
 - Streamline and speedup `PerturbationImportance` implementation, also by using `learner$predict_newdata_fast()` (#39), bumping the mlr3 dependency >= 1.1.0.
-- Now batches `iter_perms` internally to reduce the number of calls to `sampler$sample()`. 
-  - May need further adjustment in case of large data / large `iters_perm` as intermediate data could grow too large
+- Now batches `iter_repeats` internally to reduce the number of calls to `sampler$sample()`. 
+  - May need further adjustment in case of large data / large `n_repeats` as intermediate data could grow too large
 
 ### Conditional sampling
 

@@ -13,7 +13,7 @@ the performance difference (reduced_model_loss - full_model_loss) indicates the
 feature's importance. Higher values indicate more important features.
 }
 \examples{
-\dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", uietly = TRUE)) withAutoprint(\{ # examplesIf}
+\dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 \dontshow{\}) # examplesIf}
 }
 \references{
@@ -56,7 +56,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   measure,
   resampling = NULL,
   features = NULL,
-  iters_refit = 1L
+  n_repeats = 1L
 )}\if{html}{\out{</div>}}
 }
 
@@ -73,7 +73,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 
 \item{\code{features}}{(\code{character()}) Features to compute importance for. Defaults to all features.}
 
-\item{\code{iters_refit}}{(\code{integer(1)}: \code{1L}) Number of refit iterations per resampling iteration.}
+\item{\code{n_repeats}}{(\code{integer(1)}: \code{1L}) Number of refit iterations per resampling iteration.}
 }
 \if{html}{\out{</div>}}
 }

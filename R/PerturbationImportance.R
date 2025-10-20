@@ -14,8 +14,8 @@ PerturbationImportance = R6Class(
 		#' Creates a new instance of the PerturbationImportance class
 		#' @param task,learner,measure,resampling,features,groups Passed to [FeatureImportanceMethod].
 		#' @param sampler ([FeatureSampler]) Sampler to use for feature perturbation.
-		#' @param relation (character(1): `"difference"`) How to relate perturbed and baseline scores. Can also be `"ratio"`.
-		#' @param iters_perm (integer(1)) Number of permutation iterations. Can be overridden in `$compute()`.
+		#' @param relation (`character(1):` `"difference"`) How to relate perturbed and baseline scores. Can also be `"ratio"`.
+		#' @param n_repeats (`integer(1)`: `1L`) Number of permutation/conditional sampling iterations. Can be overridden in `$compute()`.
 		initialize = function(
 			task,
 			learner,
@@ -25,7 +25,7 @@ PerturbationImportance = R6Class(
 			groups = NULL,
 			sampler = NULL,
 			relation = "difference",
-			iters_perm = 1L
+			n_repeats = 1L
 		) {
 			super$initialize(
 				task = task,
@@ -40,25 +40,25 @@ PerturbationImportance = R6Class(
 			# If no sampler is provided, create a default one (implementation dependent)
 			self$sampler = sampler
 
-			# Knockoffs only generate one x_tilde, hence iters_perm > 1 is meaningless
-			if (inherits(sampler, "KnockoffSampler") && iters_perm > sampler$param_set$values$iters) {
+			# Knockoffs only generate one x_tilde, hence n_repeats > 1 is meaningless
+			if (inherits(sampler, "KnockoffSampler") && n_repeats > sampler$param_set$values$iters) {
 				cli::cli_inform(c(
-					"Requested {.code iters_perm = {iters_perm}} permutations with {.cls {class(sampler)[[1]]}}",
+					"Requested {.code n_repeats = {n_repeats}} permutations with {.cls {class(sampler)[[1]]}}",
 					"!" = "A {.cls KnockoffSampler} was constructed with {.val {sampler$param_set$values$iters}} iterations",
-					i = "Proceeding with {.code iters_perm = {sampler$param_set$values$iters}}",
-					i = "Reconstruct {.cls {class(sampler)[[1]]}} with {.code iters >= {iters_perm}} or use {.cls ARFSampler} if repeated sampling is required."
+					i = "Proceeding with {.code n_repeats = {sampler$param_set$values$iters}}",
+					i = "Reconstruct {.cls {class(sampler)[[1]]}} with {.code iters >= {n_repeats}} or use {.cls ARFSampler} if repeated sampling is required."
 				))
-				iters_perm = sampler$param_set$values$iters
+				n_repeats = sampler$param_set$values$iters
 			}
 
 			# Set up common parameters for all perturbation-based methods
 			ps = paradox::ps(
 				relation = paradox::p_fct(c("difference", "ratio"), default = "difference"),
-				iters_perm = paradox::p_int(lower = 1, default = 1)
+				n_repeats = paradox::p_int(lower = 1, default = 1)
 			)
 
 			ps$values$relation = relation
-			ps$values$iters_perm = iters_perm
+			ps$values$n_repeats = n_repeats
 			self$param_set = ps
 
 			# Add CPI to variance methods registry
@@ -87,14 +87,15 @@ PerturbationImportance = R6Class(
 
 		# Common computation method for all perturbation-based methods
 		.compute_perturbation_importance = function(
-			iters_perm = NULL,
+			n_repeats = NULL,
+			store_models = TRUE,
 			store_backends = TRUE,
 			sampler = NULL
 		) {
 			# Use provided sampler or default to self$sampler
 			sampler = sampler %||% self$sampler
 
-			iters_perm = resolve_param(iters_perm, self$param_set$values$iters_perm, 1L)
+			n_repeats = resolve_param(n_repeats, self$param_set$values$n_repeats, 1L)
 
 			scores_baseline = private$.compute_baseline(store_backends = store_backends)
 
@@ -131,12 +132,12 @@ PerturbationImportance = R6Class(
 						# If RFI, `conditioning_set` must be pre-configured!
 						# foi can be one or more feature names
 						# We also try to minimize the number of times we call $sample(),
-						# so we get the perturbed data for all iters_perm at once
-						test_row_ids_replicated = rep.int(test_row_ids, times = iters_perm)
+						# so we get the perturbed data for all n_repeats at once
+						test_row_ids_replicated = rep.int(test_row_ids, times = n_repeats)
 						perturbed_data = sampler$sample(foi, row_ids = test_row_ids_replicated)
 
 						# ... and then we split it in a list again to make it easier
-						# to retrieve the correct data for any particular iter_perm
+						# to retrieve the correct data for any particular iter_repeat
 						# to avoid having to juggle indices with obligatory off-by-one errors or whatever
 						perturbed_data_list <- split(
 							perturbed_data,
@@ -144,12 +145,12 @@ PerturbationImportance = R6Class(
 						)
 
 						pred_per_perm = lapply(
-							seq_len(iters_perm),
-							\(iter_perm) {
+							seq_len(n_repeats),
+							\(iter_repeat) {
 								# Predict and score
 								if (is.function(this_learner$predict_newdata_fast)) {
 									pred_raw = this_learner$predict_newdata_fast(
-										newdata = perturbed_data_list[[iter_perm]],
+										newdata = perturbed_data_list[[iter_repeat]],
 										task = self$task
 									)
 
@@ -159,7 +160,7 @@ PerturbationImportance = R6Class(
 									)
 								} else {
 									pred = this_learner$predict_newdata(
-										newdata = perturbed_data_list[[iter_perm]],
+										newdata = perturbed_data_list[[iter_repeat]],
 										task = self$task
 									)
 								}
@@ -174,7 +175,7 @@ PerturbationImportance = R6Class(
 						}
 
 						# Append iteration id for within-resampling permutations
-						rbindlist(pred_per_perm, idcol = "iter_perm")
+						rbindlist(pred_per_perm, idcol = "iter_repeat")
 					}
 				)
 				# When groups are defined, "feature" is the group name
@@ -200,14 +201,14 @@ PerturbationImportance = R6Class(
 					FUN.VALUE = numeric(1)
 				)
 			]
-			vars_to_keep = c("feature", "iter_rsmp", "iter_perm", "score_baseline", "score_post")
+			vars_to_keep = c("feature", "iter_rsmp", "iter_repeat", "score_baseline", "score_post")
 			scores = scores[scores_baseline, on = c("iter_rsmp")]
 			private$.scores = scores[, .SD, .SDcols = vars_to_keep]
 
 			# for obs_loss:
 			# Not all losses are decomposable so this is optional and depends on the provided measure
 			if (!is.null(self$measure$obs_loss)) {
-				grouping_vars = c("feature", "iter_rsmp", "iter_perm")
+				grouping_vars = c("feature", "iter_rsmp", "iter_repeat")
 
 				obs_loss_all <- all_preds[,
 					{
@@ -255,7 +256,7 @@ PerturbationImportance = R6Class(
 			obs_loss_data = self$obs_loss(relation = "difference")
 			# We need **at most** one row per feature and row_id for valid inference
 			# so we aggregate over iter_rsmp
-			dupes = obs_loss_data[, .N, by = c("feature", "row_ids", "iter_perm")][N > 1]
+			dupes = obs_loss_data[, .N, by = c("feature", "row_ids", "iter_repeat")][N > 1]
 
 			if (nrow(dupes) >= 1) {
 				cli::cli_warn(c(
@@ -266,7 +267,7 @@ PerturbationImportance = R6Class(
 					i = "Use holdout resampling to ensure valid inference"
 				))
 			}
-			# Aggregating here over iters_perm
+			# Aggregating here over n_repeats
 			obs_loss_agg = obs_loss_data[,
 				list(obs_importance = mean(obs_importance)),
 				by = c("row_ids", "feature")
@@ -347,7 +348,7 @@ PerturbationImportance = R6Class(
 #'   learner = lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
 #'   measure = msr("classif.ce"),
 #'   resampling = rsmp("cv", folds = 3),
-#'   iters_perm = 3
+#'   n_repeats = 3
 #' )
 #' pfi$compute()
 #' pfi$importance()
@@ -358,9 +359,9 @@ PFI = R6Class(
 	public = list(
 		#' @description
 		#' Creates a new instance of the PFI class
-		#' @param task,learner,measure,resampling,features,groups Passed to PerturbationImportance
-		#' @param relation (character(1)) How to relate perturbed scores to originals. Can be overridden in `$compute()`.
-		#' @param iters_perm (integer(1)) Number of permutation iterations. Can be overridden in `$compute()`.
+		#' @param task,learner,measure,resampling,features,groups Passed to [PerturbationImportance]
+		#' @param relation (c`haracter(1)`: "`difference`") How to relate perturbed scores to originals. Can be overridden in `$compute()`.
+		#' @param n_repeats (`integer(1)`: `1L`) Number of permutation iterations. Can be overridden in `$compute()`.
 		initialize = function(
 			task,
 			learner,
@@ -369,7 +370,7 @@ PFI = R6Class(
 			features = NULL,
 			groups = NULL,
 			relation = "difference",
-			iters_perm = 1L
+			n_repeats = 1L
 		) {
 			super$initialize(
 				task = task,
@@ -380,7 +381,7 @@ PFI = R6Class(
 				groups = groups,
 				sampler = MarginalSampler$new(task),
 				relation = relation,
-				iters_perm = iters_perm
+				n_repeats = n_repeats
 			)
 
 			self$label = "Permutation Feature Importance"
@@ -388,14 +389,15 @@ PFI = R6Class(
 
 		#' @description
 		#' Compute PFI scores
-		#' @param iters_perm (integer(1)) Number of permutation iterations. If `NULL`, uses stored value.
-		#' @param store_backends (logical(1)) Whether to store backends, passed to [mlr3::resample()] internally
+		#' @param n_repeats (`integer(1)`; `NULL`) Number of permutation iterations. If `NULL`, uses stored value.
+		#' @param store_models,store_backends (`logical(1)`: `TRUE`) Whether to store fitted models / data backends, passed to [mlr3::resample] internally
 		#' for the initial fit of the learner.
 		#' This may be required for certain measures and is recommended to leave enabled unless really necessary.
-		compute = function(iters_perm = NULL, store_backends = TRUE) {
+		compute = function(n_repeats = NULL, store_models = TRUE, store_backends = TRUE) {
 			# PFI uses the MarginalSampler directly
 			private$.compute_perturbation_importance(
-				iters_perm = iters_perm,
+				n_repeats = n_repeats,
+				store_models = store_models,
 				store_backends = store_backends,
 				sampler = self$sampler
 			)
@@ -427,8 +429,8 @@ CFI = R6Class(
 		#' @description
 		#' Creates a new instance of the CFI class
 		#' @param task,learner,measure,resampling,features,groups Passed to `PerturbationImportance`.
-		#' @param relation (character(1)) How to relate perturbed scores to originals. Can be overridden in `$compute()`.
-		#' @param iters_perm (integer(1)) Number of sampling iterations. Can be overridden in `$compute()`.
+		#' @param relation (`character(1)`) How to relate perturbed scores to originals. Can be overridden in `$compute()`.
+		#' @param n_repeats (`integer(1)`) Number of sampling iterations. Can be overridden in `$compute()`.
 		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to instantiationg `ARFSampler` internally with default parameters.
 		initialize = function(
 			task,
@@ -438,7 +440,7 @@ CFI = R6Class(
 			features = NULL,
 			groups = NULL,
 			relation = "difference",
-			iters_perm = 1L,
+			n_repeats = 1L,
 			sampler = NULL
 		) {
 			# Use ARFSampler by default for CFI
@@ -459,7 +461,7 @@ CFI = R6Class(
 				features = features,
 				groups = groups,
 				sampler = sampler,
-				iters_perm = iters_perm
+				n_repeats = n_repeats
 			)
 
 			self$label = "Conditional Feature Importance"
@@ -467,15 +469,16 @@ CFI = R6Class(
 
 		#' @description
 		#' Compute CFI scores
-		#' @param iters_perm (integer(1)) Number of permutation iterations. If `NULL`, uses stored value.
-		#' @param store_backends (logical(1)) Whether to store backends, passed to [mlr3::resample()] internally
+		#' @param n_repeats (integer(1)) Number of permutation iterations. If `NULL`, uses stored value.
+		#' @param store_models,store_backends (`logical(1)`: `TRUE`) Whether to store fitted models / data backends, passed to [mlr3::resample] internally
 		#' for the initial fit of the learner.
 		#' This may be required for certain measures and is recommended to leave enabled unless really necessary.
-		compute = function(iters_perm = NULL, store_backends = TRUE) {
+		compute = function(n_repeats = NULL, store_models = TRUE, store_backends = TRUE) {
 			# CFI expects sampler configured to condition on all other features for each feature
 			# Default for ARFSampler
 			private$.compute_perturbation_importance(
-				iters_perm = iters_perm,
+				n_repeats = n_repeats,
+				store_models = store_models,
 				store_backends = store_backends,
 				sampler = self$sampler
 			)
@@ -511,7 +514,7 @@ RFI = R6Class(
 		#' @param conditioning_set ([character()]) Set of features to condition on. Can be overridden in `$compute()`.
 		#'   Default (`character(0)`) is equivalent to `PFI`. In `CFI`, this would be set to all features except tat of interest.
 		#' @param relation (character(1)) How to relate perturbed scores to originals. Can be overridden in `$scores()`.
-		#' @param iters_perm (integer(1)) Number of permutation iterations. Can be overridden in `$compute()`.
+		#' @param n_repeats (integer(1)) Number of permutation iterations. Can be overridden in `$compute()`.
 		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to ARFSampler
 		initialize = function(
 			task,
@@ -522,7 +525,7 @@ RFI = R6Class(
 			groups = NULL,
 			conditioning_set = NULL,
 			relation = "difference",
-			iters_perm = 1L,
+			n_repeats = 1L,
 			sampler = NULL
 		) {
 			# Use ARFSampler by default for RFI
@@ -544,7 +547,7 @@ RFI = R6Class(
 				groups = groups,
 				sampler = sampler,
 				relation = relation,
-				iters_perm = iters_perm
+				n_repeats = n_repeats
 			)
 
 			# Validate and set up conditioning set after task is available
@@ -565,13 +568,13 @@ RFI = R6Class(
 			# Create extended param_set for RFI with conditioning_set parameter
 			rfi_ps = paradox::ps(
 				relation = paradox::p_fct(c("difference", "ratio"), default = "difference"),
-				iters_perm = paradox::p_int(lower = 1, default = 1),
+				n_repeats = paradox::p_int(lower = 1, default = 1),
 				conditioning_set = paradox::p_uty(default = character(0))
 			)
 
 			# Set values from base param_set and add conditioning_set
 			rfi_ps$values$relation = self$param_set$values$relation
-			rfi_ps$values$iters_perm = self$param_set$values$iters_perm
+			rfi_ps$values$n_repeats = self$param_set$values$n_repeats
 			rfi_ps$values$conditioning_set = conditioning_set
 
 			self$param_set = rfi_ps
@@ -582,13 +585,14 @@ RFI = R6Class(
 		#' @description
 		#' Compute RFI scores
 		#' @param conditioning_set (character()) Set of features to condition on. If `NULL`, uses the stored parameter value.
-		#' @param iters_perm (integer(1)) Number of permutation iterations. If `NULL`, uses stored value.
-		#' @param store_backends (logical(1)) Whether to store backends, passed to [mlr3::resample()] internally
+		#' @param n_repeats (integer(1)) Number of permutation iterations. If `NULL`, uses stored value.
+		#' @param store_models,store_backends (`logical(1)`: `TRUE`) Whether to store fitted models / data backends, passed to [mlr3::resample] internally
 		#' for the initial fit of the learner.
 		#' This may be required for certain measures and is recommended to leave enabled unless really necessary.
 		compute = function(
 			conditioning_set = NULL,
-			iters_perm = NULL,
+			n_repeats = NULL,
+			store_models = TRUE,
 			store_backends = TRUE
 		) {
 			# Handle conditioning_set parameter override
@@ -605,7 +609,8 @@ RFI = R6Class(
 
 			# Use the (potentially modified) sampler
 			private$.compute_perturbation_importance(
-				iters_perm = iters_perm,
+				n_repeats = n_repeats,
+				store_models = store_models,
 				store_backends = store_backends,
 				sampler = self$sampler
 			)

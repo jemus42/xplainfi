@@ -56,7 +56,7 @@ pfi = PFI$new(
     learner = learner,
     measure = measure,
     resampling = rsmp("cv", folds = 3),
-    iters_perm = 5
+    n_repeats = 5
 )
 ```
 
@@ -110,7 +110,7 @@ str(pfi$scores())
 #> Classes 'data.table' and 'data.frame':   150 obs. of  6 variables:
 #>  $ feature           : chr  "important1" "important1" "important1" "important1" ...
 #>  $ iter_rsmp         : int  1 1 1 1 1 1 1 1 1 1 ...
-#>  $ iter_perm         : int  1 2 3 4 5 1 2 3 4 5 ...
+#>  $ iter_repeat         : int  1 2 3 4 5 1 2 3 4 5 ...
 #>  $ regr.mse_baseline : num  5.3 5.3 5.3 5.3 5.3 ...
 #>  $ regr.mse_perturbed: num  13.9 14.1 12.9 12.5 12.8 ...
 #>  $ importance        : num  8.65 8.84 7.55 7.21 7.46 ...
@@ -118,7 +118,7 @@ str(pfi$scores())
 ```
 
 Where `iter_rsmp` corresponds to the resampling iteration, i.e., 3 for
-3-fold cross-validation, and `iter_perm` corresponds to the permutation
+3-fold cross-validation, and `iter_repeat` corresponds to the permutation
 iteration within each resampling iteration, 5 in this case. While
 `pfi$importance()` contains the means across all iterations,
 `pfi$scores()` allows you to manually visualize or aggregate them in any

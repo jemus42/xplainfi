@@ -31,7 +31,7 @@ test_that("LOCO works with regression task", {
 	# Scores should be a method
 	scores = loco$scores()
 	checkmate::expect_data_table(scores, min.rows = length(loco$features))
-	expect_true(all(c("feature", "iter_rsmp", "iter_refit") %in% names(scores)))
+	expect_true(all(c("feature", "iter_rsmp", "iter_repeat") %in% names(scores)))
 })
 
 test_that("LOCO works with classification task", {
@@ -100,7 +100,7 @@ test_that("LOCO works with multiple refits", {
 		learner = learner,
 		measure = measure,
 		features = task$feature_names[1:3],
-		iters_refit = 3L
+		n_repeats = 3L
 	)
 
 	loco$compute()
@@ -110,7 +110,7 @@ test_that("LOCO works with multiple refits", {
 	scores = loco$scores()
 	# With holdout resampling, we get 1 iteration * 3 refits * 3 features = 9 rows
 	expect_gte(nrow(scores), length(loco$features))
-	expect_true(all(scores$iter_refit %in% 1:3))
+	expect_true(all(scores$iter_repeat %in% 1:3))
 })
 
 test_that("LOCO works with cross-validation", {

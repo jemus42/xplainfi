@@ -5,7 +5,7 @@
 \title{Williamson's Variable Importance Measure (WVIM)}
 \description{
 Base class generalizazing refit-based variable importance measures.
-Default corresponds to leaving out each feature \code{iters_refit} times, which
+Default corresponds to leaving out each feature \code{n_repeats} times, which
 corresponds to LOCO (Leave One Covariate Out).
 }
 \keyword{internal}
@@ -53,7 +53,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
   groups = NULL,
   direction = c("leave-out", "leave-in"),
   label = "Williamson's Variable Importance Measure (WVIM)",
-  iters_refit = 1L
+  n_repeats = 1L
 )}\if{html}{\out{</div>}}
 }
 
@@ -66,7 +66,7 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 
 \item{\code{label}}{(\code{character(1)}) Method label.}
 
-\item{\code{iters_refit}}{(\code{integer(1)}) Number of refit iterations per resampling iteration.}
+\item{\code{n_repeats}}{(\code{integer(1)}) Number of refit iterations per resampling iteration.}
 }
 \if{html}{\out{</div>}}
 }
@@ -78,13 +78,13 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 Computes leave-out or leave-in feature importance.
 \code{wvim_design_matrix(task$feature_names, "leave-out")} corresponds to LOCO.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{WVIM$compute(store_backends = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{WVIM$compute(store_models = TRUE, store_backends = TRUE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{store_backends}}{(\code{logical(1)}) Passed to \link[mlr3:resample]{mlr3::resample} to store
+\item{\code{store_models, store_backends}}{(\code{logical(1)}: \code{TRUE}) Whether to store fitted models / data backends, passed to \link[mlr3:resample]{mlr3::resample} internally
 backends in resample result.
 Required for some measures, but may increase memory footprint.}
 }

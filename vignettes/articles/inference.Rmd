@@ -78,7 +78,7 @@ DiagrammeR::grViz(
 
 When we calculate PFI using an appropriate resampling, such as subsampling with 15 repeats, we can use the approach recommended by Molnar et al. (2023) based on the proposed correction by Nadeay & Bengio (2003).
 
-By default, any importance measures' `$importance()` method will not output any variances or confidence intervals, it will merely compute averages over resampling iterations and repeats within resamplings (`iter_perm` here).
+By default, any importance measures' `$importance()` method will not output any variances or confidence intervals, it will merely compute averages over resampling iterations and repeats within resamplings (`iter_repeat` here).
 
 ```{r pfi-importance}
 pfi = PFI$new(
@@ -86,7 +86,7 @@ pfi = PFI$new(
 	learner = learner,
 	resampling = rsmp("subsampling", repeats = 15),
 	measure = measure,
-	iters_perm = 10 # for stability within resampling iters
+	n_repeats = 10 # for stability within resampling iters
 )
 
 pfi$compute()

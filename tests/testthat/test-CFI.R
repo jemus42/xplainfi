@@ -102,7 +102,7 @@ test_that("CFI multiple perms", {
 		learner = mlr3::lrn("regr.ranger", num.trees = 50),
 		measure = mlr3::msr("regr.mse"),
 		resampling = mlr3::rsmp("cv", folds = 3),
-		iters_perm = 2
+		n_repeats = 2
 	)
 
 	cfi$compute()
@@ -113,7 +113,7 @@ test_that("CFI multiple perms", {
 		cfi$scores(),
 		types = c("character", "integer", "numeric"),
 		nrows = cfi$resampling$iters *
-			cfi$param_set$values$iters_perm *
+			cfi$param_set$values$n_repeats *
 			length(cfi$features),
 		ncols = 6,
 		any.missing = FALSE,
@@ -134,7 +134,7 @@ test_that("CFI only one feature", {
 		learner = mlr3::lrn("regr.ranger", num.trees = 50),
 		measure = mlr3::msr("regr.mse"),
 		resampling = mlr3::rsmp("cv", folds = 3),
-		iters_perm = 2,
+		n_repeats = 2,
 		features = "important4"
 	)
 
@@ -146,7 +146,7 @@ test_that("CFI only one feature", {
 		cfi$scores(),
 		types = c("character", "integer", "numeric"),
 		nrows = cfi$resampling$iters *
-			cfi$param_set$values$iters_perm,
+			cfi$param_set$values$n_repeats,
 		ncols = 6,
 		any.missing = FALSE,
 		min.cols = 6
@@ -167,7 +167,7 @@ test_that("CFI with friedman1 produces sensible results", {
 		task = task,
 		learner = learner,
 		measure = measure,
-		iters_perm = 2
+		n_repeats = 2
 	)
 
 	cfi$compute()
@@ -206,7 +206,7 @@ test_that("CFI with resampling", {
 		learner = learner,
 		resampling = resampling,
 		measure = measure,
-		iters_perm = 2
+		n_repeats = 2
 	)
 
 	cfi$compute()
@@ -222,19 +222,19 @@ test_that("CFI parameter validation", {
 	learner = mlr3::lrn("classif.rpart", predict_type = "prob")
 	measure = mlr3::msr("classif.ce")
 
-	# iters_perm must be positive integer
+	# n_repeats must be positive integer
 	expect_error(CFI$new(
 		task = task,
 		learner = learner,
 		measure = measure,
-		iters_perm = 0L
+		n_repeats = 0L
 	))
 
 	expect_error(CFI$new(
 		task = task,
 		learner = learner,
 		measure = measure,
-		iters_perm = -1L
+		n_repeats = -1L
 	))
 })
 

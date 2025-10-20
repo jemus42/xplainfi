@@ -63,7 +63,7 @@ Creates a new instance of the RFI class
   groups = NULL,
   conditioning_set = NULL,
   relation = "difference",
-  iters_perm = 1L,
+  n_repeats = 1L,
   sampler = NULL
 )}\if{html}{\out{</div>}}
 }
@@ -78,7 +78,7 @@ Default (\code{character(0)}) is equivalent to \code{PFI}. In \code{CFI}, this w
 
 \item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. Can be overridden in \verb{$scores()}.}
 
-\item{\code{iters_perm}}{(integer(1)) Number of permutation iterations. Can be overridden in \verb{$compute()}.}
+\item{\code{n_repeats}}{(integer(1)) Number of permutation iterations. Can be overridden in \verb{$compute()}.}
 
 \item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to ARFSampler}
 }
@@ -91,7 +91,12 @@ Default (\code{character(0)}) is equivalent to \code{PFI}. In \code{CFI}, this w
 \subsection{Method \code{compute()}}{
 Compute RFI scores
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RFI$compute(conditioning_set = NULL, iters_perm = NULL, store_backends = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RFI$compute(
+  conditioning_set = NULL,
+  n_repeats = NULL,
+  store_models = TRUE,
+  store_backends = TRUE
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -99,9 +104,9 @@ Compute RFI scores
 \describe{
 \item{\code{conditioning_set}}{(character()) Set of features to condition on. If \code{NULL}, uses the stored parameter value.}
 
-\item{\code{iters_perm}}{(integer(1)) Number of permutation iterations. If \code{NULL}, uses stored value.}
+\item{\code{n_repeats}}{(integer(1)) Number of permutation iterations. If \code{NULL}, uses stored value.}
 
-\item{\code{store_backends}}{(logical(1)) Whether to store backends, passed to \code{\link[mlr3:resample]{mlr3::resample()}} internally
+\item{\code{store_models, store_backends}}{(\code{logical(1)}: \code{TRUE}) Whether to store fitted models / data backends, passed to \link[mlr3:resample]{mlr3::resample} internally
 for the initial fit of the learner.
 This may be required for certain measures and is recommended to leave enabled unless really necessary.}
 }

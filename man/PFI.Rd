@@ -28,7 +28,7 @@ pfi = PFI$new(
   learner = lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
   measure = msr("classif.ce"),
   resampling = rsmp("cv", folds = 3),
-  iters_perm = 3
+  n_repeats = 3
 )
 pfi$compute()
 pfi$importance()
@@ -84,18 +84,18 @@ Creates a new instance of the PFI class
   features = NULL,
   groups = NULL,
   relation = "difference",
-  iters_perm = 1L
+  n_repeats = 1L
 )}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task, learner, measure, resampling, features, groups}}{Passed to PerturbationImportance}
+\item{\code{task, learner, measure, resampling, features, groups}}{Passed to \link{PerturbationImportance}}
 
-\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. Can be overridden in \verb{$compute()}.}
+\item{\code{relation}}{(c\code{haracter(1)}: "\code{difference}") How to relate perturbed scores to originals. Can be overridden in \verb{$compute()}.}
 
-\item{\code{iters_perm}}{(integer(1)) Number of permutation iterations. Can be overridden in \verb{$compute()}.}
+\item{\code{n_repeats}}{(\code{integer(1)}: \code{1L}) Number of permutation iterations. Can be overridden in \verb{$compute()}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -106,15 +106,15 @@ Creates a new instance of the PFI class
 \subsection{Method \code{compute()}}{
 Compute PFI scores
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PFI$compute(iters_perm = NULL, store_backends = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PFI$compute(n_repeats = NULL, store_models = TRUE, store_backends = TRUE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{iters_perm}}{(integer(1)) Number of permutation iterations. If \code{NULL}, uses stored value.}
+\item{\code{n_repeats}}{(\code{integer(1)}; \code{NULL}) Number of permutation iterations. If \code{NULL}, uses stored value.}
 
-\item{\code{store_backends}}{(logical(1)) Whether to store backends, passed to \code{\link[mlr3:resample]{mlr3::resample()}} internally
+\item{\code{store_models, store_backends}}{(\code{logical(1)}: \code{TRUE}) Whether to store fitted models / data backends, passed to \link[mlr3:resample]{mlr3::resample} internally
 for the initial fit of the learner.
 This may be required for certain measures and is recommended to leave enabled unless really necessary.}
 }

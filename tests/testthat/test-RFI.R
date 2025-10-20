@@ -173,7 +173,7 @@ test_that("RFI multiple perms", {
 		measure = mlr3::msr("regr.mse"),
 		resampling = mlr3::rsmp("cv", folds = 3),
 		conditioning_set = "important1",
-		iters_perm = 2
+		n_repeats = 2
 	)
 
 	rfi$compute()
@@ -184,7 +184,7 @@ test_that("RFI multiple perms", {
 		rfi$scores(),
 		types = c("character", "integer", "numeric"),
 		nrows = rfi$resampling$iters *
-			rfi$param_set$values$iters_perm *
+			rfi$param_set$values$n_repeats *
 			length(rfi$features),
 		ncols = 6,
 		any.missing = FALSE,
@@ -206,7 +206,7 @@ test_that("RFI only one feature", {
 		measure = mlr3::msr("regr.mse"),
 		resampling = mlr3::rsmp("cv", folds = 3),
 		conditioning_set = c("important1", "important2"),
-		iters_perm = 2,
+		n_repeats = 2,
 		features = "important4"
 	)
 
@@ -218,7 +218,7 @@ test_that("RFI only one feature", {
 		rfi$scores(),
 		types = c("character", "integer", "numeric"),
 		nrows = rfi$resampling$iters *
-			rfi$param_set$values$iters_perm,
+			rfi$param_set$values$n_repeats,
 		ncols = 6,
 		any.missing = FALSE,
 		min.cols = 6
@@ -240,7 +240,7 @@ test_that("RFI with friedman1 produces sensible results", {
 		learner = learner,
 		measure = measure,
 		conditioning_set = c("important1"), # Condition on one feature
-		iters_perm = 2
+		n_repeats = 2
 	)
 
 	rfi$compute()
@@ -306,19 +306,19 @@ test_that("RFI parameter validation", {
 	learner = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob")
 	measure = mlr3::msr("classif.ce")
 
-	# iters_perm must be positive integer
+	# n_repeats must be positive integer
 	expect_error(RFI$new(
 		task = task,
 		learner = learner,
 		measure = measure,
-		iters_perm = 0L
+		n_repeats = 0L
 	))
 
 	expect_error(RFI$new(
 		task = task,
 		learner = learner,
 		measure = measure,
-		iters_perm = -1L
+		n_repeats = -1L
 	))
 
 	# conditioning_set must be valid feature names
@@ -346,7 +346,7 @@ test_that("RFI different conditioning sets produce different results", {
 		learner = learner,
 		measure = measure,
 		conditioning_set = character(0),
-		iters_perm = 2
+		n_repeats = 2
 	)
 
 	# RFI with one conditioning feature
@@ -355,7 +355,7 @@ test_that("RFI different conditioning sets produce different results", {
 		learner = learner,
 		measure = measure,
 		conditioning_set = "important1",
-		iters_perm = 2
+		n_repeats = 2
 	)
 
 	# RFI with multiple conditioning features
@@ -364,7 +364,7 @@ test_that("RFI different conditioning sets produce different results", {
 		learner = learner,
 		measure = measure,
 		conditioning_set = c("important1", "important2"),
-		iters_perm = 2
+		n_repeats = 2
 	)
 
 	rfi_empty$compute()

@@ -135,11 +135,11 @@ FeatureImportanceMethod = R6Class(
 		#'   measure = msr("regr.mse"),
 		#'   # Subsampling instead of bootstrapping due to RF
 		#'   resampling = rsmp("subsampling", repeats = 15),
-		#'   iters_perm = 5
+		#'   n_repeats = 5
 		#' )
 		#' ```
 		#'
-		#' `iters_perm = 5` in this context only improves the stability of the PFI estimate within the resampling iteration, whereas `rsmp("subsampling", repeats = 15)`
+		#' `n_repeats = 5` in this context only improves the stability of the PFI estimate within the resampling iteration, whereas `rsmp("subsampling", repeats = 15)`
 		#' is used to accounter for learner variance and neccessitates variance correction factor.
 		#'
 		#' This appraoch can in principle also be applied to `CFI` and `RFI`, but beware that a conditional sample such as [ARFSampler] also needs to be trained on data,
@@ -268,13 +268,12 @@ FeatureImportanceMethod = R6Class(
 				)
 			]
 
-			# Select / reorder column names, but note that e.g. iter_perm and iter_refit are
+			# Select / reorder column names, some may be
 			# specific to methods and may not be present
 			names_to_keep = c(
 				"feature",
 				"iter_rsmp",
-				"iter_perm",
-				"iter_refit",
+				"iter_repeat",
 				"row_ids",
 				"loss_baseline",
 				"loss_post",

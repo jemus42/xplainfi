@@ -50,7 +50,7 @@ Creates a new instance of the PerturbationImportance class
   groups = NULL,
   sampler = NULL,
   relation = "difference",
-  iters_perm = 1L
+  n_repeats = 1L
 )}\if{html}{\out{</div>}}
 }
 
@@ -61,9 +61,9 @@ Creates a new instance of the PerturbationImportance class
 
 \item{\code{sampler}}{(\link{FeatureSampler}) Sampler to use for feature perturbation.}
 
-\item{\code{relation}}{(character(1): \code{"difference"}) How to relate perturbed and baseline scores. Can also be \code{"ratio"}.}
+\item{\code{relation}}{(\verb{character(1):} \code{"difference"}) How to relate perturbed and baseline scores. Can also be \code{"ratio"}.}
 
-\item{\code{iters_perm}}{(integer(1)) Number of permutation iterations. Can be overridden in \verb{$compute()}.}
+\item{\code{n_repeats}}{(\code{integer(1)}: \code{1L}) Number of permutation/conditional sampling iterations. Can be overridden in \verb{$compute()}.}
 }
 \if{html}{\out{</div>}}
 }

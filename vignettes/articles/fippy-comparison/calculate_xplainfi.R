@@ -67,7 +67,7 @@ pfi_r <- PFI$new(
 	learner = learner,
 	measure = msr("regr.mse"),
 	resampling = resampling,
-	iters_perm = 5
+	n_repeats = 5
 )
 
 pfi_r$compute()
@@ -84,7 +84,7 @@ cfi_r <- CFI$new(
 	learner = learner,
 	measure = msr("regr.mse"),
 	resampling = resampling,
-	iters_perm = 5,
+	n_repeats = 5,
 	sampler = sampler
 )
 
@@ -104,7 +104,7 @@ rfi_r <- RFI$new(
 	measure = msr("regr.mse"),
 	resampling = resampling,
 	conditioning_set = c("x3"),
-	iters_perm = 5,
+	n_repeats = 5,
 	sampler = sampler
 )
 

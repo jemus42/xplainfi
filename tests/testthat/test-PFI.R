@@ -56,7 +56,7 @@ test_that("multiple perms", {
 		learner = mlr3::lrn("regr.ranger", num.trees = 50),
 		measure = mlr3::msr("regr.mse"),
 		resampling = mlr3::rsmp("cv", folds = 3),
-		iters_perm = 2
+		n_repeats = 2
 	)
 
 	pfi$compute()
@@ -67,7 +67,7 @@ test_that("multiple perms", {
 		pfi$scores(),
 		types = c("character", "integer", "numeric"),
 		nrows = pfi$resampling$iters *
-			pfi$param_set$values$iters_perm *
+			pfi$param_set$values$n_repeats *
 			length(pfi$features),
 		ncols = 6,
 		any.missing = FALSE,
@@ -87,7 +87,7 @@ test_that("only one feature", {
 		learner = mlr3::lrn("regr.ranger", num.trees = 50),
 		measure = mlr3::msr("regr.mse"),
 		resampling = mlr3::rsmp("cv", folds = 3),
-		iters_perm = 2,
+		n_repeats = 2,
 		features = "important4"
 	)
 
@@ -99,7 +99,7 @@ test_that("only one feature", {
 		pfi$scores(),
 		types = c("character", "integer", "numeric"),
 		nrows = pfi$resampling$iters *
-			pfi$param_set$values$iters_perm,
+			pfi$param_set$values$n_repeats,
 		ncols = 6,
 		any.missing = FALSE,
 		min.cols = 6
@@ -151,7 +151,7 @@ test_that("PFI with resampling", {
 		learner = learner,
 		resampling = resampling,
 		measure = measure,
-		iters_perm = 2
+		n_repeats = 2
 	)
 
 	pfi$compute()
@@ -176,14 +176,14 @@ test_that("scores and obs_losses agree", {
 		learner = mlr3::lrn("regr.rpart"),
 		measure = mlr3::msr("regr.mse"),
 		resampling = mlr3::rsmp("cv", folds = 3),
-		iters_perm = 2
+		n_repeats = 2
 	)
 
 	pfi$compute()
 
 	importance_agg = pfi$importance()
-	importance_scores = pfi$scores()[, .(iter_rsmp, iter_perm, feature, importance)][
-		order(iter_rsmp, iter_perm, feature)
+	importance_scores = pfi$scores()[, .(iter_rsmp, iter_repeat, feature, importance)][
+		order(iter_rsmp, iter_repeat, feature)
 	]
 	importance_obs_loss = pfi$obs_loss()
 
@@ -197,8 +197,8 @@ test_that("scores and obs_losses agree", {
 	# up to numerical error
 	obs_agg = importance_obs_loss[,
 		list(importance = mean(obs_importance)),
-		by = c("iter_rsmp", "iter_perm", "feature")
-	][order(iter_rsmp, iter_perm, feature)]
+		by = c("iter_rsmp", "iter_repeat", "feature")
+	][order(iter_rsmp, iter_repeat, feature)]
 
 	expect_equal(importance_scores, obs_agg, tolerance = sqrt(.Machine$double.eps))
 })

@@ -87,7 +87,7 @@ pfi_stable <- PFI$new(
 	learner = learner,
 	measure = measure,
 	resampling = resampling,
-	iters_perm = 5
+	n_repeats = 5
 )
 
 pfi_stable$compute()
@@ -174,7 +174,7 @@ We can also summarize the scoring structure:
 pfi$scores()[, .(
 	features = uniqueN(feature),
 	resampling_folds = uniqueN(iter_rsmp),
-	permutation_iters = uniqueN(iter_perm),
+	permutation_iters = uniqueN(iter_repeat),
 	total_scores = .N
 )]
 ```

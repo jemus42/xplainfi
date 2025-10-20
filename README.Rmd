@@ -63,7 +63,7 @@ pfi = PFI$new(
 	learner = learner,
 	measure = measure,
 	resampling = rsmp("cv", folds = 3),
-	iters_perm = 5
+	n_repeats = 5
 )
 ```
 
@@ -86,7 +86,7 @@ When PFI is computed based on resampling with multiple iterations, and / or mult
 str(pfi$scores())
 ```
 
-Where `iter_rsmp` corresponds to the resampling iteration, i.e., 3 for 3-fold cross-validation, and `iter_perm` corresponds to the permutation iteration within each resampling iteration, 5 in this case.
+Where `iter_rsmp` corresponds to the resampling iteration, i.e., 3 for 3-fold cross-validation, and `iter_repeat` corresponds to the permutation iteration within each resampling iteration, 5 in this case.
 While `pfi$importance()` contains the means across all iterations, `pfi$scores()` allows you to manually visualize or aggregate them in any way you see fit.
 
 For example:

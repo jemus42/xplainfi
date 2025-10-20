@@ -2,7 +2,7 @@
 #'
 #' @description
 #' Base class generalizazing refit-based variable importance measures.
-#' Default corresponds to leaving out each feature `iters_refit` times, which
+#' Default corresponds to leaving out each feature `n_repeats` times, which
 #' corresponds to LOCO (Leave One Covariate Out).
 #'
 #' @export
@@ -19,7 +19,7 @@ WVIM = R6Class(
 		#' @param task,learner,measure,resampling,features,groups Passed to `FeatureImportanceMethod` for construction.
 		#' @param direction (`character(1)`) Either "leave-out" or "leave-in".
 		#' @param label (`character(1)`) Method label.
-		#' @param iters_refit (`integer(1)`) Number of refit iterations per resampling iteration.
+		#' @param n_repeats (`integer(1)`) Number of refit iterations per resampling iteration.
 		initialize = function(
 			task,
 			learner,
@@ -29,23 +29,23 @@ WVIM = R6Class(
 			groups = NULL,
 			direction = c("leave-out", "leave-in"),
 			label = "Williamson's Variable Importance Measure (WVIM)",
-			iters_refit = 1L
+			n_repeats = 1L
 		) {
 			require_package("mlr3fselect")
 
 			# Should this go in the param_set?
 			direction = match.arg(direction)
 			self$direction = direction
-			checkmate::assert_int(iters_refit, lower = 1L)
+			checkmate::assert_int(n_repeats, lower = 1L)
 
 			# params
 			ps = ps(
 				relation = paradox::p_fct(c("difference", "ratio"), default = "difference"),
-				iters_refit = paradox::p_int(lower = 1L, default = 1L)
+				n_repeats = paradox::p_int(lower = 1L, default = 1L)
 			)
 			ps$values = list(
 				relation = "difference",
-				iters_refit = iters_refit
+				n_repeats = n_repeats
 			)
 
 			super$initialize(
@@ -65,10 +65,10 @@ WVIM = R6Class(
 		# @param design (`data.table`) A design matrix indicating which features are to be left in or out
 		# at each step. Can be created with [wvim_design_matrix].
 		#' `wvim_design_matrix(task$feature_names, "leave-out")` corresponds to LOCO.
-		#' @param store_backends (`logical(1)`) Passed to [mlr3::resample] to store
+		#' @param store_models,store_backends (`logical(1)`: `TRUE`) Whether to store fitted models / data backends, passed to [mlr3::resample] internally
 		#'   backends in resample result.
 		#'   Required for some measures, but may increase memory footprint.
-		compute = function(store_backends = TRUE) {
+		compute = function(store_models = TRUE, store_backends = TRUE) {
 			if (is.null(self$groups)) {
 				feature_or_groups = self$features
 			} else {
@@ -82,11 +82,15 @@ WVIM = R6Class(
 			)
 
 			design = data.table::rbindlist(replicate(
-				n = self$param_set$values$iters_refit,
+				n = self$param_set$values$n_repeats,
 				design,
 				simplify = FALSE
 			))
-			private$.compute_wvim(design, store_backends)
+			private$.compute_wvim(
+				design = design,
+				store_models = store_models,
+				store_backends = store_backends
+			)
 		}
 	),
 
@@ -119,7 +123,7 @@ WVIM = R6Class(
 			scores_baseline[]
 		},
 
-		.compute_wvim = function(design, store_backends) {
+		.compute_wvim = function(design, store_models = TRUE, store_backends = TRUE) {
 			scores_baseline = private$.compute_baseline(store_backends = store_backends)
 
 			# Fselect section
@@ -128,7 +132,8 @@ WVIM = R6Class(
 				task = self$task,
 				learner = self$learner,
 				resampling = self$resampling,
-				measure = self$measure
+				measure = self$measure,
+				store_models = store_models
 			)
 
 			archive_dt = as.data.table(instance$archive)
@@ -149,33 +154,39 @@ WVIM = R6Class(
 			scores = scores[scores_baseline, on = "iter_rsmp"]
 			# join with batch_nr to identify the foi for eatch iteration
 			scores = archive_base[scores, on = "batch_nr"]
-			# Regain iters_refit (hacky but kind of works I guess)
-			scores[, iter_refit := seq_along(batch_nr), by = c("iter_rsmp", "feature")]
+			# Regain n_repeats (hacky but kind of works I guess)
+			scores[, iter_repeat := seq_along(batch_nr), by = c("iter_rsmp", "feature")]
 
 			# Sanity check for iter refit
-			#scores[, .(iter_rsmp, batch_nr, iter_refit, feature)][feature == "important1"]
-			private$.scores = scores[, .(feature, iter_rsmp, iter_refit, score_baseline, score_post)]
+			#scores[, .(iter_rsmp, batch_nr, iter_repeat, feature)][feature == "important1"]
+			private$.scores = scores[, .(feature, iter_rsmp, iter_repeat, score_baseline, score_post)]
 
 			# Extract prediction for storage
-			# self$predictions needs: iter_rsmp, iter_perm/refit, feature, prediction
-			predictions = copy(scores)[, .(iter_rsmp, iter_refit, feature, prediction_test)]
+			# self$predictions needs: iter_rsmp, iter_repeat/refit, feature, prediction
+			predictions = copy(scores)[, .(iter_rsmp, iter_repeat, feature, prediction_test)]
 			setnames(predictions, "prediction_test", "prediction")
 			setkeyv(predictions, cols = c("feature", "iter_rsmp"))
-			self$predictions = predictions[, .(iter_rsmp, iter_refit, feature, prediction)]
+			self$predictions = predictions[, .(iter_rsmp, iter_repeat, feature, prediction)]
 
 			# obs losses ----
 			if (!is.null(self$measure$obs_loss)) {
 				obs_loss_vals = instance$archive$benchmark_result$obs_loss(self$measure)
 				setnames(obs_loss_vals, "resample_result", "batch_nr")
-				# add iter_refit to keep track
-				obs_loss_vals[, iter_refit := (batch_nr %% (self$param_set$values$iters_refit) + 1)]
+				# add iter_repeat to keep track
+				obs_loss_vals[, iter_repeat := (batch_nr %% (self$param_set$values$n_repeats) + 1)]
 
 				obs_loss_vals = archive_base[obs_loss_vals, on = "batch_nr"]
 
 				setnames(obs_loss_vals, "iteration", "iter_rsmp")
 				setnames(obs_loss_vals, self$measure$id, "loss_post")
 
-				private$.obs_losses = obs_loss_vals[, .(feature, iter_rsmp, iter_refit, row_ids, loss_post)]
+				private$.obs_losses = obs_loss_vals[, .(
+					feature,
+					iter_rsmp,
+					iter_repeat,
+					row_ids,
+					loss_post
+				)]
 			}
 		},
 
@@ -242,14 +253,14 @@ LOCO = R6Class(
 		#' @param measure ([mlr3::Measure]) Measure to use for scoring.
 		#' @param resampling ([mlr3::Resampling]) Resampling strategy. Defaults to holdout.
 		#' @param features (`character()`) Features to compute importance for. Defaults to all features.
-		#' @param iters_refit (`integer(1)`: `1L`) Number of refit iterations per resampling iteration.
+		#' @param n_repeats (`integer(1)`: `1L`) Number of refit iterations per resampling iteration.
 		initialize = function(
 			task,
 			learner,
 			measure,
 			resampling = NULL,
 			features = NULL,
-			iters_refit = 1L
+			n_repeats = 1L
 		) {
 			if (!is.null(features)) {
 				# LOCO specifically does not "allow" grouped features
@@ -265,7 +276,7 @@ LOCO = R6Class(
 				features = features,
 				direction = "leave-out",
 				label = "Leave-One-Covariate-Out (LOCO)",
-				iters_refit = iters_refit
+				n_repeats = n_repeats
 			)
 		},
 
@@ -283,12 +294,12 @@ LOCO = R6Class(
 			)
 
 			design_dt = data.table::rbindlist(replicate(
-				n = self$param_set$values$iters_refit,
+				n = self$param_set$values$n_repeats,
 				design,
 				simplify = FALSE
 			))
 
-			private$.compute_wvim(design, store_backends)
+			private$.compute_wvim(design, store_models = store_models, store_backends = store_backends)
 		}
 	)
 )
