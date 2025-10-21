@@ -61,7 +61,7 @@ Creates a new instance of the PerturbationImportance class
 
 \item{\code{sampler}}{(\link{FeatureSampler}) Sampler to use for feature perturbation.}
 
-\item{\code{relation}}{(\verb{character(1):} \code{"difference"}) How to relate perturbed and baseline scores. Can also be \code{"ratio"}.}
+\item{\code{relation}}{(\code{character(1)}: \code{"difference"}) How to relate perturbed and baseline scores. Can also be \code{"ratio"}.}
 
 \item{\code{n_repeats}}{(\code{integer(1)}: \code{1L}) Number of permutation/conditional sampling iterations. Can be overridden in \verb{$compute()}.}
 }

@@ -39,8 +39,6 @@ In \emph{Advances in Neural Information Processing Systems}, volume 33, 17212--1
 \describe{
 \item{\code{n_permutations}}{(\code{integer(1)}) Number of permutations to sample.}
 
-\item{\code{reference_data}}{(\code{\link[data.table:data.table]{data.table}}) Reference dataset for marginalization.}
-
 \item{\code{sampler}}{(\link{FeatureSampler}) Sampler object for marginalization.}
 
 \item{\code{convergence_history}}{(\code{\link[data.table:data.table]{data.table}}) History of SAGE values during computation.}
@@ -104,7 +102,8 @@ The total number of evaluated coalitions is \code{1 (empty) + n_permutations * n
 
 \item{\code{batch_size}}{(\code{integer(1): 5000L}) Maximum number of observations to process in a single prediction call.}
 
-\item{\code{sampler}}{(\link{FeatureSampler}) Sampler for marginalization. Only relevant for \code{ConditionalSAGE}.}
+\item{\code{sampler}}{(\link{FeatureSampler}) Sampler for replacing out-of-coalition feature values.
+Only relevant for \code{ConditionalSAGE}.}
 
 \item{\code{early_stopping}}{(\code{logical(1): FALSE}) Whether to enable early stopping based on convergence detection.}
 
@@ -115,9 +114,6 @@ The total number of evaluated coalitions is \code{1 (empty) + n_permutations * n
 \item{\code{min_permutations}}{(\code{integer(1): 10L}) Minimum permutations before checking convergence.}
 
 \item{\code{check_interval}}{(\code{integer(1): 2L}) Check convergence every N permutations.}
-
-\item{\code{reference_data}}{(\code{\link[data.table:data.table]{data.table}} | \code{NULL}) Optional reference dataset. If \code{NULL}, uses training data.
-For each coalition to evaluate, an expanded datasets of size \code{n_test * n_reference} is created and evaluted in batches of \code{batch_size}.}
 }
 \if{html}{\out{</div>}}
 }

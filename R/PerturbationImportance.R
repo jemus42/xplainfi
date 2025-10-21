@@ -14,7 +14,7 @@ PerturbationImportance = R6Class(
 		#' Creates a new instance of the PerturbationImportance class
 		#' @param task,learner,measure,resampling,features,groups Passed to [FeatureImportanceMethod].
 		#' @param sampler ([FeatureSampler]) Sampler to use for feature perturbation.
-		#' @param relation (`character(1):` `"difference"`) How to relate perturbed and baseline scores. Can also be `"ratio"`.
+		#' @param relation (`character(1)`: `"difference"`) How to relate perturbed and baseline scores. Can also be `"ratio"`.
 		#' @param n_repeats (`integer(1)`: `1L`) Number of permutation/conditional sampling iterations. Can be overridden in `$compute()`.
 		initialize = function(
 			task,
