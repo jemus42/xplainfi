@@ -1,0 +1,18 @@
+linters: linters_with_defaults(
+    # Relax line length
+    line_length_linter = line_length_linter(120L),
+    # R6 classes use CamelCase by convention
+    object_name_linter = object_name_linter(styles = c("snake_case", "CamelCase")),
+    # need to allow = due to mlr3 style and my lack of willingness to fight it
+    assignment_linter = NULL, 
+    # use air for indentation, no need to lint it
+    indentation_linter = NULL, 
+    whitespace_linter = NULL,
+    # Allow commented out code
+    commented_code_linter = NULL,
+    # Don't check function complexity (yet?)
+    cyclocomp_linter = NULL
+  )
+exclusions: list(
+    "R/zzz.R"
+  )
