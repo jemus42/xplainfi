@@ -45,7 +45,8 @@ SAGE = R6Class(
 		#' @param n_permutations (`integer(1): 10L`) Number of permutations _per coalition_ to sample for Shapley value estimation.
 		#'   The total number of evaluated coalitions is `1 (empty) + n_permutations * n_features`.
 		#' @param batch_size (`integer(1): 5000L`) Maximum number of observations to process in a single prediction call.
-		#' @param sampler ([FeatureSampler]) Sampler for marginalization. Only relevant for `ConditionalSAGE`.
+		#' @param sampler ([FeatureSampler]) Sampler for replacing out-of-coalition feature values.
+		#' 	 Only relevant for `ConditionalSAGE`.
 		#' @param early_stopping (`logical(1): FALSE`) Whether to enable early stopping based on convergence detection.
 		#' @param convergence_threshold (`numeric(1): 0.01`) Relative change threshold for convergence detection.
 		#' @param se_threshold (`numeric(1): Inf`) Standard error threshold for convergence detection.
@@ -654,14 +655,13 @@ MarginalSAGE = R6Class(
 				# Determine which features need to be marginalized (i.e., features NOT in the current coalition).
 				marginalize_features = setdiff(self$features, coalition)
 				if (length(marginalize_features) > 0) {
-					# Call the private .marginalize_features method (implemented by subclasses like MarginalSAGE or ConditionalSAGE).
-					# This method replaces the values of 'marginalize_features' in 'test_expanded'
-					# with values derived from 'reference_expanded' (marginal or conditional sampling).
-					test_expanded = private$.marginalize_features(
-						test_expanded,
-						reference_expanded,
-						marginalize_features
-					)
+					# This replaces the values of 'marginalize_features' in 'test_expanded'
+					# with values derived from 'reference_expanded' for batched Monte Carlo integration
+					# Also: We sample "block-wise" such that correlation structure in out-of-coalition features is maintained
+					# If we just sample(feature)'d individually we would break that structure
+					test_expanded[,
+						(marginalize_features) := reference_expanded[, .SD, .SDcols = marginalize_features]
+					]
 				}
 
 				# Store the processed (marginalized) expanded data for the current coalition.
@@ -822,18 +822,6 @@ MarginalSAGE = R6Class(
 
 			# Return the vector of losses for all coalitions in this batch.
 			coalition_losses
-		},
-
-		# This doesn't necessarily need to be a private method but we could
-		# substitute it with different approaches
-		# @param test_data,reference_data Expanded datasets for marginalization (same nrow)
-		# ! These are different (by design) from the test_dt and private$reference_data
-		.marginalize_features = function(test_data, reference_data, marginalize_features) {
-			# Marginal sampling implementation: replace with reference data
-			test_data[,
-				(marginalize_features) := reference_data[, .SD, .SDcols = marginalize_features]
-			]
-			test_data
 		}
 	)
 )
