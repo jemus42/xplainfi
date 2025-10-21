@@ -84,15 +84,13 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 \subsection{Method \code{compute()}}{
 Compute LOCO importances.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{LOCO$compute(store_backends = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{LOCO$compute(store_models = TRUE, store_backends = TRUE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{store_backends}}{(\code{logical(1)}) Passed to \link[mlr3:resample]{mlr3::resample} to store
-backends in resample result.
-Required for some measures, but may increase memory footprint.}
+\item{\code{store_models, store_backends}}{(\code{logical(1)}: \code{TRUE}) Whether to store fitted models / data backends, passed to \link[mlr3:resample]{mlr3::resample} internally}
 }
 \if{html}{\out{</div>}}
 }

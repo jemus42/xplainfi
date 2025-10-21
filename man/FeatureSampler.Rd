@@ -68,7 +68,7 @@ Sample values for feature(s) from stored task
 }
 \subsection{Returns}{
 Modified copy of the input features with the feature(s) sampled:
-A \link[data.table:data.table]{data.table} with \code{task$n_features} columns and one row matching the supplied \code{row_ids}
+A \link[data.table:data.table]{data.table} with same number of columns and one row matching the supplied \code{row_ids}
 }
 }
 \if{html}{\out{<hr>}}
