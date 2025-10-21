@@ -855,6 +855,8 @@ ConditionalSAGE = R6Class(
 		#' Creates a new instance of the ConditionalSAGE class.
 		#' @param task,learner,measure,resampling,features,n_permutations,batch_size,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
 		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to [ARFSampler].
+		#' @param n_conditional_samples (`integer(1): 100L`) Number of conditional samples to draw for each
+		#'   test instance when approximating the conditional expectation.
 		initialize = function(
 			task,
 			learner,
@@ -864,6 +866,7 @@ ConditionalSAGE = R6Class(
 			n_permutations = 10L,
 			sampler = NULL,
 			batch_size = 5000L,
+			n_conditional_samples = 100L,
 			early_stopping = FALSE,
 			convergence_threshold = 0.01,
 			se_threshold = Inf,
@@ -896,6 +899,14 @@ ConditionalSAGE = R6Class(
 				check_interval = check_interval
 			)
 
+			# Add parameter to param_set
+			checkmate::assert_int(n_conditional_samples, lower = 1L)
+			ps = ps(
+				n_conditional_samples = paradox::p_int(lower = 1L, default = 100L)
+			)
+			ps$values$n_conditional_samples = n_conditional_samples
+			self$param_set = paradox::ps_union(list(self$param_set, ps))
+
 			self$label = "Conditional SAGE"
 		}
 	),
@@ -920,15 +931,32 @@ ConditionalSAGE = R6Class(
 				marginalize_features = setdiff(self$features, coalition)
 
 				if (length(marginalize_features) > 0) {
+					# Expand test data to sample multiple times for averaging
+					# Similar to MarginalSAGE's reference data expansion
+					test_dt_expanded = test_dt[rep(
+						seq_len(n_test),
+						each = self$param_set$values$n_conditional_samples
+					)]
+
 					# Sample conditionally - returns test_dt with marginalized features replaced
 					marginalized_test = self$sampler$sample_newdata(
 						feature = marginalize_features,
-						newdata = test_dt,
+						newdata = test_dt_expanded,
 						conditioning_set = coalition
 					)
+
+					# Add test instance ID for tracking which original test instance each row belongs to
+					# Must be done AFTER sampling since sampler may not preserve columns
+					marginalized_test[,
+						.test_instance_id := rep(
+							seq_len(n_test),
+							each = self$param_set$values$n_conditional_samples
+						)
+					]
 				} else {
-					# No marginalization needed
+					# No marginalization needed - just use original test data
 					marginalized_test = copy(test_dt)
+					marginalized_test[, .test_instance_id := seq_len(n_test)]
 				}
 
 				# Add coalition ID for tracking
@@ -1016,20 +1044,35 @@ ConditionalSAGE = R6Class(
 				for (j in seq_len(n_classes)) {
 					combined_data[, paste0(".pred_class_", j) := combined_predictions[, j]]
 				}
+
+				# Aggregate: average probabilities across conditional samples for each coalition and test instance
+				agg_cols = paste0(".pred_class_", seq_len(n_classes))
+				avg_preds_by_coalition = combined_data[,
+					lapply(.SD, function(x) mean(x, na.rm = TRUE)),
+					.SDcols = agg_cols,
+					by = .(.coalition_id, .test_instance_id)
+				]
+
+				# Rename aggregated columns back to original class names
+				setnames(avg_preds_by_coalition, agg_cols, class_names)
 			} else {
 				combined_data[, .prediction := combined_predictions]
+
+				# Aggregate: average predictions across conditional samples for each coalition and test instance
+				avg_preds_by_coalition = combined_data[,
+					.(avg_pred = mean(.prediction, na.rm = TRUE)),
+					by = .(.coalition_id, .test_instance_id)
+				]
 			}
 
-			# Calculate loss for each coalition (NO averaging needed!)
+			# Calculate loss for each coalition using averaged predictions
 			coalition_losses = numeric(n_coalitions)
 			for (i in seq_len(n_coalitions)) {
-				coalition_data = combined_data[.coalition_id == i]
+				coalition_data = avg_preds_by_coalition[.coalition_id == i]
 
 				if (self$task$task_type == "classif") {
 					class_names = self$task$class_names
-					prob_cols = paste0(".pred_class_", seq_len(n_classes))
-					prob_matrix = as.matrix(coalition_data[, .SD, .SDcols = prob_cols])
-					colnames(prob_matrix) = class_names
+					prob_matrix = as.matrix(coalition_data[, .SD, .SDcols = class_names])
 
 					pred_obj = PredictionClassif$new(
 						row_ids = seq_len(n_test),
@@ -1040,7 +1083,7 @@ ConditionalSAGE = R6Class(
 					pred_obj = PredictionRegr$new(
 						row_ids = seq_len(n_test),
 						truth = test_dt[[self$task$target_names]],
-						response = coalition_data$.prediction
+						response = coalition_data$avg_pred
 					)
 				}
 
