@@ -30,8 +30,6 @@ SAGE = R6Class(
 	public = list(
 		#' @field n_permutations (`integer(1)`) Number of permutations to sample.
 		n_permutations = NULL,
-		#' @field reference_data ([`data.table`][data.table::data.table]) Reference dataset for marginalization.
-		reference_data = NULL,
 		#' @field sampler ([FeatureSampler]) Sampler object for marginalization.
 		sampler = NULL,
 		#' @field convergence_history ([`data.table`][data.table::data.table]) History of SAGE values during computation.
@@ -46,8 +44,6 @@ SAGE = R6Class(
 		#' @param task,learner,measure,resampling,features Passed to FeatureImportanceMethod.
 		#' @param n_permutations (`integer(1): 10L`) Number of permutations _per coalition_ to sample for Shapley value estimation.
 		#'   The total number of evaluated coalitions is `1 (empty) + n_permutations * n_features`.
-		#' @param reference_data ([`data.table`][data.table::data.table] | `NULL`) Optional reference dataset. If `NULL`, uses training data.
-		#'   For each coalition to evaluate, an expanded datasets of size `n_test * n_reference` is created and evaluted in batches of `batch_size`.
 		#' @param batch_size (`integer(1): 5000L`) Maximum number of observations to process in a single prediction call.
 		#' @param sampler ([FeatureSampler]) Sampler for marginalization. Only relevant for `ConditionalSAGE`.
 		#' @param early_stopping (`logical(1): FALSE`) Whether to enable early stopping based on convergence detection.
@@ -534,14 +530,6 @@ SAGE = R6Class(
 					n_permutations_used = n_completed
 				)
 			)
-		},
-
-		.marginalize_features = function(test_data, reference_data, marginalize_features) {
-			# Abstract method - must be implemented by subclasses
-			cli::cli_abort(c(
-				"Abstract method: {.fun marginalize_features} must be implemented by subclasses.",
-				"i" = "Use {.cls MarginalSAGE} or {.cls ConditionalSAGE} instead of the abstract {.cls SAGE} class."
-			))
 		}
 	)
 )
@@ -573,7 +561,7 @@ MarginalSAGE = R6Class(
 	public = list(
 		#' @description
 		#' Creates a new instance of the MarginalSAGE class.
-		#' @param task,learner,measure,resampling,features,n_permutations,reference_data,batch_size,max_reference_size,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
+		#' @param task,learner,measure,resampling,features,n_permutations,batch_size,max_reference_size,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
 		initialize = function(
 			task,
 			learner,
@@ -581,7 +569,6 @@ MarginalSAGE = R6Class(
 			resampling = NULL,
 			features = NULL,
 			n_permutations = 10L,
-			reference_data = NULL,
 			batch_size = 5000L,
 			max_reference_size = 100L,
 			early_stopping = FALSE,
@@ -605,17 +592,14 @@ MarginalSAGE = R6Class(
 				min_permutations = min_permutations,
 				check_interval = check_interval
 			)
-			# Use training data as reference if not provided
-			if (is.null(reference_data)) {
-				self$reference_data = self$task$data(cols = self$task$feature_names)
-			} else {
-				self$reference_data = checkmate::assert_data_table(reference_data)
-			}
+			# Use training data as reference for later marginalization
+			private$reference_data = self$task$data(cols = self$task$feature_names)
+			checkmate::assert_int(max_reference_size, lower = 1)
 
 			# Subsample reference data if it's too large for efficiency
-			if (!is.null(max_reference_size) && nrow(self$reference_data) > max_reference_size) {
-				sample_idx = sample(nrow(self$reference_data), size = max_reference_size)
-				self$reference_data = self$reference_data[sample_idx, ]
+			if (!is.null(max_reference_size) && nrow(private$reference_data) > max_reference_size) {
+				sample_idx = sample(nrow(private$reference_data), size = max_reference_size)
+				private$reference_data = private$reference_data[sample_idx, ]
 			}
 
 			# Add params specifi to marginal sampling
@@ -631,16 +615,16 @@ MarginalSAGE = R6Class(
 	),
 
 	private = list(
+		reference_data = NULL,
+		# This function evaluates the model's performance (loss) for a batch of feature coalitions.
+		# It constructs expanded datasets for each coalition and then processes them in batches for prediction.
 		.evaluate_coalitions_batch = function(learner, test_dt, all_coalitions, batch_size = NULL) {
-			# This function evaluates the model's performance (loss) for a batch of feature coalitions.
-			# It constructs expanded datasets for each coalition and then processes them in batches for prediction.
-
 			# Get the number of unique coalitions to evaluate in this batch.
 			n_coalitions = length(all_coalitions)
 			# Get the number of observations in the test dataset.
 			n_test = nrow(test_dt)
 			# Get the number of observations in the reference dataset.
-			n_reference = nrow(self$reference_data)
+			n_reference = nrow(private$reference_data)
 
 			# Pre-allocate a list to store the expanded data for each coalition.
 			# Each element in this list will be a data.table containing test instances combined with reference instances.
@@ -660,7 +644,7 @@ MarginalSAGE = R6Class(
 				# with every instance from the reference data. This creates a dataset of size
 				# n_test * n_reference. For example, if n_test=100 and n_reference=50, this creates 5000 rows.
 				test_expanded = test_dt[rep(seq_len(n_test), each = n_reference)]
-				reference_expanded = self$reference_data[rep(seq_len(n_reference), times = n_test)]
+				reference_expanded = private$reference_data[rep(seq_len(n_reference), times = n_test)]
 
 				# Add unique identifiers to track which original test instance and coalition
 				# each row in the expanded dataset corresponds to. This is crucial for aggregation later.
@@ -840,6 +824,10 @@ MarginalSAGE = R6Class(
 			coalition_losses
 		},
 
+		# This doesn't necessarily need to be a private method but we could
+		# substitute it with different approaches
+		# @param test_data,reference_data Expanded datasets for marginalization (same nrow)
+		# ! These are different (by design) from the test_dt and private$reference_data
 		.marginalize_features = function(test_data, reference_data, marginalize_features) {
 			# Marginal sampling implementation: replace with reference data
 			test_data[,
