@@ -104,10 +104,6 @@ In <em>Advances in Neural Information Processing Systems</em>, volume 33, 17212â
 <dd><p>(<code>integer(1)</code>) Number of permutations to sample.</p></dd>
 
 
-<dt><code>reference_data</code></dt>
-<dd><p>(<code><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></code>) Reference dataset for marginalization.</p></dd>
-
-
 <dt><code>sampler</code></dt>
 <dd><p>(<a href="FeatureSampler.html">FeatureSampler</a>) Sampler object for marginalization.</p></dd>
 
@@ -178,7 +174,8 @@ The total number of evaluated coalitions is <code>1 (empty) + n_permutations * n
 
 
 <dt><code>sampler</code></dt>
-<dd><p>(<a href="FeatureSampler.html">FeatureSampler</a>) Sampler for marginalization. Only relevant for <code>ConditionalSAGE</code>.</p></dd>
+<dd><p>(<a href="FeatureSampler.html">FeatureSampler</a>) Sampler for replacing out-of-coalition feature values.
+Only relevant for <code>ConditionalSAGE</code>.</p></dd>
 
 
 <dt><code>early_stopping</code></dt>
@@ -199,11 +196,6 @@ The total number of evaluated coalitions is <code>1 (empty) + n_permutations * n
 
 <dt><code>check_interval</code></dt>
 <dd><p>(<code>integer(1): 2L</code>) Check convergence every N permutations.</p></dd>
-
-
-<dt><code>reference_data</code></dt>
-<dd><p>(<code><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></code> | <code>NULL</code>) Optional reference dataset. If <code>NULL</code>, uses training data.
-For each coalition to evaluate, an expanded datasets of size <code>n_test * n_reference</code> is created and evaluted in batches of <code>batch_size</code>.</p></dd>
 
 
 </dl><p></p></div>
