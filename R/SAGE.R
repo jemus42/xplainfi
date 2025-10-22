@@ -938,7 +938,9 @@ ConditionalSAGE = R6Class(
 						each = self$param_set$values$n_conditional_samples
 					)]
 
-					# Sample conditionally - returns test_dt with marginalized features replaced
+					# Sample conditionally - returns test_dt with "marginalized" features replaced
+					# Would also benefit from batching for large data to reduce strain from calling sampler
+					# but ARF already batches internally anyway
 					marginalized_test = self$sampler$sample_newdata(
 						feature = marginalize_features,
 						newdata = test_dt_expanded,
@@ -1026,6 +1028,7 @@ ConditionalSAGE = R6Class(
 			# Handle NAs in predictions
 			if (self$task$task_type == "classif") {
 				if (any(is.na(combined_predictions))) {
+					cli::cli_warn("Encountered missing values in model prediction")
 					n_classes = ncol(combined_predictions)
 					uniform_prob = 1 / n_classes
 					for (j in seq_len(n_classes)) {
