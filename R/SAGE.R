@@ -531,6 +531,82 @@ SAGE = R6Class(
 					n_permutations_used = n_completed
 				)
 			)
+		},
+
+		# Template method: Defines the complete prediction and aggregation pipeline
+		# Subclasses only need to implement .expand_coalitions_data()
+		.evaluate_coalitions_batch = function(learner, test_dt, all_coalitions, batch_size = NULL) {
+			n_test = nrow(test_dt)
+
+			if (xplain_opt("debug")) {
+				cli::cli_inform("Evaluating {.val {length(all_coalitions)}} coalitions")
+			}
+
+			# STEP 1: Subclass-specific data expansion (abstract method)
+			combined_data = private$.expand_coalitions_data(test_dt, all_coalitions)
+
+			# STEPS 2-5: Shared processing pipeline using general utilities
+			predictions = sage_batch_predict(
+				learner,
+				combined_data,
+				self$task,
+				batch_size,
+				self$task$task_type
+			)
+			predictions = sage_handle_na_predictions(predictions, self$task$task_type)
+			avg_preds = sage_aggregate_predictions(
+				combined_data,
+				predictions,
+				self$task$task_type,
+				self$task$class_names
+			)
+
+			# Private method (needs self$task and self$measure)
+			coalition_losses = private$.calculate_coalition_losses(avg_preds, n_test, test_dt)
+
+			coalition_losses
+		},
+
+		# Abstract method - must be implemented by subclasses
+		# Returns: data.table with all feature columns plus .coalition_id and .test_instance_id
+		.expand_coalitions_data = function(test_dt, all_coalitions) {
+			cli::cli_abort(c(
+				"Abstract method not implemented",
+				"i" = "Subclasses must implement {.fn .expand_coalitions_data}",
+				"i" = "This method should return a data.table with:",
+				"*" = "All feature columns (with marginalized features replaced/sampled)",
+				"*" = "{.field .coalition_id}: integer identifying which coalition",
+				"*" = "{.field .test_instance_id}: integer identifying original test instance"
+			))
+		},
+
+		# Private method - needs self$task and self$measure
+		# Calculates losses from averaged predictions for each coalition
+		.calculate_coalition_losses = function(avg_preds, n_test, test_dt) {
+			n_coalitions = length(unique(avg_preds$.coalition_id))
+			coalition_losses = numeric(n_coalitions)
+
+			for (i in seq_len(n_coalitions)) {
+				coalition_data = avg_preds[.coalition_id == i]
+
+				pred_obj = if (self$task$task_type == "classif") {
+					PredictionClassif$new(
+						row_ids = seq_len(n_test),
+						truth = test_dt[[self$task$target_names]],
+						prob = as.matrix(coalition_data[, .SD, .SDcols = self$task$class_names])
+					)
+				} else {
+					PredictionRegr$new(
+						row_ids = seq_len(n_test),
+						truth = test_dt[[self$task$target_names]],
+						response = coalition_data$avg_pred
+					)
+				}
+
+				coalition_losses[i] = pred_obj$score(self$measure)
+			}
+
+			coalition_losses
 		}
 	)
 )
@@ -617,211 +693,37 @@ MarginalSAGE = R6Class(
 
 	private = list(
 		reference_data = NULL,
-		# This function evaluates the model's performance (loss) for a batch of feature coalitions.
-		# It constructs expanded datasets for each coalition and then processes them in batches for prediction.
-		.evaluate_coalitions_batch = function(learner, test_dt, all_coalitions, batch_size = NULL) {
-			# Get the number of unique coalitions to evaluate in this batch.
-			n_coalitions = length(all_coalitions)
-			# Get the number of observations in the test dataset.
+
+		# Marginal-specific data expansion: Cartesian product with reference data
+		.expand_coalitions_data = function(test_dt, all_coalitions) {
 			n_test = nrow(test_dt)
-			# Get the number of observations in the reference dataset.
 			n_reference = nrow(private$reference_data)
+			all_expanded_data = vector("list", length(all_coalitions))
 
-			# Pre-allocate a list to store the expanded data for each coalition.
-			# Each element in this list will be a data.table containing test instances combined with reference instances.
-			all_expanded_data = vector("list", n_coalitions)
-
-			# Inform about the number of coalitions being evaluated in this batch (for debugging).
-			if (xplain_opt("debug")) {
-				cli::cli_inform("Evaluating {.val {length(all_coalitions)}} coalitions")
-			}
-
-			# Loop through each unique coalition in the current batch.
 			for (i in seq_along(all_coalitions)) {
-				coalition = all_coalitions[[i]] # Current coalition of features (e.g., c("x1", "x2"))
+				coalition = all_coalitions[[i]]
 
-				# Create expanded datasets for the current coalition.
-				# This is the core of SAGE's marginalization: for each test instance, we combine it
-				# with every instance from the reference data. This creates a dataset of size
-				# n_test * n_reference. For example, if n_test=100 and n_reference=50, this creates 5000 rows.
+				# Cartesian product: each test instance × all reference instances
 				test_expanded = test_dt[rep(seq_len(n_test), each = n_reference)]
 				reference_expanded = private$reference_data[rep(seq_len(n_reference), times = n_test)]
 
-				# Add unique identifiers to track which original test instance and coalition
-				# each row in the expanded dataset corresponds to. This is crucial for aggregation later.
-				test_expanded[, .coalition_id := i] # Identifies the coalition this row belongs to
-				test_expanded[, .test_instance_id := rep(seq_len(n_test), each = n_reference)] # Identifies the original test instance
+				# Add tracking columns BEFORE marginalization
+				test_expanded[, .coalition_id := i]
+				test_expanded[, .test_instance_id := rep(seq_len(n_test), each = n_reference)]
 
-				# Determine which features need to be marginalized (i.e., features NOT in the current coalition).
+				# Replace marginalized features with reference values
+				# Maintains correlation structure in out-of-coalition features (block-wise sampling)
 				marginalize_features = setdiff(self$features, coalition)
 				if (length(marginalize_features) > 0) {
-					# This replaces the values of 'marginalize_features' in 'test_expanded'
-					# with values derived from 'reference_expanded' for batched Monte Carlo integration
-					# Also: We sample "block-wise" such that correlation structure in out-of-coalition features is maintained
-					# If we just sample(feature)'d individually we would break that structure
 					test_expanded[,
 						(marginalize_features) := reference_expanded[, .SD, .SDcols = marginalize_features]
 					]
 				}
 
-				# Store the processed (marginalized) expanded data for the current coalition.
 				all_expanded_data[[i]] = test_expanded
 			}
 
-			# Combine ALL expanded data.tables from all coalitions in this batch into one large data.table.
-			# This single data.table will be used for prediction, allowing for efficient batch processing by the learner.
-			# Example: if there are 10 coalitions, and each expands to 5000 rows, combined_data will have 50,000 rows.
-			combined_data = rbindlist(all_expanded_data)
-			total_rows = nrow(combined_data)
-
-			# Process data in batches if a batch_size is specified and the total number of rows
-			# exceeds this batch_size. This prevents out-of-memory errors for very large datasets.
-			if (!is.null(batch_size) && total_rows > batch_size) {
-				# Calculate the number of batches needed.
-				n_batches = ceiling(total_rows / batch_size)
-				# Pre-allocate a list to store predictions from each batch.
-				all_predictions = vector("list", n_batches)
-
-				# Loop through each batch.
-				for (batch_idx in seq_len(n_batches)) {
-					# Determine the start and end rows for the current batch.
-					start_row = (batch_idx - 1) * batch_size + 1
-					end_row = min(batch_idx * batch_size, total_rows)
-
-					# Extract the data for the current batch.
-					batch_data = combined_data[start_row:end_row]
-
-					# Predict on the current batch.
-					if (xplain_opt("debug")) {
-						cli::cli_inform(
-							"Predicting on {.val {nrow(batch_data)}} instances in batch {.val {batch_idx}/{n_batches}}"
-						)
-					}
-					if (is.function(learner$predict_newdata_fast)) {
-						pred_result = learner$predict_newdata_fast(newdata = batch_data, task = self$task)
-					} else {
-						pred_result = learner$predict_newdata(newdata = batch_data, task = self$task)
-					}
-
-					# Store the predictions (probabilities for classification, response for regression).
-					if (self$task$task_type == "classif") {
-						all_predictions[[batch_idx]] = pred_result$prob
-					} else {
-						all_predictions[[batch_idx]] = pred_result$response
-					}
-				}
-
-				# Combine predictions from all batches into a single prediction object.
-				if (self$task$task_type == "classif") {
-					combined_predictions = do.call(rbind, all_predictions)
-				} else {
-					combined_predictions = do.call(c, all_predictions)
-				}
-			} else {
-				# If no batching is needed (total_rows <= batch_size or batch_size is NULL),
-				# process all data at once.
-				if (xplain_opt("debug")) {
-					cli::cli_inform("Predicting on {.val {nrow(combined_data)}} instances at once")
-				}
-
-				if (is.function(learner$predict_newdata_fast)) {
-					pred_result = learner$predict_newdata_fast(newdata = combined_data, task = self$task)
-				} else {
-					pred_result = learner$predict_newdata(newdata = combined_data, task = self$task)
-				}
-
-				if (self$task$task_type == "classif") {
-					combined_predictions = pred_result$prob
-				} else {
-					combined_predictions = pred_result$response
-				}
-			}
-
-			# Handle any NA values in predictions. This can happen if the learner produces NAs.
-			if (any(is.na(combined_predictions))) {
-				cli::cli_warn("Observed {.val {sum(is.na(combined_predictions))} NAs} in prediction")
-
-				# For classification, replace NAs with uniform probabilities across classes.
-				if (self$task$task_type == "classif") {
-					n_classes = ncol(combined_predictions)
-					uniform_prob = 1 / n_classes
-
-					for (j in seq_len(n_classes)) {
-						combined_predictions[is.na(combined_predictions[, j]), j] = uniform_prob
-					}
-				} else {
-					# For regression, replace NAs with 0.
-					combined_predictions[is.na(combined_predictions)] = 0
-				}
-			}
-
-			# Add the combined predictions back to the 'combined_data' data.table.
-			# Then, aggregate these predictions by coalition and original test instance.
-			# This step averages the predictions over the reference data for each test instance and coalition.
-			if (self$task$task_type == "classif") {
-				# For classification, add each class probability as a separate column.
-				n_classes = ncol(combined_predictions)
-				class_names = colnames(combined_predictions)
-
-				for (j in seq_len(n_classes)) {
-					combined_data[, paste0(".pred_class_", j) := combined_predictions[, j]]
-				}
-
-				# Aggregate: calculate the mean probability for each class, for each
-				# unique combination of coalition and original test instance.
-				agg_cols = paste0(".pred_class_", seq_len(n_classes))
-				avg_preds_by_coalition = combined_data[,
-					lapply(.SD, function(x) mean(x, na.rm = TRUE)),
-					.SDcols = agg_cols,
-					by = .(.coalition_id, .test_instance_id)
-				]
-
-				# Rename the aggregated columns back to their original class names.
-				setnames(avg_preds_by_coalition, agg_cols, class_names)
-			} else {
-				# For regression, add the single prediction column.
-				combined_data[, .prediction := combined_predictions]
-
-				# Aggregate: calculate the mean prediction for each unique combination
-				# of coalition and original test instance.
-				avg_preds_by_coalition = combined_data[,
-					.(
-						avg_pred = mean(.prediction, na.rm = TRUE)
-					),
-					by = .(.coalition_id, .test_instance_id)
-				]
-			}
-
-			# Calculate the final loss for each coalition.
-			# This involves creating a prediction object for each coalition and scoring it.
-			coalition_losses = numeric(n_coalitions)
-			for (i in seq_len(n_coalitions)) {
-				coalition_data = avg_preds_by_coalition[.coalition_id == i] # Get aggregated predictions for this coalition
-
-				# Create a mlr3 Prediction object (either Classification or Regression) from the aggregated data.
-				if (self$task$task_type == "classif") {
-					class_names = self$task$class_names
-					prob_matrix = as.matrix(coalition_data[, .SD, .SDcols = class_names])
-
-					pred_obj = PredictionClassif$new(
-						row_ids = seq_len(n_test),
-						truth = test_dt[[self$task$target_names]],
-						prob = prob_matrix
-					)
-				} else {
-					pred_obj = PredictionRegr$new(
-						row_ids = seq_len(n_test),
-						truth = test_dt[[self$task$target_names]],
-						response = coalition_data$avg_pred
-					)
-				}
-
-				# Score the prediction object using the specified measure (e.g., MSE, CE).
-				coalition_losses[i] = pred_obj$score(self$measure)
-			}
-
-			# Return the vector of losses for all coalitions in this batch.
-			coalition_losses
+			rbindlist(all_expanded_data)
 		}
 	)
 )
@@ -912,35 +814,29 @@ ConditionalSAGE = R6Class(
 	),
 
 	private = list(
-		# ConditionalSAGE: No reference data expansion needed
-		# The conditional sampler already models P(X_{-S} | X_S)
-		.evaluate_coalitions_batch = function(learner, test_dt, all_coalitions, batch_size = NULL) {
-			n_coalitions = length(all_coalitions)
+		# Conditional-specific data expansion: Sample from conditional distribution
+		# For each coalition, sample marginalized features conditioned on coalition features
+		# Uses n_conditional_samples to create multiple samples per test instance for averaging
+		.expand_coalitions_data = function(test_dt, all_coalitions) {
 			n_test = nrow(test_dt)
+			all_coalition_data = vector("list", length(all_coalitions))
 
-			if (xplain_opt("debug")) {
-				cli::cli_inform("Evaluating {.val {length(all_coalitions)}} coalitions (ConditionalSAGE)")
-			}
-
-			# Pre-allocate list for coalition data (NO expansion!)
-			all_coalition_data = vector("list", n_coalitions)
-
-			# For each coalition, sample from conditional distribution
+			# For each coalition, sample from conditional distribution P(X_{-S} | X_S)
 			for (i in seq_along(all_coalitions)) {
 				coalition = all_coalitions[[i]]
 				marginalize_features = setdiff(self$features, coalition)
 
 				if (length(marginalize_features) > 0) {
 					# Expand test data to sample multiple times for averaging
-					# Similar to MarginalSAGE's reference data expansion
+					# Each test instance is replicated n_conditional_samples times
 					test_dt_expanded = test_dt[rep(
 						seq_len(n_test),
 						each = self$param_set$values$n_conditional_samples
 					)]
 
-					# Sample conditionally - returns test_dt with "marginalized" features replaced
-					# Would also benefit from batching for large data to reduce strain from calling sampler
-					# but ARF already batches internally anyway
+					# Sample conditionally using the conditional sampler
+					# Returns test_dt with marginalized features replaced by conditional samples
+					# ARF sampler: P(marginalize_features | coalition_features)
 					marginalized_test = self$sampler$sample_newdata(
 						feature = marginalize_features,
 						newdata = test_dt_expanded,
@@ -948,7 +844,7 @@ ConditionalSAGE = R6Class(
 					)
 
 					# Add test instance ID for tracking which original test instance each row belongs to
-					# Must be done AFTER sampling since sampler may not preserve columns
+					# Must be done AFTER sampling since sampler may not preserve extra columns
 					marginalized_test[,
 						.test_instance_id := rep(
 							seq_len(n_test),
@@ -956,144 +852,20 @@ ConditionalSAGE = R6Class(
 						)
 					]
 				} else {
-					# No marginalization needed - just use original test data
+					# Empty coalition (all features marginalized) - just use original test data
+					# No conditional sampling needed since there are no conditioning features
 					marginalized_test = copy(test_dt)
 					marginalized_test[, .test_instance_id := seq_len(n_test)]
 				}
 
-				# Add coalition ID for tracking
+				# Add coalition ID for tracking which coalition this data belongs to
 				marginalized_test[, .coalition_id := i]
 
 				all_coalition_data[[i]] = marginalized_test
 			}
 
-			# Combine all coalition data
-			combined_data = rbindlist(all_coalition_data)
-			total_rows = nrow(combined_data)
-
-			# Process data in batches if needed
-			if (!is.null(batch_size) && total_rows > batch_size) {
-				n_batches = ceiling(total_rows / batch_size)
-				all_predictions = vector("list", n_batches)
-
-				for (batch_idx in seq_len(n_batches)) {
-					start_row = (batch_idx - 1) * batch_size + 1
-					end_row = min(batch_idx * batch_size, total_rows)
-					batch_data = combined_data[start_row:end_row]
-
-					if (xplain_opt("debug")) {
-						cli::cli_inform(
-							"Predicting on {.val {nrow(batch_data)}} instances in batch {.val {batch_idx}/{n_batches}}"
-						)
-					}
-
-					if (is.function(learner$predict_newdata_fast)) {
-						pred_result = learner$predict_newdata_fast(newdata = batch_data, task = self$task)
-					} else {
-						pred_result = learner$predict_newdata(newdata = batch_data, task = self$task)
-					}
-
-					if (self$task$task_type == "classif") {
-						all_predictions[[batch_idx]] = pred_result$prob
-					} else {
-						all_predictions[[batch_idx]] = pred_result$response
-					}
-				}
-
-				# Combine predictions
-				if (self$task$task_type == "classif") {
-					combined_predictions = do.call(rbind, all_predictions)
-				} else {
-					combined_predictions = do.call(c, all_predictions)
-				}
-			} else {
-				# Single prediction
-				if (xplain_opt("debug")) {
-					cli::cli_inform("Predicting on {.val {nrow(combined_data)}} instances at once")
-				}
-
-				if (is.function(learner$predict_newdata_fast)) {
-					pred_result = learner$predict_newdata_fast(newdata = combined_data, task = self$task)
-				} else {
-					pred_result = learner$predict_newdata(newdata = combined_data, task = self$task)
-				}
-
-				if (self$task$task_type == "classif") {
-					combined_predictions = pred_result$prob
-				} else {
-					combined_predictions = pred_result$response
-				}
-			}
-
-			# Handle NAs in predictions
-			if (self$task$task_type == "classif") {
-				if (any(is.na(combined_predictions))) {
-					cli::cli_warn("Encountered missing values in model prediction")
-					n_classes = ncol(combined_predictions)
-					uniform_prob = 1 / n_classes
-					for (j in seq_len(n_classes)) {
-						combined_predictions[is.na(combined_predictions[, j]), j] = uniform_prob
-					}
-				}
-			} else {
-				combined_predictions[is.na(combined_predictions)] = 0
-			}
-
-			# Add predictions to combined_data
-			if (self$task$task_type == "classif") {
-				n_classes = ncol(combined_predictions)
-				class_names = colnames(combined_predictions)
-
-				for (j in seq_len(n_classes)) {
-					combined_data[, paste0(".pred_class_", j) := combined_predictions[, j]]
-				}
-
-				# Aggregate: average probabilities across conditional samples for each coalition and test instance
-				agg_cols = paste0(".pred_class_", seq_len(n_classes))
-				avg_preds_by_coalition = combined_data[,
-					lapply(.SD, function(x) mean(x, na.rm = TRUE)),
-					.SDcols = agg_cols,
-					by = .(.coalition_id, .test_instance_id)
-				]
-
-				# Rename aggregated columns back to original class names
-				setnames(avg_preds_by_coalition, agg_cols, class_names)
-			} else {
-				combined_data[, .prediction := combined_predictions]
-
-				# Aggregate: average predictions across conditional samples for each coalition and test instance
-				avg_preds_by_coalition = combined_data[,
-					.(avg_pred = mean(.prediction, na.rm = TRUE)),
-					by = .(.coalition_id, .test_instance_id)
-				]
-			}
-
-			# Calculate loss for each coalition using averaged predictions
-			coalition_losses = numeric(n_coalitions)
-			for (i in seq_len(n_coalitions)) {
-				coalition_data = avg_preds_by_coalition[.coalition_id == i]
-
-				if (self$task$task_type == "classif") {
-					class_names = self$task$class_names
-					prob_matrix = as.matrix(coalition_data[, .SD, .SDcols = class_names])
-
-					pred_obj = PredictionClassif$new(
-						row_ids = seq_len(n_test),
-						truth = test_dt[[self$task$target_names]],
-						prob = prob_matrix
-					)
-				} else {
-					pred_obj = PredictionRegr$new(
-						row_ids = seq_len(n_test),
-						truth = test_dt[[self$task$target_names]],
-						response = coalition_data$avg_pred
-					)
-				}
-
-				coalition_losses[i] = pred_obj$score(self$measure)
-			}
-
-			coalition_losses
+			# Combine all coalitions into single data.table for batch prediction
+			rbindlist(all_coalition_data)
 		}
 	)
 )
