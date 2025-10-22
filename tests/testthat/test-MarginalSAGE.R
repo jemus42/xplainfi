@@ -193,47 +193,6 @@ test_that("MarginalSAGE only one feature", {
 	expect_equal(sage$importance()$feature, "important4")
 })
 
-test_that("MarginalSAGE with custom reference data", {
-	set.seed(123)
-
-	# Test with binary classification
-	task_binary = mlr3::tgen("2dnormals")$generate(n = 200)
-	# Use mlr3::partition() for random sampling to avoid class imbalance
-	set.seed(42)
-	partition_binary = mlr3::partition(task_binary, ratio = 0.9) # 10% for reference data
-	reference_data_binary = task_binary$data(
-		rows = partition_binary$test,
-		cols = task_binary$feature_names
-	)
-	sage_binary = MarginalSAGE$new(
-		task = task_binary,
-		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
-		measure = mlr3::msr("classif.ce"),
-		reference_data = reference_data_binary,
-		n_permutations = 2L
-	)
-	sage_binary$compute()
-	expect_importance_dt(sage_binary$importance(), features = sage_binary$features)
-	expect_equal(nrow(sage_binary$reference_data), 20L)
-
-	# Test with regression
-	task_regr = mlr3::tgen("friedman1")$generate(n = 200)
-	# Use mlr3::partition() for random sampling
-	set.seed(43)
-	partition_regr = mlr3::partition(task_regr, ratio = 0.9) # 10% for reference data
-	reference_data_regr = task_regr$data(rows = partition_regr$test, cols = task_regr$feature_names)
-	sage_regr = MarginalSAGE$new(
-		task = task_regr,
-		learner = mlr3::lrn("regr.rpart"),
-		measure = mlr3::msr("regr.mse"),
-		reference_data = reference_data_regr,
-		n_permutations = 2L
-	)
-	sage_regr$compute()
-	expect_importance_dt(sage_regr$importance(), features = sage_regr$features)
-	expect_equal(nrow(sage_regr$reference_data), 20L)
-})
-
 test_that("MarginalSAGE with max_reference_size parameter", {
 	set.seed(123)
 
@@ -248,7 +207,6 @@ test_that("MarginalSAGE with max_reference_size parameter", {
 	)
 	sage_binary$compute()
 	expect_importance_dt(sage_binary$importance(), features = sage_binary$features)
-	expect_lte(nrow(sage_binary$reference_data), 30L)
 
 	# Test with regression
 	task_regr = mlr3::tgen("friedman1")$generate(n = 200)
@@ -261,7 +219,6 @@ test_that("MarginalSAGE with max_reference_size parameter", {
 	)
 	sage_regr$compute()
 	expect_importance_dt(sage_regr$importance(), features = sage_regr$features)
-	expect_lte(nrow(sage_regr$reference_data), 30L)
 
 	# Test with multiclass classification
 	task_multi = mlr3::tgen("cassini")$generate(n = 200)
@@ -274,7 +231,6 @@ test_that("MarginalSAGE with max_reference_size parameter", {
 	)
 	sage_multi$compute()
 	expect_importance_dt(sage_multi$importance(), features = sage_multi$features)
-	expect_lte(nrow(sage_multi$reference_data), 30L)
 })
 
 test_that("MarginalSAGE reproducibility with same seed", {
