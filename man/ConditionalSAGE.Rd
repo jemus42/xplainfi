@@ -64,7 +64,7 @@ Creates a new instance of the ConditionalSAGE class.
   n_permutations = 10L,
   sampler = NULL,
   batch_size = 5000L,
-  n_conditional_samples = 100L,
+  n_samples = 100L,
   early_stopping = FALSE,
   convergence_threshold = 0.01,
   se_threshold = Inf,
@@ -76,12 +76,9 @@ Creates a new instance of the ConditionalSAGE class.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task, learner, measure, resampling, features, n_permutations, batch_size, early_stopping, convergence_threshold, se_threshold, min_permutations, check_interval}}{Passed to \link{SAGE}.}
+\item{\code{task, learner, measure, resampling, features, n_permutations, batch_size, n_samples, early_stopping, convergence_threshold, se_threshold, min_permutations, check_interval}}{Passed to \link{SAGE}.}
 
 \item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to \link{ARFSampler}.}
-
-\item{\code{n_conditional_samples}}{(\code{integer(1): 100L}) Number of conditional samples to draw for each
-test instance when approximating the conditional expectation.}
 }
 \if{html}{\out{</div>}}
 }

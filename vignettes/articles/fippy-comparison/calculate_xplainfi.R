@@ -128,7 +128,7 @@ sage_marginal_r <- MarginalSAGE$new(
 	measure = msr("regr.mse"),
 	resampling = resampling,
 	n_permutations = n_perm_sage,
-	max_reference_size = max_ref_size_sage
+	n_samples = max_ref_size_sage
 )
 
 sage_marginal_r$compute(batch_size = batch_size_sage)

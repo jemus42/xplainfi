@@ -42,16 +42,19 @@ SAGE = R6Class(
 		#' @description
 		#' Creates a new instance of the SAGE class.
 		#' @param task,learner,measure,resampling,features Passed to FeatureImportanceMethod.
-		#' @param n_permutations (`integer(1): 10L`) Number of permutations _per coalition_ to sample for Shapley value estimation.
+		#' @param n_permutations (`integer(1)`: `10L`) Number of permutations _per coalition_ to sample for Shapley value estimation.
 		#'   The total number of evaluated coalitions is `1 (empty) + n_permutations * n_features`.
-		#' @param batch_size (`integer(1): 5000L`) Maximum number of observations to process in a single prediction call.
+		#' @param batch_size (`integer(1)`: `5000L`) Maximum number of observations to process in a single prediction call.
+		#' @param n_samples (`integer(1)`: `100L`) Number of samples to use for marginalizing out-of-coalition features.
+		#'   For MarginalSAGE, this is the number of reference data samples.
+		#'   For ConditionalSAGE, this is the number of conditional samples per test instance.
 		#' @param sampler ([FeatureSampler]) Sampler for replacing out-of-coalition feature values.
 		#' 	 Only relevant for `ConditionalSAGE`.
-		#' @param early_stopping (`logical(1): FALSE`) Whether to enable early stopping based on convergence detection.
-		#' @param convergence_threshold (`numeric(1): 0.01`) Relative change threshold for convergence detection.
-		#' @param se_threshold (`numeric(1): Inf`) Standard error threshold for convergence detection.
-		#' @param min_permutations (`integer(1): 10L`) Minimum permutations before checking convergence.
-		#' @param check_interval (`integer(1): 2L`) Check convergence every N permutations.
+		#' @param early_stopping (`logical(1)`: `FALSE`) Whether to enable early stopping based on convergence detection.
+		#' @param convergence_threshold (`numeric(1)`: `0.01`) Relative change threshold for convergence detection.
+		#' @param se_threshold (`numeric(1)`: `Inf`) Standard error threshold for convergence detection.
+		#' @param min_permutations (`integer(1)`: `10L`) Minimum permutations before checking convergence.
+		#' @param check_interval (`integer(1)`: `2L`) Check convergence every N permutations.
 		initialize = function(
 			task,
 			learner,
@@ -60,6 +63,7 @@ SAGE = R6Class(
 			features = NULL,
 			n_permutations = 10L,
 			batch_size = 5000L,
+			n_samples = 100L,
 			sampler = NULL,
 			early_stopping = FALSE,
 			convergence_threshold = 0.01,
@@ -97,6 +101,7 @@ SAGE = R6Class(
 			ps = ps(
 				n_permutations = paradox::p_int(lower = 1L, default = 10L),
 				batch_size = paradox::p_int(lower = 1L, default = 5000L),
+				n_samples = paradox::p_int(lower = 1L, default = 100L),
 				early_stopping = paradox::p_lgl(default = FALSE),
 				convergence_threshold = paradox::p_dbl(lower = 0, upper = 1, default = 0.01),
 				se_threshold = paradox::p_dbl(lower = 0, default = Inf),
@@ -105,6 +110,7 @@ SAGE = R6Class(
 			)
 			ps$values$n_permutations = n_permutations
 			ps$values$batch_size = batch_size
+			ps$values$n_samples = n_samples
 			ps$values$early_stopping = early_stopping
 			ps$values$convergence_threshold = convergence_threshold
 			ps$values$se_threshold = se_threshold
@@ -638,7 +644,7 @@ MarginalSAGE = R6Class(
 	public = list(
 		#' @description
 		#' Creates a new instance of the MarginalSAGE class.
-		#' @param task,learner,measure,resampling,features,n_permutations,batch_size,max_reference_size,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
+		#' @param task,learner,measure,resampling,features,n_permutations,batch_size,n_samples,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
 		initialize = function(
 			task,
 			learner,
@@ -647,7 +653,7 @@ MarginalSAGE = R6Class(
 			features = NULL,
 			n_permutations = 10L,
 			batch_size = 5000L,
-			max_reference_size = 100L,
+			n_samples = 100L,
 			early_stopping = FALSE,
 			convergence_threshold = 0.01,
 			se_threshold = Inf,
@@ -663,6 +669,7 @@ MarginalSAGE = R6Class(
 				features = features,
 				n_permutations = n_permutations,
 				batch_size = batch_size,
+				n_samples = n_samples,
 				early_stopping = early_stopping,
 				convergence_threshold = convergence_threshold,
 				se_threshold = se_threshold,
@@ -671,21 +678,12 @@ MarginalSAGE = R6Class(
 			)
 			# Use training data as reference for later marginalization
 			private$reference_data = self$task$data(cols = self$task$feature_names)
-			checkmate::assert_int(max_reference_size, lower = 1)
 
 			# Subsample reference data if it's too large for efficiency
-			if (!is.null(max_reference_size) && nrow(private$reference_data) > max_reference_size) {
-				sample_idx = sample(nrow(private$reference_data), size = max_reference_size)
+			if (nrow(private$reference_data) > n_samples) {
+				sample_idx = sample(nrow(private$reference_data), size = n_samples)
 				private$reference_data = private$reference_data[sample_idx, ]
 			}
-
-			# Add params specifi to marginal sampling
-			ps = ps(
-				max_reference_size = paradox::p_int(lower = 1L, default = 100L)
-			)
-			ps$values$max_reference_size = max_reference_size
-
-			self$param_set = paradox::ps_union(list(self$param_set, ps))
 
 			self$label = "Marginal SAGE"
 		}
@@ -755,10 +753,8 @@ ConditionalSAGE = R6Class(
 	public = list(
 		#' @description
 		#' Creates a new instance of the ConditionalSAGE class.
-		#' @param task,learner,measure,resampling,features,n_permutations,batch_size,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
+		#' @param task,learner,measure,resampling,features,n_permutations,batch_size,n_samples,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
 		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to [ARFSampler].
-		#' @param n_conditional_samples (`integer(1): 100L`) Number of conditional samples to draw for each
-		#'   test instance when approximating the conditional expectation.
 		initialize = function(
 			task,
 			learner,
@@ -768,7 +764,7 @@ ConditionalSAGE = R6Class(
 			n_permutations = 10L,
 			sampler = NULL,
 			batch_size = 5000L,
-			n_conditional_samples = 100L,
+			n_samples = 100L,
 			early_stopping = FALSE,
 			convergence_threshold = 0.01,
 			se_threshold = Inf,
@@ -794,20 +790,13 @@ ConditionalSAGE = R6Class(
 				n_permutations = n_permutations,
 				sampler = sampler,
 				batch_size = batch_size,
+				n_samples = n_samples,
 				early_stopping = early_stopping,
 				convergence_threshold = convergence_threshold,
 				se_threshold = se_threshold,
 				min_permutations = min_permutations,
 				check_interval = check_interval
 			)
-
-			# Add parameter to param_set
-			checkmate::assert_int(n_conditional_samples, lower = 1L)
-			ps = ps(
-				n_conditional_samples = paradox::p_int(lower = 1L, default = 100L)
-			)
-			ps$values$n_conditional_samples = n_conditional_samples
-			self$param_set = paradox::ps_union(list(self$param_set, ps))
 
 			self$label = "Conditional SAGE"
 		}
@@ -816,7 +805,7 @@ ConditionalSAGE = R6Class(
 	private = list(
 		# Conditional-specific data expansion: Sample from conditional distribution
 		# For each coalition, sample marginalized features conditioned on coalition features
-		# Uses n_conditional_samples to create multiple samples per test instance for averaging
+		# Uses n_samples to create multiple samples per test instance for averaging
 		.expand_coalitions_data = function(test_dt, all_coalitions) {
 			n_test = nrow(test_dt)
 			all_coalition_data = vector("list", length(all_coalitions))
@@ -828,10 +817,10 @@ ConditionalSAGE = R6Class(
 
 				if (length(marginalize_features) > 0) {
 					# Expand test data to sample multiple times for averaging
-					# Each test instance is replicated n_conditional_samples times
+					# Each test instance is replicated n_samples times
 					test_dt_expanded = test_dt[rep(
 						seq_len(n_test),
-						each = self$param_set$values$n_conditional_samples
+						each = self$param_set$values$n_samples
 					)]
 
 					# Sample conditionally using the conditional sampler
@@ -844,11 +833,11 @@ ConditionalSAGE = R6Class(
 					)
 
 					# Add test instance ID for tracking which original test instance each row belongs to
-					# Must be done AFTER sampling since sampler may not preserve extra columns
+					# Must be done AFTER sampling since sampler does not preserve extra columns
 					marginalized_test[,
 						.test_instance_id := rep(
 							seq_len(n_test),
-							each = self$param_set$values$n_conditional_samples
+							each = self$param_set$values$n_samples
 						)
 					]
 				} else {

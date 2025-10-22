@@ -311,7 +311,7 @@ test_that("ConditionalSAGE batching with custom sampler", {
 	)
 })
 
-test_that("ConditionalSAGE with n_conditional_samples parameter", {
+test_that("ConditionalSAGE with n_samples parameter", {
 	skip_if_not_installed("arf")
 	skip_if_not_installed("withr")
 
@@ -320,40 +320,40 @@ test_that("ConditionalSAGE with n_conditional_samples parameter", {
 	learner = mlr3::lrn("regr.rpart")
 	measure = mlr3::msr("regr.mse")
 
-	# Test with default n_conditional_samples (100L)
+	# Test with default n_samples (100L)
 	sage_default = ConditionalSAGE$new(
 		task = task,
 		learner = learner,
 		measure = measure,
 		n_permutations = 2L
 	)
-	expect_equal(sage_default$param_set$values$n_conditional_samples, 100L)
+	expect_equal(sage_default$param_set$values$n_samples, 100L)
 	sage_default$compute()
 	result_default = sage_default$importance()
 	expect_importance_dt(result_default, features = sage_default$features)
 
-	# Test with custom n_conditional_samples = 10L
+	# Test with custom n_samples = 10L
 	sage_10 = ConditionalSAGE$new(
 		task = task,
 		learner = learner,
 		measure = measure,
 		n_permutations = 2L,
-		n_conditional_samples = 10L
+		n_samples = 10L
 	)
-	expect_equal(sage_10$param_set$values$n_conditional_samples, 10L)
+	expect_equal(sage_10$param_set$values$n_samples, 10L)
 	sage_10$compute()
 	result_10 = sage_10$importance()
 	expect_importance_dt(result_10, features = sage_10$features)
 
-	# Test with custom n_conditional_samples = 50L
+	# Test with custom n_samples = 50L
 	sage_50 = ConditionalSAGE$new(
 		task = task,
 		learner = learner,
 		measure = measure,
 		n_permutations = 2L,
-		n_conditional_samples = 50L
+		n_samples = 50L
 	)
-	expect_equal(sage_50$param_set$values$n_conditional_samples, 50L)
+	expect_equal(sage_50$param_set$values$n_samples, 50L)
 	sage_50$compute()
 	result_50 = sage_50$importance()
 	expect_importance_dt(result_50, features = sage_50$features)
@@ -363,16 +363,16 @@ test_that("ConditionalSAGE with n_conditional_samples parameter", {
 	expect_true(all(is.finite(result_10$importance)))
 	expect_true(all(is.finite(result_50$importance)))
 
-	# Test with multiclass classification and custom n_conditional_samples
+	# Test with multiclass classification and custom n_samples
 	task_multi = mlr3::tgen("cassini")$generate(n = 50)
 	sage_multi = ConditionalSAGE$new(
 		task = task_multi,
 		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
 		n_permutations = 2L,
-		n_conditional_samples = 20L
+		n_samples = 20L
 	)
-	expect_equal(sage_multi$param_set$values$n_conditional_samples, 20L)
+	expect_equal(sage_multi$param_set$values$n_samples, 20L)
 	sage_multi$compute()
 	result_multi = sage_multi$importance()
 	expect_importance_dt(result_multi, features = sage_multi$features)

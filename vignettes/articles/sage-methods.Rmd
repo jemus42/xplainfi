@@ -88,7 +88,7 @@ marginal_sage = MarginalSAGE$new(
 	measure = measure,
 	resampling = resampling,
 	n_permutations = 30L, # More permutations for stable results
-	max_reference_size = 100L
+	n_samples = 100L
 )
 
 # Compute SAGE values

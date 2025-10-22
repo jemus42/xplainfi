@@ -106,7 +106,7 @@ test_that("MarginalSAGE with friedman1 produces sensible results", {
 		learner = learner,
 		measure = measure,
 		n_permutations = 3L, # Keep small for fast testing
-		max_reference_size = 50L
+		n_samples = 50L
 	)
 
 	sage$compute()
@@ -193,7 +193,7 @@ test_that("MarginalSAGE only one feature", {
 	expect_equal(sage$importance()$feature, "important4")
 })
 
-test_that("MarginalSAGE with max_reference_size parameter", {
+test_that("MarginalSAGE with n_samples parameter", {
 	set.seed(123)
 
 	# Test with binary classification
@@ -202,7 +202,7 @@ test_that("MarginalSAGE with max_reference_size parameter", {
 		task = task_binary,
 		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
-		max_reference_size = 30L,
+		n_samples = 30L,
 		n_permutations = 2L
 	)
 	sage_binary$compute()
@@ -214,7 +214,7 @@ test_that("MarginalSAGE with max_reference_size parameter", {
 		task = task_regr,
 		learner = mlr3::lrn("regr.rpart"),
 		measure = mlr3::msr("regr.mse"),
-		max_reference_size = 30L,
+		n_samples = 30L,
 		n_permutations = 2L
 	)
 	sage_regr$compute()
@@ -226,7 +226,7 @@ test_that("MarginalSAGE with max_reference_size parameter", {
 		task = task_multi,
 		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
-		max_reference_size = 30L,
+		n_samples = 30L,
 		n_permutations = 2L
 	)
 	sage_multi$compute()
@@ -326,7 +326,7 @@ test_that("MarginalSAGE works with multiclass classification", {
 		learner = learner,
 		measure = measure,
 		n_permutations = 3L,
-		max_reference_size = 50L
+		n_samples = 50L
 	)
 
 	sage$compute()
@@ -353,7 +353,7 @@ test_that("MarginalSAGE SE tracking in convergence_history", {
 		learner = learner,
 		measure = measure,
 		n_permutations = 10L,
-		max_reference_size = 30L
+		n_samples = 30L
 	)
 
 	# Compute with early stopping to get convergence history
@@ -406,7 +406,7 @@ test_that("MarginalSAGE SE-based convergence detection", {
 		learner = learner,
 		measure = measure,
 		n_permutations = 20L,
-		max_reference_size = 20L
+		n_samples = 20L
 	)
 
 	# Test with very loose SE threshold (should not trigger convergence)

@@ -63,7 +63,7 @@ Creates a new instance of the MarginalSAGE class.
   features = NULL,
   n_permutations = 10L,
   batch_size = 5000L,
-  max_reference_size = 100L,
+  n_samples = 100L,
   early_stopping = FALSE,
   convergence_threshold = 0.01,
   se_threshold = Inf,
@@ -75,7 +75,7 @@ Creates a new instance of the MarginalSAGE class.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task, learner, measure, resampling, features, n_permutations, batch_size, max_reference_size, early_stopping, convergence_threshold, se_threshold, min_permutations, check_interval}}{Passed to \link{SAGE}.}
+\item{\code{task, learner, measure, resampling, features, n_permutations, batch_size, n_samples, early_stopping, convergence_threshold, se_threshold, min_permutations, check_interval}}{Passed to \link{SAGE}.}
 }
 \if{html}{\out{</div>}}
 }
