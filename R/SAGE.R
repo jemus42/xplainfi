@@ -30,8 +30,6 @@ SAGE = R6Class(
 	public = list(
 		#' @field n_permutations (`integer(1)`) Number of permutations to sample.
 		n_permutations = NULL,
-		#' @field sampler ([FeatureSampler]) Sampler object for marginalization.
-		sampler = NULL,
 		#' @field convergence_history ([`data.table`][data.table::data.table]) History of SAGE values during computation.
 		convergence_history = NULL,
 		#' @field converged (`logical(1)`) Whether convergence was detected.
@@ -48,8 +46,6 @@ SAGE = R6Class(
 		#' @param n_samples (`integer(1)`: `100L`) Number of samples to use for marginalizing out-of-coalition features.
 		#'   For MarginalSAGE, this is the number of reference data samples.
 		#'   For ConditionalSAGE, this is the number of conditional samples per test instance.
-		#' @param sampler ([FeatureSampler]) Sampler for replacing out-of-coalition feature values.
-		#' 	 Only relevant for `ConditionalSAGE`.
 		#' @param early_stopping (`logical(1)`: `FALSE`) Whether to enable early stopping based on convergence detection.
 		#' @param convergence_threshold (`numeric(1)`: `0.01`) Relative change threshold for convergence detection.
 		#' @param se_threshold (`numeric(1)`: `Inf`) Standard error threshold for convergence detection.
@@ -64,7 +60,6 @@ SAGE = R6Class(
 			n_permutations = 10L,
 			batch_size = 5000L,
 			n_samples = 100L,
-			sampler = NULL,
 			early_stopping = FALSE,
 			convergence_threshold = 0.01,
 			se_threshold = Inf,
@@ -90,11 +85,6 @@ SAGE = R6Class(
 						"i" = "Please set {.code learner$configure(predict_type = \"prob\")} before using SAGE."
 					))
 				}
-			}
-
-			# Store sampler
-			if (!is.null(sampler)) {
-				self$sampler = sampler
 			}
 
 			# Set parameters
@@ -613,248 +603,6 @@ SAGE = R6Class(
 			}
 
 			coalition_losses
-		}
-	)
-)
-
-#' @title Marginal SAGE
-#'
-#' @description [SAGE] with marginal sampling (features are marginalized independently).
-#' This is the standard SAGE implementation.
-#'
-#' @seealso [ConditionalSAGE]
-#'
-#' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE)
-#' library(mlr3)
-#' task = tgen("friedman1")$generate(n = 100)
-#' sage = MarginalSAGE$new(
-#'   task = task,
-#'   learner = lrn("regr.ranger", num.trees = 50),
-#'   measure = msr("regr.mse"),
-#'   n_permutations = 3L
-#' )
-#' sage$compute()
-#'
-#' # Use batching for memory efficiency with large datasets
-#' sage$compute(batch_size = 1000)
-#' @export
-MarginalSAGE = R6Class(
-	"MarginalSAGE",
-	inherit = SAGE,
-	public = list(
-		#' @description
-		#' Creates a new instance of the MarginalSAGE class.
-		#' @param task,learner,measure,resampling,features,n_permutations,batch_size,n_samples,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
-		initialize = function(
-			task,
-			learner,
-			measure,
-			resampling = NULL,
-			features = NULL,
-			n_permutations = 10L,
-			batch_size = 5000L,
-			n_samples = 100L,
-			early_stopping = FALSE,
-			convergence_threshold = 0.01,
-			se_threshold = Inf,
-			min_permutations = 10L,
-			check_interval = 2L
-		) {
-			# No need to initialize sampler as marginal sampling is done differently here
-			super$initialize(
-				task = task,
-				learner = learner,
-				measure = measure,
-				resampling = resampling,
-				features = features,
-				n_permutations = n_permutations,
-				batch_size = batch_size,
-				n_samples = n_samples,
-				early_stopping = early_stopping,
-				convergence_threshold = convergence_threshold,
-				se_threshold = se_threshold,
-				min_permutations = min_permutations,
-				check_interval = check_interval
-			)
-			# Use training data as reference for later marginalization
-			private$reference_data = self$task$data(cols = self$task$feature_names)
-
-			# Subsample reference data if it's too large for efficiency
-			if (nrow(private$reference_data) > n_samples) {
-				sample_idx = sample(nrow(private$reference_data), size = n_samples)
-				private$reference_data = private$reference_data[sample_idx, ]
-			}
-
-			self$label = "Marginal SAGE"
-		}
-	),
-
-	private = list(
-		reference_data = NULL,
-
-		# Marginal-specific data expansion: Cartesian product with reference data
-		.expand_coalitions_data = function(test_dt, all_coalitions) {
-			n_test = nrow(test_dt)
-			n_reference = nrow(private$reference_data)
-			all_expanded_data = vector("list", length(all_coalitions))
-
-			for (i in seq_along(all_coalitions)) {
-				coalition = all_coalitions[[i]]
-
-				# Cartesian product: each test instance × all reference instances
-				test_expanded = test_dt[rep(seq_len(n_test), each = n_reference)]
-				reference_expanded = private$reference_data[rep(seq_len(n_reference), times = n_test)]
-
-				# Add tracking columns BEFORE marginalization
-				test_expanded[, .coalition_id := i]
-				test_expanded[, .test_instance_id := rep(seq_len(n_test), each = n_reference)]
-
-				# Replace marginalized features with reference values
-				# Maintains correlation structure in out-of-coalition features (block-wise sampling)
-				marginalize_features = setdiff(self$features, coalition)
-				if (length(marginalize_features) > 0) {
-					test_expanded[,
-						(marginalize_features) := reference_expanded[, .SD, .SDcols = marginalize_features]
-					]
-				}
-
-				all_expanded_data[[i]] = test_expanded
-			}
-
-			rbindlist(all_expanded_data)
-		}
-	)
-)
-
-#' @title Conditional SAGE
-#'
-#' @description [SAGE] with conditional sampling (features are "marginalized" conditionally).
-#' Uses [ARFSampler] as default [ConditionalSampler].
-#'
-#' @seealso [MarginalSAGE]
-#'
-#' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE) && requireNamespace("arf", quietly = TRUE)
-#' library(mlr3)
-#' task = tgen("friedman1")$generate(n = 100)
-#' sage = ConditionalSAGE$new(
-#'   task = task,
-#'   learner = lrn("regr.ranger", num.trees = 50),
-#'   measure = msr("regr.mse"),
-#'   n_permutations = 3L
-#' )
-#' sage$compute()
-#'
-#' # Use batching for memory efficiency with large datasets
-#' sage$compute(batch_size = 1000)
-#' @export
-ConditionalSAGE = R6Class(
-	"ConditionalSAGE",
-	inherit = SAGE,
-	public = list(
-		#' @description
-		#' Creates a new instance of the ConditionalSAGE class.
-		#' @param task,learner,measure,resampling,features,n_permutations,batch_size,n_samples,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
-		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to [ARFSampler].
-		initialize = function(
-			task,
-			learner,
-			measure,
-			resampling = NULL,
-			features = NULL,
-			n_permutations = 10L,
-			sampler = NULL,
-			batch_size = 5000L,
-			n_samples = 100L,
-			early_stopping = FALSE,
-			convergence_threshold = 0.01,
-			se_threshold = Inf,
-			min_permutations = 10L,
-			check_interval = 2L
-		) {
-			# Use ARFSampler by default
-			if (is.null(sampler)) {
-				sampler = ARFSampler$new(task)
-				cli::cli_alert_info(
-					"No {.cls ConditionalSampler} provided, using {.cls ARFSampler} with default settings."
-				)
-			} else {
-				checkmate::assert_class(sampler, "ConditionalSampler")
-			}
-
-			super$initialize(
-				task = task,
-				learner = learner,
-				measure = measure,
-				resampling = resampling,
-				features = features,
-				n_permutations = n_permutations,
-				sampler = sampler,
-				batch_size = batch_size,
-				n_samples = n_samples,
-				early_stopping = early_stopping,
-				convergence_threshold = convergence_threshold,
-				se_threshold = se_threshold,
-				min_permutations = min_permutations,
-				check_interval = check_interval
-			)
-
-			self$label = "Conditional SAGE"
-		}
-	),
-
-	private = list(
-		# Conditional-specific data expansion: Sample from conditional distribution
-		# For each coalition, sample marginalized features conditioned on coalition features
-		# Uses n_samples to create multiple samples per test instance for averaging
-		.expand_coalitions_data = function(test_dt, all_coalitions) {
-			n_test = nrow(test_dt)
-			all_coalition_data = vector("list", length(all_coalitions))
-
-			# For each coalition, sample from conditional distribution P(X_{-S} | X_S)
-			for (i in seq_along(all_coalitions)) {
-				coalition = all_coalitions[[i]]
-				marginalize_features = setdiff(self$features, coalition)
-
-				if (length(marginalize_features) > 0) {
-					# Expand test data to sample multiple times for averaging
-					# Each test instance is replicated n_samples times
-					test_dt_expanded = test_dt[rep(
-						seq_len(n_test),
-						each = self$param_set$values$n_samples
-					)]
-
-					# Sample conditionally using the conditional sampler
-					# Returns test_dt with marginalized features replaced by conditional samples
-					# ARF sampler: P(marginalize_features | coalition_features)
-					marginalized_test = self$sampler$sample_newdata(
-						feature = marginalize_features,
-						newdata = test_dt_expanded,
-						conditioning_set = coalition
-					)
-
-					# Add test instance ID for tracking which original test instance each row belongs to
-					# Must be done AFTER sampling since sampler does not preserve extra columns
-					marginalized_test[,
-						.test_instance_id := rep(
-							seq_len(n_test),
-							each = self$param_set$values$n_samples
-						)
-					]
-				} else {
-					# Empty coalition (all features marginalized) - just use original test data
-					# No conditional sampling needed since there are no conditioning features
-					marginalized_test = copy(test_dt)
-					marginalized_test[, .test_instance_id := seq_len(n_test)]
-				}
-
-				# Add coalition ID for tracking which coalition this data belongs to
-				marginalized_test[, .coalition_id := i]
-
-				all_coalition_data[[i]] = marginalized_test
-			}
-
-			# Combine all coalitions into single data.table for batch prediction
-			rbindlist(all_coalition_data)
 		}
 	)
 )
