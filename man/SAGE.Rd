@@ -39,8 +39,6 @@ In \emph{Advances in Neural Information Processing Systems}, volume 33, 17212--1
 \describe{
 \item{\code{n_permutations}}{(\code{integer(1)}) Number of permutations to sample.}
 
-\item{\code{sampler}}{(\link{FeatureSampler}) Sampler object for marginalization.}
-
 \item{\code{convergence_history}}{(\code{\link[data.table:data.table]{data.table}}) History of SAGE values during computation.}
 
 \item{\code{converged}}{(\code{logical(1)}) Whether convergence was detected.}
@@ -84,7 +82,6 @@ Creates a new instance of the SAGE class.
   n_permutations = 10L,
   batch_size = 5000L,
   n_samples = 100L,
-  sampler = NULL,
   early_stopping = FALSE,
   convergence_threshold = 0.01,
   se_threshold = Inf,
@@ -106,9 +103,6 @@ The total number of evaluated coalitions is \code{1 (empty) + n_permutations * n
 \item{\code{n_samples}}{(\code{integer(1)}: \code{100L}) Number of samples to use for marginalizing out-of-coalition features.
 For MarginalSAGE, this is the number of reference data samples.
 For ConditionalSAGE, this is the number of conditional samples per test instance.}
-
-\item{\code{sampler}}{(\link{FeatureSampler}) Sampler for replacing out-of-coalition feature values.
-Only relevant for \code{ConditionalSAGE}.}
 
 \item{\code{early_stopping}}{(\code{logical(1)}: \code{FALSE}) Whether to enable early stopping based on convergence detection.}
 
