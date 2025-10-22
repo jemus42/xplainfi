@@ -33,12 +33,12 @@ The key insight of SAGE is that it provides a complete decomposition of the mode
 
 ## Demonstration with Correlated Features
 
-To showcase the difference between Marginal and Conditional SAGE, we'll use the `sim_dgp_correlated()` function which creates highly correlated features. This is similar to how PFI and CFI behave differently with correlated features.
+To showcase the difference between Marginal and Conditional SAGE, we'll use the `sim_dgp_correlated()` function which creates a simple linear DGP with two correlated features.
 
 **Model:**
 $$(X_1, X_2)^T \sim \text{MVN}(0, \Sigma)$$
 
-where $\Sigma$ is a 2×2 covariance matrix with 1 on the diagonal and correlation $r$ (default 0.9) on the off-diagonal.
+where $\Sigma$ is a 2×2 covariance matrix with 1 on the diagonal and correlation $r$ (default 0.5) on the off-diagonal.
 
 $$X_3 \sim N(0,1), \quad X_4 \sim N(0,1)$$
 $$Y = 2 \cdot X_1 + X_3 + \varepsilon$$
@@ -48,13 +48,13 @@ where $\varepsilon \sim N(0, 0.2^2)$.
 **Key properties:**
 
 - `x1` has a direct causal effect on y (β=2.0)
-- `x2` is correlated with x1 (r = 0.9 from MVN) but has **no causal effect** on y
+- `x2` is correlated with x1 (r = 0.5 from MVN) but has **no causal effect** on y
 - `x3` is independent with a causal effect (β=1.0)
 - `x4` is independent noise (β=0)
 
 ```{r data-setup}
 set.seed(123)
-task = sim_dgp_correlated(n = 1000)
+task = sim_dgp_correlated(n = 1000, r = 0.5)
 
 # Check the correlation structure
 task_data = task$data()
@@ -88,12 +88,11 @@ marginal_sage = MarginalSAGE$new(
 	measure = measure,
 	resampling = resampling,
 	n_permutations = 30L, # More permutations for stable results
-	max_reference_size = 100L,
-	batch_size = 5000L
+	max_reference_size = 100L
 )
 
 # Compute SAGE values
-marginal_sage$compute()
+marginal_sage$compute(batch_size = 5000L)
 ```
 
 Let's visualize the results:
@@ -144,13 +143,21 @@ marginal_sage$plot_convergence()
 Conditional SAGE uses conditional sampling (via ARF by default) to marginalize features while preserving dependencies between the remaining features. This can provide different insights, especially when features are correlated.
 
 ```{r conditional-sage}
-# Create Conditional SAGE instance
+# Create Conditional SAGE instance using ARF as conditional sampler
+sampler_arf = ARFSampler$new(
+	task,
+	finite_bounds = "local",
+	min_node_size = 20
+)
+
 conditional_sage = ConditionalSAGE$new(
 	task = task,
 	learner = learner,
 	measure = measure,
 	resampling = resampling,
-	n_permutations = 30L
+	n_permutations = 30L,
+	n_conditional_samples = 100L,
+	sampler = sampler_arf
 )
 
 # Compute SAGE values
@@ -273,7 +280,7 @@ The results demonstrate the key difference between marginal and conditional SAGE
 
 1. **Marginal SAGE** treats each feature independently, so highly correlated features x1 and x2 both receive substantial importance scores reflecting their individual marginal contributions.
 
-2. **Conditional SAGE** accounts for feature dependencies through conditional sampling. When marginalizing x1, it properly conditions on x2 (and vice versa), leading to lower importance scores for the correlated features since they provide redundant information.
+2. **Conditional SAGE** accounts for feature dependencies through conditional sampling. When marginalizing x1, it conditions on x2 (and vice versa), leading to lower importance scores for the correlated features since they provide redundant information.
 
 3. **Independent feature x3** shows similar importance in both methods since it doesn't depend on other features.
 
@@ -288,7 +295,7 @@ For reference, let's compare SAGE methods with the analogous PFI and CFI methods
 ```{r pfi-cfi-comparison}
 # Quick PFI and CFI comparison for context
 pfi = PFI$new(task, learner, measure)
-cfi = CFI$new(task, learner, measure)
+cfi = CFI$new(task, learner, measure, sampler = sampler_arf)
 
 pfi$compute()
 cfi$compute()
