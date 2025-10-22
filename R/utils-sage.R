@@ -3,15 +3,15 @@
 #' Performs batched prediction on combined data to manage memory usage.
 #' Supports both classification (probability predictions) and regression.
 #'
-#' @param learner Trained mlr3 learner
-#' @param combined_data data.table with feature columns
-#' @param task mlr3 Task object
-#' @param batch_size Optional integer for batch size. If NULL or if total_rows <= batch_size,
-#'   processes all data at once.
-#' @param task_type Character, either "classif" or "regr"
+#' @param learner ([`Learner`][mlr3::Learner]) Trained mlr3 learner.
+#' @param combined_data (`data.table`) Data with feature columns to predict on.
+#' @param task ([`Task`][mlr3::Task]) mlr3 task object.
+#' @param batch_size (`integer(1)` or `NULL`) Batch size for predictions. If `NULL` or if
+#'   `total_rows <= batch_size`, processes all data at once.
+#' @param task_type (`character(1)`) Task type, either `"classif"` or `"regr"`.
 #'
-#' @return For classification: matrix of class probabilities (n_rows x n_classes).
-#'   For regression: numeric vector of predictions (length n_rows).
+#' @return For classification: `matrix` of class probabilities (n_rows x n_classes).
+#'   For regression: `numeric` vector of predictions (length n_rows).
 #'
 #' @keywords internal
 sage_batch_predict = function(learner, combined_data, task, batch_size, task_type) {
@@ -72,54 +72,24 @@ sage_batch_predict = function(learner, combined_data, task, batch_size, task_typ
 	}
 }
 
-#' Handle NA Predictions for SAGE
-#'
-#' Replaces NA values in predictions with sensible defaults.
-#' For classification: uniform probability across classes.
-#' For regression: zero.
-#'
-#' @param predictions For classification: matrix of probabilities. For regression: numeric vector.
-#' @param task_type Character, either "classif" or "regr"
-#'
-#' @return Predictions with NAs replaced
-#'
-#' @keywords internal
-sage_handle_na_predictions = function(predictions, task_type) {
-	if (task_type == "classif") {
-		if (any(is.na(predictions))) {
-			cli::cli_warn("Encountered missing values in model prediction")
-			n_classes = ncol(predictions)
-			uniform_prob = 1 / n_classes
-
-			for (j in seq_len(n_classes)) {
-				predictions[is.na(predictions[, j]), j] = uniform_prob
-			}
-		}
-	} else {
-		if (any(is.na(predictions))) {
-			cli::cli_warn("Encountered missing values in model prediction")
-			predictions[is.na(predictions)] = 0
-		}
-	}
-
-	predictions
-}
-
 #' Aggregate Predictions by Coalition and Test Instance
 #'
 #' Averages predictions across multiple samples (reference data or conditional samples)
 #' for each unique combination of coalition and test instance.
 #'
-#' @param combined_data data.table with columns .coalition_id, .test_instance_id, and features
-#' @param predictions For classification: matrix of probabilities. For regression: numeric vector.
-#' @param task_type Character, either "classif" or "regr"
-#' @param class_names Character vector of class names (required for classification, ignored for regression)
+#' @param combined_data (`data.table`) Data with columns `.coalition_id`, `.test_instance_id`,
+#'   and feature columns.
+#' @param predictions (`matrix` or `numeric`) For classification: matrix of class probabilities.
+#'   For regression: numeric vector of predictions.
+#' @param task_type (`character(1)`) Task type, either `"classif"` or `"regr"`.
+#' @param class_names (`character()` or `NULL`: `NULL`) Character vector of class names. Required
+#'   for classification, ignored for regression.
 #'
-#' @return data.table with columns:
-#'   - .coalition_id: Coalition identifier
-#'   - .test_instance_id: Test instance identifier
-#'   - For classification: One column per class with averaged probabilities
-#'   - For regression: avg_pred column with averaged predictions
+#' @return `data.table` with columns:
+#'   - `.coalition_id`: Coalition identifier (integer)
+#'   - `.test_instance_id`: Test instance identifier (integer)
+#'   - For classification: One column per class with averaged probabilities (numeric)
+#'   - For regression: `avg_pred` column with averaged predictions (numeric)
 #'
 #' @keywords internal
 sage_aggregate_predictions = function(combined_data, predictions, task_type, class_names = NULL) {

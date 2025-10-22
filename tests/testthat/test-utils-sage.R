@@ -103,53 +103,6 @@ test_that("sage_batch_predict works for classification with batching", {
 	expect_equal(pred_no_batch, pred_with_batch)
 })
 
-test_that("sage_handle_na_predictions handles regression NAs", {
-	# Create predictions with NAs
-	predictions = c(1.0, 2.0, NA, 4.0, NA)
-
-	cleaned = sage_handle_na_predictions(predictions, task_type = "regr")
-
-	expect_equal(cleaned, c(1.0, 2.0, 0.0, 4.0, 0.0))
-})
-
-test_that("sage_handle_na_predictions handles classification NAs", {
-	# Create probability matrix with NAs
-	predictions = matrix(
-		c(
-			0.7,
-			0.3,
-			NA,
-			NA,
-			0.6,
-			0.4,
-			NA,
-			NA
-		),
-		ncol = 2,
-		byrow = TRUE
-	)
-
-	cleaned = sage_handle_na_predictions(predictions, task_type = "classif")
-
-	# NAs should be replaced with uniform probability (0.5 for binary)
-	expect_equal(cleaned[1, ], c(0.7, 0.3))
-	expect_equal(cleaned[2, ], c(0.5, 0.5))
-	expect_equal(cleaned[3, ], c(0.6, 0.4))
-	expect_equal(cleaned[4, ], c(0.5, 0.5))
-})
-
-test_that("sage_handle_na_predictions does nothing when no NAs present", {
-	# Regression
-	predictions_regr = c(1.0, 2.0, 3.0)
-	cleaned_regr = sage_handle_na_predictions(predictions_regr, task_type = "regr")
-	expect_equal(cleaned_regr, predictions_regr)
-
-	# Classification
-	predictions_classif = matrix(c(0.7, 0.3, 0.6, 0.4), ncol = 2, byrow = TRUE)
-	cleaned_classif = sage_handle_na_predictions(predictions_classif, task_type = "classif")
-	expect_equal(cleaned_classif, predictions_classif)
-})
-
 test_that("sage_aggregate_predictions works for regression", {
 	# Create sample data with multiple samples per coalition/instance
 	combined_data = data.table::data.table(
