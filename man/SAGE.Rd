@@ -101,8 +101,8 @@ The total number of evaluated coalitions is \code{1 (empty) + n_permutations * n
 \item{\code{batch_size}}{(\code{integer(1)}: \code{5000L}) Maximum number of observations to process in a single prediction call.}
 
 \item{\code{n_samples}}{(\code{integer(1)}: \code{100L}) Number of samples to use for marginalizing out-of-coalition features.
-For MarginalSAGE, this is the number of reference data samples.
-For ConditionalSAGE, this is the number of conditional samples per test instance.}
+For \link{MarginalSAGE}, this is the number of marginal data samples ("background data" in other implementations).
+For \link{ConditionalSAGE}, this is the number of conditional samples per test instance retrieved from \code{sampler}.}
 
 \item{\code{early_stopping}}{(\code{logical(1)}: \code{FALSE}) Whether to enable early stopping based on convergence detection.}
 

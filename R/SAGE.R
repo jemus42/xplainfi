@@ -44,8 +44,8 @@ SAGE = R6Class(
 		#'   The total number of evaluated coalitions is `1 (empty) + n_permutations * n_features`.
 		#' @param batch_size (`integer(1)`: `5000L`) Maximum number of observations to process in a single prediction call.
 		#' @param n_samples (`integer(1)`: `100L`) Number of samples to use for marginalizing out-of-coalition features.
-		#'   For MarginalSAGE, this is the number of reference data samples.
-		#'   For ConditionalSAGE, this is the number of conditional samples per test instance.
+		#'   For [MarginalSAGE], this is the number of marginal data samples ("background data" in other implementations).
+		#'   For [ConditionalSAGE], this is the number of conditional samples per test instance retrieved from `sampler`.
 		#' @param early_stopping (`logical(1)`: `FALSE`) Whether to enable early stopping based on convergence detection.
 		#' @param convergence_threshold (`numeric(1)`: `0.01`) Relative change threshold for convergence detection.
 		#' @param se_threshold (`numeric(1)`: `Inf`) Standard error threshold for convergence detection.
@@ -175,6 +175,7 @@ SAGE = R6Class(
 			first_result = private$.compute_sage_scores(
 				learner = rr$learners[[iter_for_convergence]],
 				test_dt = self$task$data(rows = rr$resampling$test_set(iter_for_convergence)),
+				n_permutations = self$n_permutations,
 				batch_size = batch_size,
 				early_stopping = early_stopping,
 				convergence_threshold = convergence_threshold,
@@ -184,11 +185,10 @@ SAGE = R6Class(
 			)
 
 			# Extract convergence data from first iteration
-			if (!is.null(first_result$convergence_data)) {
-				self$convergence_history = first_result$convergence_data$convergence_history
-				self$converged = first_result$convergence_data$converged
-				self$n_permutations_used = first_result$convergence_data$n_permutations_used
-			}
+			# `convergence_data` exists even if early_stopping = FALSE
+			self$convergence_history = first_result$convergence_data$convergence_history
+			self$converged = first_result$convergence_data$converged
+			self$n_permutations_used = first_result$convergence_data$n_permutations_used
 
 			# If we have multiple resampling iterations, compute the rest without convergence tracking
 			if (self$resampling$iters > 1) {
@@ -196,9 +196,13 @@ SAGE = R6Class(
 					private$.compute_sage_scores(
 						learner = rr$learners[[iter]],
 						test_dt = self$task$data(rows = rr$resampling$test_set(iter)),
+						# n_permutations_used is either same as n_permutations (if early_stopping = FALSE)
+						# or its a smaller value if early_stopping = TRUE and it stopped early
+						# The fallback to self$n_permutations should not be needed
+						n_permutations = self$n_permutations_used %||% self$n_permutations,
 						batch_size = batch_size,
-						early_stopping = FALSE, # Only track convergence for first iteration
-						n_permutations = self$n_permutations_used
+						# Only track convergence etc. for first iteration
+						early_stopping = FALSE
 					)
 				})
 
@@ -281,6 +285,7 @@ SAGE = R6Class(
 		.compute_sage_scores = function(
 			learner,
 			test_dt,
+			n_permutations,
 			batch_size = NULL,
 			early_stopping = FALSE,
 			convergence_threshold = 0.01,
@@ -297,9 +302,9 @@ SAGE = R6Class(
 
 			# Pre-generate ALL permutations upfront to ensure consistent random state.
 			# Relevant for reproducibility, especially when using early stopping or parallel processing.
-			# Example: if self$features = c("x1", "x2", "x3") and self$n_permutations = 2,
+			# Example: if self$features = c("x1", "x2", "x3") and n_permutations = 2,
 			# all_permutations might be list(c("x2", "x1", "x3"), c("x3", "x1", "x2"))
-			all_permutations = replicate(self$n_permutations, sample(self$features), simplify = FALSE)
+			all_permutations = replicate(n_permutations, sample(self$features), simplify = FALSE)
 
 			# Initialize variables for iterative checkpoint-based computation.
 			# This allows for early stopping based on convergence and provides progress updates.
@@ -310,7 +315,7 @@ SAGE = R6Class(
 
 			# Calculate total checkpoints for progress tracking.
 			# A checkpoint is a group of 'check_interval' permutations.
-			total_checkpoints = ceiling(self$n_permutations / check_interval)
+			total_checkpoints = ceiling(n_permutations / check_interval)
 			current_checkpoint = 0
 
 			# Start checkpoint-based progress bar if progress display is enabled.
@@ -322,10 +327,10 @@ SAGE = R6Class(
 			}
 
 			# Main loop: Process permutations in checkpoints until all permutations are done or convergence is reached.
-			while (n_completed < self$n_permutations && !converged) {
+			while (n_completed < n_permutations && !converged) {
 				# Determine the size of the current checkpoint.
 				# This ensures that the last checkpoint processes only the remaining permutations.
-				checkpoint_size = min(check_interval, self$n_permutations - n_completed)
+				checkpoint_size = min(check_interval, n_permutations - n_completed)
 				# Define the indices of permutations to be processed in this checkpoint.
 				checkpoint_perms = (n_completed + 1):(n_completed + checkpoint_size)
 
@@ -482,7 +487,7 @@ SAGE = R6Class(
 							"v" = "SAGE converged after {.val {n_completed}} permutations",
 							"i" = "Maximum relative change: {.val {round(max_change, 4)}} (threshold: {.val {convergence_threshold}})",
 							"i" = "Maximum standard error: {.val {round(max_se, 4)}} (threshold: {.val {se_threshold}})",
-							"i" = "Saved {.val {self$n_permutations - n_completed}} permutations"
+							"i" = "Saved {.val {n_permutations - n_completed}} permutations"
 						)
 					} else {
 						# If SE threshold is infinite, only check relative change
@@ -490,7 +495,7 @@ SAGE = R6Class(
 						convergence_msg = c(
 							"v" = "SAGE converged after {.val {n_completed}} permutations",
 							"i" = "Maximum relative change: {.val {round(max_change, 4)}}",
-							"i" = "Saved {.val {self$n_permutations - n_completed}} permutations"
+							"i" = "Saved {.val {n_permutations - n_completed}} permutations"
 						)
 					}
 
@@ -548,7 +553,6 @@ SAGE = R6Class(
 			)
 			if (anyNA(predictions)) {
 				cli::cli_warn("Encountered missing values in model prediction")
-				# predictions = sage_handle_na_predictions(predictions, self$task$task_type)
 			}
 			avg_preds = sage_aggregate_predictions(
 				combined_data,
