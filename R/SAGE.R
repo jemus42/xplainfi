@@ -208,10 +208,7 @@ SAGE = R6Class(
 						test_dt = self$task$data(rows = rr$resampling$test_set(iter)),
 						batch_size = batch_size,
 						early_stopping = FALSE, # Only track convergence for first iteration
-						convergence_threshold = convergence_threshold,
-						se_threshold = se_threshold,
-						min_permutations = min_permutations,
-						check_interval = check_interval
+						n_permutations = self$n_permutations_used
 					)
 				})
 
@@ -559,7 +556,10 @@ SAGE = R6Class(
 				batch_size,
 				self$task$task_type
 			)
-			predictions = sage_handle_na_predictions(predictions, self$task$task_type)
+			if (anyNA(predictions)) {
+				cli::cli_warn("Encountered missing values in model prediction")
+				# predictions = sage_handle_na_predictions(predictions, self$task$task_type)
+			}
 			avg_preds = sage_aggregate_predictions(
 				combined_data,
 				predictions,
