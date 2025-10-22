@@ -156,7 +156,7 @@ conditional_sage = ConditionalSAGE$new(
 	measure = measure,
 	resampling = resampling,
 	n_permutations = 30L,
-	n_conditional_samples = 100L,
+	n_samples = 100L,
 	sampler = sampler_arf
 )
 
