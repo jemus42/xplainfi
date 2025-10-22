@@ -21,3 +21,4 @@
 ^\.vscode$
 ^CLAUDE\.md$
 ^CLAUDE\.local\.md$
+^\.lintr$

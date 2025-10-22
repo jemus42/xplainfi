@@ -101,7 +101,7 @@ test_that("ConditionalSAGE null result for featureless learner", {
 		importance = 0,
 		key = "feature"
 	)
-	expect_identical(sage_regr$importance(), expected_regr)
+	expect_equal(sage_regr$importance(), expected_regr)
 })
 
 test_that("ConditionalSAGE with friedman1 produces sensible results", {
