@@ -88,7 +88,7 @@ navbar:
         - text: Perturbation-Based Methods (PFI, CFI, RFI)
           href: articles/perturbation-importance.html
         - text: "Leave-Out/In Methods (LOCO, LOCI)"
-          href: articles/loco-loci.html
+          href: articles/loco.html
         - text: "Shapley Additive Global Importance (SAGE)"
           href: articles/sage-methods.html
         - text: "Inference for Feature Importances"
