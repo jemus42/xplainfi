@@ -394,8 +394,11 @@ test_that("MarginalSAGE SE tracking in convergence_history", {
 
 test_that("MarginalSAGE SE-based convergence detection", {
 	set.seed(123)
-	task = mlr3::tgen("friedman1")$generate(n = 50)
-	learner = mlr3::lrn("regr.rpart")
+	skip_if_not_installed("ranger")
+
+	skip_if_not_installed("mlr3learners")
+	task = mlr3::tgen("friedman1")$generate(n = 100)
+	learner = mlr3::lrn("regr.ranger", num.trees = 50)
 	measure = mlr3::msr("regr.mse")
 
 	sage = MarginalSAGE$new(
@@ -411,7 +414,7 @@ test_that("MarginalSAGE SE-based convergence detection", {
 		early_stopping = TRUE,
 		convergence_threshold = 0.001, # Very strict relative change
 		se_threshold = 100.0, # Very loose SE threshold
-		min_permutations = 5L,
+		min_permutations = 10L,
 		check_interval = 2L
 	)
 
