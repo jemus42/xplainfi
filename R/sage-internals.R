@@ -105,7 +105,7 @@ sage_aggregate_predictions = function(combined_data, predictions, task_type, cla
 		avg_preds = combined_data[,
 			lapply(.SD, function(x) mean(x, na.rm = TRUE)),
 			.SDcols = agg_cols,
-			by = .(.coalition_id, .test_instance_id)
+			by = c(".coalition_id", ".test_instance_id")
 		]
 
 		# Rename aggregated columns to original class names
@@ -117,7 +117,7 @@ sage_aggregate_predictions = function(combined_data, predictions, task_type, cla
 
 		combined_data[,
 			.(avg_pred = mean(.prediction, na.rm = TRUE)),
-			by = .(.coalition_id, .test_instance_id)
+			by = c(".coalition_id", ".test_instance_id")
 		]
 	}
 }
