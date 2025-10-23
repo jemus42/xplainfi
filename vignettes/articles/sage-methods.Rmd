@@ -240,40 +240,6 @@ ggplot(combined_results, aes(x = feature, y = importance, fill = method)) +
 	theme(legend.position = "bottom")
 ```
 
-Let's also create a correlation plot to see how similar the rankings are:
-
-```{r correlation-plot}
-#| echo: false
-
-# Merge the two results for correlation analysis
-merged_results = merge(
-	marginal_results[, c("feature", "importance", "feature_type")],
-	conditional_results[, c("feature", "importance")],
-	by = "feature",
-	suffixes = c("_marginal", "_conditional")
-)
-
-# Calculate correlation
-correlation = cor(merged_results$importance_marginal, merged_results$importance_conditional)
-
-# Create scatter plot
-ggplot(merged_results, aes(x = importance_marginal, y = importance_conditional)) +
-	geom_point(aes(color = feature_type), size = 3, alpha = 0.8) +
-	geom_smooth(method = "lm", se = FALSE, color = "gray50", linetype = "dashed") +
-	scale_color_manual(
-		values = c("Causal" = "steelblue", "Noise" = "lightcoral"),
-		name = "Feature type"
-	) +
-	labs(
-		title = "Marginal vs Conditional SAGE Correlation",
-		subtitle = sprintf("Pearson correlation: %.3f", correlation),
-		x = "Marginal SAGE Value",
-		y = "Conditional SAGE Value"
-	) +
-	theme_minimal(base_size = 14) +
-	geom_text(aes(label = feature), hjust = 0, vjust = -0.5, size = 3)
-```
-
 ### Interpretation
 
 The results demonstrate the key difference between marginal and conditional SAGE:
