@@ -121,7 +121,7 @@ GaussianConditionalSampler = R6Class(
 				samples = mvtnorm::rmvnorm(
 					n = nrow(data),
 					mean = mu_marg,
-					sigma = private$.ensure_pd(sigma_marg)
+					sigma = sigma_marg
 				)
 
 				data[, (feature) := as.data.table(samples)]
@@ -160,7 +160,6 @@ GaussianConditionalSampler = R6Class(
 			if (n_features == 1) {
 				cond_cov = matrix(cond_cov, 1, 1)
 			}
-			cond_cov = private$.ensure_pd(cond_cov)
 
 			# Predict conditional means for new data
 			X_new = as.matrix(data[, .SD, .SDcols = conditioning_set])
@@ -180,22 +179,6 @@ GaussianConditionalSampler = R6Class(
 			data[, (feature) := as.data.table(samples)]
 
 			data[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)]
-		},
-
-		# Ensure matrix is positive definite for mvtnorm::rmvnorm
-		# Uses eigenvalue decomposition to project to nearest PD matrix
-		.ensure_pd = function(mat, tol = 1e-10) {
-			# Make symmetric (numerical precision)
-			mat = (mat + t(mat)) / 2
-
-			# Eigenvalue decomposition
-			eig = eigen(mat, symmetric = TRUE)
-
-			# Truncate negative eigenvalues to small positive value
-			eig$values[eig$values < tol] = tol
-
-			# Reconstruct matrix
-			eig$vectors %*% diag(eig$values, nrow = length(eig$values)) %*% t(eig$vectors)
 		}
 	)
 )
