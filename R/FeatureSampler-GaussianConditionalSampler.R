@@ -75,43 +75,12 @@ GaussianConditionalSampler = R6Class(
 			self$sigma = stats::cov(X)
 
 			self$label = "Gaussian Conditional Sampler"
-		},
-
-		#' @description
-		#' Sample features from their conditional distribution using closed-form Gaussian formulas.
-		#'
-		#' @param feature (`character()`) Feature name(s) to sample.
-		#' @param row_ids (`integer()` | `NULL`) Row IDs from task to use as conditioning values.
-		#' @param conditioning_set (`character()` | `NULL`) Features to condition on.
-		#'   If `NULL`, samples from marginal distribution (no conditioning).
-		#' @return Modified copy with sampled feature(s).
-		sample = function(feature, row_ids = NULL, conditioning_set = NULL) {
-			data_copy = private$.get_task_data_by_row_id(row_ids)
-			private$.sample_conditional(data_copy, feature, conditioning_set)
-		},
-
-		#' @description
-		#' Sample from external data conditionally.
-		#'
-		#' @param feature (`character()`) Feature(s) to sample.
-		#' @param newdata ([`data.table`][data.table::data.table]) External data to use.
-		#' @param conditioning_set (`character()` | `NULL`) Features to condition on.
-		#' @return Modified copy with sampled feature(s).
-		sample_newdata = function(feature, newdata, conditioning_set = NULL) {
-			# Create copy to avoid modifying original
-			if (inherits(newdata, "data.table")) {
-				data_copy = data.table::copy(newdata)
-			} else {
-				data_copy = as.data.table(newdata)
-			}
-
-			private$.sample_conditional(data_copy, feature, conditioning_set)
 		}
 	),
 
 	private = list(
-		# Core sampling logic shared between sample() and sample_newdata()
-		.sample_conditional = function(data, feature, conditioning_set) {
+		# Core sampling logic implementing conditional Gaussian sampling
+		.sample_conditional = function(data, feature, conditioning_set, ...) {
 			# Handle marginal case (no conditioning)
 			if (is.null(conditioning_set) || length(conditioning_set) == 0) {
 				# Sample from marginal distribution N(μ_feature, Σ_feature)

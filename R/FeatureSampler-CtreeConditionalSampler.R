@@ -108,43 +108,12 @@ CtreeConditionalSampler = R6Class(
 			)
 
 			self$label = "Conditional Inference Tree Conditional Sampler"
-		},
-
-		#' @description
-		#' Sample features using conditional inference trees.
-		#'
-		#' @param feature (`character()`) Feature name(s) to sample.
-		#' @param row_ids (`integer()` | `NULL`) Row IDs from task to use.
-		#' @param conditioning_set (`character()` | `NULL`) Features to condition on.
-		#'   If `NULL`, samples from marginal distribution.
-		#' @return Modified copy with sampled feature(s).
-		sample = function(feature, row_ids = NULL, conditioning_set = NULL) {
-			data_copy = private$.get_task_data_by_row_id(row_ids)
-			private$.sample_ctree(data_copy, feature, conditioning_set)
-		},
-
-		#' @description
-		#' Sample from external data conditionally.
-		#'
-		#' @param feature (`character()`) Feature(s) to sample.
-		#' @param newdata ([`data.table`][data.table::data.table]) External data to use.
-		#' @param conditioning_set (`character()` | `NULL`) Features to condition on.
-		#' @return Modified copy with sampled feature(s).
-		sample_newdata = function(feature, newdata, conditioning_set = NULL) {
-			# Create copy to avoid modifying original
-			if (inherits(newdata, "data.table")) {
-				data_copy = data.table::copy(newdata)
-			} else {
-				data_copy = as.data.table(newdata)
-			}
-
-			private$.sample_ctree(data_copy, feature, conditioning_set)
 		}
 	),
 
 	private = list(
-		# Core ctree sampling logic
-		.sample_ctree = function(data, feature, conditioning_set) {
+		# Core ctree sampling logic implementing conditional inference tree sampling
+		.sample_conditional = function(data, feature, conditioning_set, ...) {
 			# Get training data from task
 			training_data = self$task$data(cols = self$task$feature_names)
 

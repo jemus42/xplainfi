@@ -84,8 +84,7 @@ KNNConditionalSampler = R6Class(
 		#' @param k (`integer(1)` | `NULL`) Number of neighbors. If `NULL`, uses stored parameter.
 		#' @return Modified copy with sampled feature(s).
 		sample = function(feature, row_ids = NULL, conditioning_set = NULL, k = NULL) {
-			data_copy = private$.get_task_data_by_row_id(row_ids)
-			private$.sample_knn(data_copy, feature, conditioning_set, k)
+			super$sample(feature, row_ids, conditioning_set, k = k)
 		},
 
 		#' @description
@@ -97,20 +96,13 @@ KNNConditionalSampler = R6Class(
 		#' @param k (`integer(1)` | `NULL`) Number of neighbors. If `NULL`, uses stored parameter.
 		#' @return Modified copy with sampled feature(s).
 		sample_newdata = function(feature, newdata, conditioning_set = NULL, k = NULL) {
-			# Create copy to avoid modifying original
-			if (inherits(newdata, "data.table")) {
-				data_copy = data.table::copy(newdata)
-			} else {
-				data_copy = as.data.table(newdata)
-			}
-
-			private$.sample_knn(data_copy, feature, conditioning_set, k)
+			super$sample_newdata(feature, newdata, conditioning_set, k = k)
 		}
 	),
 
 	private = list(
-		# Core kNN sampling logic
-		.sample_knn = function(data, feature, conditioning_set, k = NULL) {
+		# Core kNN sampling logic implementing k-nearest neighbors conditional sampling
+		.sample_conditional = function(data, feature, conditioning_set, k = NULL, ...) {
 			# Resolve k parameter
 			k = resolve_param(k, self$param_set$values$k, 5L)
 
