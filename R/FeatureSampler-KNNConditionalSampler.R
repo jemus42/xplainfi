@@ -57,18 +57,12 @@ KNNConditionalSampler = R6Class(
 		#' @field feature_types (`character()`) Feature types supported by the sampler.
 		feature_types = c("numeric", "integer", "factor", "ordered", "logical"),
 
-		#' @field training_data (`data.table`) Training data used for finding neighbors.
-		training_data = NULL,
-
 		#' @description
 		#' Creates a new KNNConditionalSampler.
 		#' @param task ([mlr3::Task]) Task to sample from.
 		#' @param k (`integer(1)`: `5L`) Number of nearest neighbors to sample from.
 		initialize = function(task, k = 5L) {
 			super$initialize(task)
-
-			# Store training data (features only)
-			self$training_data = self$task$data(cols = self$task$feature_names)
 
 			# Define param_set with k parameter
 			self$param_set = paradox::ps(
@@ -120,11 +114,14 @@ KNNConditionalSampler = R6Class(
 			# Resolve k parameter
 			k = resolve_param(k, self$param_set$values$k, 5L)
 
+			# Get training data from task
+			training_data = self$task$data(cols = self$task$feature_names)
+
 			# Handle marginal case (no conditioning)
 			if (is.null(conditioning_set) || length(conditioning_set) == 0) {
 				# Simple random sampling from training data
 				for (feat in feature) {
-					data[, (feat) := sample(self$training_data[[feat]], .N, replace = TRUE)]
+					data[, (feat) := sample(training_data[[feat]], .N, replace = TRUE)]
 				}
 				return(data[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)])
 			}
@@ -132,12 +129,12 @@ KNNConditionalSampler = R6Class(
 			# Conditional case: find k nearest neighbors for each observation
 			# Extract conditioning features from both data sources
 			query_cond = as.matrix(data[, .SD, .SDcols = conditioning_set])
-			train_cond = as.matrix(self$training_data[, .SD, .SDcols = conditioning_set])
+			train_cond = as.matrix(training_data[, .SD, .SDcols = conditioning_set])
 
 			# Normalize numeric features for distance calculation
 			# This ensures all features contribute equally to distance
 			numeric_cols = sapply(conditioning_set, function(col) {
-				is.numeric(self$training_data[[col]])
+				is.numeric(training_data[[col]])
 			})
 
 			if (any(numeric_cols)) {
@@ -175,7 +172,7 @@ KNNConditionalSampler = R6Class(
 
 				# Replace target features with values from sampled neighbor
 				for (feat in feature) {
-					data[i, (feat) := self$training_data[[feat]][sampled_idx]]
+					data[i, (feat) := training_data[[feat]][sampled_idx]]
 				}
 			}
 

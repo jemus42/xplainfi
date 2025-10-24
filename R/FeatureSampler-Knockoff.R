@@ -26,21 +26,18 @@
 #' @export
 KnockoffSampler = R6Class(
 	"KnockoffSampler",
-	inherit = ConditionalSampler,
+	inherit = FeatureSampler,
 	public = list(
 		#' @field x_tilde Knockoff matrix with one (or `iters`) row(s) per original observation in `task`.
 		x_tilde = NULL,
-
 		#' @description
 		#' Creates a new instance of the KnockoffSampler class.
 		#' @param task ([mlr3::Task]) Task to sample from
-		# @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`. This parameter only affects the sampling behavior, not the ARF model fitting.
 		#' @param knockoff_fun (`function`) Step size for variance adjustment. Default are second-order Gaussian knockoffs.
 		#' @param iters (`integer(1)`: 1) Number of repetitions the `knockoff_fun` is applied to create multiple `x_tilde`
 		#' instances per observation.
 		initialize = function(
 			task,
-			# conditioning_set = NULL,
 			knockoff_fun = function(x) knockoff::create.second_order(as.matrix(x)),
 			iters = 1
 		) {

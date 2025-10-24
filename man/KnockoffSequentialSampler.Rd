@@ -30,7 +30,7 @@ Blesch K, Watson D, Wright M (2023).
 \doi{10.1007/s10182-023-00477-9}.
 }
 \section{Super classes}{
-\code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{\link[xplainfi:ConditionalSampler]{xplainfi::ConditionalSampler}} -> \code{\link[xplainfi:KnockoffSampler]{xplainfi::KnockoffSampler}} -> \code{KnockoffSequentialSampler}
+\code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{\link[xplainfi:KnockoffSampler]{xplainfi::KnockoffSampler}} -> \code{KnockoffSequentialSampler}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -53,7 +53,7 @@ Will be checked against the provied \link[mlr3:Task]{mlr3::Task} to ensure compa
 <details open><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureSampler" data-id="print"><a href='../../xplainfi/html/FeatureSampler.html#method-FeatureSampler-print'><code>xplainfi::FeatureSampler$print()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="xplainfi" data-topic="ConditionalSampler" data-id="sample_newdata"><a href='../../xplainfi/html/ConditionalSampler.html#method-ConditionalSampler-sample_newdata'><code>xplainfi::ConditionalSampler$sample_newdata()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureSampler" data-id="sample_newdata"><a href='../../xplainfi/html/FeatureSampler.html#method-FeatureSampler-sample_newdata'><code>xplainfi::FeatureSampler$sample_newdata()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="KnockoffSampler" data-id="sample"><a href='../../xplainfi/html/KnockoffSampler.html#method-KnockoffSampler-sample'><code>xplainfi::KnockoffSampler$sample()</code></a></span></li>
 </ul>
 </details>

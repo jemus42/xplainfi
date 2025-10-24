@@ -67,9 +67,6 @@ CtreeConditionalSampler = R6Class(
 	"CtreeConditionalSampler",
 	inherit = ConditionalSampler,
 	public = list(
-		#' @field training_data (`data.table`) Training data used for building trees.
-		training_data = NULL,
-
 		#' @field tree_cache (`environment`) Cache for fitted ctree models.
 		tree_cache = NULL,
 
@@ -90,10 +87,6 @@ CtreeConditionalSampler = R6Class(
 		) {
 			require_package("partykit")
 			super$initialize(task)
-
-			# Store training data (features only) with row IDs
-			self$training_data = self$task$data(cols = self$task$feature_names)
-			self$training_data[, ..train_id := seq_len(.N)]
 
 			# Initialize tree cache
 			self$tree_cache = new.env(parent = emptyenv())
@@ -152,11 +145,14 @@ CtreeConditionalSampler = R6Class(
 	private = list(
 		# Core ctree sampling logic
 		.sample_ctree = function(data, feature, conditioning_set) {
+			# Get training data from task
+			training_data = self$task$data(cols = self$task$feature_names)
+
 			# Handle marginal case (no conditioning)
 			if (is.null(conditioning_set) || length(conditioning_set) == 0) {
 				# Simple random sampling from training data
 				for (feat in feature) {
-					data[, (feat) := sample(self$training_data[[feat]], .N, replace = TRUE)]
+					data[, (feat) := sample(training_data[[feat]], .N, replace = TRUE)]
 				}
 				return(data[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)])
 			}
@@ -173,8 +169,8 @@ CtreeConditionalSampler = R6Class(
 			data[, ..node_id := node_ids]
 
 			# Get terminal node memberships for training data
-			train_nodes = predict(tree, newdata = self$training_data, type = "node")
-			train_data_with_nodes = copy(self$training_data)
+			train_nodes = predict(tree, newdata = training_data, type = "node")
+			train_data_with_nodes = copy(training_data)
 			train_data_with_nodes[, ..node_id := train_nodes]
 
 			# For each evaluation observation, sample from training observations in same node
@@ -185,7 +181,7 @@ CtreeConditionalSampler = R6Class(
 				if (nrow(node_obs) == 0) {
 					cli::cli_warn("No training observations in terminal node, using marginal sample")
 					sampled_values = lapply(feature, function(feat) {
-						sample(self$training_data[[feat]], 1)
+						sample(training_data[[feat]], 1)
 					})
 				} else {
 					# Sample one observation from this node
@@ -239,6 +235,9 @@ CtreeConditionalSampler = R6Class(
 
 		# Build a ctree model
 		.build_tree = function(feature, conditioning_set) {
+			# Get training data from task
+			training_data = self$task$data(cols = self$task$feature_names)
+
 			# Create formula: features ~ conditioning_set
 			# For multiple features, use cbind on LHS
 			if (length(feature) == 1) {
@@ -263,7 +262,7 @@ CtreeConditionalSampler = R6Class(
 			# Build tree with partykit::ctree
 			tree = partykit::ctree(
 				formula = formula,
-				data = self$training_data,
+				data = training_data,
 				control = partykit::ctree_control(
 					mincriterion = mincriterion,
 					minsplit = minsplit,
