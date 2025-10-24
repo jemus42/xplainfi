@@ -129,42 +129,55 @@ GaussianConditionalSampler = R6Class(
 			}
 
 			# Conditional case: X_B | X_A = x_A
-			# Extract indices for marginalized (B) and conditioning (A) features
-			marg_idx = match(feature, names(self$mu))
-			cond_idx = match(conditioning_set, names(self$mu))
+			# Use lm.fit() for numerically stable regression coefficient estimation
+			# This is more robust than manual matrix inversion
 
-			# Extract subvectors and submatrices
-			mu_marg = self$mu[marg_idx]
-			mu_cond = self$mu[cond_idx]
-			sigma_mm = self$sigma[marg_idx, marg_idx, drop = FALSE]
-			sigma_mc = self$sigma[marg_idx, cond_idx, drop = FALSE]
-			sigma_cc = self$sigma[cond_idx, cond_idx, drop = FALSE]
-			sigma_cm = self$sigma[cond_idx, marg_idx, drop = FALSE]
+			# Get training data from task
+			training_data = self$task$data(cols = self$task$feature_names)
 
-			# Compute regression coefficient β = Σ_BA Σ_AA^(-1)
-			# Using pseudo-inverse for numerical stability (following fippy)
-			sigma_cc_inv = MASS::ginv(sigma_cc)
-			beta = sigma_mc %*% sigma_cc_inv
+			# Prepare design matrix (add intercept)
+			X_cond = as.matrix(training_data[, .SD, .SDcols = conditioning_set])
+			X_cond = cbind(1, X_cond) # Add intercept
 
-			# Compute conditional covariance (constant across observations)
-			# Σ_B|A = Σ_BB - β Σ_AB
-			cond_cov = sigma_mm - beta %*% sigma_cm
+			# Fit separate linear models for each target feature
+			# Store coefficients and compute residual covariance
+			n_features = length(feature)
+			coef_list = vector("list", n_features)
+			residuals_mat = matrix(0, nrow = nrow(training_data), ncol = n_features)
+
+			for (j in seq_along(feature)) {
+				y = training_data[[feature[j]]]
+
+				# Use lm.fit() for robust coefficient estimation via QR decomposition
+				fit = lm.fit(X_cond, y)
+				coef_list[[j]] = fit$coefficients
+				residuals_mat[, j] = fit$residuals
+			}
+
+			# Compute conditional covariance from residuals
+			# This is empirically estimated from the regression residuals
+			cond_cov = stats::cov(residuals_mat)
+			if (n_features == 1) {
+				cond_cov = matrix(cond_cov, 1, 1)
+			}
 			cond_cov = private$.ensure_pd(cond_cov)
 
-			# For each row, compute conditional mean and sample
-			for (i in seq_len(nrow(data))) {
-				# Extract conditioning values
-				x_cond = as.numeric(data[i, conditioning_set, with = FALSE])
+			# Predict conditional means for new data
+			X_new = as.matrix(data[, .SD, .SDcols = conditioning_set])
+			X_new = cbind(1, X_new) # Add intercept
 
-				# Conditional mean: μ_B|A = μ_B + β (x_A - μ_A)
-				cond_mean = mu_marg + as.vector(beta %*% (x_cond - mu_cond))
-
-				# Sample from conditional distribution
-				sampled = mvtnorm::rmvnorm(1, mean = cond_mean, sigma = cond_cov)
-
-				# Update data
-				data[i, (feature) := as.list(sampled)]
+			# Compute predictions for each feature
+			pred_mat = matrix(0, nrow = nrow(data), ncol = n_features)
+			for (j in seq_along(feature)) {
+				pred_mat[, j] = X_new %*% coef_list[[j]]
 			}
+
+			# Sample from multivariate normal with predicted means
+			samples = mvtnorm::rmvnorm(nrow(data), mean = rep(0, n_features), sigma = cond_cov)
+			samples = samples + pred_mat # Add conditional means
+
+			# Update data
+			data[, (feature) := as.data.table(samples)]
 
 			data[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)]
 		},
