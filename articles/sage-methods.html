@@ -125,13 +125,12 @@ conditionally using ARF sampling</li>
 <h2 id="demonstration-with-correlated-features">Demonstration with Correlated Features<a class="anchor" aria-label="anchor" href="#demonstration-with-correlated-features"></a>
 </h2>
 <p>To showcase the difference between Marginal and Conditional SAGE,
-we’ll use the <code><a href="../reference/sim_dgp_scenarios.html">sim_dgp_correlated()</a></code> function which creates
-highly correlated features. This is similar to how PFI and CFI behave
-differently with correlated features.</p>
+we’ll use the <code><a href="../reference/sim_dgp_scenarios.html">sim_dgp_correlated()</a></code> function which creates a
+simple linear DGP with two correlated features.</p>
 <p><strong>Model:</strong> <span class="math display">\[(X_1, X_2)^T
 \sim \text{MVN}(0, \Sigma)\]</span></p>
 <p>where <span class="math inline">\(\Sigma\)</span> is a 2×2 covariance
-matrix with 1 on the diagonal and correlation <span class="math inline">\(r\)</span> (default 0.9) on the off-diagonal.</p>
+matrix with 1 on the diagonal and correlation <span class="math inline">\(r\)</span> (default 0.5) on the off-diagonal.</p>
 <p><span class="math display">\[X_3 \sim N(0,1), \quad X_4 \sim
 N(0,1)\]</span> <span class="math display">\[Y = 2 \cdot X_1 + X_3 +
 \varepsilon\]</span></p>
@@ -142,7 +141,7 @@ N(0,1)\]</span> <span class="math display">\[Y = 2 \cdot X_1 + X_3 +
 <li>
 <code>x1</code> has a direct causal effect on y (β=2.0)</li>
 <li>
-<code>x2</code> is correlated with x1 (r = 0.9 from MVN) but has
+<code>x2</code> is correlated with x1 (r = 0.5 from MVN) but has
 <strong>no causal effect</strong> on y</li>
 <li>
 <code>x3</code> is independent with a causal effect (β=1.0)</li>
@@ -151,17 +150,17 @@ N(0,1)\]</span> <span class="math display">\[Y = 2 \cdot X_1 + X_3 +
 </ul>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
-<span><span class="va">task</span> <span class="op">=</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_correlated</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
+<span><span class="va">task</span> <span class="op">=</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_correlated</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1000</span>, r <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Check the correlation structure</span></span>
 <span><span class="va">task_data</span> <span class="op">=</span> <span class="va">task</span><span class="op">$</span><span class="fu">data</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">correlation_matrix</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">task_data</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span>, <span class="st">"x3"</span>, <span class="st">"x4"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">correlation_matrix</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        x1     x2     x3     x4</span></span>
-<span><span class="co">#&gt; x1  1.000  0.886 -0.021 -0.057</span></span>
-<span><span class="co">#&gt; x2  0.886  1.000 -0.041 -0.059</span></span>
-<span><span class="co">#&gt; x3 -0.021 -0.041  1.000  0.051</span></span>
-<span><span class="co">#&gt; x4 -0.057 -0.059  0.051  1.000</span></span></code></pre></div>
+<span><span class="co">#&gt; x1  1.000  0.447 -0.005 -0.048</span></span>
+<span><span class="co">#&gt; x2  0.447  1.000 -0.049 -0.054</span></span>
+<span><span class="co">#&gt; x3 -0.005 -0.049  1.000  0.051</span></span>
+<span><span class="co">#&gt; x4 -0.048 -0.054  0.051  1.000</span></span></code></pre></div>
 <p><strong>Expected behavior:</strong></p>
 <ul>
 <li>
@@ -195,12 +194,11 @@ implementation described in the original paper.</p>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
 <span>    n_permutations <span class="op">=</span> <span class="fl">30L</span>, <span class="co"># More permutations for stable results</span></span>
-<span>    max_reference_size <span class="op">=</span> <span class="fl">100L</span>,</span>
-<span>    batch_size <span class="op">=</span> <span class="fl">5000L</span></span>
+<span>    n_samples <span class="op">=</span> <span class="fl">100L</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Compute SAGE values</span></span>
-<span><span class="va">marginal_sage</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">marginal_sage</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>batch_size <span class="op">=</span> <span class="fl">5000L</span><span class="op">)</span></span></code></pre></div>
 <p>Let’s visualize the results:</p>
 <p><img src="sage-methods_files/figure-html/marginal-sage-plot-1.png" width="768"></p>
 <p>We can also keep track of the SAGE value approximation across
@@ -217,15 +215,22 @@ marginalize features while preserving dependencies between the remaining
 features. This can provide different insights, especially when features
 are correlated.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Create Conditional SAGE instance</span></span>
+<code class="sourceCode R"><span><span class="co"># Create Conditional SAGE instance using ARF as conditional sampler</span></span>
+<span><span class="va">sampler_arf</span> <span class="op">=</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>    <span class="va">task</span>,</span>
+<span>    finite_bounds <span class="op">=</span> <span class="st">"local"</span>,</span>
+<span>    min_node_size <span class="op">=</span> <span class="fl">20</span></span>
+<span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">conditional_sage</span> <span class="op">=</span> <span class="va"><a href="../reference/ConditionalSAGE.html">ConditionalSAGE</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>    task <span class="op">=</span> <span class="va">task</span>,</span>
 <span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
 <span>    measure <span class="op">=</span> <span class="va">measure</span>,</span>
 <span>    resampling <span class="op">=</span> <span class="va">resampling</span>,</span>
-<span>    n_permutations <span class="op">=</span> <span class="fl">30L</span></span>
+<span>    n_permutations <span class="op">=</span> <span class="fl">30L</span>,</span>
+<span>    n_samples <span class="op">=</span> <span class="fl">100L</span>,</span>
+<span>    sampler <span class="op">=</span> <span class="va">sampler_arf</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;ConditionalSampler&gt;</span> provided, using <span style="color: #0000BB;">&lt;ARFSampler&gt;</span> with default settings.</span></span>
 <span></span>
 <span><span class="co"># Compute SAGE values</span></span>
 <span><span class="va">conditional_sage</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>batch_size <span class="op">=</span> <span class="fl">5000L</span><span class="op">)</span></span></code></pre></div>
@@ -240,10 +245,6 @@ are correlated.</p>
 </h2>
 <p>Let’s compare the two SAGE methods side by side:</p>
 <p><img src="sage-methods_files/figure-html/comparison-1.png" width="768"></p>
-<p>Let’s also create a correlation plot to see how similar the rankings
-are:</p>
-<pre><code><span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre>
-<p><img src="sage-methods_files/figure-html/correlation-plot-1.png" width="768"></p>
 <div class="section level3">
 <h3 id="interpretation">Interpretation<a class="anchor" aria-label="anchor" href="#interpretation"></a>
 </h3>
@@ -256,8 +257,8 @@ importance scores reflecting their individual marginal
 contributions.</p></li>
 <li><p><strong>Conditional SAGE</strong> accounts for feature
 dependencies through conditional sampling. When marginalizing x1, it
-properly conditions on x2 (and vice versa), leading to lower importance
-scores for the correlated features since they provide redundant
+conditions on x2 (and vice versa), leading to lower importance scores
+for the correlated features since they provide redundant
 information.</p></li>
 <li><p><strong>Independent feature x3</strong> shows similar importance
 in both methods since it doesn’t depend on other features.</p></li>
@@ -275,13 +276,12 @@ unique contribution.</p>
 </h2>
 <p>For reference, let’s compare SAGE methods with the analogous PFI and
 CFI methods on the same data:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Quick PFI and CFI comparison for context</span></span>
 <span><span class="va">pfi</span> <span class="op">=</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">task</span>, <span class="va">learner</span>, <span class="va">measure</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span></span>
 <span><span class="co">#&gt; Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span></span>
-<span><span class="va">cfi</span> <span class="op">=</span> <span class="va"><a href="../reference/CFI.html">CFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">task</span>, <span class="va">learner</span>, <span class="va">measure</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;ConditionalSampler&gt;</span> provided, using <span style="color: #0000BB;">&lt;ARFSampler&gt;</span> with default settings.</span></span>
+<span><span class="va">cfi</span> <span class="op">=</span> <span class="va"><a href="../reference/CFI.html">CFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">task</span>, <span class="va">learner</span>, <span class="va">measure</span>, sampler <span class="op">=</span> <span class="va">sampler_arf</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span></span>
 <span><span class="co">#&gt; Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span></span>
 <span></span>

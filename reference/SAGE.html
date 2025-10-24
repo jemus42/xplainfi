@@ -104,10 +104,6 @@ In <em>Advances in Neural Information Processing Systems</em>, volume 33, 17212â
 <dd><p>(<code>integer(1)</code>) Number of permutations to sample.</p></dd>
 
 
-<dt><code>sampler</code></dt>
-<dd><p>(<a href="FeatureSampler.html">FeatureSampler</a>) Sampler object for marginalization.</p></dd>
-
-
 <dt><code>convergence_history</code></dt>
 <dd><p>(<code><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></code>) History of SAGE values during computation.</p></dd>
 
@@ -149,7 +145,7 @@ In <em>Advances in Neural Information Processing Systems</em>, volume 33, 17212â
 <span>  features <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n_permutations <span class="op">=</span> <span class="fl">10L</span>,</span>
 <span>  batch_size <span class="op">=</span> <span class="fl">5000L</span>,</span>
-<span>  sampler <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  n_samples <span class="op">=</span> <span class="fl">100L</span>,</span>
 <span>  early_stopping <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  convergence_threshold <span class="op">=</span> <span class="fl">0.01</span>,</span>
 <span>  se_threshold <span class="op">=</span> <span class="cn">Inf</span>,</span>
@@ -165,37 +161,38 @@ In <em>Advances in Neural Information Processing Systems</em>, volume 33, 17212â
 
 
 <dt><code>n_permutations</code></dt>
-<dd><p>(<code>integer(1): 10L</code>) Number of permutations <em>per coalition</em> to sample for Shapley value estimation.
+<dd><p>(<code>integer(1)</code>: <code>10L</code>) Number of permutations <em>per coalition</em> to sample for Shapley value estimation.
 The total number of evaluated coalitions is <code>1 (empty) + n_permutations * n_features</code>.</p></dd>
 
 
 <dt><code>batch_size</code></dt>
-<dd><p>(<code>integer(1): 5000L</code>) Maximum number of observations to process in a single prediction call.</p></dd>
+<dd><p>(<code>integer(1)</code>: <code>5000L</code>) Maximum number of observations to process in a single prediction call.</p></dd>
 
 
-<dt><code>sampler</code></dt>
-<dd><p>(<a href="FeatureSampler.html">FeatureSampler</a>) Sampler for replacing out-of-coalition feature values.
-Only relevant for <code>ConditionalSAGE</code>.</p></dd>
+<dt><code>n_samples</code></dt>
+<dd><p>(<code>integer(1)</code>: <code>100L</code>) Number of samples to use for marginalizing out-of-coalition features.
+For <a href="MarginalSAGE.html">MarginalSAGE</a>, this is the number of marginal data samples ("background data" in other implementations).
+For <a href="ConditionalSAGE.html">ConditionalSAGE</a>, this is the number of conditional samples per test instance retrieved from <code>sampler</code>.</p></dd>
 
 
 <dt><code>early_stopping</code></dt>
-<dd><p>(<code>logical(1): FALSE</code>) Whether to enable early stopping based on convergence detection.</p></dd>
+<dd><p>(<code>logical(1)</code>: <code>FALSE</code>) Whether to enable early stopping based on convergence detection.</p></dd>
 
 
 <dt><code>convergence_threshold</code></dt>
-<dd><p>(<code>numeric(1): 0.01</code>) Relative change threshold for convergence detection.</p></dd>
+<dd><p>(<code>numeric(1)</code>: <code>0.01</code>) Relative change threshold for convergence detection.</p></dd>
 
 
 <dt><code>se_threshold</code></dt>
-<dd><p>(<code>numeric(1): Inf</code>) Standard error threshold for convergence detection.</p></dd>
+<dd><p>(<code>numeric(1)</code>: <code>Inf</code>) Standard error threshold for convergence detection.</p></dd>
 
 
 <dt><code>min_permutations</code></dt>
-<dd><p>(<code>integer(1): 10L</code>) Minimum permutations before checking convergence.</p></dd>
+<dd><p>(<code>integer(1)</code>: <code>10L</code>) Minimum permutations before checking convergence.</p></dd>
 
 
 <dt><code>check_interval</code></dt>
-<dd><p>(<code>integer(1): 2L</code>) Check convergence every N permutations.</p></dd>
+<dd><p>(<code>integer(1)</code>: <code>2L</code>) Check convergence every N permutations.</p></dd>
 
 
 </dl><p></p></div>
