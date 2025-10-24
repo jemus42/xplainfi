@@ -18,6 +18,7 @@ Imports:
     data.table (>= 1.15.0),
     lgr,
     mlr3 (>= 1.1.0),
+    mvtnorm,
     paradox (>= 1.0.0),
     R6,
     stats
@@ -32,7 +33,6 @@ Suggests:
     mlr3data,
     mlr3fselect,
     mlr3learners,
-    mvtnorm,
     patchwork,
     ranger,
     rmarkdown,
