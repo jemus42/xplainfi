@@ -48,11 +48,15 @@ reference:
       - MarginalSAGE
       - ConditionalSAGE
   - title: Sampling Infrastructure
-  - subtitle: Marginal and conditional sampling
+  - subtitle: Base classes
     contents:
       - FeatureSampler
-      - MarginalSampler
       - ConditionalSampler
+  - subtitle: Marginal sampling
+    contents:
+      - MarginalSampler
+  - subtitle: Conditional sampling
+    contents:
       - ARFSampler
       - KnockoffSampler
       - starts_with("Knockoff")
