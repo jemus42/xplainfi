@@ -251,7 +251,8 @@ ARFSampler = R6Class(
 		#' @param task ([mlr3::Task]) Task to sample from.
 		#' @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`. This parameter only affects the sampling behavior, not the ARF model fitting.
 		#' @param num_trees (`integer(1)`: `10L`) Number of trees for ARF. Passed to [arf::adversarial_rf].
-		#' @param min_node_size (`integer(1)`: `2L`) Minimum node size for ARF. Passed to [arf::adversarial_rf].
+		#' @param min_node_size (`integer(1)`: `20L`) Minimum node size for ARF. Passed to [arf::adversarial_rf] and in turn to [ranger::ranger].
+		#'   This is increased to 20 to mitigate overfitting.
 		#' @param finite_bounds (`character(1)`: `"no"`) How to handle variable bounds. Passed to [arf::forde]. Default is `"no"` for compatibility. `"local"` may improve extrapolation but can cause issues with some data.
 		#' @param epsilon (`numeric(1)`: `0`) Slack parameter for when `finite_bounds != "no"`. Passed to [arf::forde].
 		#' @param round (`logical(1)`: `TRUE`) Whether to round continuous variables back to their original precision in sampling. Can be overridden in `$sample()` calls.
@@ -263,7 +264,7 @@ ARFSampler = R6Class(
 			task,
 			conditioning_set = NULL,
 			num_trees = 10L,
-			min_node_size = 2L,
+			min_node_size = 20L,
 			finite_bounds = "no",
 			epsilon = 1e-15,
 			round = TRUE,
@@ -288,7 +289,7 @@ ARFSampler = R6Class(
 				parallel = paradox::p_lgl(default = FALSE),
 				# Model fitting parameters (used only during initialization)
 				num_trees = paradox::p_int(lower = 1L, default = 10L),
-				min_node_size = paradox::p_int(lower = 1L, default = 2L),
+				min_node_size = paradox::p_int(lower = 1L, default = 20L),
 				finite_bounds = paradox::p_fct(c("no", "local", "global"), default = "no"),
 				epsilon = paradox::p_dbl(lower = 0, default = 1e-15)
 			)

@@ -83,7 +83,7 @@ To fit the ARF in parallel, register a parallel backend first (see \link[arf:arf
   task,
   conditioning_set = NULL,
   num_trees = 10L,
-  min_node_size = 2L,
+  min_node_size = 20L,
   finite_bounds = "no",
   epsilon = 1e-15,
   round = TRUE,
@@ -103,7 +103,8 @@ To fit the ARF in parallel, register a parallel backend first (see \link[arf:arf
 
 \item{\code{num_trees}}{(\code{integer(1)}: \code{10L}) Number of trees for ARF. Passed to \link[arf:adversarial_rf]{arf::adversarial_rf}.}
 
-\item{\code{min_node_size}}{(\code{integer(1)}: \code{2L}) Minimum node size for ARF. Passed to \link[arf:adversarial_rf]{arf::adversarial_rf}.}
+\item{\code{min_node_size}}{(\code{integer(1)}: \code{20L}) Minimum node size for ARF. Passed to \link[arf:adversarial_rf]{arf::adversarial_rf} and in turn to \link[ranger:ranger]{ranger::ranger}.
+This is increased to 20 to mitigate overfitting.}
 
 \item{\code{finite_bounds}}{(\code{character(1)}: \code{"no"}) How to handle variable bounds. Passed to \link[arf:forde]{arf::forde}. Default is \code{"no"} for compatibility. \code{"local"} may improve extrapolation but can cause issues with some data.}
 

@@ -34,11 +34,10 @@ The **xplainfi** package provides feature importance methods for machine learnin
 
 ## Core Concepts
 
-Feature importance methods in xplainfi answer different but related questions:
+Feature importance methods in xplainfi address different but related questions:
 
 - **How much does each feature contribute to model performance?** (Permutation Feature Importance)
 - **What happens when we remove features and retrain?** (Leave-One-Covariate-Out)  
-- **How much does each feature contribute individually?** (Leave-One-Covariate-In)
 - **How do features depend on each other?** (Conditional and Relative methods)
 
 All methods share a common interface built on [mlr3](https://mlr3.mlr-org.com/), making them easy to use with any task, learner, measure, and resampling strategy. 

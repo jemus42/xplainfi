@@ -8,6 +8,8 @@
 #' @examplesIf requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE) && requireNamespace("arf", quietly = TRUE)
 #' library(mlr3)
 #' task = tgen("friedman1")$generate(n = 100)
+#'
+#' # Using default ARFSampler
 #' sage = ConditionalSAGE$new(
 #'   task = task,
 #'   learner = lrn("regr.ranger", num.trees = 50),
@@ -16,6 +18,22 @@
 #'   n_samples = 20
 #' )
 #' sage$compute()
+#' \dontrun{
+#' # For more control over ARF sampling behavior:
+#' custom_sampler = ARFSampler$new(
+#'   task = task,
+#'   finite_bounds = "local" # can improve sampling behavior
+#' )
+#' sage_custom = ConditionalSAGE$new(
+#'   task = task,
+#'   learner = lrn("regr.ranger", num.trees = 50),
+#'   measure = msr("regr.mse"),
+#'   n_permutations = 3L,
+#'   n_samples = 20,
+#'   sampler = custom_sampler
+#' )
+#' sage_custom$compute()
+#' }
 #' @export
 ConditionalSAGE = R6Class(
 	"ConditionalSAGE",
