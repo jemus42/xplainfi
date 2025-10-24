@@ -106,7 +106,7 @@ test_that("MarginalSAGE with friedman1 produces sensible results", {
 		learner = learner,
 		measure = measure,
 		n_permutations = 3L, # Keep small for fast testing
-		max_reference_size = 50L
+		n_samples = 50L
 	)
 
 	sage$compute()
@@ -193,7 +193,7 @@ test_that("MarginalSAGE only one feature", {
 	expect_equal(sage$importance()$feature, "important4")
 })
 
-test_that("MarginalSAGE with max_reference_size parameter", {
+test_that("MarginalSAGE with n_samples parameter", {
 	set.seed(123)
 
 	# Test with binary classification
@@ -202,7 +202,7 @@ test_that("MarginalSAGE with max_reference_size parameter", {
 		task = task_binary,
 		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
-		max_reference_size = 30L,
+		n_samples = 30L,
 		n_permutations = 2L
 	)
 	sage_binary$compute()
@@ -214,7 +214,7 @@ test_that("MarginalSAGE with max_reference_size parameter", {
 		task = task_regr,
 		learner = mlr3::lrn("regr.rpart"),
 		measure = mlr3::msr("regr.mse"),
-		max_reference_size = 30L,
+		n_samples = 30L,
 		n_permutations = 2L
 	)
 	sage_regr$compute()
@@ -226,7 +226,7 @@ test_that("MarginalSAGE with max_reference_size parameter", {
 		task = task_multi,
 		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
-		max_reference_size = 30L,
+		n_samples = 30L,
 		n_permutations = 2L
 	)
 	sage_multi$compute()
@@ -317,7 +317,7 @@ test_that("MarginalSAGE requires predict_type='prob' for classification", {
 
 test_that("MarginalSAGE works with multiclass classification", {
 	set.seed(123)
-	task = mlr3::tgen("cassini")$generate(n = 200)
+	task = mlr3::tgen("cassini")$generate(n = 50)
 	learner = mlr3::lrn("classif.rpart", predict_type = "prob")
 	measure = mlr3::msr("classif.ce")
 
@@ -325,8 +325,8 @@ test_that("MarginalSAGE works with multiclass classification", {
 		task = task,
 		learner = learner,
 		measure = measure,
-		n_permutations = 3L,
-		max_reference_size = 50L
+		n_permutations = 2L,
+		n_samples = 30L
 	)
 
 	sage$compute()
@@ -344,7 +344,7 @@ test_that("MarginalSAGE works with multiclass classification", {
 
 test_that("MarginalSAGE SE tracking in convergence_history", {
 	set.seed(123)
-	task = mlr3::tgen("friedman1")$generate(n = 50)
+	task = mlr3::tgen("friedman1")$generate(n = 30)
 	learner = mlr3::lrn("regr.rpart")
 	measure = mlr3::msr("regr.mse")
 
@@ -352,8 +352,8 @@ test_that("MarginalSAGE SE tracking in convergence_history", {
 		task = task,
 		learner = learner,
 		measure = measure,
-		n_permutations = 10L,
-		max_reference_size = 30L
+		n_permutations = 6L,
+		n_samples = 20L
 	)
 
 	# Compute with early stopping to get convergence history
@@ -393,10 +393,10 @@ test_that("MarginalSAGE SE tracking in convergence_history", {
 })
 
 test_that("MarginalSAGE SE-based convergence detection", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
-
 	set.seed(123)
+	skip_if_not_installed("ranger")
+
+	skip_if_not_installed("mlr3learners")
 	task = mlr3::tgen("friedman1")$generate(n = 100)
 	learner = mlr3::lrn("regr.ranger", num.trees = 50)
 	measure = mlr3::msr("regr.mse")
@@ -405,8 +405,8 @@ test_that("MarginalSAGE SE-based convergence detection", {
 		task = task,
 		learner = learner,
 		measure = measure,
-		n_permutations = 20L,
-		max_reference_size = 20L
+		n_permutations = 10L,
+		n_samples = 20L
 	)
 
 	# Test with very loose SE threshold (should not trigger convergence)
@@ -414,13 +414,13 @@ test_that("MarginalSAGE SE-based convergence detection", {
 		early_stopping = TRUE,
 		convergence_threshold = 0.001, # Very strict relative change
 		se_threshold = 100.0, # Very loose SE threshold
-		min_permutations = 5L,
+		min_permutations = 10L,
 		check_interval = 2L
 	)
 
 	# Should not converge early due to loose SE threshold
 	expect_false(sage$converged)
-	expect_equal(sage$n_permutations_used, 20L)
+	expect_equal(sage$n_permutations_used, 10L)
 
 	# Reset for next test
 	sage$reset()

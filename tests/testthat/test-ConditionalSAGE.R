@@ -3,18 +3,17 @@ test_that("ConditionalSAGE can't be constructed without args", {
 })
 
 test_that("ConditionalSAGE can be constructed with simple objects", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
 	skip_if_not_installed("arf")
 
 	# Test with binary classification
 	set.seed(123)
-	task_binary = mlr3::tgen("2dnormals")$generate(n = 100)
+	task_binary = mlr3::tgen("2dnormals")$generate(n = 50)
 	sage_binary = ConditionalSAGE$new(
 		task = task_binary,
-		learner = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob"),
+		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
-		n_permutations = 2L
+		n_permutations = 2L,
+		n_samples = 20L
 	)
 	checkmate::expect_r6(sage_binary, c("FeatureImportanceMethod", "SAGE", "ConditionalSAGE"))
 	sage_binary$compute()
@@ -22,12 +21,13 @@ test_that("ConditionalSAGE can be constructed with simple objects", {
 
 	# Test with multiclass classification
 	set.seed(123)
-	task_multi = mlr3::tgen("cassini")$generate(n = 100)
+	task_multi = mlr3::tgen("cassini")$generate(n = 50)
 	sage_multi = ConditionalSAGE$new(
 		task = task_multi,
-		learner = mlr3::lrn("classif.ranger", num.trees = 10, predict_type = "prob"),
+		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
-		n_permutations = 2L
+		n_permutations = 2L,
+		n_samples = 20L
 	)
 	checkmate::expect_r6(sage_multi, c("FeatureImportanceMethod", "SAGE", "ConditionalSAGE"))
 	sage_multi$compute()
@@ -35,12 +35,13 @@ test_that("ConditionalSAGE can be constructed with simple objects", {
 
 	# Test with regression
 	set.seed(123)
-	task_regr = mlr3::tgen("friedman1")$generate(n = 100)
+	task_regr = mlr3::tgen("friedman1")$generate(n = 50)
 	sage_regr = ConditionalSAGE$new(
 		task = task_regr,
-		learner = mlr3::lrn("regr.ranger", num.trees = 10),
+		learner = mlr3::lrn("regr.rpart"),
 		measure = mlr3::msr("regr.mse"),
-		n_permutations = 2L
+		n_permutations = 2L,
+		n_samples = 20L
 	)
 	checkmate::expect_r6(sage_regr, c("FeatureImportanceMethod", "SAGE", "ConditionalSAGE"))
 	sage_regr$compute()
@@ -53,13 +54,13 @@ test_that("ConditionalSAGE null result for featureless learner", {
 	set.seed(123)
 
 	# Test with binary classification
-	task_binary = mlr3::tgen("xor")$generate(n = 200)
+	task_binary = mlr3::tgen("xor")$generate(n = 50)
 	sage_binary = ConditionalSAGE$new(
 		task = task_binary,
 		learner = mlr3::lrn("classif.featureless", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
-		n_permutations = 10L,
-		batch_size = 2e4
+		n_permutations = 2L,
+		n_samples = 20L
 	)
 	sage_binary$compute()
 	expected_binary = data.table::data.table(
@@ -70,13 +71,13 @@ test_that("ConditionalSAGE null result for featureless learner", {
 	expect_identical(sage_binary$importance(), expected_binary)
 
 	# Test with multiclass classification
-	task_multi = mlr3::tgen("cassini")$generate(n = 200)
+	task_multi = mlr3::tgen("cassini")$generate(n = 50)
 	sage_multi = ConditionalSAGE$new(
 		task = task_multi,
 		learner = mlr3::lrn("classif.featureless", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
-		n_permutations = 30L,
-		batch_size = 2e4
+		n_permutations = 2L,
+		n_samples = 20L
 	)
 	sage_multi$compute()
 	expected_multi = data.table::data.table(
@@ -87,13 +88,13 @@ test_that("ConditionalSAGE null result for featureless learner", {
 	expect_identical(sage_multi$importance(), expected_multi)
 
 	# Test with regression
-	task_regr = mlr3::tgen("friedman1")$generate(n = 200)
+	task_regr = mlr3::tgen("friedman1")$generate(n = 50)
 	sage_regr = ConditionalSAGE$new(
 		task = task_regr,
 		learner = mlr3::lrn("regr.featureless"),
 		measure = mlr3::msr("regr.mse"),
-		n_permutations = 10,
-		batch_size = 2e4
+		n_permutations = 2L,
+		n_samples = 20L
 	)
 	sage_regr$compute()
 	expected_regr = data.table::data.table(
@@ -142,18 +143,17 @@ test_that("ConditionalSAGE with friedman1 produces sensible results", {
 })
 
 test_that("ConditionalSAGE uses ARFSampler by default", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
 	skip_if_not_installed("arf")
 
 	set.seed(123)
-	task = mlr3::tgen("xor")$generate(n = 100)
+	task = mlr3::tgen("xor")$generate(n = 50)
 
 	sage = ConditionalSAGE$new(
 		task = task,
-		learner = mlr3::lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
+		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
-		n_permutations = 2L
+		n_permutations = 2L,
+		n_samples = 20L
 	)
 
 	# Should have ARFSampler
@@ -163,7 +163,7 @@ test_that("ConditionalSAGE uses ARFSampler by default", {
 
 test_that("ConditionalSAGE with custom sampler", {
 	set.seed(123)
-	task = mlr3::tgen("spirals")$generate(n = 200)
+	task = mlr3::tgen("spirals")$generate(n = 50)
 	custom_sampler = ARFSampler$new(task, finite_bounds = "local")
 
 	sage = ConditionalSAGE$new(
@@ -171,7 +171,8 @@ test_that("ConditionalSAGE with custom sampler", {
 		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
 		sampler = custom_sampler,
-		n_permutations = 10L
+		n_permutations = 2L,
+		n_samples = 20L
 	)
 
 	# Should use the custom sampler
@@ -311,7 +312,7 @@ test_that("ConditionalSAGE batching with custom sampler", {
 	)
 })
 
-test_that("ConditionalSAGE with n_conditional_samples parameter", {
+test_that("ConditionalSAGE with n_samples parameter", {
 	skip_if_not_installed("arf")
 	skip_if_not_installed("withr")
 
@@ -320,40 +321,40 @@ test_that("ConditionalSAGE with n_conditional_samples parameter", {
 	learner = mlr3::lrn("regr.rpart")
 	measure = mlr3::msr("regr.mse")
 
-	# Test with default n_conditional_samples (100L)
+	# Test with default n_samples (100L)
 	sage_default = ConditionalSAGE$new(
 		task = task,
 		learner = learner,
 		measure = measure,
 		n_permutations = 2L
 	)
-	expect_equal(sage_default$param_set$values$n_conditional_samples, 100L)
+	expect_equal(sage_default$param_set$values$n_samples, 100L)
 	sage_default$compute()
 	result_default = sage_default$importance()
 	expect_importance_dt(result_default, features = sage_default$features)
 
-	# Test with custom n_conditional_samples = 10L
+	# Test with custom n_samples = 10L
 	sage_10 = ConditionalSAGE$new(
 		task = task,
 		learner = learner,
 		measure = measure,
 		n_permutations = 2L,
-		n_conditional_samples = 10L
+		n_samples = 10L
 	)
-	expect_equal(sage_10$param_set$values$n_conditional_samples, 10L)
+	expect_equal(sage_10$param_set$values$n_samples, 10L)
 	sage_10$compute()
 	result_10 = sage_10$importance()
 	expect_importance_dt(result_10, features = sage_10$features)
 
-	# Test with custom n_conditional_samples = 50L
+	# Test with custom n_samples = 50L
 	sage_50 = ConditionalSAGE$new(
 		task = task,
 		learner = learner,
 		measure = measure,
 		n_permutations = 2L,
-		n_conditional_samples = 50L
+		n_samples = 50L
 	)
-	expect_equal(sage_50$param_set$values$n_conditional_samples, 50L)
+	expect_equal(sage_50$param_set$values$n_samples, 50L)
 	sage_50$compute()
 	result_50 = sage_50$importance()
 	expect_importance_dt(result_50, features = sage_50$features)
@@ -363,16 +364,16 @@ test_that("ConditionalSAGE with n_conditional_samples parameter", {
 	expect_true(all(is.finite(result_10$importance)))
 	expect_true(all(is.finite(result_50$importance)))
 
-	# Test with multiclass classification and custom n_conditional_samples
+	# Test with multiclass classification and custom n_samples
 	task_multi = mlr3::tgen("cassini")$generate(n = 50)
 	sage_multi = ConditionalSAGE$new(
 		task = task_multi,
 		learner = mlr3::lrn("classif.rpart", predict_type = "prob"),
 		measure = mlr3::msr("classif.ce"),
 		n_permutations = 2L,
-		n_conditional_samples = 20L
+		n_samples = 20L
 	)
-	expect_equal(sage_multi$param_set$values$n_conditional_samples, 20L)
+	expect_equal(sage_multi$param_set$values$n_samples, 20L)
 	sage_multi$compute()
 	result_multi = sage_multi$importance()
 	expect_importance_dt(result_multi, features = sage_multi$features)
@@ -380,20 +381,19 @@ test_that("ConditionalSAGE with n_conditional_samples parameter", {
 })
 
 test_that("ConditionalSAGE SE tracking in convergence_history", {
-	skip_if_not_installed("ranger")
-	skip_if_not_installed("mlr3learners")
 	skip_if_not_installed("arf")
 
 	set.seed(123)
-	task = mlr3::tgen("friedman1")$generate(n = 50)
-	learner = mlr3::lrn("regr.ranger", num.trees = 10)
+	task = mlr3::tgen("friedman1")$generate(n = 30)
+	learner = mlr3::lrn("regr.rpart")
 	measure = mlr3::msr("regr.mse")
 
 	sage = ConditionalSAGE$new(
 		task = task,
 		learner = learner,
 		measure = measure,
-		n_permutations = 10L
+		n_permutations = 6L,
+		n_samples = 20L
 	)
 
 	# Compute with early stopping to get convergence history

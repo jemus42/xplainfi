@@ -39,8 +39,6 @@ In \emph{Advances in Neural Information Processing Systems}, volume 33, 17212--1
 \describe{
 \item{\code{n_permutations}}{(\code{integer(1)}) Number of permutations to sample.}
 
-\item{\code{sampler}}{(\link{FeatureSampler}) Sampler object for marginalization.}
-
 \item{\code{convergence_history}}{(\code{\link[data.table:data.table]{data.table}}) History of SAGE values during computation.}
 
 \item{\code{converged}}{(\code{logical(1)}) Whether convergence was detected.}
@@ -83,7 +81,7 @@ Creates a new instance of the SAGE class.
   features = NULL,
   n_permutations = 10L,
   batch_size = 5000L,
-  sampler = NULL,
+  n_samples = 100L,
   early_stopping = FALSE,
   convergence_threshold = 0.01,
   se_threshold = Inf,
@@ -97,23 +95,24 @@ Creates a new instance of the SAGE class.
 \describe{
 \item{\code{task, learner, measure, resampling, features}}{Passed to FeatureImportanceMethod.}
 
-\item{\code{n_permutations}}{(\code{integer(1): 10L}) Number of permutations \emph{per coalition} to sample for Shapley value estimation.
+\item{\code{n_permutations}}{(\code{integer(1)}: \code{10L}) Number of permutations \emph{per coalition} to sample for Shapley value estimation.
 The total number of evaluated coalitions is \code{1 (empty) + n_permutations * n_features}.}
 
-\item{\code{batch_size}}{(\code{integer(1): 5000L}) Maximum number of observations to process in a single prediction call.}
+\item{\code{batch_size}}{(\code{integer(1)}: \code{5000L}) Maximum number of observations to process in a single prediction call.}
 
-\item{\code{sampler}}{(\link{FeatureSampler}) Sampler for replacing out-of-coalition feature values.
-Only relevant for \code{ConditionalSAGE}.}
+\item{\code{n_samples}}{(\code{integer(1)}: \code{100L}) Number of samples to use for marginalizing out-of-coalition features.
+For \link{MarginalSAGE}, this is the number of marginal data samples ("background data" in other implementations).
+For \link{ConditionalSAGE}, this is the number of conditional samples per test instance retrieved from \code{sampler}.}
 
-\item{\code{early_stopping}}{(\code{logical(1): FALSE}) Whether to enable early stopping based on convergence detection.}
+\item{\code{early_stopping}}{(\code{logical(1)}: \code{FALSE}) Whether to enable early stopping based on convergence detection.}
 
-\item{\code{convergence_threshold}}{(\code{numeric(1): 0.01}) Relative change threshold for convergence detection.}
+\item{\code{convergence_threshold}}{(\code{numeric(1)}: \code{0.01}) Relative change threshold for convergence detection.}
 
-\item{\code{se_threshold}}{(\code{numeric(1): Inf}) Standard error threshold for convergence detection.}
+\item{\code{se_threshold}}{(\code{numeric(1)}: \code{Inf}) Standard error threshold for convergence detection.}
 
-\item{\code{min_permutations}}{(\code{integer(1): 10L}) Minimum permutations before checking convergence.}
+\item{\code{min_permutations}}{(\code{integer(1)}: \code{10L}) Minimum permutations before checking convergence.}
 
-\item{\code{check_interval}}{(\code{integer(1): 2L}) Check convergence every N permutations.}
+\item{\code{check_interval}}{(\code{integer(1)}: \code{2L}) Check convergence every N permutations.}
 }
 \if{html}{\out{</div>}}
 }
