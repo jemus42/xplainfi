@@ -20,14 +20,19 @@ task = tgen("2dnormals")$generate(n = 100)
 # Create sampler with default parameters
 sampler = ARFSampler$new(task, conditioning_set = "x2", verbose = FALSE)
 # Sample using row_ids from stored task
-sampled_data = sampler$sample("x1")
+sampled_data = sampler$sample("x1", row_ids = 1:10)
 # Or use external data
 data = task$data()
-sampled_data_ext = sampler$sample_newdata("x1", newdata = data)
+sampled_data_ext = sampler$sample_newdata("x1", newdata = data, conditioning_set = "x2")
 
-# Example with custom parameters
-sampler_custom = ARFSampler$new(task, round = FALSE)
-sampled_custom = sampler_custom$sample("x1")
+# Example with custom ARF parameters
+sampler_custom = ARFSampler$new(
+  task,
+  min_node_size = 10L,
+  finite_bounds = "local",
+  verbose = FALSE
+)
+sampled_custom = sampler_custom$sample("x1", conditioning_set = "x2")
 \dontshow{\}) # examplesIf}
 }
 \references{
@@ -127,8 +132,8 @@ This is increased to 20 to mitigate overfitting.}
 \if{html}{\out{<a id="method-ARFSampler-sample"></a>}}
 \if{latex}{\out{\hypertarget{method-ARFSampler-sample}{}}}
 \subsection{Method \code{sample()}}{
-Sample from stored task. Parameters \code{conditioning_set}, \code{round}, \code{stepsize}, \code{verbose}, and \code{parallel}
-use hierarchical resolution: function argument > stored \code{param_set} value > hard-coded default.
+Sample from stored task. Parameters use hierarchical resolution:
+function argument > stored \code{param_set} value > hard-coded default.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ARFSampler$sample(
   feature,
@@ -168,7 +173,7 @@ Modified copy with sampled feature(s).
 \if{html}{\out{<a id="method-ARFSampler-sample_newdata"></a>}}
 \if{latex}{\out{\hypertarget{method-ARFSampler-sample_newdata}{}}}
 \subsection{Method \code{sample_newdata()}}{
-Sample from external data (e.g., test set). See \verb{$sample()} for parameter details.
+Sample from external data. See \verb{$sample()} for parameter details.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ARFSampler$sample_newdata(
   feature,

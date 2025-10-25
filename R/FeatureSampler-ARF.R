@@ -15,14 +15,19 @@
 #' # Create sampler with default parameters
 #' sampler = ARFSampler$new(task, conditioning_set = "x2", verbose = FALSE)
 #' # Sample using row_ids from stored task
-#' sampled_data = sampler$sample("x1")
+#' sampled_data = sampler$sample("x1", row_ids = 1:10)
 #' # Or use external data
 #' data = task$data()
-#' sampled_data_ext = sampler$sample_newdata("x1", newdata = data)
+#' sampled_data_ext = sampler$sample_newdata("x1", newdata = data, conditioning_set = "x2")
 #'
-#' # Example with custom parameters
-#' sampler_custom = ARFSampler$new(task, round = FALSE)
-#' sampled_custom = sampler_custom$sample("x1")
+#' # Example with custom ARF parameters
+#' sampler_custom = ARFSampler$new(
+#'   task,
+#'   min_node_size = 10L,
+#'   finite_bounds = "local",
+#'   verbose = FALSE
+#' )
+#' sampled_custom = sampler_custom$sample("x1", conditioning_set = "x2")
 #' @references `r print_bib("watson_2023", "blesch_2025")`
 #'
 #' @export
@@ -139,8 +144,8 @@ ARFSampler = R6Class(
 		},
 
 		#' @description
-		#' Sample from stored task. Parameters `conditioning_set`, `round`, `stepsize`, `verbose`, and `parallel`
-		#' use hierarchical resolution: function argument > stored `param_set` value > hard-coded default.
+		#' Sample from stored task. Parameters use hierarchical resolution:
+		#' function argument > stored `param_set` value > hard-coded default.
 		#' @param feature (`character`) Feature(s) to sample.
 		#' @param row_ids (`integer()` | `NULL`) Row IDs to use. If `NULL`, uses all rows.
 		#' @param conditioning_set (`character` | `NULL`) Features to condition on.
@@ -158,20 +163,19 @@ ARFSampler = R6Class(
 			verbose = NULL,
 			parallel = NULL
 		) {
-			data_copy = private$.get_task_data_by_row_id(row_ids)
-
-			private$.sample_arf(
-				feature = feature,
-				data = data_copy,
-				conditioning_set = conditioning_set,
+			super$sample(
+				feature,
+				row_ids,
+				conditioning_set,
 				round = round,
 				stepsize = stepsize,
 				verbose = verbose,
 				parallel = parallel
 			)
 		},
+
 		#' @description
-		#' Sample from external data (e.g., test set). See `$sample()` for parameter details.
+		#' Sample from external data. See `$sample()` for parameter details.
 		#' @param feature (`character`) Feature(s) to sample.
 		#' @param newdata ([`data.table`][data.table::data.table]) External data to use.
 		#' @param conditioning_set (`character` | `NULL`) Features to condition on.
@@ -189,17 +193,10 @@ ARFSampler = R6Class(
 			verbose = NULL,
 			parallel = NULL
 		) {
-			# Create a copy to avoid modifying the original data
-			if (inherits(newdata, "data.table")) {
-				data_copy = data.table::copy(newdata)
-			} else {
-				setDT(newdata)
-			}
-
-			private$.sample_arf(
-				feature = feature,
-				data = data_copy,
-				conditioning_set = conditioning_set,
+			super$sample_newdata(
+				feature,
+				newdata,
+				conditioning_set,
 				round = round,
 				stepsize = stepsize,
 				verbose = verbose,
@@ -208,9 +205,11 @@ ARFSampler = R6Class(
 		}
 	),
 	private = list(
-		.sample_arf = function(
-			feature,
+		# Core sampling logic implementing ARF conditional sampling
+		# Called by $sample() and $sample_newdata() which pass ARF-specific parameters
+		.sample_conditional = function(
 			data,
+			feature,
 			conditioning_set = NULL,
 			round = NULL,
 			stepsize = NULL,
