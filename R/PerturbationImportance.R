@@ -471,10 +471,18 @@ CFI = R6Class(
 			if (is.null(sampler)) {
 				sampler = ARFSampler$new(task)
 				cli::cli_alert_info(
-					"No {.cls ConditionalSampler} provided, using {.cls ARFSampler} with default settings."
+					"No {.code sampler} provided, using {.cls ARFSampler} with default settings."
 				)
 			} else {
-				checkmate::assert_class(sampler, c("ConditionalSampler", "KnockoffSampler"))
+				# checkmate::assert_class would expect sampler to inherit from all clases, but
+				# the two are mutually exclusive (for now?)
+				if (!inherits(sampler, c("ConditionalSampler", "KnockoffSampler"))) {
+					cli::cli_abort(c(
+						x = "Provided sampler is of class {.cls {class(sampler)[[1]]}}.",
+						"!" = "Either a {.cls ConditionalSampler} or a {.cls KnockoffSampler} is needed for {.cls CFI}.",
+						i = "Choose a supported {.cls FeatureSampler}, such as {.cls ARFSampler} or {.class KnockoffGaussianSampler}."
+					))
+				}
 			}
 
 			super$initialize(
