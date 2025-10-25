@@ -103,9 +103,9 @@ sampled = permutation$sample("bill_length", row_ids = 1:10)
 
 # Compare original and sampled values
 data.table(
-	original_bill = original$bill_length_mm,
-	sampled_bill = sampled$bill_length_mm,
-	species = original$species # Unchanged
+	original_bill = original$bill_length,
+	sampled_bill = sampled$bill_length,
+	sex = original$sex # Unchanged
 )
 ```
 
@@ -122,6 +122,80 @@ pfi = PFI$new(
 # The sampler can be inspected
 pfi$sampler
 ```
+
+## Marginal Reference Sampler
+
+The `MarginalReferenceSampler` is another type of marginal sampler that samples complete rows from reference data. Unlike `PermutationSampler` which shuffles feature values independently, this sampler preserves within-row dependencies by sampling intact observations.
+
+**Key differences from PermutationSampler:**
+
+- **PermutationSampler**: Shuffles each feature independently → breaks ALL dependencies
+- **MarginalReferenceSampler**: Samples complete reference rows → preserves WITHIN-row dependencies
+
+This is the approach used in [SAGE (Shapley Additive Global importancE)](https://github.com/iancovert/sage) for marginal feature importance. In this SAGE implementation, the [`MarginalImputer`](https://github.com/iancovert/sage/blob/master/sage/imputers.py#L44-L78), uses this approach.
+The "imputer" name comes from the "imputation" of model predictions using out-of-coalition features by sampling from their marginal distribution.
+
+**How it works:**
+
+```{r}
+# Create marginal reference sampler with n_samples reference pool
+marginal_ref = MarginalReferenceSampler$new(task, n_samples = 30L)
+
+# Sample a feature - each row gets values from a randomly sampled reference row
+original = task$data(rows = 1:5)
+sampled = marginal_ref$sample("bill_length", row_ids = 1:5)
+
+# Compare
+data.table(
+	original_bill = original$bill_length,
+	sampled_bill = sampled$bill_length,
+	sex = original$sex # Unchanged
+)
+```
+
+**Parameters:**
+
+- `n_samples`: Controls the size of the reference data pool
+  - If `NULL`: uses all task data
+  - If specified: subsamples that many rows from task
+
+**Preserving within-row correlations:**
+
+To demonstrate the key difference, consider features that are correlated:
+
+```{r}
+# Create task with correlated features
+set.seed(123)
+n = 50
+x1 = rnorm(n)
+corr_data = data.table(
+	x1 = x1,
+	x2 = x1 * 2 + rnorm(n, sd = 0.1), # Highly correlated with x1
+	x3 = rnorm(n),
+	y = factor(sample(c("A", "B"), n, replace = TRUE))
+)
+task_corr = as_task_classif(corr_data, target = "y")
+
+# Sample with PermutationSampler (breaks correlations)
+perm = PermutationSampler$new(task_corr)
+sampled_perm = perm$sample(c("x1", "x2"), row_ids = 1:10)
+
+# Sample with MarginalReferenceSampler (preserves within-row correlations)
+ref = MarginalReferenceSampler$new(task_corr, n_samples = 50L)
+sampled_ref = ref$sample(c("x1", "x2"), row_ids = 1:10)
+
+# Check correlations
+cor_original = cor(task_corr$data()$x1, task_corr$data()$x2)
+cor_perm = cor(sampled_perm$x1, sampled_perm$x2)
+cor_ref = cor(sampled_ref$x1, sampled_ref$x2)
+
+data.table(
+	method = c("Original", "Permutation", "Reference"),
+	correlation = c(cor_original, cor_perm, cor_ref)
+)
+```
+
+The reference sampler better preserves the correlation structure because it samples complete rows, while permutation completely breaks the dependency.
 
 ## Conditional Samplers
 
@@ -186,7 +260,7 @@ The `ARFSampler` uses Adversarial Random Forests to model complex conditional di
 
 **Limitations**:
 
-- Requires fitting ARF model (slower initialization)
+- Requires fitting ARF model (slower initialization and sampling for large data)
 - More hyperparameters to tune
 - Stochastic sampling
 
@@ -194,18 +268,18 @@ The `ARFSampler` uses Adversarial Random Forests to model complex conditional di
 # Create ARF sampler (works with full task including categorical features)
 arf = ARFSampler$new(task, num_trees = 20, verbose = FALSE)
 
-# Sample species conditioned on body measurements
+# Sample island conditioned on body measurements
 sampled = arf$sample(
-	feature = "species",
+	feature = "island",
 	row_ids = 1:10,
-	conditioning_set = c("bill_length", "bill_depth", "body_mass")
+	conditioning_set = c("bill_length", "body_mass")
 )
 
-# Compare original and sampled species
+# Compare original and sampled island
 original = task$data(rows = 1:10)
 data.table(
-	original_species = original$species,
-	sampled_species = sampled$species,
+	original_island = original$island,
+	sampled_island = sampled$island,
 	bill_length = original$bill_length, # Conditioning feature
 	body_mass = original$body_mass # Conditioning feature
 )
@@ -248,12 +322,12 @@ ctree = CtreeConditionalSampler$new(task)
 sampled = ctree$sample(
 	feature = "bill_length",
 	row_ids = 1:10,
-	conditioning_set = "species"
+	conditioning_set = "island"
 )
 
 original = task$data(rows = 1:10)
 data.table(
-	species = original$species, # Conditioning feature
+	island = original$island, # Conditioning feature
 	original = original$bill_length,
 	sampled = sampled$bill_length
 )
@@ -281,19 +355,19 @@ The `KNNConditionalSampler` finds k nearest neighbors based on conditioning feat
 # Create kNN sampler with k=5 neighbors
 knn = KNNConditionalSampler$new(task, k = 5)
 
-# Sample bill_length_mm based on nearest neighbors in species and body_mass space
+# Sample bill_length based on nearest neighbors in island and body_mass space
 sampled = knn$sample(
 	feature = "bill_length",
 	row_ids = 1:10,
-	conditioning_set = c("species", "body_mass")
+	conditioning_set = c("bill_depth", "body_mass")
 )
 
 original = task$data(rows = 1:10)
 data.table(
-	species = original$species,
-	body_mass = original$body_mass_g,
-	original = original$bill_length_mm,
-	sampled = sampled$bill_length_mm
+	bill_depth = original$bill_depth,
+	body_mass = original$body_mass,
+	original = original$bill_length,
+	sampled = sampled$bill_length
 )
 ```
 
@@ -318,7 +392,7 @@ For multivariate Gaussian data, we can construct exact knockoffs:
 
 ```{r}
 # Create Gaussian knockoff sampler (using task_numeric from earlier)
-knockoff = KnockoffSamplerGaussian$new(task_numeric)
+knockoff = KnockoffGaussianSampler$new(task_numeric)
 
 # Generate knockoffs
 original = task_numeric$data(rows = 1:5)
@@ -409,7 +483,7 @@ data.table(
 | Sampler | Feature Types | Assumptions | Speed | Use Case |
 |---------|--------------|-------------|-------|----------|
 | `PermutationSampler` | All | None | Very fast | PFI, uncorrelated features |
-| `KnockoffSamplerGaussian` | Continuous | Multivariate normal | Fast | Model-X knockoffs |
+| `KnockoffGaussianSampler` | Continuous | Multivariate normal | Fast | Model-X knockoffs |
 | `GaussianConditionalSampler` | Continuous | Multivariate normal | Very fast | CFI with continuous features |
 | `ARFSampler` | All | None | Moderate | CFI, complex dependencies |
 | `CtreeConditionalSampler` | All | None | Moderate | CFI, interpretable sampling |
@@ -422,4 +496,4 @@ data.table(
 3. Use **ARF** for the most flexible conditional sampling with mixed types
 4. Use **kNN** for simple, fast conditional sampling
 5. Use **ctree** when you want interpretable conditional sampling
-6. Use **knockoffs** when you need theoretical guarantees for feature selection
+6. Use **knockoffs** when you need theoretical guarantees for feature selection and inference
