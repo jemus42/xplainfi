@@ -52,7 +52,7 @@ Higher values indicate more important features (larger performance drop when rem
 
 ```{r loco-example}
 task <- sim_dgp_interactions(n = 2000)
-learner <- lrn("regr.ranger", num.trees = 500)
+learner <- lrn("regr.nnet", trace = FALSE)
 measure <- msr("regr.mse")
 
 resampling <- rsmp("holdout")
