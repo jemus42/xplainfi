@@ -50,8 +50,10 @@ pred <- learner$predict(task, row_ids = resampling$test_set(1))
 perf <- pred$score(msr("regr.rsq"))
 cli_alert_info("Model R² score: {.val {round(perf, 3)}}")
 
-# Fit arf for conditional sampling
-sampler <- ARFSampler$new(task)
+# Use basic Gaussian sampler conditional sampling
+sampler <- GaussianConditionalSampler$new(task)
+n_repeats <- 100
+
 
 # Initialize results list
 results <- list(
@@ -67,7 +69,7 @@ pfi_r <- PFI$new(
 	learner = learner,
 	measure = msr("regr.mse"),
 	resampling = resampling,
-	n_repeats = 5
+	n_repeats = n_repeats
 )
 
 pfi_r$compute()
@@ -84,7 +86,7 @@ cfi_r <- CFI$new(
 	learner = learner,
 	measure = msr("regr.mse"),
 	resampling = resampling,
-	n_repeats = 5,
+	n_repeats = n_repeats,
 	sampler = sampler
 )
 
@@ -103,8 +105,8 @@ rfi_r <- RFI$new(
 	learner = learner,
 	measure = msr("regr.mse"),
 	resampling = resampling,
-	conditioning_set = c("x3"),
-	n_repeats = 5,
+	conditioning_set = "x3", # x3 is noise but correlated with x4
+	n_repeats = n_repeats,
 	sampler = sampler
 )
 
@@ -112,14 +114,14 @@ rfi_r$compute()
 results$RFI <- list(
 	feature = rfi_r$features,
 	importance = rfi_r$importance()$importance,
-	conditioning_set = c("x1", "x2")
+	conditioning_set = "x3"
 )
 cli_alert_success("RFI completed")
 
 # 4. Marginal SAGE
 n_perm_sage = 30L
 max_ref_size_sage = 200L
-batch_size_sage = 5000L
+batch_size_sage = 10000L
 
 cli_progress_step("Computing Marginal SAGE")
 sage_marginal_r <- MarginalSAGE$new(
