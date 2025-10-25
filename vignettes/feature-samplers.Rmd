@@ -20,7 +20,7 @@ Feature samplers are a core component of perturbation-based feature importance m
 
 ## Setup
 
-```{r}
+```{r load-libraries}
 library(xplainfi)
 library(mlr3)
 library(mlr3learners)
@@ -43,7 +43,7 @@ All feature samplers inherit from the `FeatureSampler` base class, which provide
 
 **Feature Type Support**: Each sampler declares which feature types it supports:
 
-```{r}
+```{r feature-types}
 # Check supported feature types for different samplers
 task$feature_types
 permutation = PermutationSampler$new(task)
@@ -57,7 +57,7 @@ permutation$feature_types
 
 Let's demonstrate both with the permutation sampler:
 
-```{r}
+```{r sample-methods}
 # Sample from stored task (using row_ids)
 sampled_task = permutation$sample(
 	feature = "bill_length",
@@ -93,7 +93,7 @@ The `PermutationSampler` performs simple random permutation of features, breakin
 
 **Important:** This differs from SAGE's "marginal" approach. While `PermutationSampler` shuffles features independently (breaking row structure), `MarginalSAGE` uses reference data but keeps rows intact.
 
-```{r}
+```{r permutation-example}
 # Create permutation sampler
 permutation = PermutationSampler$new(task)
 
@@ -111,7 +111,7 @@ data.table(
 
 **Use in PFI**: The permutation sampler is used by default in Permutation Feature Importance:
 
-```{r}
+```{r pfi-init}
 # PFI uses marginal sampling by default
 pfi = PFI$new(
 	task = task,
@@ -134,10 +134,11 @@ The `MarginalReferenceSampler` is another type of marginal sampler that samples 
 
 This is the approach used in [SAGE (Shapley Additive Global importancE)](https://github.com/iancovert/sage) for marginal feature importance. In this SAGE implementation, the [`MarginalImputer`](https://github.com/iancovert/sage/blob/master/sage/imputers.py#L44-L78), uses this approach.
 The "imputer" name comes from the "imputation" of model predictions using out-of-coalition features by sampling from their marginal distribution.
+In `xplainfi`, we separate the "feature sampling" and "model prediction" steps (for now), which is why we keep the sampling infrastructure independent.
 
 **How it works:**
 
-```{r}
+```{r marginal-ref-example}
 # Create marginal reference sampler with n_samples reference pool
 marginal_ref = MarginalReferenceSampler$new(task, n_samples = 30L)
 
@@ -163,7 +164,7 @@ data.table(
 
 To demonstrate the key difference, consider features that are correlated:
 
-```{r}
+```{r correlation-preservation}
 # Create task with correlated features
 set.seed(123)
 n = 50
@@ -223,7 +224,7 @@ The `GaussianConditionalSampler` assumes features follow a multivariate Gaussian
 - Only supports continuous features
 - May produce out-of-range values
 
-```{r}
+```{r gaussian-sampler}
 # Create a numeric task for Gaussian sampler (and later, knockoffs)
 task_numeric = sim_dgp_correlated(n = 100)
 
@@ -264,7 +265,7 @@ The `ARFSampler` uses Adversarial Random Forests to model complex conditional di
 - More hyperparameters to tune
 - Stochastic sampling
 
-```{r}
+```{r arf-sampler}
 # Create ARF sampler (works with full task including categorical features)
 arf = ARFSampler$new(task, num_trees = 20, verbose = FALSE)
 
@@ -287,7 +288,7 @@ data.table(
 
 **Use in CFI**: ARFSampler is the default for Conditional Feature Importance:
 
-```{r}
+```{r cfi-init}
 # CFI uses ARF by default
 cfi = CFI$new(
 	task = task,
@@ -314,7 +315,7 @@ The `CtreeConditionalSampler` uses conditional inference trees to partition the 
 - Requires tree building (slower than kNN)
 - May produce duplicates if terminal nodes are small
 
-```{r}
+```{r ctree-sampler}
 # Create ctree sampler
 ctree = CtreeConditionalSampler$new(task)
 
@@ -351,7 +352,7 @@ The `KNNConditionalSampler` finds k nearest neighbors based on conditioning feat
 - May produce duplicates if k is small
 - Distance metric matters (currently Euclidean)
 
-```{r}
+```{r knn-sampler}
 # Create kNN sampler with k=5 neighbors
 knn = KNNConditionalSampler$new(task, k = 5)
 
@@ -390,7 +391,7 @@ Knockoffs are a separate category because:
 
 For multivariate Gaussian data, we can construct exact knockoffs:
 
-```{r}
+```{r knockoff-sampler}
 # Create Gaussian knockoff sampler (using task_numeric from earlier)
 knockoff = KnockoffGaussianSampler$new(task_numeric)
 
@@ -419,7 +420,7 @@ Key properties of knockoffs:
 
 **Conditional Independence Testing**: Knockoffs are particularly relevant for conditional independence testing as implemented in the [cpi package](https://cran.r-project.org/package=cpi). You can combine knockoff samplers with CFI and perform inference:
 
-```{r eval = FALSE}
+```{r cfi-knockoff, eval = FALSE}
 # CFI with knockoff sampler for conditional independence testing
 cfi_knockoff = CFI$new(
 	task = task_numeric,
@@ -439,7 +440,7 @@ See `vignette("inference")` for more details on statistical inference with featu
 
 Different samplers make different assumptions and trade-offs. Here's a comparison using the numeric task:
 
-```{r}
+```{r sampler-comparison}
 # Sample the same feature with different methods
 original = task_numeric$data(rows = 1:5)
 
