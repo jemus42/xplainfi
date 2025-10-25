@@ -85,8 +85,6 @@ sampled = sampler$sample_newdata(
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{training_data}}{(\code{data.table}) Training data used for building trees.}
-
 \item{\code{tree_cache}}{(\code{environment}) Cache for fitted ctree models.}
 }
 \if{html}{\out{</div>}}
@@ -95,8 +93,6 @@ sampled = sampler$sample_newdata(
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-CtreeConditionalSampler-new}{\code{CtreeConditionalSampler$new()}}
-\item \href{#method-CtreeConditionalSampler-sample}{\code{CtreeConditionalSampler$sample()}}
-\item \href{#method-CtreeConditionalSampler-sample_newdata}{\code{CtreeConditionalSampler$sample_newdata()}}
 \item \href{#method-CtreeConditionalSampler-clone}{\code{CtreeConditionalSampler$clone()}}
 }
 }
@@ -104,6 +100,8 @@ sampled = sampler$sample_newdata(
 <details open><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureSampler" data-id="print"><a href='../../xplainfi/html/FeatureSampler.html#method-FeatureSampler-print'><code>xplainfi::FeatureSampler$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="ConditionalSampler" data-id="sample"><a href='../../xplainfi/html/ConditionalSampler.html#method-ConditionalSampler-sample'><code>xplainfi::ConditionalSampler$sample()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="ConditionalSampler" data-id="sample_newdata"><a href='../../xplainfi/html/ConditionalSampler.html#method-ConditionalSampler-sample_newdata'><code>xplainfi::ConditionalSampler$sample_newdata()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -137,63 +135,6 @@ Higher values result in fewer splits (simpler trees).}
 \item{\code{use_cache}}{(\code{logical(1)}: \code{TRUE}) Whether to cache fitted trees.}
 }
 \if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-CtreeConditionalSampler-sample"></a>}}
-\if{latex}{\out{\hypertarget{method-CtreeConditionalSampler-sample}{}}}
-\subsection{Method \code{sample()}}{
-Sample features using conditional inference trees.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{CtreeConditionalSampler$sample(
-  feature,
-  row_ids = NULL,
-  conditioning_set = NULL
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{feature}}{(\code{character()}) Feature name(s) to sample.}
-
-\item{\code{row_ids}}{(\code{integer()} | \code{NULL}) Row IDs from task to use.}
-
-\item{\code{conditioning_set}}{(\code{character()} | \code{NULL}) Features to condition on.
-If \code{NULL}, samples from marginal distribution.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Modified copy with sampled feature(s).
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-CtreeConditionalSampler-sample_newdata"></a>}}
-\if{latex}{\out{\hypertarget{method-CtreeConditionalSampler-sample_newdata}{}}}
-\subsection{Method \code{sample_newdata()}}{
-Sample from external data conditionally.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{CtreeConditionalSampler$sample_newdata(
-  feature,
-  newdata,
-  conditioning_set = NULL
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{feature}}{(\code{character()}) Feature(s) to sample.}
-
-\item{\code{newdata}}{(\code{\link[data.table:data.table]{data.table}}) External data to use.}
-
-\item{\code{conditioning_set}}{(\code{character()} | \code{NULL}) Features to condition on.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Modified copy with sampled feature(s).
 }
 }
 \if{html}{\out{<hr>}}

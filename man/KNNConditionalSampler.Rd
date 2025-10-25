@@ -71,8 +71,6 @@ sampled = sampler$sample_newdata(
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
 \item{\code{feature_types}}{(\code{character()}) Feature types supported by the sampler.}
-
-\item{\code{training_data}}{(\code{data.table}) Training data used for finding neighbors.}
 }
 \if{html}{\out{</div>}}
 }

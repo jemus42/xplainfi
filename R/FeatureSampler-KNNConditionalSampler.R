@@ -166,6 +166,7 @@ KNNConditionalSampler = R6Class(
 				for (feat in feature) {
 					data[i, (feat) := training_data[[feat]][sampled_idx]]
 				}
+				# data[i, (feature) := training_data[sampled_idx, .SD, .SDcols = feature]]
 			}
 
 			data[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)]

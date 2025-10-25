@@ -50,7 +50,12 @@ Creates a new instance of the ConditionalSampler class
 \subsection{Method \code{sample()}}{
 Sample from stored task conditionally on other features.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConditionalSampler$sample(feature, row_ids, conditioning_set = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ConditionalSampler$sample(
+  feature,
+  row_ids = NULL,
+  conditioning_set = NULL,
+  ...
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -60,8 +65,9 @@ Sample from stored task conditionally on other features.
 
 \item{\code{row_ids}}{(\code{integer()} | \code{NULL}) Row IDs to use. If \code{NULL}, uses all rows.}
 
-\item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Features to condition on. If \code{NULL}, uses all other features.
-This is only supported by some implementations, e.g. \link{ARFSampler}.}
+\item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Features to condition on.}
+
+\item{\code{...}}{Additional arguments passed to the sampler implementation.}
 }
 \if{html}{\out{</div>}}
 }
@@ -73,9 +79,14 @@ Modified copy with sampled feature(s).
 \if{html}{\out{<a id="method-ConditionalSampler-sample_newdata"></a>}}
 \if{latex}{\out{\hypertarget{method-ConditionalSampler-sample_newdata}{}}}
 \subsection{Method \code{sample_newdata()}}{
-Sample from external data conditionally. See \verb{$sample()} for details.
+Sample from external data conditionally.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConditionalSampler$sample_newdata(feature, newdata, conditioning_set = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ConditionalSampler$sample_newdata(
+  feature,
+  newdata,
+  conditioning_set = NULL,
+  ...
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -86,6 +97,8 @@ Sample from external data conditionally. See \verb{$sample()} for details.
 \item{\code{newdata}}{(\code{\link[data.table:data.table]{data.table}}) External data to use.}
 
 \item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Features to condition on.}
+
+\item{\code{...}}{Additional arguments passed to the sampler implementation.}
 }
 \if{html}{\out{</div>}}
 }

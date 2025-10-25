@@ -76,8 +76,6 @@ sampled = sampler$sample_newdata(
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-GaussianConditionalSampler-new}{\code{GaussianConditionalSampler$new()}}
-\item \href{#method-GaussianConditionalSampler-sample}{\code{GaussianConditionalSampler$sample()}}
-\item \href{#method-GaussianConditionalSampler-sample_newdata}{\code{GaussianConditionalSampler$sample_newdata()}}
 \item \href{#method-GaussianConditionalSampler-clone}{\code{GaussianConditionalSampler$clone()}}
 }
 }
@@ -85,6 +83,8 @@ sampled = sampler$sample_newdata(
 <details open><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureSampler" data-id="print"><a href='../../xplainfi/html/FeatureSampler.html#method-FeatureSampler-print'><code>xplainfi::FeatureSampler$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="ConditionalSampler" data-id="sample"><a href='../../xplainfi/html/ConditionalSampler.html#method-ConditionalSampler-sample'><code>xplainfi::ConditionalSampler$sample()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="ConditionalSampler" data-id="sample_newdata"><a href='../../xplainfi/html/ConditionalSampler.html#method-ConditionalSampler-sample_newdata'><code>xplainfi::ConditionalSampler$sample_newdata()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -103,63 +103,6 @@ Creates a new GaussianConditionalSampler.
 \item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Task to sample from. Must have only numeric/integer features.}
 }
 \if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-GaussianConditionalSampler-sample"></a>}}
-\if{latex}{\out{\hypertarget{method-GaussianConditionalSampler-sample}{}}}
-\subsection{Method \code{sample()}}{
-Sample features from their conditional distribution using closed-form Gaussian formulas.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{GaussianConditionalSampler$sample(
-  feature,
-  row_ids = NULL,
-  conditioning_set = NULL
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{feature}}{(\code{character()}) Feature name(s) to sample.}
-
-\item{\code{row_ids}}{(\code{integer()} | \code{NULL}) Row IDs from task to use as conditioning values.}
-
-\item{\code{conditioning_set}}{(\code{character()} | \code{NULL}) Features to condition on.
-If \code{NULL}, samples from marginal distribution (no conditioning).}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Modified copy with sampled feature(s).
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-GaussianConditionalSampler-sample_newdata"></a>}}
-\if{latex}{\out{\hypertarget{method-GaussianConditionalSampler-sample_newdata}{}}}
-\subsection{Method \code{sample_newdata()}}{
-Sample from external data conditionally.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{GaussianConditionalSampler$sample_newdata(
-  feature,
-  newdata,
-  conditioning_set = NULL
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{feature}}{(\code{character()}) Feature(s) to sample.}
-
-\item{\code{newdata}}{(\code{\link[data.table:data.table]{data.table}}) External data to use.}
-
-\item{\code{conditioning_set}}{(\code{character()} | \code{NULL}) Features to condition on.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Modified copy with sampled feature(s).
 }
 }
 \if{html}{\out{<hr>}}

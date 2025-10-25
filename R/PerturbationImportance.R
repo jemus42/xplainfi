@@ -386,7 +386,7 @@ PFI = R6Class(
 				resampling = resampling,
 				features = features,
 				groups = groups,
-				sampler = MarginalSampler$new(task),
+				sampler = PermutationSampler$new(task),
 				relation = relation,
 				n_repeats = n_repeats
 			)
@@ -401,7 +401,7 @@ PFI = R6Class(
 		#' for the initial fit of the learner.
 		#' This may be required for certain measures and is recommended to leave enabled unless really necessary.
 		compute = function(n_repeats = NULL, store_models = TRUE, store_backends = TRUE) {
-			# PFI uses the MarginalSampler directly
+			# PFI uses the PermutationSampler directly
 			private$.compute_perturbation_importance(
 				n_repeats = n_repeats,
 				store_models = store_models,
