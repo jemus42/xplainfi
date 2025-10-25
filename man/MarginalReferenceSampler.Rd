@@ -58,7 +58,7 @@ Understanding Global Feature Contributions With Additive Importance Measures.
 \emph{Advances in Neural Information Processing Systems}, 33.
 }
 \section{Super classes}{
-\code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{xplainfi::MarginalSampler} -> \code{MarginalReferenceSampler}
+\code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{\link[xplainfi:MarginalSampler]{xplainfi::MarginalSampler}} -> \code{MarginalReferenceSampler}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}

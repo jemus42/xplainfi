@@ -51,16 +51,22 @@ reference:
   - subtitle: Base classes
     contents:
       - FeatureSampler
-      - ConditionalSampler
-  - subtitle: Marginal sampling
-    contents:
       - MarginalSampler
-  - subtitle: Conditional sampling
+      - ConditionalSampler
+  - subtitle: Marginal sampling (no conditioning)
     contents:
+      - PermutationSampler
+      - MarginalReferenceSampler
+  - subtitle: Conditional sampling (with conditioning)
+    contents:
+      - GaussianConditionalSampler
       - ARFSampler
+      - CtreeConditionalSampler
+      - KNNConditionalSampler
+  - subtitle: Knockoff sampling
+    contents:
       - KnockoffSampler
       - starts_with("Knockoff")
-      - contains("Sampler")
   - title: Utilities
   - contents:
       - wvim_design_matrix

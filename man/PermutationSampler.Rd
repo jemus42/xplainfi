@@ -40,7 +40,7 @@ data = task$data()
 sampler$sample_newdata("x1", newdata = data)
 }
 \section{Super classes}{
-\code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{xplainfi::MarginalSampler} -> \code{PermutationSampler}
+\code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{\link[xplainfi:MarginalSampler]{xplainfi::MarginalSampler}} -> \code{PermutationSampler}
 }
 \section{Methods}{
 \subsection{Public methods}{

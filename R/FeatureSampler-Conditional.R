@@ -54,12 +54,12 @@ ConditionalSampler = R6Class(
 	),
 
 	private = list(
-		#' @description
-		#' Internal method for conditional sampling. Must be implemented by subclasses.
-		#' @param data (`data.table`) Data to sample from (copy that can be modified).
-		#' @param feature (`character`) Feature(s) to sample.
-		#' @param conditioning_set (`character` | `NULL`) Features to condition on.
-		#' @param ... Additional sampler-specific arguments.
+		# @description
+		# Internal method for conditional sampling. Must be implemented by subclasses.
+		# @param data (`data.table`) Data to sample from (copy that can be modified).
+		# @param feature (`character`) Feature(s) to sample.
+		# @param conditioning_set (`character` | `NULL`) Features to condition on.
+		# @param ... Additional sampler-specific arguments.
 		.sample_conditional = function(data, feature, conditioning_set, ...) {
 			cli::cli_abort(c(
 				"Abstract method",
