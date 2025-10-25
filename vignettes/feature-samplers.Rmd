@@ -9,10 +9,10 @@ vignette: >
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.width = 7,
-  fig.height = 5
+	collapse = TRUE,
+	comment = "#>",
+	fig.width = 7,
+	fig.height = 5
 )
 ```
 
@@ -45,6 +45,7 @@ All feature samplers inherit from the `FeatureSampler` base class, which provide
 
 ```{r}
 # Check supported feature types for different samplers
+task$feature_types
 permutation = PermutationSampler$new(task)
 permutation$feature_types
 ```
@@ -59,16 +60,16 @@ Let's demonstrate both with the permutation sampler:
 ```{r}
 # Sample from stored task (using row_ids)
 sampled_task = permutation$sample(
-  feature = "bill_length_mm",
-  row_ids = 1:10
+	feature = "bill_length",
+	row_ids = 1:10
 )
 sampled_task
 
 # Sample from external data
 test_data = task$data(rows = 1:5)
 sampled_external = permutation$sample_newdata(
-  feature = "bill_length_mm",
-  newdata = test_data
+	feature = "bill_length",
+	newdata = test_data
 )
 sampled_external
 ```
@@ -98,13 +99,13 @@ permutation = PermutationSampler$new(task)
 
 # Sample a continuous feature
 original = task$data(rows = 1:10)
-sampled = permutation$sample("bill_length_mm", row_ids = 1:10)
+sampled = permutation$sample("bill_length", row_ids = 1:10)
 
 # Compare original and sampled values
 data.table(
-  original_bill = original$bill_length_mm,
-  sampled_bill = sampled$bill_length_mm,
-  species = original$species  # Unchanged
+	original_bill = original$bill_length_mm,
+	sampled_bill = sampled$bill_length_mm,
+	species = original$species # Unchanged
 )
 ```
 
@@ -113,9 +114,9 @@ data.table(
 ```{r}
 # PFI uses marginal sampling by default
 pfi = PFI$new(
-  task = task,
-  learner = learner,
-  measure = msr("classif.ce")
+	task = task,
+	learner = learner,
+	measure = msr("classif.ce")
 )
 
 # The sampler can be inspected
@@ -157,17 +158,17 @@ gaussian = GaussianConditionalSampler$new(task_numeric)
 
 # Sample x1 conditioned on other features
 sampled = gaussian$sample(
-  feature = "x1",
-  row_ids = 1:10,
-  conditioning_set = c("x2", "x3", "x4")
+	feature = "x1",
+	row_ids = 1:10,
+	conditioning_set = c("x2", "x3", "x4")
 )
 
 # Compare original and conditionally sampled values
 original = task_numeric$data(rows = 1:10)
 data.table(
-  original = original$x1,
-  sampled = sampled$x1,
-  x2 = original$x2  # Conditioning feature (unchanged)
+	original = original$x1,
+	sampled = sampled$x1,
+	x2 = original$x2 # Conditioning feature (unchanged)
 )
 ```
 
@@ -195,18 +196,18 @@ arf = ARFSampler$new(task, num_trees = 20, verbose = FALSE)
 
 # Sample species conditioned on body measurements
 sampled = arf$sample(
-  feature = "species",
-  row_ids = 1:10,
-  conditioning_set = c("bill_length_mm", "bill_depth_mm", "body_mass_g")
+	feature = "species",
+	row_ids = 1:10,
+	conditioning_set = c("bill_length", "bill_depth", "body_mass")
 )
 
 # Compare original and sampled species
 original = task$data(rows = 1:10)
 data.table(
-  original_species = original$species,
-  sampled_species = sampled$species,
-  bill_length = original$bill_length_mm,  # Conditioning feature
-  body_mass = original$body_mass_g  # Conditioning feature
+	original_species = original$species,
+	sampled_species = sampled$species,
+	bill_length = original$bill_length, # Conditioning feature
+	body_mass = original$body_mass # Conditioning feature
 )
 ```
 
@@ -215,9 +216,9 @@ data.table(
 ```{r}
 # CFI uses ARF by default
 cfi = CFI$new(
-  task = task,
-  learner = learner,
-  measure = msr("classif.ce")
+	task = task,
+	learner = learner,
+	measure = msr("classif.ce")
 )
 
 # The sampler can be inspected
@@ -245,16 +246,16 @@ ctree = CtreeConditionalSampler$new(task)
 
 # Sample with default parameters
 sampled = ctree$sample(
-  feature = "bill_length_mm",
-  row_ids = 1:10,
-  conditioning_set = "species"
+	feature = "bill_length",
+	row_ids = 1:10,
+	conditioning_set = "species"
 )
 
 original = task$data(rows = 1:10)
 data.table(
-  species = original$species,  # Conditioning feature
-  original = original$bill_length_mm,
-  sampled = sampled$bill_length_mm
+	species = original$species, # Conditioning feature
+	original = original$bill_length,
+	sampled = sampled$bill_length
 )
 ```
 
@@ -282,17 +283,17 @@ knn = KNNConditionalSampler$new(task, k = 5)
 
 # Sample bill_length_mm based on nearest neighbors in species and body_mass space
 sampled = knn$sample(
-  feature = "bill_length_mm",
-  row_ids = 1:10,
-  conditioning_set = c("species", "body_mass_g")
+	feature = "bill_length",
+	row_ids = 1:10,
+	conditioning_set = c("species", "body_mass")
 )
 
 original = task$data(rows = 1:10)
 data.table(
-  species = original$species,
-  body_mass = original$body_mass_g,
-  original = original$bill_length_mm,
-  sampled = sampled$bill_length_mm
+	species = original$species,
+	body_mass = original$body_mass_g,
+	original = original$bill_length_mm,
+	sampled = sampled$bill_length_mm
 )
 ```
 
@@ -322,16 +323,16 @@ knockoff = KnockoffSamplerGaussian$new(task_numeric)
 # Generate knockoffs
 original = task_numeric$data(rows = 1:5)
 knockoffs = knockoff$sample(
-  feature = task_numeric$feature_names,
-  row_ids = 1:5
+	feature = task_numeric$feature_names,
+	row_ids = 1:5
 )
 
 # Original vs knockoff values
 data.table(
-  x1_original = original$x1,
-  x1_knockoff = knockoffs$x1,
-  x2_original = original$x2,
-  x2_knockoff = knockoffs$x2
+	x1_original = original$x1,
+	x1_knockoff = knockoffs$x1,
+	x2_original = original$x2,
+	x2_knockoff = knockoffs$x2
 )
 ```
 
@@ -347,10 +348,10 @@ Key properties of knockoffs:
 ```{r eval = FALSE}
 # CFI with knockoff sampler for conditional independence testing
 cfi_knockoff = CFI$new(
-  task = task_numeric,
-  learner = lrn("regr.ranger"),
-  measure = msr("regr.mse"),
-  sampler = knockoff
+	task = task_numeric,
+	learner = lrn("regr.ranger"),
+	measure = msr("regr.mse"),
+	sampler = knockoff
 )
 
 # Compute importance with CPI-based inference
@@ -370,27 +371,30 @@ original = task_numeric$data(rows = 1:5)
 
 # Permutation: breaks all dependencies
 permutation_sample = PermutationSampler$new(task_numeric)$sample(
-  "x1", row_ids = 1:5
+	"x1",
+	row_ids = 1:5
 )
 
 # Gaussian: assumes multivariate normal
 gaussian_sample = GaussianConditionalSampler$new(task_numeric)$sample(
-  "x1", row_ids = 1:5,
-  conditioning_set = c("x2", "x3")
+	"x1",
+	row_ids = 1:5,
+	conditioning_set = c("x2", "x3")
 )
 
 # kNN: samples from similar observations
 knn_sample = KNNConditionalSampler$new(task_numeric, k = 3)$sample(
-  "x1", row_ids = 1:5,
-  conditioning_set = c("x2", "x3")
+	"x1",
+	row_ids = 1:5,
+	conditioning_set = c("x2", "x3")
 )
 
 # Compare results
 data.table(
-  original = original$x1,
-  permutation = permutation_sample$x1,
-  gaussian = gaussian_sample$x1,
-  knn = knn_sample$x1
+	original = original$x1,
+	permutation = permutation_sample$x1,
+	gaussian = gaussian_sample$x1,
+	knn = knn_sample$x1
 )
 ```
 
