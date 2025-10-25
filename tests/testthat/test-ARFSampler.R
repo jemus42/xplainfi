@@ -66,8 +66,8 @@ test_that("ARFSampler with empty conditioning set behaves like marginal sampling
 	# ARF sampler with empty conditioning set
 	sampler_arf = ARFSampler$new(task, conditioning_set = character(0))
 
-	# Marginal sampler for comparison
-	sampler_marginal = MarginalSampler$new(task)
+	# Permutation sampler for comparison
+	sampler_permutation = PermutationSampler$new(task)
 
 	data = task$data()
 
@@ -76,22 +76,22 @@ test_that("ARFSampler with empty conditioning set behaves like marginal sampling
 	# Sample with ARF (empty conditioning)
 	sampled_arf = sampler_arf$sample("x1")
 
-	# Sample with MarginalSampler for comparison
-	sampled_marginal = sampler_marginal$sample("x1")
+	# Sample with PermutationSampler for comparison
+	sampled_permutation = sampler_permutation$sample("x1")
 
 	# Basic checks for ARF sampler
 	expect_false(identical(sampled_arf$x1, original_x1))
 	expect_true(all(is.finite(sampled_arf$x1)))
 	expect_equal(length(sampled_arf$x1), length(original_x1))
 
-	# Basic checks for MarginalSampler
-	expect_false(identical(sampled_marginal$x1, original_x1))
-	expect_setequal(sampled_marginal$x1, original_x1) # Marginal uses permutation
+	# Basic checks for PermutationSampler
+	expect_false(identical(sampled_permutation$x1, original_x1))
+	expect_setequal(sampled_permutation$x1, original_x1) # Permutation uses shuffling
 
 	# Compare distributional properties
 	# Both should have similar ranges (ARF might be slightly different due to model approximation)
 	arf_range = range(sampled_arf$x1)
-	marginal_range = range(sampled_marginal$x1)
+	permutation_range = range(sampled_permutation$x1)
 	original_range = range(original_x1)
 
 	# ARF range should be reasonable compared to original
@@ -99,12 +99,12 @@ test_that("ARFSampler with empty conditioning set behaves like marginal sampling
 	expect_true(arf_range[1] >= original_range[1] - 1.5) # Allow more extrapolation
 	expect_true(arf_range[2] <= original_range[2] + 1.5)
 
-	# Marginal range should exactly match original (it's a permutation)
-	expect_equal(marginal_range, original_range)
+	# Permutation range should exactly match original (it's a permutation)
+	expect_equal(permutation_range, original_range)
 
 	# Both methods should leave other features unchanged
 	expect_true(identical(sampled_arf$x2, data$x2)) # Other features unchanged
-	expect_true(identical(sampled_marginal$x2, data$x2))
+	expect_true(identical(sampled_permutation$x2, data$x2))
 
 	# Verify empty conditioning is being used in ARF
 	expect_equal(sampler_arf$param_set$values$conditioning_set, character(0))

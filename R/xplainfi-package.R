@@ -7,6 +7,7 @@
 #' @importFrom cli cli
 #' @importFrom lgr get_logger
 #' @importFrom mlr3 resample
+#' @importFrom mvtnorm rmvnorm
 #' @importFrom paradox ps
 #' @importFrom R6 R6Class
 #' @importFrom stats binom.test

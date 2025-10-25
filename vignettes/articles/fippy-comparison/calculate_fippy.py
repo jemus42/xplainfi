@@ -117,7 +117,7 @@ def main():
         # Reset seeds before each method
         random.seed(123)
         np.random.seed(123)
-        ex_pfi = explainer.pfi(X_test, y_test, nr_runs=20)
+        ex_pfi = explainer.pfi(X_test, y_test, nr_runs=100)
         pfi_results = extract_fippy_results(ex_pfi, list(X_train.columns))
         results["PFI"] = pfi_results
         print("✓ PFI completed")
@@ -131,7 +131,7 @@ def main():
         # Reset seeds before each method
         random.seed(123)
         np.random.seed(123)
-        ex_cfi = explainer.cfi(X_test, y_test, nr_runs=20)
+        ex_cfi = explainer.cfi(X_test, y_test, nr_runs=100)
         cfi_results = extract_fippy_results(ex_cfi, list(X_train.columns))
         results["CFI"] = cfi_results
         print("✓ CFI completed")
@@ -148,7 +148,7 @@ def main():
         # RFI expects: rfi(G, X_eval, y_eval, ...)
         # G is the conditioning set
         conditioning_set = ["x3"]
-        ex_rfi = explainer.rfi(conditioning_set, X_test, y_test, nr_runs=20)
+        ex_rfi = explainer.rfi(conditioning_set, X_test, y_test, nr_runs=100)
         rfi_results = extract_fippy_results(ex_rfi, list(X_train.columns))
         if rfi_results:
             rfi_results["conditioning_set"] = conditioning_set
@@ -168,7 +168,7 @@ def main():
         np.random.seed(123)
         ex_msage, sage_orderings = explainer.msage(
             X_test, y_test,
-            nr_runs=10,
+            nr_runs=100,
             detect_convergence=True
         )
         msage_results = extract_fippy_results(ex_msage, list(X_train.columns))
@@ -186,7 +186,7 @@ def main():
         np.random.seed(123)
         ex_csage, sage_orderings = explainer.csage(
             X_test, y_test,
-            nr_runs=10,
+            nr_runs=100,
             detect_convergence=True
         )
         csage_results = extract_fippy_results(ex_csage, list(X_train.columns))
