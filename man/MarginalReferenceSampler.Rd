@@ -40,16 +40,13 @@ combining x's coalition features with x_ref's marginalized features.
 library(mlr3)
 task = tgen("friedman1")$generate(n = 100)
 
-# Default: uses task's own data as reference
+# Default: uses all task data as reference
 sampler = MarginalReferenceSampler$new(task)
 sampled = sampler$sample("important1", row_ids = 1:10)
 
-# Custom reference data
-reference_task = tgen("friedman1")$generate(n = 50)
-sampler_custom = MarginalReferenceSampler$new(
-  task = task,
-  reference_data = reference_task$data()
-)
+# Subsample reference data to 50 rows
+sampler_subsampled = MarginalReferenceSampler$new(task, n_samples = 50L)
+sampled2 = sampler_subsampled$sample("important1", row_ids = 1:10)
 
 }
 \references{
@@ -90,7 +87,7 @@ Reference data to sample from for marginalization.}
 \subsection{Method \code{new()}}{
 Creates a new instance of the MarginalReferenceSampler class.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{MarginalReferenceSampler$new(task, reference_data = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{MarginalReferenceSampler$new(task, n_samples = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -98,8 +95,8 @@ Creates a new instance of the MarginalReferenceSampler class.
 \describe{
 \item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Task to sample from.}
 
-\item{\code{reference_data}}{(\code{\link[data.table:data.table]{data.table}} | \code{NULL})
-Reference data to sample from. If \code{NULL}, uses the task's own data.}
+\item{\code{n_samples}}{(\code{integer(1)} | \code{NULL}) Number of reference samples to use.
+If \code{NULL}, uses all task data as reference.}
 }
 \if{html}{\out{</div>}}
 }

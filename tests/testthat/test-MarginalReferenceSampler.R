@@ -52,17 +52,16 @@ test_that("MarginalReferenceSampler handles multiple features", {
 	}
 })
 
-test_that("MarginalReferenceSampler with custom reference data", {
+test_that("MarginalReferenceSampler with n_samples", {
 	library(mlr3)
 	task = tgen("circle", d = 5)$generate(n = 100)
 
-	# Create separate reference data
-	reference_data = tgen("circle", d = 5)$generate(n = 50)$data()
-	sampler = MarginalReferenceSampler$new(task, reference_data = reference_data)
+	# Create sampler with subsampled reference data
+	sampler = MarginalReferenceSampler$new(task, n_samples = 50L)
 
 	expect_equal(nrow(sampler$reference_data), 50)
 
-	# Sample and verify values come from reference data
+	# Sample and verify
 	sampled_data = sampler$sample("x1", row_ids = 1:10)
 
 	expect_sampler_output(
@@ -71,8 +70,8 @@ test_that("MarginalReferenceSampler with custom reference data", {
 		nrows = 10
 	)
 
-	# All sampled values should be from the reference data
-	expect_true(all(sampled_data$x1 %in% reference_data$x1))
+	# All sampled values should be from the task (reference is subset of task)
+	expect_true(all(sampled_data$x1 %in% task$data()$x1))
 })
 
 test_that("MarginalReferenceSampler sample_newdata works", {
@@ -176,15 +175,15 @@ test_that("MarginalReferenceSampler works with different task types", {
 	expect_sampler_output(sampled_multi, task_multi, nrows = 150)
 })
 
-test_that("MarginalReferenceSampler validates reference data", {
+test_that("MarginalReferenceSampler handles n_samples edge cases", {
 	library(mlr3)
 	task = tgen("circle", d = 5)$generate(n = 100)
 
-	# Reference data missing required features
-	bad_reference = data.table(x1 = rnorm(50), x2 = rnorm(50))
+	# n_samples larger than task size
+	sampler = MarginalReferenceSampler$new(task, n_samples = 200L)
+	expect_equal(nrow(sampler$reference_data), 100) # Capped at task size
 
-	expect_error(
-		MarginalReferenceSampler$new(task, reference_data = bad_reference),
-		"Reference data missing required features"
-	)
+	# n_samples = 1
+	sampler_small = MarginalReferenceSampler$new(task, n_samples = 1L)
+	expect_equal(nrow(sampler_small$reference_data), 1)
 })

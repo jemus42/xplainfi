@@ -34,16 +34,13 @@
 #' library(mlr3)
 #' task = tgen("friedman1")$generate(n = 100)
 #'
-#' # Default: uses task's own data as reference
+#' # Default: uses all task data as reference
 #' sampler = MarginalReferenceSampler$new(task)
 #' sampled = sampler$sample("important1", row_ids = 1:10)
 #'
-#' # Custom reference data
-#' reference_task = tgen("friedman1")$generate(n = 50)
-#' sampler_custom = MarginalReferenceSampler$new(
-#'   task = task,
-#'   reference_data = reference_task$data()
-#' )
+#' # Subsample reference data to 50 rows
+#' sampler_subsampled = MarginalReferenceSampler$new(task, n_samples = 50L)
+#' sampled2 = sampler_subsampled$sample("important1", row_ids = 1:10)
 #'
 #' @references
 #' Covert, I., Lundberg, S., & Lee, S. I. (2020).
@@ -62,32 +59,19 @@ MarginalReferenceSampler = R6Class(
 		#' @description
 		#' Creates a new instance of the MarginalReferenceSampler class.
 		#' @param task ([mlr3::Task]) Task to sample from.
-		#' @param reference_data ([`data.table`][data.table::data.table] | `NULL`)
-		#'   Reference data to sample from. If `NULL`, uses the task's own data.
-		initialize = function(task, reference_data = NULL) {
+		#' @param n_samples (`integer(1)` | `NULL`) Number of reference samples to use.
+		#'   If `NULL`, uses all task data as reference.
+		initialize = function(task, n_samples = NULL) {
 			super$initialize(task)
 
-			# Default: use task's own data as reference
-			if (is.null(reference_data)) {
+			if (is.null(n_samples)) {
+				# Use all task data as reference
 				self$reference_data = task$data(cols = task$feature_names)
 			} else {
-				# Validate reference data has required features
-				if (inherits(reference_data, "data.table")) {
-					self$reference_data = data.table::copy(reference_data)
-				} else {
-					self$reference_data = as.data.table(reference_data)
-				}
-
-				missing_features = setdiff(task$feature_names, names(self$reference_data))
-				if (length(missing_features) > 0) {
-					cli::cli_abort(c(
-						"Reference data missing required features",
-						"x" = "Missing: {.val {missing_features}}"
-					))
-				}
-
-				# Keep only task features
-				self$reference_data = self$reference_data[, .SD, .SDcols = task$feature_names]
+				# Subsample n_samples rows from task
+				n_ref = min(n_samples, task$nrow)
+				ref_indices = sample(task$nrow, n_ref)
+				self$reference_data = task$data(rows = ref_indices, cols = task$feature_names)
 			}
 
 			self$label = "Marginal reference sampler"
