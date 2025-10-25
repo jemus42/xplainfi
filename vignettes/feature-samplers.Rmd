@@ -45,8 +45,8 @@ All feature samplers inherit from the `FeatureSampler` base class, which provide
 
 ```{r}
 # Check supported feature types for different samplers
-marginal = MarginalSampler$new(task)
-marginal$feature_types
+permutation = PermutationSampler$new(task)
+permutation$feature_types
 ```
 
 **Two Sampling Methods**:
@@ -54,11 +54,11 @@ marginal$feature_types
 1. `$sample(feature, row_ids)` - Sample from the stored task
 2. `$sample_newdata(feature, newdata)` - Sample using external data
 
-Let's demonstrate both with the marginal sampler:
+Let's demonstrate both with the permutation sampler:
 
 ```{r}
 # Sample from stored task (using row_ids)
-sampled_task = marginal$sample(
+sampled_task = permutation$sample(
   feature = "bill_length_mm",
   row_ids = 1:10
 )
@@ -66,7 +66,7 @@ sampled_task
 
 # Sample from external data
 test_data = task$data(rows = 1:5)
-sampled_external = marginal$sample_newdata(
+sampled_external = permutation$sample_newdata(
   feature = "bill_length_mm",
   newdata = test_data
 )
@@ -79,17 +79,26 @@ Notice that:
 - Other features and the target remain unchanged
 - The data structure is preserved
 
-## Marginal Sampler
+## Permutation Sampler
 
-The `MarginalSampler` performs simple random permutation of features, breaking their relationship with the target and other features. This is the classic approach used in Permutation Feature Importance (PFI).
+The `PermutationSampler` performs simple random permutation of features, breaking their relationship with the target and other features. This is the classic approach used in Permutation Feature Importance (PFI).
+
+**How it works:**
+
+- Each feature is randomly shuffled (permuted) independently
+- The association between feature values and target values is broken
+- The association between feature values **across rows** is broken
+- The marginal distribution of each feature is preserved
+
+**Important:** This differs from SAGE's "marginal" approach. While `PermutationSampler` shuffles features independently (breaking row structure), `MarginalSAGE` uses reference data but keeps rows intact.
 
 ```{r}
-# Create marginal sampler
-marginal = MarginalSampler$new(task)
+# Create permutation sampler
+permutation = PermutationSampler$new(task)
 
 # Sample a continuous feature
 original = task$data(rows = 1:10)
-sampled = marginal$sample("bill_length_mm", row_ids = 1:10)
+sampled = permutation$sample("bill_length_mm", row_ids = 1:10)
 
 # Compare original and sampled values
 data.table(
@@ -99,7 +108,7 @@ data.table(
 )
 ```
 
-**Use in PFI**: The marginal sampler is used by default in Permutation Feature Importance:
+**Use in PFI**: The permutation sampler is used by default in Permutation Feature Importance:
 
 ```{r}
 # PFI uses marginal sampling by default
@@ -359,8 +368,8 @@ Different samplers make different assumptions and trade-offs. Here's a compariso
 # Sample the same feature with different methods
 original = task_numeric$data(rows = 1:5)
 
-# Marginal: breaks all dependencies
-marginal_sample = MarginalSampler$new(task_numeric)$sample(
+# Permutation: breaks all dependencies
+permutation_sample = PermutationSampler$new(task_numeric)$sample(
   "x1", row_ids = 1:5
 )
 
@@ -379,7 +388,7 @@ knn_sample = KNNConditionalSampler$new(task_numeric, k = 3)$sample(
 # Compare results
 data.table(
   original = original$x1,
-  marginal = marginal_sample$x1,
+  permutation = permutation_sample$x1,
   gaussian = gaussian_sample$x1,
   knn = knn_sample$x1
 )
@@ -387,7 +396,7 @@ data.table(
 
 **Key takeaways**:
 
-- **Marginal sampling** produces any value from the marginal distribution
+- **Permutation sampling** produces any value from the marginal distribution
 - **Conditional samplers** produce values consistent with conditioning features
 - Choice of sampler affects feature importance estimates, especially when features are correlated
 
@@ -395,7 +404,7 @@ data.table(
 
 | Sampler | Feature Types | Assumptions | Speed | Use Case |
 |---------|--------------|-------------|-------|----------|
-| `MarginalSampler` | All | None | Very fast | PFI, uncorrelated features |
+| `PermutationSampler` | All | None | Very fast | PFI, uncorrelated features |
 | `KnockoffSamplerGaussian` | Continuous | Multivariate normal | Fast | Model-X knockoffs |
 | `GaussianConditionalSampler` | Continuous | Multivariate normal | Very fast | CFI with continuous features |
 | `ARFSampler` | All | None | Moderate | CFI, complex dependencies |
@@ -404,7 +413,7 @@ data.table(
 
 **General guidelines**:
 
-1. Use **marginal sampling** when features are independent or for baseline PFI
+1. Use **permutation sampling** when features are independent or for baseline PFI
 2. Use **Gaussian conditional** for fast conditional sampling with continuous features
 3. Use **ARF** for the most flexible conditional sampling with mixed types
 4. Use **kNN** for simple, fast conditional sampling

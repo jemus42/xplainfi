@@ -53,7 +53,7 @@
 #' @export
 MarginalReferenceSampler = R6Class(
 	"MarginalReferenceSampler",
-	inherit = FeatureSampler,
+	inherit = MarginalSampler,
 	public = list(
 		#' @field reference_data ([`data.table`][data.table::data.table])
 		#'   Reference data to sample from for marginalization.
@@ -91,54 +91,24 @@ MarginalReferenceSampler = R6Class(
 			}
 
 			self$label = "Marginal reference sampler"
-		},
+		}
+	),
 
-		#' @description
-		#' Sample from stored task by sampling complete reference rows.
-		#' @param feature (`character()`) Feature(s) to sample.
-		#' @param row_ids (`integer()` | `NULL`) Row IDs to use. If `NULL`, uses all rows.
-		#' @return Modified copy with sampled feature(s).
-		sample = function(feature, row_ids = NULL) {
-			data_copy = private$.get_task_data_by_row_id(row_ids)
-
+	private = list(
+		# Implement marginal sampling via reference row sampling
+		.sample_marginal = function(data, feature) {
 			# For each row, sample one complete observation from reference data
 			# and take the specified features from it
 			sampled_indices = sample.int(
 				nrow(self$reference_data),
-				nrow(data_copy),
+				nrow(data),
 				replace = TRUE
 			)
 
 			# Replace features with values from sampled reference rows
-			data_copy[, (feature) := self$reference_data[sampled_indices, .SD, .SDcols = feature]]
+			data[, (feature) := self$reference_data[sampled_indices, .SD, .SDcols = feature]]
 
-			data_copy[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)]
-		},
-
-		#' @description
-		#' Sample from external data by sampling complete reference rows.
-		#' @param feature (`character()`) Feature(s) to sample.
-		#' @param newdata ([`data.table`][data.table::data.table]) External data to use.
-		#' @return Modified copy with sampled feature(s).
-		sample_newdata = function(feature, newdata) {
-			# Create a copy to avoid modifying the original data
-			if (inherits(newdata, "data.table")) {
-				data_copy = data.table::copy(newdata)
-			} else {
-				data_copy = as.data.table(newdata)
-			}
-
-			# For each row, sample one complete observation from reference data
-			sampled_indices = sample.int(
-				nrow(self$reference_data),
-				nrow(data_copy),
-				replace = TRUE
-			)
-
-			# Replace features with values from sampled reference rows
-			data_copy[, (feature) := self$reference_data[sampled_indices, .SD, .SDcols = feature]]
-
-			data_copy[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)]
+			data[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)]
 		}
 	)
 )

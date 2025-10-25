@@ -57,8 +57,8 @@ Covert, I., Lundberg, S., & Lee, S. I. (2020).
 Understanding Global Feature Contributions With Additive Importance Measures.
 \emph{Advances in Neural Information Processing Systems}, 33.
 }
-\section{Super class}{
-\code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{MarginalReferenceSampler}
+\section{Super classes}{
+\code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{xplainfi::MarginalSampler} -> \code{MarginalReferenceSampler}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -72,8 +72,6 @@ Reference data to sample from for marginalization.}
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-MarginalReferenceSampler-new}{\code{MarginalReferenceSampler$new()}}
-\item \href{#method-MarginalReferenceSampler-sample}{\code{MarginalReferenceSampler$sample()}}
-\item \href{#method-MarginalReferenceSampler-sample_newdata}{\code{MarginalReferenceSampler$sample_newdata()}}
 \item \href{#method-MarginalReferenceSampler-clone}{\code{MarginalReferenceSampler$clone()}}
 }
 }
@@ -81,6 +79,8 @@ Reference data to sample from for marginalization.}
 <details open><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureSampler" data-id="print"><a href='../../xplainfi/html/FeatureSampler.html#method-FeatureSampler-print'><code>xplainfi::FeatureSampler$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="MarginalSampler" data-id="sample"><a href='../../xplainfi/html/MarginalSampler.html#method-MarginalSampler-sample'><code>xplainfi::MarginalSampler$sample()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="MarginalSampler" data-id="sample_newdata"><a href='../../xplainfi/html/MarginalSampler.html#method-MarginalSampler-sample_newdata'><code>xplainfi::MarginalSampler$sample_newdata()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -102,50 +102,6 @@ Creates a new instance of the MarginalReferenceSampler class.
 Reference data to sample from. If \code{NULL}, uses the task's own data.}
 }
 \if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-MarginalReferenceSampler-sample"></a>}}
-\if{latex}{\out{\hypertarget{method-MarginalReferenceSampler-sample}{}}}
-\subsection{Method \code{sample()}}{
-Sample from stored task by sampling complete reference rows.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{MarginalReferenceSampler$sample(feature, row_ids = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{feature}}{(\code{character()}) Feature(s) to sample.}
-
-\item{\code{row_ids}}{(\code{integer()} | \code{NULL}) Row IDs to use. If \code{NULL}, uses all rows.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Modified copy with sampled feature(s).
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-MarginalReferenceSampler-sample_newdata"></a>}}
-\if{latex}{\out{\hypertarget{method-MarginalReferenceSampler-sample_newdata}{}}}
-\subsection{Method \code{sample_newdata()}}{
-Sample from external data by sampling complete reference rows.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{MarginalReferenceSampler$sample_newdata(feature, newdata)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{feature}}{(\code{character()}) Feature(s) to sample.}
-
-\item{\code{newdata}}{(\code{\link[data.table:data.table]{data.table}}) External data to use.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Modified copy with sampled feature(s).
 }
 }
 \if{html}{\out{<hr>}}

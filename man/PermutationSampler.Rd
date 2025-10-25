@@ -28,25 +28,24 @@ assumes features are independent.
 }
 \examples{
 library(mlr3)
-task = tgen("2dnormals")$generate(n = 100)
+task = tgen("2dnormals")$generate(n = 10)
+task$data()
 sampler = PermutationSampler$new(task)
 
 # Sample using row_ids from stored task
-sampled_data = sampler$sample("x1")
+sampler$sample("x1")
 
 # Or use external data
 data = task$data()
-sampled_data_ext = sampler$sample_newdata("x1", newdata = data)
+sampler$sample_newdata("x1", newdata = data)
 }
-\section{Super class}{
-\code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{PermutationSampler}
+\section{Super classes}{
+\code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{xplainfi::MarginalSampler} -> \code{PermutationSampler}
 }
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-PermutationSampler-new}{\code{PermutationSampler$new()}}
-\item \href{#method-PermutationSampler-sample}{\code{PermutationSampler$sample()}}
-\item \href{#method-PermutationSampler-sample_newdata}{\code{PermutationSampler$sample_newdata()}}
 \item \href{#method-PermutationSampler-clone}{\code{PermutationSampler$clone()}}
 }
 }
@@ -54,6 +53,8 @@ sampled_data_ext = sampler$sample_newdata("x1", newdata = data)
 <details open><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureSampler" data-id="print"><a href='../../xplainfi/html/FeatureSampler.html#method-FeatureSampler-print'><code>xplainfi::FeatureSampler$print()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="MarginalSampler" data-id="sample"><a href='../../xplainfi/html/MarginalSampler.html#method-MarginalSampler-sample'><code>xplainfi::MarginalSampler$sample()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="MarginalSampler" data-id="sample_newdata"><a href='../../xplainfi/html/MarginalSampler.html#method-MarginalSampler-sample_newdata'><code>xplainfi::MarginalSampler$sample_newdata()</code></a></span></li>
 </ul>
 </details>
 }}
@@ -72,50 +73,6 @@ Creates a new instance of the PermutationSampler class.
 \item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Task to sample from.}
 }
 \if{html}{\out{</div>}}
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-PermutationSampler-sample"></a>}}
-\if{latex}{\out{\hypertarget{method-PermutationSampler-sample}{}}}
-\subsection{Method \code{sample()}}{
-Sample from stored task by random permutation.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PermutationSampler$sample(feature, row_ids = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{feature}}{(\code{character}) Feature(s) to sample.}
-
-\item{\code{row_ids}}{(\code{integer()} | \code{NULL}) Row IDs to use. If \code{NULL}, uses all rows.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Modified copy with permuted feature(s).
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-PermutationSampler-sample_newdata"></a>}}
-\if{latex}{\out{\hypertarget{method-PermutationSampler-sample_newdata}{}}}
-\subsection{Method \code{sample_newdata()}}{
-Sample from external data by random permutation.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PermutationSampler$sample_newdata(feature, newdata)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{feature}}{(\code{character}) Feature(s) to sample.}
-
-\item{\code{newdata}}{(\code{\link[data.table:data.table]{data.table}}) External data to use.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Modified copy with permuted feature(s).
 }
 }
 \if{html}{\out{<hr>}}

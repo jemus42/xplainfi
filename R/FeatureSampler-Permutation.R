@@ -33,7 +33,7 @@
 #' sampler$sample_newdata("x1", newdata = data)
 PermutationSampler = R6Class(
 	"PermutationSampler",
-	inherit = FeatureSampler,
+	inherit = MarginalSampler,
 	public = list(
 		#' @description
 		#' Creates a new instance of the PermutationSampler class.
@@ -41,38 +41,16 @@ PermutationSampler = R6Class(
 		initialize = function(task) {
 			super$initialize(task)
 			self$label = "Permutation sampler"
-		},
+		}
+	),
 
-		#' @description
-		#' Sample from stored task by random permutation.
-		#' @param feature (`character`) Feature(s) to sample.
-		#' @param row_ids (`integer()` | `NULL`) Row IDs to use. If `NULL`, uses all rows.
-		#' @return Modified copy with permuted feature(s).
-		sample = function(feature, row_ids = NULL) {
-			data_copy = private$.get_task_data_by_row_id(row_ids)
-
+	private = list(
+		# Implement marginal sampling via independent permutation
+		.sample_marginal = function(data, feature) {
 			# Permute each feature independently
-			data_copy[, (feature) := lapply(.SD, sample), .SDcols = feature]
+			data[, (feature) := lapply(.SD, sample), .SDcols = feature]
 
-			data_copy[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)]
-		},
-
-		#' @description
-		#' Sample from external data by random permutation.
-		#' @param feature (`character`) Feature(s) to sample.
-		#' @param newdata ([`data.table`][data.table::data.table]) External data to use.
-		#' @return Modified copy with permuted feature(s).
-		sample_newdata = function(feature, newdata) {
-			# Create a copy to avoid modifying the original data
-			if (inherits(newdata, "data.table")) {
-				data_copy = data.table::copy(newdata)
-			} else {
-				setDT(newdata)
-			}
-
-			# Permute each feature independently
-			data_copy[, (feature) := lapply(.SD, sample), .SDcols = feature]
-			data_copy[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)]
+			data[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)]
 		}
 	)
 )
