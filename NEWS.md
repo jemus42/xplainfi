@@ -1,4 +1,4 @@
-# xplainfi 0.1.0.9003
+# xplainfi 0.1.0.9004
 
 This turns out to be still a period of major changes in the early phase, so, uhm, well.
 
@@ -38,16 +38,19 @@ This turns out to be still a period of major changes in the early phase, so, uhm
 - Now batches `iter_repeats` internally to reduce the number of calls to `sampler$sample()`. 
   - May need further adjustment in case of large data / large `n_repeats` as intermediate data could grow too large
 
-### Conditional sampling
+### Feature Samplers
 
 - **Breaking**: Refactor `FeatureSampler` API to separate task-based and external data sampling (#49):
   - `$sample(feature, row_ids = NULL)` now samples from stored task using row IDs
   - `$sample_newdata(feature, newdata)` samples from external data (e.g., test set)
+- Add `MarginalSampler` base class for marginal sampling methods (no conditioning)
+- Add `MarginalReferenceSampler` that samples complete rows from reference data, preserving within-row dependencies. Implements SAGE's marginal sampling approach.
+- Refactor `PermutationSampler` to inherit from `MarginalSampler`
 - Extend `ARFSampler` to store more arguments on construction, making it easier to "preconfigure" the sampler via arguments used in `$sample()`.
 - Standardize on `conditioning_set` as the name for the character vector defining features to condition on in `ConditionalSampler` and `RFI`.
 - Add `KnockoffSampler` (#16 via @mnwright)
   - Now supports `row_ids`-based sampling from stored task data
-  - Can be used with CFI (but not yet with RFI which requires `sample_newdata()`)
+  - Can be used with CFI (but not with RFI which requires `conditioning_set`) and not with SAGE with requires `sampel_newdarta()` (for now)
   - Add convenience wrappers `KnockoffGaussianSampler` and `KnockoffSequentialSampler`
   - Added `iters` param to create multiple `x_tilde` up front, which then allow repeated samplings, so you can get multiple different knockoff values per row id
 
