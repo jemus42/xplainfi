@@ -51,13 +51,11 @@ $$\text{LOCO}_j = \mathbb{E}(L(Y, f_{-j}(X_{-j}))) - \mathbb{E}(L(Y, f(X)))$$
 Higher values indicate more important features (larger performance drop when removed).
 
 ```{r loco-example}
-task <- sim_dgp_interactions(n = 1000)
+task <- sim_dgp_interactions(n = 2000)
 learner <- lrn("regr.ranger", num.trees = 500)
 measure <- msr("regr.mse")
 
-# Use 3-fold CV for more robust estimates and reuse across comparisons
-set.seed(123)
-resampling <- rsmp("cv", folds = 3)
+resampling <- rsmp("holdout")
 resampling$instantiate(task)
 
 loco <- LOCO$new(
@@ -65,7 +63,7 @@ loco <- LOCO$new(
 	learner = learner,
 	measure = measure,
 	resampling = resampling,
-	features = task$feature_names
+	n_repeat = 20
 )
 
 loco$compute()
@@ -95,7 +93,7 @@ loco$scores() |>
 
 ## Multiple Refits
 
-LOCO supports `n_repeats` for multiple refit iterations per resampling iteration, which provides variance estimates:
+LOCO also supports `n_repeats` for multiple refits within each resampling iteration, which improves stability:
 
 ```{r multiple-refits}
 loco_multi = LOCO$new(
@@ -103,7 +101,7 @@ loco_multi = LOCO$new(
 	learner = learner,
 	measure = measure,
 	resampling = rsmp("cv", folds = 3),
-	n_repeats = 3L
+	n_repeats = 10
 )
 
 loco_multi$compute()
@@ -115,9 +113,12 @@ loco_multi$scores() |>
 	knitr::kable(digits = 4, caption = "First 10 LOCO scores per refit and resampling fold")
 ```
 
+Since each refit requires to retrain the provided learner, this of course increases the computational load.
+Suitable values depend on the resources available, but when in doubt it is usually better to overshoot and encounter diminishing returns rather than undershooting and getting unreliable results.
+
 ## Using Different Measures
 
-LOCO works with any mlr3 measure. Different measures can highlight different aspects of feature importance:
+LOCO also works with any mlr3 measure. Different measures can highlight different aspects of feature importance:
 
 ```{r different-measures}
 # Use same resampling for fair comparison
@@ -127,17 +128,6 @@ loco_mae <- LOCO$new(
 	measure = msr("regr.mae"),
 	resampling = resampling
 )
-
-loco_mae$compute()
-
-# Compare results
-comparison <- merge(
-	loco$importance()[, .(feature, importance_mse = importance)],
-	loco_mae$importance()[, .(feature, importance_mae = importance)],
-	by = "feature"
-)
-
-comparison
 ```
 
 ## Comparison with Perturbation Methods
@@ -216,7 +206,7 @@ wvim_loci <- WVIM$new(
 	features = task$feature_names,
 	direction = "leave-in",
 	resampling = rsmp("cv", folds = 3),
-	n_repeats = 2
+	n_repeats = 10
 )
 
 wvim_loci$compute()
