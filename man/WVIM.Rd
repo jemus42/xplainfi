@@ -16,6 +16,13 @@ corresponds to LOCO (Leave One Covariate Out).
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
 \item{\code{direction}}{(\code{character(1)}) Either "leave-out" or "leave-in".}
+
+\item{\code{design}}{(\code{logical()}) Feature selection design matrix where \code{TRUE} equals "left in" and \code{FALSE} "left out".
+Columns correspond to \code{task$feature_names} and the number of rows corresponds to \code{length(features) * n_repeats}.
+The base matrix is created by \link{wvim_design_matrix} and then replicated \code{n_repeats} times before.}
+
+\item{\code{instance}}{(\code{FSelectInstanceBatchSingleCrit}) The \code{mlr3fselect} feature selection instance containing
+also the archive of all evaluations, possible useful for future use. Only stored if \code{store_instance} is \code{TRUE}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -78,7 +85,11 @@ Creates a new instance of this \link[R6:R6Class]{R6} class.
 Computes leave-out or leave-in feature importance.
 \code{wvim_design_matrix(task$feature_names, "leave-out")} corresponds to LOCO.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{WVIM$compute(store_models = TRUE, store_backends = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{WVIM$compute(
+  store_models = TRUE,
+  store_backends = TRUE,
+  store_instance = FALSE
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -87,6 +98,8 @@ Computes leave-out or leave-in feature importance.
 \item{\code{store_models, store_backends}}{(\code{logical(1)}: \code{TRUE}) Whether to store fitted models / data backends, passed to \link[mlr3:resample]{mlr3::resample} internally
 backends in resample result.
 Required for some measures, but may increase memory footprint.}
+
+\item{\code{store_instance}}{(\code{logical(1)}: \code{FALSE}) Whether to store the \link[mlr3fselect:mlr3fselect-package]{mlr3fselect::mlr3fselect} instance in \verb{$instance}.}
 }
 \if{html}{\out{</div>}}
 }
