@@ -33,6 +33,7 @@ Suggests:
     mlr3data,
     mlr3fselect,
     mlr3learners,
+    partykit,
     patchwork,
     ranger,
     rmarkdown,
