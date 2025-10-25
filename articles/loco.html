@@ -139,7 +139,7 @@ the feature and the full model: <span class="math display">\[\text{LOCO}_j = \ma
 drop when removed).</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">task</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_interactions</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">2000</span><span class="op">)</span></span>
-<span><span class="va">learner</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.ranger"</span>, num.trees <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
+<span><span class="va">learner</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">lrn</a></span><span class="op">(</span><span class="st">"regr.nnet"</span>, trace <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">measure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">resampling</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">rsmp</a></span><span class="op">(</span><span class="st">"holdout"</span><span class="op">)</span></span>
@@ -155,13 +155,13 @@ drop when removed).</p>
 <span><span class="va">loco</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">loco</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;    feature  importance</span></span>
-<span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  noise1 -0.36995885</span></span>
-<span><span class="co">#&gt; 2:  noise2 -0.43220300</span></span>
-<span><span class="co">#&gt; 3:      x1  2.10995906</span></span>
-<span><span class="co">#&gt; 4:      x2  2.14303890</span></span>
-<span><span class="co">#&gt; 5:      x3 -0.06513554</span></span></code></pre></div>
+<span><span class="co">#&gt;    feature importance</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:  noise1 -1.1374749</span></span>
+<span><span class="co">#&gt; 2:  noise2  0.7842797</span></span>
+<span><span class="co">#&gt; 3:      x1  2.7728001</span></span>
+<span><span class="co">#&gt; 4:      x2  2.7157750</span></span>
+<span><span class="co">#&gt; 5:      x3 -0.1077573</span></span></code></pre></div>
 <p>The <code>$importance()</code> method returns a
 <code>data.table</code> with aggregated importance scores per
 feature.</p>
@@ -215,41 +215,41 @@ each feature, resampling iteration, and refit:</p>
 <td align="left">noise1</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">2.4253</td>
-<td align="right">2.0554</td>
-<td align="right">-0.3700</td>
+<td align="right">1.6412</td>
+<td align="right">0.5037</td>
+<td align="right">-1.1375</td>
 </tr>
 <tr class="even">
 <td align="left">noise2</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">2.4253</td>
-<td align="right">1.9931</td>
-<td align="right">-0.4322</td>
+<td align="right">1.6412</td>
+<td align="right">2.4255</td>
+<td align="right">0.7843</td>
 </tr>
 <tr class="odd">
 <td align="left">x1</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">2.4253</td>
-<td align="right">4.5353</td>
-<td align="right">2.1100</td>
+<td align="right">1.6412</td>
+<td align="right">4.4140</td>
+<td align="right">2.7728</td>
 </tr>
 <tr class="even">
 <td align="left">x2</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">2.4253</td>
-<td align="right">4.5684</td>
-<td align="right">2.1430</td>
+<td align="right">1.6412</td>
+<td align="right">4.3570</td>
+<td align="right">2.7158</td>
 </tr>
 <tr class="odd">
 <td align="left">x3</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">2.4253</td>
-<td align="right">2.3602</td>
-<td align="right">-0.0651</td>
+<td align="right">1.6412</td>
+<td align="right">1.5334</td>
+<td align="right">-0.1078</td>
 </tr>
 </tbody>
 </table>
@@ -273,11 +273,11 @@ each resampling iteration, which improves stability:</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature importance</span></span>
 <span><span class="co">#&gt;     &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  noise1 -0.3893577</span></span>
-<span><span class="co">#&gt; 2:  noise2 -0.3995338</span></span>
-<span><span class="co">#&gt; 3:      x1  2.3736446</span></span>
-<span><span class="co">#&gt; 4:      x2  2.3910208</span></span>
-<span><span class="co">#&gt; 5:      x3 -0.1562386</span></span>
+<span><span class="co">#&gt; 1:  noise1 0.09783824</span></span>
+<span><span class="co">#&gt; 2:  noise2 0.11159219</span></span>
+<span><span class="co">#&gt; 3:      x1 3.52161054</span></span>
+<span><span class="co">#&gt; 4:      x2 3.54195239</span></span>
+<span><span class="co">#&gt; 5:      x3 1.19103822</span></span>
 <span></span>
 <span><span class="co"># Check individual scores with multiple refits</span></span>
 <span><span class="va">loco_multi</span><span class="op">$</span><span class="fu">scores</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -306,81 +306,81 @@ each resampling iteration, which improves stability:</p>
 <td align="left">noise1</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">2.1988</td>
-<td align="right">1.8473</td>
-<td align="right">-0.3515</td>
+<td align="right">0.7395</td>
+<td align="right">0.5781</td>
+<td align="right">-0.1614</td>
 </tr>
 <tr class="even">
 <td align="left">noise2</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">2.1988</td>
-<td align="right">1.7287</td>
-<td align="right">-0.4700</td>
+<td align="right">0.7395</td>
+<td align="right">0.4073</td>
+<td align="right">-0.3322</td>
 </tr>
 <tr class="odd">
 <td align="left">x1</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">2.1988</td>
-<td align="right">4.5571</td>
-<td align="right">2.3583</td>
+<td align="right">0.7395</td>
+<td align="right">4.2616</td>
+<td align="right">3.5222</td>
 </tr>
 <tr class="even">
 <td align="left">x2</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">2.1988</td>
-<td align="right">4.4399</td>
-<td align="right">2.2411</td>
+<td align="right">0.7395</td>
+<td align="right">4.4070</td>
+<td align="right">3.6675</td>
 </tr>
 <tr class="odd">
 <td align="left">x3</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">2.1988</td>
-<td align="right">2.0487</td>
-<td align="right">-0.1501</td>
+<td align="right">0.7395</td>
+<td align="right">3.2243</td>
+<td align="right">2.4848</td>
 </tr>
 <tr class="even">
 <td align="left">noise1</td>
 <td align="right">1</td>
 <td align="right">2</td>
-<td align="right">2.1988</td>
-<td align="right">1.8069</td>
-<td align="right">-0.3918</td>
+<td align="right">0.7395</td>
+<td align="right">0.3963</td>
+<td align="right">-0.3431</td>
 </tr>
 <tr class="odd">
 <td align="left">noise2</td>
 <td align="right">1</td>
 <td align="right">2</td>
-<td align="right">2.1988</td>
-<td align="right">1.7639</td>
-<td align="right">-0.4349</td>
+<td align="right">0.7395</td>
+<td align="right">0.4867</td>
+<td align="right">-0.2528</td>
 </tr>
 <tr class="even">
 <td align="left">x1</td>
 <td align="right">1</td>
 <td align="right">2</td>
-<td align="right">2.1988</td>
-<td align="right">4.5784</td>
-<td align="right">2.3797</td>
+<td align="right">0.7395</td>
+<td align="right">4.3106</td>
+<td align="right">3.5711</td>
 </tr>
 <tr class="odd">
 <td align="left">x2</td>
 <td align="right">1</td>
 <td align="right">2</td>
-<td align="right">2.1988</td>
-<td align="right">4.4826</td>
-<td align="right">2.2839</td>
+<td align="right">0.7395</td>
+<td align="right">4.3204</td>
+<td align="right">3.5809</td>
 </tr>
 <tr class="even">
 <td align="left">x3</td>
 <td align="right">1</td>
 <td align="right">2</td>
-<td align="right">2.1988</td>
-<td align="right">2.0559</td>
-<td align="right">-0.1428</td>
+<td align="right">0.7395</td>
+<td align="right">3.3890</td>
+<td align="right">2.6495</td>
 </tr>
 </tbody>
 </table>
@@ -429,13 +429,13 @@ model (faster)</li>
 <span></span>
 <span><span class="va">comparison</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;    feature        loco        pfi</span></span>
-<span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  noise1 -0.36995885 0.04687110</span></span>
-<span><span class="co">#&gt; 2:  noise2 -0.43220300 0.02042786</span></span>
-<span><span class="co">#&gt; 3:      x1  2.10995906 2.68325598</span></span>
-<span><span class="co">#&gt; 4:      x2  2.14303890 2.69949628</span></span>
-<span><span class="co">#&gt; 5:      x3 -0.06513554 2.13859390</span></span></code></pre></div>
+<span><span class="co">#&gt;    feature       loco          pfi</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;      &lt;num&gt;        &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:  noise1 -1.1374749  0.002236380</span></span>
+<span><span class="co">#&gt; 2:  noise2  0.7842797 -0.001500455</span></span>
+<span><span class="co">#&gt; 3:      x1  2.7728001  8.487047597</span></span>
+<span><span class="co">#&gt; 4:      x2  2.7157750  7.320215120</span></span>
+<span><span class="co">#&gt; 5:      x3 -0.1077573  1.968836648</span></span></code></pre></div>
 <p><strong>Note:</strong> Using the same instantiated resampling ensures
 we evaluate both methods on identical train/test splits. Even so,
 stochastic learners like <code>ranger</code> will produce slightly
@@ -484,13 +484,13 @@ resulting in the LOCO procedure.</p>
 <span></span>
 <span><span class="va">comparison_wvim</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;    feature        loco       wvim</span></span>
-<span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  noise1 -0.36995885 -0.4228168</span></span>
-<span><span class="co">#&gt; 2:  noise2 -0.43220300 -0.4305231</span></span>
-<span><span class="co">#&gt; 3:      x1  2.10995906  2.1404813</span></span>
-<span><span class="co">#&gt; 4:      x2  2.14303890  2.1215984</span></span>
-<span><span class="co">#&gt; 5:      x3 -0.06513554 -0.1207784</span></span></code></pre></div>
+<span><span class="co">#&gt;    feature       loco        wvim</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;      &lt;num&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:  noise1 -1.1374749  1.73855081</span></span>
+<span><span class="co">#&gt; 2:  noise2  0.7842797 -0.09143021</span></span>
+<span><span class="co">#&gt; 3:      x1  2.7728001  3.87166836</span></span>
+<span><span class="co">#&gt; 4:      x2  2.7157750  3.97399402</span></span>
+<span><span class="co">#&gt; 5:      x3 -0.1077573  1.11061754</span></span></code></pre></div>
 <p><strong>Note:</strong> To get comparable results between methods, we
 must use the same instantiated resampling. Even then, stochastic
 learners like <code>ranger</code> will produce slightly different
@@ -522,13 +522,13 @@ trivial to compute if desired:</p>
 <span><span class="va">wvim_loci</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">wvim_loci</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;    feature importance</span></span>
-<span><span class="co">#&gt;     &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  noise1 -1.7171208</span></span>
-<span><span class="co">#&gt; 2:  noise2 -1.8087476</span></span>
-<span><span class="co">#&gt; 3:      x1 -1.5715572</span></span>
-<span><span class="co">#&gt; 4:      x2 -1.3376562</span></span>
-<span><span class="co">#&gt; 5:      x3 -0.4177591</span></span></code></pre></div>
+<span><span class="co">#&gt;    feature  importance</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:  noise1 -0.03103653</span></span>
+<span><span class="co">#&gt; 2:  noise2 -0.03631880</span></span>
+<span><span class="co">#&gt; 3:      x1 -0.14861338</span></span>
+<span><span class="co">#&gt; 4:      x2 -0.19616698</span></span>
+<span><span class="co">#&gt; 5:      x3  0.98570545</span></span></code></pre></div>
 <p>LOCI interprets importance differently from LOCO:</p>
 <ul>
 <li>
@@ -619,11 +619,11 @@ f(X)))\]</span></p>
 <span><span class="va">wvim_groups_out</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">wvim_groups_out</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;             feature  importance</span></span>
-<span><span class="co">#&gt;              &lt;char&gt;       &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1: interaction_pair  2.36142485</span></span>
-<span><span class="co">#&gt; 2:      main_effect -0.09504277</span></span>
-<span><span class="co">#&gt; 3:   noise_features -0.17385904</span></span></code></pre></div>
+<span><span class="co">#&gt;             feature importance</span></span>
+<span><span class="co">#&gt;              &lt;char&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: interaction_pair  3.7911190</span></span>
+<span><span class="co">#&gt; 2:      main_effect  1.6739042</span></span>
+<span><span class="co">#&gt; 3:   noise_features  0.1539716</span></span></code></pre></div>
 <p><strong>Interpretation:</strong></p>
 <ul>
 <li>
@@ -660,11 +660,11 @@ features.</p>
 <span><span class="va">wvim_groups_in</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">wvim_groups_in</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;             feature importance</span></span>
-<span><span class="co">#&gt;              &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1: interaction_pair  3.5582494</span></span>
-<span><span class="co">#&gt; 2:      main_effect -0.4510241</span></span>
-<span><span class="co">#&gt; 3:   noise_features -0.5904435</span></span></code></pre></div>
+<span><span class="co">#&gt;             feature  importance</span></span>
+<span><span class="co">#&gt;              &lt;char&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: interaction_pair  2.17798793</span></span>
+<span><span class="co">#&gt; 2:      main_effect  0.99212768</span></span>
+<span><span class="co">#&gt; 3:   noise_features -0.07272751</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="comparing-leave-out-vs-leave-in-for-groups">Comparing Leave-Out vs Leave-In for Groups<a class="anchor" aria-label="anchor" href="#comparing-leave-out-vs-leave-in-for-groups"></a>
@@ -700,11 +700,11 @@ baseline</li>
 <span></span>
 <span><span class="va">comparison_directions</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;             feature   leave_out   leave_in</span></span>
-<span><span class="co">#&gt;              &lt;char&gt;       &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1: interaction_pair  2.36142485  3.5582494</span></span>
-<span><span class="co">#&gt; 2:      main_effect -0.09504277 -0.4510241</span></span>
-<span><span class="co">#&gt; 3:   noise_features -0.17385904 -0.5904435</span></span></code></pre></div>
+<span><span class="co">#&gt;             feature leave_out    leave_in</span></span>
+<span><span class="co">#&gt;              &lt;char&gt;     &lt;num&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: interaction_pair 3.7911190  2.17798793</span></span>
+<span><span class="co">#&gt; 2:      main_effect 1.6739042  0.99212768</span></span>
+<span><span class="co">#&gt; 3:   noise_features 0.1539716 -0.07272751</span></span></code></pre></div>
 <p>For our interaction data where <span class="math inline">\(y = 2
 \cdot x_1 \cdot x_2 + x_3 + \epsilon\)</span>:</p>
 <ul>
