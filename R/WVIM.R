@@ -13,7 +13,11 @@ WVIM = R6Class(
 	public = list(
 		#' @field direction (`character(1)`) Either "leave-out" or "leave-in".
 		direction = NULL,
-
+		#' @field design (`logical()`) Feature selection design matrix where `TRUE` equals "left in" and `FALSE` "left out".
+		#' 	Columns correspond to `task$feature_names` and the number of rows corresponds to `length(features) * n_repeats`.
+		#'  The base matrix is created by [wvim_design_matrix] and then replicated `n_repeats` times before.
+		#' @field instance (`FSelectInstanceBatchSingleCrit`) The `mlr3fselect` feature selection instance containing
+		#'   also the archive of all evaluations, possible useful for future use. Only stored if `store_instance` is `TRUE`.
 		#' @description
 		#' Creates a new instance of this [R6][R6::R6Class] class.
 		#' @param task,learner,measure,resampling,features,groups Passed to `FeatureImportanceMethod` for construction.
@@ -68,7 +72,8 @@ WVIM = R6Class(
 		#' @param store_models,store_backends (`logical(1)`: `TRUE`) Whether to store fitted models / data backends, passed to [mlr3::resample] internally
 		#'   backends in resample result.
 		#'   Required for some measures, but may increase memory footprint.
-		compute = function(store_models = TRUE, store_backends = TRUE) {
+		#' @param store_instance (`logical(1)`: `FALSE`) Whether to store the [mlr3fselect] instance in `$instance`.
+		compute = function(store_models = TRUE, store_backends = TRUE, store_instance = FALSE) {
 			if (is.null(self$groups)) {
 				feature_or_groups = self$features
 			} else {
@@ -89,7 +94,8 @@ WVIM = R6Class(
 			private$.compute_wvim(
 				design = design,
 				store_models = store_models,
-				store_backends = store_backends
+				store_backends = store_backends,
+				store_instance = store_instance
 			)
 		}
 	),
@@ -123,7 +129,12 @@ WVIM = R6Class(
 			scores_baseline[]
 		},
 
-		.compute_wvim = function(design, store_models = TRUE, store_backends = TRUE) {
+		.compute_wvim = function(
+			design,
+			store_models = TRUE,
+			store_backends = TRUE,
+			store_instance = FALSE
+		) {
 			scores_baseline = private$.compute_baseline(store_backends = store_backends)
 
 			# Fselect section
@@ -141,8 +152,12 @@ WVIM = R6Class(
 			# Match features in fselect instance to features left in or out, and
 			# assign group names to "feature" var for consistency
 			archive_base[, feature := private$.foi_chr(features)]
-
 			archive_base = archive_base[, .(batch_nr, feature)]
+
+			# Only keep instance if requested, otherwise would just increase memory footprint
+			if (store_instance) {
+				self$instance = instance
+			}
 
 			# Scores and predictions ---
 			scores = instance$archive$benchmark_result$score(self$measure)
@@ -291,7 +306,7 @@ LOCO = R6Class(
 				direction = self$direction
 			)
 
-			design_dt = data.table::rbindlist(replicate(
+			design = data.table::rbindlist(replicate(
 				n = self$param_set$values$n_repeats,
 				design,
 				simplify = FALSE
