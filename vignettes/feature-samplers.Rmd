@@ -1,0 +1,412 @@
+---
+title: "Feature Samplers"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Feature Samplers}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+Feature samplers are a core component of perturbation-based feature importance methods. They determine how features are replaced or perturbed when evaluating feature importance. This vignette introduces the different types of feature samplers available in xplainfi and demonstrates their use.
+
+## Setup
+
+```{r}
+library(xplainfi)
+library(mlr3)
+library(mlr3learners)
+library(data.table)
+
+# Create a task for demonstration
+task = tsk("penguins")
+task
+
+# Train a simple model
+learner = lrn("classif.ranger", num.trees = 50, predict_type = "prob")
+learner$train(task)
+```
+
+## Base Class: FeatureSampler
+
+All feature samplers inherit from the `FeatureSampler` base class, which provides a common interface for sampling features.
+
+### Key Properties
+
+**Feature Type Support**: Each sampler declares which feature types it supports:
+
+```{r}
+# Check supported feature types for different samplers
+marginal = MarginalSampler$new(task)
+marginal$feature_types
+```
+
+**Two Sampling Methods**:
+
+1. `$sample(feature, row_ids)` - Sample from the stored task
+2. `$sample_newdata(feature, newdata)` - Sample using external data
+
+Let's demonstrate both with the marginal sampler:
+
+```{r}
+# Sample from stored task (using row_ids)
+sampled_task = marginal$sample(
+  feature = "bill_length_mm",
+  row_ids = 1:10
+)
+sampled_task
+
+# Sample from external data
+test_data = task$data(rows = 1:5)
+sampled_external = marginal$sample_newdata(
+  feature = "bill_length_mm",
+  newdata = test_data
+)
+sampled_external
+```
+
+Notice that:
+
+- The sampled feature values change (they are permuted)
+- Other features and the target remain unchanged
+- The data structure is preserved
+
+## Marginal Sampler
+
+The `MarginalSampler` performs simple random permutation of features, breaking their relationship with the target and other features. This is the classic approach used in Permutation Feature Importance (PFI).
+
+```{r}
+# Create marginal sampler
+marginal = MarginalSampler$new(task)
+
+# Sample a continuous feature
+original = task$data(rows = 1:10)
+sampled = marginal$sample("bill_length_mm", row_ids = 1:10)
+
+# Compare original and sampled values
+data.table(
+  original_bill = original$bill_length_mm,
+  sampled_bill = sampled$bill_length_mm,
+  species = original$species  # Unchanged
+)
+```
+
+**Use in PFI**: The marginal sampler is used by default in Permutation Feature Importance:
+
+```{r}
+# PFI uses marginal sampling by default
+pfi = PFI$new(
+  task = task,
+  learner = learner,
+  measure = msr("classif.ce")
+)
+
+# The sampler can be inspected
+pfi$sampler
+```
+
+## Conditional Samplers
+
+Conditional samplers account for dependencies between features by sampling from $P(X_j | X_{-j})$ rather than the marginal $P(X_j)$. This is crucial when features are correlated.
+
+All conditional samplers inherit from `ConditionalSampler` and support:
+
+- Specifying which features to condition on via `conditioning_set`
+- Both `$sample()` and `$sample_newdata()` methods
+- Mixed feature types (depending on the specific sampler)
+
+### Gaussian Conditional Sampler
+
+The `GaussianConditionalSampler` assumes features follow a multivariate Gaussian distribution and uses closed-form conditional distributions.
+
+**Advantages**:
+
+- Very fast (no model fitting during sampling)
+- Deterministic given a seed
+- No hyperparameters
+
+**Limitations**:
+
+- Assumes multivariate normality
+- Only supports continuous features
+- May produce out-of-range values
+
+```{r}
+# Create a numeric task for Gaussian sampler (and later, knockoffs)
+task_numeric = sim_dgp_correlated(n = 100)
+
+# Create Gaussian conditional sampler
+gaussian = GaussianConditionalSampler$new(task_numeric)
+
+# Sample x1 conditioned on other features
+sampled = gaussian$sample(
+  feature = "x1",
+  row_ids = 1:10,
+  conditioning_set = c("x2", "x3", "x4")
+)
+
+# Compare original and conditionally sampled values
+original = task_numeric$data(rows = 1:10)
+data.table(
+  original = original$x1,
+  sampled = sampled$x1,
+  x2 = original$x2  # Conditioning feature (unchanged)
+)
+```
+
+Notice that the sampled values respect the conditional distribution - they're different from the original but plausible given the conditioning features.
+
+### ARF Sampler
+
+The `ARFSampler` uses Adversarial Random Forests to model complex conditional distributions. It's the most flexible conditional sampler.
+
+**Advantages**:
+
+- Handles mixed feature types (continuous, categorical, ordered)
+- No distributional assumptions
+- Captures non-linear relationships
+
+**Limitations**:
+
+- Requires fitting ARF model (slower initialization)
+- More hyperparameters to tune
+- Stochastic sampling
+
+```{r}
+# Create ARF sampler (works with full task including categorical features)
+arf = ARFSampler$new(task, num_trees = 20, verbose = FALSE)
+
+# Sample species conditioned on body measurements
+sampled = arf$sample(
+  feature = "species",
+  row_ids = 1:10,
+  conditioning_set = c("bill_length_mm", "bill_depth_mm", "body_mass_g")
+)
+
+# Compare original and sampled species
+original = task$data(rows = 1:10)
+data.table(
+  original_species = original$species,
+  sampled_species = sampled$species,
+  bill_length = original$bill_length_mm,  # Conditioning feature
+  body_mass = original$body_mass_g  # Conditioning feature
+)
+```
+
+**Use in CFI**: ARFSampler is the default for Conditional Feature Importance:
+
+```{r}
+# CFI uses ARF by default
+cfi = CFI$new(
+  task = task,
+  learner = learner,
+  measure = msr("classif.ce")
+)
+
+# The sampler can be inspected
+cfi$sampler
+```
+
+### Ctree Conditional Sampler
+
+The `CtreeConditionalSampler` uses conditional inference trees to partition the feature space and sample from local neighborhoods.
+
+**Advantages**:
+
+- Handles mixed feature types
+- Interpretable tree structure
+- Automatic feature selection (only splits on informative features)
+
+**Limitations**:
+
+- Requires tree building (slower than kNN)
+- May produce duplicates if terminal nodes are small
+
+```{r}
+# Create ctree sampler
+ctree = CtreeConditionalSampler$new(task)
+
+# Sample with default parameters
+sampled = ctree$sample(
+  feature = "bill_length_mm",
+  row_ids = 1:10,
+  conditioning_set = "species"
+)
+
+original = task$data(rows = 1:10)
+data.table(
+  species = original$species,  # Conditioning feature
+  original = original$bill_length_mm,
+  sampled = sampled$bill_length_mm
+)
+```
+
+The ctree sampler partitions observations based on the conditioning features and samples from within the same partition (terminal node).
+
+### kNN Conditional Sampler
+
+The `KNNConditionalSampler` finds k nearest neighbors based on conditioning features and samples from them.
+
+**Advantages**:
+
+- Very simple and intuitive
+- Fast (no model fitting)
+- Single hyperparameter (k)
+
+**Limitations**:
+
+- Sensitive to choice of k
+- May produce duplicates if k is small
+- Distance metric matters (currently Euclidean)
+
+```{r}
+# Create kNN sampler with k=5 neighbors
+knn = KNNConditionalSampler$new(task, k = 5)
+
+# Sample bill_length_mm based on nearest neighbors in species and body_mass space
+sampled = knn$sample(
+  feature = "bill_length_mm",
+  row_ids = 1:10,
+  conditioning_set = c("species", "body_mass_g")
+)
+
+original = task$data(rows = 1:10)
+data.table(
+  species = original$species,
+  body_mass = original$body_mass_g,
+  original = original$bill_length_mm,
+  sampled = sampled$bill_length_mm
+)
+```
+
+The kNN sampler finds the k most similar observations (based on conditioning features) and samples from their feature values.
+
+## Knockoff Samplers
+
+Now that we've seen conditional samplers, we can understand an important limitation of knockoff samplers: unlike the conditional samplers above, knockoffs **don't support arbitrary conditioning sets**.
+
+Knockoff samplers create synthetic features (knockoffs) that satisfy specific statistical properties. They must fulfill the **knockoff swap property**: swapping a feature with its knockoff should not change the joint distribution.
+
+Knockoffs are a separate category because:
+
+1. They require special construction to satisfy theoretical guarantees
+2. They don't support conditional sampling with arbitrary conditioning sets
+3. They create **new** features rather than resampling existing ones
+4. They're used primarily for feature selection with FDR control, not general importance
+
+### Gaussian Knockoffs
+
+For multivariate Gaussian data, we can construct exact knockoffs:
+
+```{r}
+# Create Gaussian knockoff sampler (using task_numeric from earlier)
+knockoff = KnockoffSamplerGaussian$new(task_numeric)
+
+# Generate knockoffs
+original = task_numeric$data(rows = 1:5)
+knockoffs = knockoff$sample(
+  feature = task_numeric$feature_names,
+  row_ids = 1:5
+)
+
+# Original vs knockoff values
+data.table(
+  x1_original = original$x1,
+  x1_knockoff = knockoffs$x1,
+  x2_original = original$x2,
+  x2_knockoff = knockoffs$x2
+)
+```
+
+Key properties of knockoffs:
+
+- Different values but similar statistical properties
+- Pairwise exchangeability with originals
+- Preserve correlation structure
+- Cannot specify which features to condition on (determined by the knockoff construction)
+
+**Conditional Independence Testing**: Knockoffs are particularly relevant for conditional independence testing as implemented in the [cpi package](https://cran.r-project.org/package=cpi). You can combine knockoff samplers with CFI and perform inference:
+
+```{r eval = FALSE}
+# CFI with knockoff sampler for conditional independence testing
+cfi_knockoff = CFI$new(
+  task = task_numeric,
+  learner = lrn("regr.ranger"),
+  measure = msr("regr.mse"),
+  sampler = knockoff
+)
+
+# Compute importance with CPI-based inference
+cfi_knockoff$compute()
+cfi_knockoff$importance(ci_method = "cpi")
+```
+
+See `vignette("inference")` for more details on statistical inference with feature importance.
+
+## Comparing Samplers
+
+Different samplers make different assumptions and trade-offs. Here's a comparison using the numeric task:
+
+```{r}
+# Sample the same feature with different methods
+original = task_numeric$data(rows = 1:5)
+
+# Marginal: breaks all dependencies
+marginal_sample = MarginalSampler$new(task_numeric)$sample(
+  "x1", row_ids = 1:5
+)
+
+# Gaussian: assumes multivariate normal
+gaussian_sample = GaussianConditionalSampler$new(task_numeric)$sample(
+  "x1", row_ids = 1:5,
+  conditioning_set = c("x2", "x3")
+)
+
+# kNN: samples from similar observations
+knn_sample = KNNConditionalSampler$new(task_numeric, k = 3)$sample(
+  "x1", row_ids = 1:5,
+  conditioning_set = c("x2", "x3")
+)
+
+# Compare results
+data.table(
+  original = original$x1,
+  marginal = marginal_sample$x1,
+  gaussian = gaussian_sample$x1,
+  knn = knn_sample$x1
+)
+```
+
+**Key takeaways**:
+
+- **Marginal sampling** produces any value from the marginal distribution
+- **Conditional samplers** produce values consistent with conditioning features
+- Choice of sampler affects feature importance estimates, especially when features are correlated
+
+## Summary
+
+| Sampler | Feature Types | Assumptions | Speed | Use Case |
+|---------|--------------|-------------|-------|----------|
+| `MarginalSampler` | All | None | Very fast | PFI, uncorrelated features |
+| `KnockoffSamplerGaussian` | Continuous | Multivariate normal | Fast | Model-X knockoffs |
+| `GaussianConditionalSampler` | Continuous | Multivariate normal | Very fast | CFI with continuous features |
+| `ARFSampler` | All | None | Moderate | CFI, complex dependencies |
+| `CtreeConditionalSampler` | All | None | Moderate | CFI, interpretable sampling |
+| `KNNConditionalSampler` | All | None | Fast | CFI, simple local structure |
+
+**General guidelines**:
+
+1. Use **marginal sampling** when features are independent or for baseline PFI
+2. Use **Gaussian conditional** for fast conditional sampling with continuous features
+3. Use **ARF** for the most flexible conditional sampling with mixed types
+4. Use **kNN** for simple, fast conditional sampling
+5. Use **ctree** when you want interpretable conditional sampling
+6. Use **knockoffs** when you need theoretical guarantees for feature selection
