@@ -79,6 +79,17 @@ corresponds to LOCO (Leave One Covariate Out).</p>
 <dd><p>(<code>character(1)</code>) Either "leave-out" or "leave-in".</p></dd>
 
 
+<dt><code>design</code></dt>
+<dd><p>(<code><a href="https://rdrr.io/r/base/logical.html" class="external-link">logical()</a></code>) Feature selection design matrix where <code>TRUE</code> equals "left in" and <code>FALSE</code> "left out".
+Columns correspond to <code>task$feature_names</code> and the number of rows corresponds to <code>length(features) * n_repeats</code>.
+The base matrix is created by <a href="wvim_design_matrix.html">wvim_design_matrix</a> and then replicated <code>n_repeats</code> times before.</p></dd>
+
+
+<dt><code>instance</code></dt>
+<dd><p>(<code>FSelectInstanceBatchSingleCrit</code>) The <code>mlr3fselect</code> feature selection instance containing
+also the archive of all evaluations, possible useful for future use. Only stored if <code>store_instance</code> is <code>TRUE</code>.</p></dd>
+
+
 </dl><p></p></div>
     </div>
     <div class="section level2">
@@ -138,7 +149,11 @@ corresponds to LOCO (Leave One Covariate Out).</p>
 <p>Computes leave-out or leave-in feature importance.
 <code>wvim_design_matrix(task$feature_names, "leave-out")</code> corresponds to LOCO.</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">WVIM</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span>store_models <span class="op">=</span> <span class="cn">TRUE</span>, store_backends <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">WVIM</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span></span>
+<span>  store_models <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  store_backends <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  store_instance <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
@@ -147,6 +162,10 @@ corresponds to LOCO (Leave One Covariate Out).</p>
 <dd><p>(<code>logical(1)</code>: <code>TRUE</code>) Whether to store fitted models / data backends, passed to <a href="https://mlr3.mlr-org.com/reference/resample.html" class="external-link">mlr3::resample</a> internally
 backends in resample result.
 Required for some measures, but may increase memory footprint.</p></dd>
+
+
+<dt><code>store_instance</code></dt>
+<dd><p>(<code>logical(1)</code>: <code>FALSE</code>) Whether to store the <a href="https://mlr3fselect.mlr-org.com/reference/mlr3fselect-package.html" class="external-link">mlr3fselect::mlr3fselect</a> instance in <code>$instance</code>.</p></dd>
 
 
 </dl><p></p></div>
