@@ -105,7 +105,7 @@ with a focus on model-agnostic methods that work with any learner.</p>
 <div class="section level2">
 <h2 id="core-concepts">Core Concepts<a class="anchor" aria-label="anchor" href="#core-concepts"></a>
 </h2>
-<p>Feature importance methods in xplainfi answer different but related
+<p>Feature importance methods in xplainfi address different but related
 questions:</p>
 <ul>
 <li>
@@ -115,9 +115,6 @@ performance?</strong> (Permutation Feature Importance)</li>
 <strong>What happens when we remove features and retrain?</strong>
 (Leave-One-Covariate-Out)<br>
 </li>
-<li>
-<strong>How much does each feature contribute individually?</strong>
-(Leave-One-Covariate-In)</li>
 <li>
 <strong>How do features depend on each other?</strong> (Conditional
 and Relative methods)</li>
@@ -304,11 +301,11 @@ given the values of <code>important2</code> and
 <span><span class="va">sampled_conditional</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">important1</span>, <span class="va">important2</span>, <span class="va">important3</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt;    important1  important2 important3</span></span>
 <span><span class="co">#&gt;         &lt;num&gt;       &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  0.1717862 0.784575267  0.2372297</span></span>
-<span><span class="co">#&gt; 2:  0.1667886 0.009429905  0.6864904</span></span>
-<span><span class="co">#&gt; 3:  0.9076188 0.779065883  0.2258184</span></span>
-<span><span class="co">#&gt; 4: -0.3738736 0.729390652  0.3184946</span></span>
-<span><span class="co">#&gt; 5:  0.4353523 0.630131853  0.1739838</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:  0.3878425 0.784575267  0.2372297</span></span>
+<span><span class="co">#&gt; 2:  0.7904428 0.009429905  0.6864904</span></span>
+<span><span class="co">#&gt; 3:  0.3423671 0.779065883  0.2258184</span></span>
+<span><span class="co">#&gt; 4:  0.4486994 0.729390652  0.3184946</span></span>
+<span><span class="co">#&gt; 5:  0.7623094 0.630131853  0.1739838</span></span></code></pre></div>
 <p>This conditional sampling is essential for methods like CFI and RFI
 that need to preserve feature dependencies. See
 <code>vignette("perturbation-importance")</code> for detailed

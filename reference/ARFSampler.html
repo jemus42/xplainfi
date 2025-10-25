@@ -128,7 +128,7 @@ To fit the ARF in parallel, register a parallel backend first (see <a href="http
 <span>  <span class="va">task</span>,</span>
 <span>  conditioning_set <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  num_trees <span class="op">=</span> <span class="fl">10L</span>,</span>
-<span>  min_node_size <span class="op">=</span> <span class="fl">2L</span>,</span>
+<span>  min_node_size <span class="op">=</span> <span class="fl">20L</span>,</span>
 <span>  finite_bounds <span class="op">=</span> <span class="st">"no"</span>,</span>
 <span>  epsilon <span class="op">=</span> <span class="fl">1e-15</span>,</span>
 <span>  round <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -154,7 +154,8 @@ To fit the ARF in parallel, register a parallel backend first (see <a href="http
 
 
 <dt><code>min_node_size</code></dt>
-<dd><p>(<code>integer(1)</code>: <code>2L</code>) Minimum node size for ARF. Passed to <a href="https://bips-hb.github.io/arf/reference/adversarial_rf.html" class="external-link">arf::adversarial_rf</a>.</p></dd>
+<dd><p>(<code>integer(1)</code>: <code>20L</code>) Minimum node size for ARF. Passed to <a href="https://bips-hb.github.io/arf/reference/adversarial_rf.html" class="external-link">arf::adversarial_rf</a> and in turn to <a href="http://imbs-hl.github.io/ranger/reference/ranger.html" class="external-link">ranger::ranger</a>.
+This is increased to 20 to mitigate overfitting.</p></dd>
 
 
 <dt><code>finite_bounds</code></dt>
