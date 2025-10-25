@@ -64,6 +64,11 @@ reference:
       - CtreeConditionalSampler
       - KNNConditionalSampler
   - subtitle: Knockoff sampling
+    desc: |
+      Knockoffs satisfy certain theoretical properties that exceed those of the conditional samplers.
+      They generate one (or more) knockoff matrix on construction, and sampling is alwas performed
+      in reference to these. Unlike other samplers, they do not allow sampling from new data with `$sample_newdata()`,
+      as that would require re-creating a knockoff matrix on the fly.
     contents:
       - KnockoffSampler
       - starts_with("Knockoff")
@@ -83,7 +88,11 @@ articles:
       - articles/perturbation-importance
       - articles/loco
       - articles/sage-methods
+  - title: Specialized topics
+    # navbar: ~
+    contents:
       - articles/inference
+      - feature-samplers
   - title: Testing and Validation
     contents:
       - simulation-settings
@@ -101,6 +110,10 @@ navbar:
           href: articles/loco.html
         - text: "Shapley Additive Global Importance (SAGE)"
           href: articles/sage-methods.html
+        - text: -------
+        - text: Specialized Topics
+        - text: "Feature Samplers"
+          href: articles/feature-samplers.html
         - text: "Inference for Feature Importances"
           href: articles/inference.html
         - text: -------
