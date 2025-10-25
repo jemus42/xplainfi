@@ -62,8 +62,7 @@ loco <- LOCO$new(
 	task = task,
 	learner = learner,
 	measure = measure,
-	resampling = resampling,
-	n_repeat = 20
+	resampling = resampling
 )
 
 loco$compute()
@@ -101,7 +100,7 @@ loco_multi = LOCO$new(
 	learner = learner,
 	measure = measure,
 	resampling = rsmp("cv", folds = 3),
-	n_repeats = 10
+	n_repeats = 20
 )
 
 loco_multi$compute()

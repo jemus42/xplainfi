@@ -16,8 +16,10 @@ WVIM = R6Class(
 		#' @field design (`logical()`) Feature selection design matrix where `TRUE` equals "left in" and `FALSE` "left out".
 		#' 	Columns correspond to `task$feature_names` and the number of rows corresponds to `length(features) * n_repeats`.
 		#'  The base matrix is created by [wvim_design_matrix] and then replicated `n_repeats` times before.
+		design = NULL,
 		#' @field instance (`FSelectInstanceBatchSingleCrit`) The `mlr3fselect` feature selection instance containing
 		#'   also the archive of all evaluations, possible useful for future use. Only stored if `store_instance` is `TRUE`.
+		instance = NULL,
 		#' @description
 		#' Creates a new instance of this [R6][R6::R6Class] class.
 		#' @param task,learner,measure,resampling,features,groups Passed to `FeatureImportanceMethod` for construction.
