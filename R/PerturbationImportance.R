@@ -474,7 +474,7 @@ CFI = R6Class(
 					"No {.cls ConditionalSampler} provided, using {.cls ARFSampler} with default settings."
 				)
 			} else {
-				checkmate::assert_class(sampler, "ConditionalSampler")
+				checkmate::assert_class(sampler, c("ConditionalSampler", "KnockoffSampler"))
 			}
 
 			super$initialize(
