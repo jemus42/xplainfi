@@ -259,7 +259,7 @@ For reference, let's compare SAGE methods with the analogous PFI and CFI methods
 ```{r pfi-cfi-comparison}
 # Quick PFI and CFI comparison for context
 pfi = PFI$new(task, learner, measure)
-cfi = CFI$new(task, learner, measure, sampler = sampler_arf)
+cfi = CFI$new(task, learner, measure, sampler = sampler_gaussian)
 
 pfi$compute()
 cfi$compute()
