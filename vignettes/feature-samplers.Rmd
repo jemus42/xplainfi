@@ -33,10 +33,6 @@ library(data.table)
 # Create a task for demonstration
 task_mixed = tsk("penguins")
 task_numeric = sim_dgp_correlated(n = 200)
-
-# Train a simple model
-learner = lrn("classif.ranger", num.trees = 50, predict_type = "prob")
-learner$train(task)
 ```
 
 ## Base Class: FeatureSampler
@@ -49,7 +45,7 @@ All feature samplers inherit from the `FeatureSampler` base class, which provide
 
 ```{r feature-types}
 # Check supported feature types for different samplers
-task$feature_types
+task_mixed$feature_types
 permutation = PermutationSampler$new(task_mixed)
 permutation$feature_types
 ```
@@ -65,12 +61,12 @@ Let's demonstrate both with the permutation sampler:
 # Sample from stored task (using row_ids)
 sampled_task = permutation$sample(
 	feature = "bill_length",
-	row_ids = 1:10
+	row_ids = 40:45
 )
 sampled_task
 
-# Sample from external data
-test_data = task$data(rows = 1:5)
+# Sample from "external" data
+test_data = task_mixed$data(rows = 40:45)
 sampled_external = permutation$sample_newdata(
 	feature = "bill_length",
 	newdata = test_data
@@ -98,10 +94,10 @@ The `PermutationSampler` performs simple random permutation of features, breakin
 
 ```{r permutation-example}
 # Create permutation sampler
-permutation = PermutationSampler$new(task)
+permutation = PermutationSampler$new(task_mixed)
 
 # Sample a continuous feature
-original = task$data(rows = 1:10)
+original = task_mixed$data(rows = 1:10)
 sampled = permutation$sample("bill_length", row_ids = 1:10)
 
 # Compare original and sampled values
@@ -123,8 +119,8 @@ Unlike `PermutationSampler` which shuffles feature values independently, this sa
 
 **Key differences from PermutationSampler:**
 
-- **PermutationSampler**: Shuffles each feature independently → breaks ALL dependencies
-- **MarginalReferenceSampler**: Samples complete reference rows → preserves WITHIN-row dependencies
+- **PermutationSampler**: Shuffles each feature independently → breaks dependencies between sampled features
+- **MarginalReferenceSampler**: Samples complete reference rows → preserves dependencies of the sampled features
 
 This is the approach used in [SAGE (Shapley Additive Global importancE)](https://github.com/iancovert/sage) for marginal feature importance. In this SAGE implementation, the [`MarginalImputer`](https://github.com/iancovert/sage/blob/master/sage/imputers.py#L44-L78), uses this approach.
 The "imputer" name comes from the "imputation" of model predictions using out-of-coalition features by sampling from their marginal distribution.
@@ -137,7 +133,7 @@ In `xplainfi`, we separate the "feature sampling" and "model prediction" steps (
 marginal_ref = MarginalReferenceSampler$new(task_mixed, n_samples = 30L)
 
 # Sample a feature - each row gets values from a randomly sampled reference row
-original = task$data(rows = 1:5)
+original = task_mixed$data(rows = 1:5)
 sampled = marginal_ref$sample("bill_length", row_ids = 1:5)
 
 # Compare
@@ -156,7 +152,8 @@ data.table(
 
 **Preserving within-row correlations:**
 
-To demonstrate the difference, consider features that are correlated as in `task_numeric`:
+To demonstrate the difference, consider features that are correlated as in `task_numeric`.
+Here, `x1` and `x2` are correlated, and if we sample them jointly, only `MarginalReferenceSampler` retains their original correlation (approximately).
 
 ```{r correlation-preservation}
 # Sample with PermutationSampler (breaks correlations)
@@ -168,7 +165,7 @@ ref = MarginalReferenceSampler$new(task_numeric, n_samples = 50L)
 sampled_ref = ref$sample(c("x1", "x2"), row_ids = 1:10)
 
 # Check correlations
-cor_original = cor(task_corr$data()$x1, task_corr$data()$x2)
+cor_original = cor(task_numeric$data()$x1, task_numeric$data()$x2)
 cor_perm = cor(sampled_perm$x1, sampled_perm$x2)
 cor_ref = cor(sampled_ref$x1, sampled_ref$x2)
 
