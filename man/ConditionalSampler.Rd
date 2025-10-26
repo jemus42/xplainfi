@@ -33,13 +33,15 @@ that should be extended by concrete implementations.
 \subsection{Method \code{new()}}{
 Creates a new instance of the ConditionalSampler class
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConditionalSampler$new(task)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ConditionalSampler$new(task, conditioning_set = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{task}}{(\link[mlr3:Task]{mlr3::Task}) Task to sample from}
+
+\item{\code{conditioning_set}}{(\code{character} | \code{NULL}) Default conditioning set to use in \verb{$sample()}.}
 }
 \if{html}{\out{</div>}}
 }

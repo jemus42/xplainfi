@@ -79,15 +79,16 @@ ARFSampler = R6Class(
 			...
 		) {
 			require_package("arf")
-			super$initialize(task)
+			super$initialize(task, conditioning_set = conditioning_set)
 			self$label = "Adversarial Random Forest sampler"
 
-			# Define param_set with all parameters
+			# Extend param_set with ARF-specific parameters
 			# Sampling parameters (can be overridden in $sample() calls)
 			# Model fitting parameters (only used during initialization)
-			self$param_set = paradox::ps(
+			self$param_set = c(
+				self$param_set,
+				paradox::ps(
 				# Sampling parameters (stored for hierarchical resolution in $sample())
-				conditioning_set = paradox::p_uty(default = NULL),
 				round = paradox::p_lgl(default = TRUE),
 				stepsize = paradox::p_dbl(lower = 0, default = 0),
 				verbose = paradox::p_lgl(default = FALSE),
@@ -98,9 +99,10 @@ ARFSampler = R6Class(
 				finite_bounds = paradox::p_fct(c("no", "local", "global"), default = "no"),
 				epsilon = paradox::p_dbl(lower = 0, default = 1e-15)
 			)
+		)
 
 			# Set parameter values
-			values_to_set = list(
+			self$param_set$set_values(
 				round = round,
 				stepsize = stepsize,
 				verbose = verbose,
@@ -110,11 +112,6 @@ ARFSampler = R6Class(
 				finite_bounds = finite_bounds,
 				epsilon = epsilon
 			)
-			if (!is.null(conditioning_set)) {
-				values_to_set$conditioning_set = conditioning_set
-			}
-
-			self$param_set$set_values(.values = values_to_set)
 
 			# Register sequential backend in an attempt to silence foreach warning
 			if (!foreach::getDoParRegistered() & !parallel) {

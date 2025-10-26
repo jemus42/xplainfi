@@ -161,3 +161,13 @@ test_that("GaussianConditionalSampler is reproducible with seed", {
 
 	expect_identical(sampled1$important2, sampled2$important2)
 })
+
+test_that("GaussianConditionalSampler conditioning_set parameter behavior", {
+	library(mlr3)
+	task = tgen("friedman1")$generate(n = 100)
+
+	expect_conditioning_set_behavior(
+		sampler_class = GaussianConditionalSampler,
+		task = task
+	)
+})

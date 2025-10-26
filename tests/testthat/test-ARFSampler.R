@@ -342,3 +342,14 @@ test_that("ARFSampler default parameter values match arf::forge", {
 	expect_equal(sampler$param_set$params[id == "verbose"]$default[[1]], FALSE)
 	expect_equal(sampler$param_set$params[id == "parallel"]$default[[1]], FALSE)
 })
+
+test_that("ARFSampler conditioning_set parameter behavior", {
+	library(mlr3)
+	task = tgen("friedman1")$generate(n = 100)
+
+	expect_conditioning_set_behavior(
+		sampler_class = ARFSampler,
+		task = task,
+		verbose = FALSE
+	)
+})

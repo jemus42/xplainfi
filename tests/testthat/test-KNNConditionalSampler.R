@@ -213,3 +213,14 @@ test_that("KNNConditionalSampler works with mixed feature types", {
 
 	expect_sampler_output(sampled, task, nrows = 10)
 })
+
+test_that("KNNConditionalSampler conditioning_set parameter behavior", {
+	library(mlr3)
+	task = tgen("friedman1")$generate(n = 100)
+
+	expect_conditioning_set_behavior(
+		sampler_class = KNNConditionalSampler,
+		task = task,
+		k = 5L
+	)
+})

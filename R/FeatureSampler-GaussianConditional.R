@@ -64,8 +64,9 @@ GaussianConditionalSampler = R6Class(
 		#' @description
 		#' Creates a new GaussianConditionalSampler.
 		#' @param task ([mlr3::Task]) Task to sample from. Must have only numeric/integer features.
-		initialize = function(task) {
-			super$initialize(task)
+		#' @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`.
+		initialize = function(task, conditioning_set = NULL) {
+			super$initialize(task, conditioning_set = conditioning_set)
 
 			# Extract feature data as matrix
 			X = as.matrix(self$task$data(cols = self$task$feature_names))

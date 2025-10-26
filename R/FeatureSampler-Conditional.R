@@ -12,7 +12,8 @@ ConditionalSampler = R6Class(
 		#' @description
 		#' Creates a new instance of the ConditionalSampler class
 		#' @param task ([mlr3::Task]) Task to sample from
-		initialize = function(task) {
+		#' @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`.
+		initialize = function(task, conditioning_set = NULL) {
 			super$initialize(task)
 			self$label = "Conditional sampler"
 
@@ -20,6 +21,11 @@ ConditionalSampler = R6Class(
 			self$param_set = paradox::ps(
 				conditioning_set = paradox::p_uty(default = NULL)
 			)
+
+			# Store conditioning_set if provided
+			if (!is.null(conditioning_set)) {
+				self$param_set$set_values(conditioning_set = conditioning_set)
+			}
 		},
 
 		#' @description

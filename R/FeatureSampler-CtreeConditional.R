@@ -73,6 +73,7 @@ CtreeConditionalSampler = R6Class(
 		#' @description
 		#' Creates a new CtreeConditionalSampler.
 		#' @param task ([mlr3::Task]) Task to sample from.
+		#' @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`.
 		#' @param mincriterion (`numeric(1)`: `0.95`) Significance level threshold for splitting (1 - p-value).
 		#'   Higher values result in fewer splits (simpler trees).
 		#' @param minsplit (`integer(1)`: `20L`) Minimum number of observations required for a split.
@@ -80,27 +81,30 @@ CtreeConditionalSampler = R6Class(
 		#' @param use_cache (`logical(1)`: `TRUE`) Whether to cache fitted trees.
 		initialize = function(
 			task,
+			conditioning_set = NULL,
 			mincriterion = 0.95,
 			minsplit = 20L,
 			minbucket = 7L,
 			use_cache = TRUE
 		) {
 			require_package("partykit")
-			super$initialize(task)
+			super$initialize(task, conditioning_set = conditioning_set)
 
 			# Initialize tree cache
 			self$tree_cache = new.env(parent = emptyenv())
 
-			# Define param_set with ctree-specific parameters
-			self$param_set = paradox::ps(
-				conditioning_set = paradox::p_uty(default = NULL),
+			# Extend param_set with ctree-specific parameters
+			self$param_set = c(
+				self$param_set,
+				paradox::ps(
 				mincriterion = paradox::p_dbl(lower = 0, upper = 1, default = 0.95),
 				minsplit = paradox::p_int(lower = 1L, default = 20L),
 				minbucket = paradox::p_int(lower = 1L, default = 7L),
 				use_cache = paradox::p_lgl(default = TRUE)
 			)
+		)
 
-			self$param_set$set_values(
+		self$param_set$set_values(
 				mincriterion = mincriterion,
 				minsplit = minsplit,
 				minbucket = minbucket,

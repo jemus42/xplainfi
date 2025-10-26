@@ -51,7 +51,7 @@
 #' - Troyanskaya, O., et al. (2001). Missing value estimation methods for DNA microarrays. Bioinformatics, 17(6), 520-525.
 #'
 #' @export
-KNNConditionalSampler2 = R6Class(
+KNNConditionalSampler = R6Class(
 	"KNNConditionalSampler",
 	inherit = ConditionalSampler,
 	public = list(
@@ -61,14 +61,15 @@ KNNConditionalSampler2 = R6Class(
 		#' @description
 		#' Creates a new KNNConditionalSampler.
 		#' @param task ([mlr3::Task]) Task to sample from.
+		#' @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`.
 		#' @param k (`integer(1)`: `5L`) Number of nearest neighbors to sample from.
-		initialize = function(task, k = 5L) {
-			super$initialize(task)
+		initialize = function(task, conditioning_set = NULL, k = 5L) {
+			super$initialize(task, conditioning_set = conditioning_set)
 
-			# Define param_set with k parameter
-			self$param_set = paradox::ps(
-				conditioning_set = paradox::p_uty(default = NULL),
-				k = paradox::p_int(lower = 1L, default = 5L)
+			# Extend param_set with k parameter
+			self$param_set = c(
+				self$param_set,
+				paradox::ps(k = paradox::p_int(lower = 1L, default = 5L))
 			)
 			self$param_set$set_values(k = k)
 
@@ -159,7 +160,14 @@ KNNConditionalSampler2 = R6Class(
 					dists = sqrt(rowSums((sweep(train_cond, 2, qp))^2))
 
 					k_actual = min(k, length(dists))
-					neighbors = order(dists)[seq_len(k_actual)]
+					# Thought I could use partial sorting here but
+					#   sort(dists, partial = 1:2, index.return = TRUE)$ix[1:k]
+					# ...doesn't work because we can't combine partial sorting and index return
+					# This works but does a full sort
+					# neighbors = order(dists)[seq_len(k_actual)]
+					# This way we "just" get the indices of the kth neighbours we want
+					neighbors = which(dists <= sort(dists, partial = k)[k])
+					# After getting the neighbours, pick one random value as the sampling result
 					sampled_idx = sample(neighbors, 1)
 
 					.(sampled_idx = sampled_idx)

@@ -296,3 +296,13 @@ test_that("CtreeConditionalSampler handles multiple conditioning features", {
 	expect_identical(sampled_data$important1, data$important1[1:50])
 	expect_identical(sampled_data$important2, data$important2[1:50])
 })
+
+test_that("CtreeConditionalSampler conditioning_set parameter behavior", {
+	library(mlr3)
+	task = tgen("friedman1")$generate(n = 100)
+
+	expect_conditioning_set_behavior(
+		sampler_class = CtreeConditionalSampler,
+		task = task
+	)
+})
