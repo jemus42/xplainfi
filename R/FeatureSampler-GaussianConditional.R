@@ -47,6 +47,8 @@
 #'   conditioning_set = "important1"
 #' )
 #'
+#' @references `r print_bib("anderson_2003", "mardia_1979")`
+#'
 #' @export
 GaussianConditionalSampler = R6Class(
 	"GaussianConditionalSampler",

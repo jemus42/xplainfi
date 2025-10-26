@@ -60,10 +60,15 @@ sampled = sampler$sample_newdata(
 
 }
 \references{
-\itemize{
-\item Little, R. J., & Rubin, D. B. (2019). Statistical analysis with missing data (Vol. 793). John Wiley & Sons.
-\item Troyanskaya, O., et al. (2001). Missing value estimation methods for DNA microarrays. Bioinformatics, 17(6), 520-525.
-}
+Little R, Rubin D (2019).
+\emph{Statistical Analysis with Missing Data}, 3rd edition.
+John Wiley & Sons, Hoboken, NJ.
+ISBN 9780470526798.
+
+Troyanskaya O, Cantor M, Sherlock G, Brown P, Hastie T, Tibshirani R, Botstein D, Altman R (2001).
+\dQuote{Missing Value Estimation Methods for DNA Microarrays.}
+\emph{Bioinformatics}, \bold{17}(6), 520--525.
+\doi{10.1093/bioinformatics/17.6.520}.
 }
 \section{Super classes}{
 \code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{\link[xplainfi:ConditionalSampler]{xplainfi::ConditionalSampler}} -> \code{KNNConditionalSampler}

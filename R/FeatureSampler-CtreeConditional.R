@@ -58,9 +58,7 @@
 #' )
 #' }
 #'
-#' @references
-#' - Hothorn, T., Hornik, K., & Zeileis, A. (2006). Unbiased recursive partitioning: A conditional inference framework. Journal of Computational and Graphical statistics, 15(3), 651-674.
-#' - Aas, K., Jullum, M., & Løland, A. (2021). Explaining individual predictions when features are dependent: More accurate approximations to Shapley values. Artificial Intelligence, 298, 103502.
+#' @references `r print_bib("hothorn_2006", "aas_2021")`
 #'
 #' @export
 CtreeConditionalSampler = R6Class(

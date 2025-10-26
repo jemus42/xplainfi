@@ -46,9 +46,7 @@
 #'   conditioning_set = "important1"
 #' )
 #'
-#' @references
-#' - Little, R. J., & Rubin, D. B. (2019). Statistical analysis with missing data (Vol. 793). John Wiley & Sons.
-#' - Troyanskaya, O., et al. (2001). Missing value estimation methods for DNA microarrays. Bioinformatics, 17(6), 520-525.
+#' @references `r print_bib("little_2019", "troyanskaya_2001")`
 #'
 #' @export
 KNNConditionalSampler = R6Class(

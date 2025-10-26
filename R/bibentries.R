@@ -177,5 +177,96 @@ bibentries = c(
 		pages = "239--281",
 		issn = "1573-0565",
 		doi = "10.1023/A:1024068626366"
+	),
+
+	little_2019 = bibentry(
+		"book",
+		title = "Statistical Analysis with Missing Data",
+		author = c(
+			person("Roderick J. A.", "Little"),
+			person("Donald B.", "Rubin")
+		),
+		year = "2019",
+		edition = "3rd",
+		publisher = "John Wiley & Sons",
+		address = "Hoboken, NJ",
+		isbn = "9780470526798"
+	),
+
+	troyanskaya_2001 = bibentry(
+		"article",
+		title = "Missing Value Estimation Methods for DNA Microarrays",
+		author = c(
+			person("Olga", "Troyanskaya"),
+			person("Michael", "Cantor"),
+			person("Gavin", "Sherlock"),
+			person("Pat", "Brown"),
+			person("Trevor", "Hastie"),
+			person("Robert", "Tibshirani"),
+			person("David", "Botstein"),
+			person("Russ B.", "Altman")
+		),
+		year = "2001",
+		journal = "Bioinformatics",
+		volume = "17",
+		number = "6",
+		pages = "520--525",
+		doi = "10.1093/bioinformatics/17.6.520"
+	),
+
+	anderson_2003 = bibentry(
+		"book",
+		title = "An Introduction to Multivariate Statistical Analysis",
+		author = person("Theodore W.", "Anderson"),
+		year = "2003",
+		edition = "3rd",
+		publisher = "Wiley-Interscience",
+		address = "Hoboken, NJ",
+		isbn = "9780471360919"
+	),
+
+	mardia_1979 = bibentry(
+		"book",
+		title = "Multivariate Analysis",
+		author = c(
+			person("K. V.", "Mardia"),
+			person("J. T.", "Kent"),
+			person("J. M.", "Bibby")
+		),
+		year = "1979",
+		publisher = "Academic Press",
+		address = "London",
+		isbn = "9780124712522"
+	),
+
+	hothorn_2006 = bibentry(
+		"article",
+		title = "Unbiased Recursive Partitioning: A Conditional Inference Framework",
+		author = c(
+			person("Torsten", "Hothorn"),
+			person("Kurt", "Hornik"),
+			person("Achim", "Zeileis")
+		),
+		year = "2006",
+		journal = "Journal of Computational and Graphical Statistics",
+		volume = "15",
+		number = "3",
+		pages = "651--674",
+		doi = "10.1198/106186006X133933"
+	),
+
+	aas_2021 = bibentry(
+		"article",
+		title = "Explaining Individual Predictions When Features Are Dependent: More Accurate Approximations to Shapley Values",
+		author = c(
+			person("Kjersti", "Aas"),
+			person("Martin", "Jullum"),
+			person("Anders", "Løland")
+		),
+		year = "2021",
+		journal = "Artificial Intelligence",
+		volume = "298",
+		pages = "103502",
+		doi = "10.1016/j.artint.2021.103502"
 	)
 )

@@ -2,7 +2,7 @@
 % Please edit documentation in R/FeatureSampler-CtreeConditional.R
 \name{CtreeConditionalSampler}
 \alias{CtreeConditionalSampler}
-\title{Conditional Inference Tree Conditional Sampler}
+\title{(experimental) Conditional Inference Tree Conditional Sampler}
 \description{
 Implements conditional sampling using conditional inference trees (ctree).
 Builds a tree predicting target features from conditioning features, then samples
@@ -74,10 +74,15 @@ sampled = sampler$sample_newdata(
 
 }
 \references{
-\itemize{
-\item Hothorn, T., Hornik, K., & Zeileis, A. (2006). Unbiased recursive partitioning: A conditional inference framework. Journal of Computational and Graphical statistics, 15(3), 651-674.
-\item Aas, K., Jullum, M., & Løland, A. (2021). Explaining individual predictions when features are dependent: More accurate approximations to Shapley values. Artificial Intelligence, 298, 103502.
-}
+Hothorn T, Hornik K, Zeileis A (2006).
+\dQuote{Unbiased Recursive Partitioning: A Conditional Inference Framework.}
+\emph{Journal of Computational and Graphical Statistics}, \bold{15}(3), 651--674.
+\doi{10.1198/106186006X133933}.
+
+Aas K, Jullum M, Løland A (2021).
+\dQuote{Explaining Individual Predictions When Features Are Dependent: More Accurate Approximations to Shapley Values.}
+\emph{Artificial Intelligence}, \bold{298}, 103502.
+\doi{10.1016/j.artint.2021.103502}.
 }
 \section{Super classes}{
 \code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{\link[xplainfi:ConditionalSampler]{xplainfi::ConditionalSampler}} -> \code{CtreeConditionalSampler}
