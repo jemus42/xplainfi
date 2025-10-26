@@ -88,18 +88,18 @@ ARFSampler = R6Class(
 			self$param_set = c(
 				self$param_set,
 				paradox::ps(
-				# Sampling parameters (stored for hierarchical resolution in $sample())
-				round = paradox::p_lgl(default = TRUE),
-				stepsize = paradox::p_dbl(lower = 0, default = 0),
-				verbose = paradox::p_lgl(default = FALSE),
-				parallel = paradox::p_lgl(default = FALSE),
-				# Model fitting parameters (used only during initialization)
-				num_trees = paradox::p_int(lower = 1L, default = 10L),
-				min_node_size = paradox::p_int(lower = 1L, default = 20L),
-				finite_bounds = paradox::p_fct(c("no", "local", "global"), default = "no"),
-				epsilon = paradox::p_dbl(lower = 0, default = 1e-15)
+					# Sampling parameters (stored for hierarchical resolution in $sample())
+					round = paradox::p_lgl(default = TRUE),
+					stepsize = paradox::p_dbl(lower = 0, default = 0),
+					verbose = paradox::p_lgl(default = FALSE),
+					parallel = paradox::p_lgl(default = FALSE),
+					# Model fitting parameters (used only during initialization)
+					num_trees = paradox::p_int(lower = 1L, default = 10L),
+					min_node_size = paradox::p_int(lower = 1L, default = 20L),
+					finite_bounds = paradox::p_fct(c("no", "local", "global"), default = "no"),
+					epsilon = paradox::p_dbl(lower = 0, default = 1e-15)
+				)
 			)
-		)
 
 			# Set parameter values
 			self$param_set$set_values(
@@ -213,8 +213,11 @@ ARFSampler = R6Class(
 			verbose = NULL,
 			parallel = NULL
 		) {
-			# Determine conditioning set
-			# Priority: 1) function argument, 2) stored param_set value, 3) default (all other features)
+			# Determine conditioning set (note: NULL is different than character(0))
+			# Priority:
+			# 1) function argument,
+			# 2) stored param_set value,
+			# 3) default (all other features) (! important behavior expected by CFI implementation!)
 			conditioning_set = resolve_param(
 				conditioning_set,
 				self$param_set$values$conditioning_set,
@@ -230,7 +233,7 @@ ARFSampler = R6Class(
 			# Create evidence data frame with conditioning set for all rows
 			# Handle empty conditioning set by passing NULL to arf::forge()
 			if (length(conditioning_set) == 0) {
-				# Equivalent (ish) to marginal permutation
+				# Equivalent (ish) to marginal sampling
 				if (xplain_opt("debug")) {
 					cli::cli_alert_info(
 						"{.val conditioning_set} is length 0, passing {.code evidence = NULL} to {.fun arf::forge}"

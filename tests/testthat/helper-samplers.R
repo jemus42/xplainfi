@@ -6,9 +6,11 @@
 #' 1. Stores conditioning_set in param_set when provided during initialization
 #' 2. Can sample without specifying conditioning_set (uses stored value)
 #' 3. Can override conditioning_set in $sample() calls
+#' 4. Handles NULL conditioning_set (defaults to all other features - critical for CFI)
+#' 5. Handles empty conditioning_set character(0) (marginal sampling - no conditioning)
 #'
 #' @param sampler_class R6 class for the sampler to test
-#' @param task mlr3 Task to use for testing
+#' @param task mlr3 Task to use for testing (must have at least 3 features)
 #' @param ... Additional arguments passed to sampler constructor
 #'
 #' @return NULL (used for side effects via testthat expectations)
@@ -20,6 +22,7 @@ expect_conditioning_set_behavior = function(sampler_class, task, ...) {
 	target_feature = features[1]
 	cond_set_1 = features[2]
 	cond_set_2 = features[3]
+	other_features = setdiff(features, target_feature)
 
 	# Test 1: conditioning_set stored in param_set when provided
 	sampler_with_cond = sampler_class$new(task, conditioning_set = cond_set_1, ...)
@@ -108,5 +111,48 @@ expect_conditioning_set_behavior = function(sampler_class, task, ...) {
 		info = "Conditioning feature specified in $sample() should remain unchanged"
 	)
 
+	# Test 6: NULL conditioning_set should default to all other features
+	# This is critical for CFI - when no conditioning_set is specified,
+	# condition on everything except the target feature
+	result_null = sampler_no_cond$sample(
+		feature = target_feature,
+		row_ids = 1:5,
+		conditioning_set = NULL  # Explicitly pass NULL
+	)
+
+	# All OTHER features should remain unchanged (they are conditioning features)
+	for (feat in other_features) {
+		testthat::expect_identical(
+			result_null[[feat]],
+			original_data[[feat]],
+			info = glue::glue("With conditioning_set=NULL, feature '{feat}' should remain unchanged (it's a conditioning feature)")
+		)
+	}
+
+	# Target feature should be sampled (if numeric, likely different)
+	if (is.numeric(original_data[[target_feature]])) {
+		n_different = sum(result_null[[target_feature]] != original_data[[target_feature]])
+		testthat::expect_true(
+			n_different > 0,
+			info = glue::glue("With conditioning_set=NULL, target feature '{target_feature}' should be sampled")
+		)
+	}
+
+	# Test 7: Empty conditioning_set (character(0)) should mean marginal sampling
+	# All features can change (no conditioning)
+	result_empty = sampler_no_cond$sample(
+		feature = target_feature,
+		row_ids = 1:5,
+		conditioning_set = character(0)  # Empty = marginal
+	)
+
+	# Target feature should still be sampled
+	checkmate::expect_data_table(result_empty, nrows = 5)
+
+	# Note: We can't easily verify that "no conditioning" was applied without
+	# knowing the internal implementation details, but at minimum we verify
+	# the sampler handles character(0) without error
+
 	invisible(NULL)
 }
+

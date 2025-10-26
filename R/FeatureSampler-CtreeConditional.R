@@ -97,14 +97,14 @@ CtreeConditionalSampler = R6Class(
 			self$param_set = c(
 				self$param_set,
 				paradox::ps(
-				mincriterion = paradox::p_dbl(lower = 0, upper = 1, default = 0.95),
-				minsplit = paradox::p_int(lower = 1L, default = 20L),
-				minbucket = paradox::p_int(lower = 1L, default = 7L),
-				use_cache = paradox::p_lgl(default = TRUE)
+					mincriterion = paradox::p_dbl(lower = 0, upper = 1, default = 0.95),
+					minsplit = paradox::p_int(lower = 1L, default = 20L),
+					minbucket = paradox::p_int(lower = 1L, default = 7L),
+					use_cache = paradox::p_lgl(default = TRUE)
+				)
 			)
-		)
 
-		self$param_set$set_values(
+			self$param_set$set_values(
 				mincriterion = mincriterion,
 				minsplit = minsplit,
 				minbucket = minbucket,
@@ -121,12 +121,21 @@ CtreeConditionalSampler = R6Class(
 			# Get training data from task
 			training_data = self$task$data(cols = self$task$feature_names)
 
+			# Determine conditioning set (note: NULL is different than character(0))
+			# Priority:
+			# 1) function argument,
+			# 2) stored param_set value,
+			# 3) default (all other features) (! important behavior expected by CFI implementation!)
+			conditioning_set = resolve_param(
+				conditioning_set,
+				self$param_set$values$conditioning_set,
+				setdiff(self$task$feature_names, feature)
+			)
+
 			# Handle marginal case (no conditioning)
-			if (is.null(conditioning_set) || length(conditioning_set) == 0) {
-				# Simple random sampling from training data
-				for (feat in feature) {
-					data[, (feat) := sample(training_data[[feat]], .N, replace = TRUE)]
-				}
+			if (length(conditioning_set) == 0) {
+				# Simple random sampling (with replacement) from training data
+				data[, (feature) := lapply(.SD, sample, replace = TRUE), .SDcols = feature]
 				return(data[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)])
 			}
 
@@ -147,30 +156,33 @@ CtreeConditionalSampler = R6Class(
 			train_data_with_nodes[, ..node_id := train_nodes]
 
 			# For each evaluation observation, sample from training observations in same node
-			result = data[, {
-				# Get training observations in this node
-				node_obs = train_data_with_nodes[..node_id == ..node_id[1]]
+			result = data[,
+				{
+					# Get training observations in this node
+					node_obs = train_data_with_nodes[..node_id == ..node_id[1]]
 
-				if (nrow(node_obs) == 0) {
-					cli::cli_warn("No training observations in terminal node, using marginal sample")
-					sampled_values = lapply(feature, function(feat) {
-						sample(training_data[[feat]], 1)
-					})
-				} else {
-					# Sample one observation from this node
-					sampled_idx = sample(seq_len(nrow(node_obs)), 1)
-					sampled_values = lapply(feature, function(feat) {
-						node_obs[[feat]][sampled_idx]
-					})
-				}
+					if (nrow(node_obs) == 0) {
+						cli::cli_warn("No training observations in terminal node, using marginal sample")
+						sampled_values = lapply(feature, function(feat) {
+							sample(training_data[[feat]], 1)
+						})
+					} else {
+						# Sample one observation from this node
+						sampled_idx = sample(seq_len(nrow(node_obs)), 1)
+						sampled_values = lapply(feature, function(feat) {
+							node_obs[[feat]][sampled_idx]
+						})
+					}
 
-				# Create result row
-				result_row = .SD[1]
-				for (i in seq_along(feature)) {
-					set(result_row, j = feature[i], value = sampled_values[[i]])
-				}
-				result_row
-			}, by = ..eval_id]
+					# Create result row
+					result_row = .SD[1]
+					for (i in seq_along(feature)) {
+						set(result_row, j = feature[i], value = sampled_values[[i]])
+					}
+					result_row
+				},
+				by = ..eval_id
+			]
 
 			# Clean up temporary columns
 			result[, ..eval_id := NULL]
@@ -214,12 +226,14 @@ CtreeConditionalSampler = R6Class(
 			# Create formula: features ~ conditioning_set
 			# For multiple features, use cbind on LHS
 			if (length(feature) == 1) {
-				formula_str = sprintf("`%s` ~ %s",
+				formula_str = sprintf(
+					"`%s` ~ %s",
 					feature,
 					paste(sprintf("`%s`", conditioning_set), collapse = " + ")
 				)
 			} else {
-				formula_str = sprintf("cbind(%s) ~ %s",
+				formula_str = sprintf(
+					"cbind(%s) ~ %s",
 					paste(sprintf("`%s`", feature), collapse = ", "),
 					paste(sprintf("`%s`", conditioning_set), collapse = " + ")
 				)

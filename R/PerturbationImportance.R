@@ -473,16 +473,25 @@ CFI = R6Class(
 				cli::cli_alert_info(
 					"No {.code sampler} provided, using {.cls ARFSampler} with default settings."
 				)
-			} else {
-				# checkmate::assert_class would expect sampler to inherit from all clases, but
-				# the two are mutually exclusive (for now?)
-				if (!inherits(sampler, c("ConditionalSampler", "KnockoffSampler"))) {
-					cli::cli_abort(c(
-						x = "Provided sampler is of class {.cls {class(sampler)[[1]]}}.",
-						"!" = "Either a {.cls ConditionalSampler} or a {.cls KnockoffSampler} is needed for {.cls CFI}.",
-						i = "Choose a supported {.cls FeatureSampler}, such as {.cls ARFSampler} or {.class KnockoffGaussianSampler}."
-					))
-				}
+			}
+			# checkmate::assert_class would expect sampler to inherit from all clases, but
+			# the two are mutually exclusive (for now?)
+			if (!inherits(sampler, c("ConditionalSampler", "KnockoffSampler"))) {
+				cli::cli_abort(c(
+					x = "Provided sampler is of class {.cls {class(sampler)[[1]]}}.",
+					"!" = "Either a {.cls ConditionalSampler} or a {.cls KnockoffSampler} is needed for {.cls CFI}.",
+					i = "Choose a supported {.cls FeatureSampler}, such as {.cls ARFSampler} or {.class KnockoffGaussianSampler}."
+				))
+			}
+			if (
+				inherits(sampler, "ConditionalSampler") &&
+					!is.null(sampler$param_set$values$conditioning_set)
+			) {
+				cli::cli_warn(c(
+					"!" = "Provided sampler has a pre-configured {.code conditioning_set}.",
+					i = "To calculate {.cls CFI} correctly, {.code conditioning_set} will be reset such that sampling is performed conditionally on all remaining features."
+				))
+				sampler$param_set$values$conditioning_set = NULL
 			}
 
 			super$initialize(

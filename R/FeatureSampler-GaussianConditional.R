@@ -82,19 +82,21 @@ GaussianConditionalSampler = R6Class(
 	private = list(
 		# Core sampling logic implementing conditional Gaussian sampling
 		.sample_conditional = function(data, feature, conditioning_set, ...) {
+			# Determine conditioning set (note: NULL is different than character(0))
+			# Priority:
+			# 1) function argument,
+			# 2) stored param_set value,
+			# 3) default (all other features) (! important behavior expected by CFI implementation!)
+			conditioning_set = resolve_param(
+				conditioning_set,
+				self$param_set$values$conditioning_set,
+				setdiff(self$task$feature_names, feature)
+			)
+
 			# Handle marginal case (no conditioning)
-			if (is.null(conditioning_set) || length(conditioning_set) == 0) {
-				# Sample from marginal distribution N(μ_feature, Σ_feature)
-				mu_marg = self$mu[feature]
-				sigma_marg = self$sigma[feature, feature, drop = FALSE]
-
-				samples = mvtnorm::rmvnorm(
-					n = nrow(data),
-					mean = mu_marg,
-					sigma = sigma_marg
-				)
-
-				data[, (feature) := as.data.table(samples)]
+			if (length(conditioning_set) == 0) {
+				# Simple random sampling (with replacement) from training data
+				data[, (feature) := lapply(.SD, sample, replace = TRUE), .SDcols = feature]
 				return(data[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)])
 			}
 
