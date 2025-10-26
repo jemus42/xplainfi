@@ -17,10 +17,10 @@ feature's importance. Higher values indicate more important features.
 \dontshow{\}) # examplesIf}
 }
 \references{
-Lei, Jing, Max, G'Sell, Alessandro, Rinaldo, J. R, Tibshirani, Wasserman, Larry (2018).
+Lei J, G'Sell M, Rinaldo A, Tibshirani R, Wasserman L (2018).
 \dQuote{Distribution-Free Predictive Inference for Regression.}
 \emph{Journal of the American Statistical Association}, \bold{113}(523), 1094--1111.
-ISSN 0162-1459, \doi{10.1080/01621459.2017.1307116}.
+\doi{10.1080/01621459.2017.1307116}.
 }
 \section{Super classes}{
 \code{\link[xplainfi:FeatureImportanceMethod]{xplainfi::FeatureImportanceMethod}} -> \code{\link[xplainfi:WVIM]{xplainfi::WVIM}} -> \code{LOCO}

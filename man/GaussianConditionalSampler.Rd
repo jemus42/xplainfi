@@ -63,11 +63,6 @@ Anderson T (2003).
 \emph{An Introduction to Multivariate Statistical Analysis}, 3rd edition.
 Wiley-Interscience, Hoboken, NJ.
 ISBN 9780471360919.
-
-Mardia K, Kent J, Bibby J (1979).
-\emph{Multivariate Analysis}.
-Academic Press, London.
-ISBN 9780124712522.
 }
 \section{Super classes}{
 \code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{\link[xplainfi:ConditionalSampler]{xplainfi::ConditionalSampler}} -> \code{GaussianConditionalSampler}

@@ -23,7 +23,7 @@ specific model. They do not capture broader uncertainty from model variability
 across different train/test splits or resampling iterations.
 }
 \references{
-Covert, Ian, Lundberg, M S, Lee, Su-In (2020).
+Covert I, Lundberg S, Lee S (2020).
 \dQuote{Understanding Global Feature Contributions With Additive Importance Measures.}
 In \emph{Advances in Neural Information Processing Systems}, volume 33, 17212--17223.
 \url{https://proceedings.neurips.cc/paper/2020/hash/c7bf0b7c1a86d5eb3be2c722cf2cf746-Abstract.html}.

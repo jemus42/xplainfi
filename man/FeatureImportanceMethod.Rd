@@ -9,13 +9,13 @@ Feature Importance Method Class
 Feature Importance Method Class
 }
 \references{
-Nadeau, Claude, Bengio, Yoshua (2003).
+Nadeau C, Bengio Y (2003).
 \dQuote{Inference for the Generalization Error.}
 \emph{Machine Learning}, \bold{52}(3), 239--281.
-ISSN 1573-0565, \doi{10.1023/A:1024068626366}.
-Molnar, Christoph, Freiesleben, Timo, König, Gunnar, Herbinger, Julia, Reisinger, Tim, Casalicchio, Giuseppe, Wright, N. M, Bischl, Bernd (2023).
+\doi{10.1023/A:1024068626366}.
+Molnar C, Freiesleben T, König G, Herbinger J, Reisinger T, Casalicchio G, Wright M, Bischl B (2023).
 \dQuote{Relating the Partial Dependence Plot and Permutation Feature Importance to the Data Generating Process.}
-In Longo, Luca (eds.), \emph{Explainable Artificial Intelligence}, 456--479.
+In Longo L (ed.), \emph{Explainable Artificial Intelligence}, 456--479.
 ISBN 978-3-031-44064-9, \doi{10.1007/978-3-031-44064-9_24}.
 }
 \section{Public fields}{

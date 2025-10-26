@@ -36,12 +36,12 @@ sampled_custom = sampler_custom$sample("x1", conditioning_set = "x2")
 \dontshow{\}) # examplesIf}
 }
 \references{
-Watson, S. D, Blesch, Kristin, Kapar, Jan, Wright, N. M (2023).
+Watson D, Blesch K, Kapar J, Wright M (2023).
 \dQuote{Adversarial Random Forests for Density Estimation and Generative Modeling.}
 In \emph{Proceedings of The 26th International Conference on Artificial Intelligence and Statistics}, 5357--5375.
 \url{https://proceedings.mlr.press/v206/watson23a.html}.
 
-Blesch, Kristin, Koenen, Niklas, Kapar, Jan, Golchian, Pegah, Burk, Lukas, Loecher, Markus, Wright, N. M (2025).
+Blesch K, Koenen N, Kapar J, Golchian P, Burk L, Loecher M, Wright M (2025).
 \dQuote{Conditional Feature Importance with Generative Modeling Using Adversarial Random Forests.}
 \emph{Proceedings of the AAAI Conference on Artificial Intelligence}, \bold{39}(15), 15596--15604.
 \doi{10.1609/aaai.v39i15.33712}.

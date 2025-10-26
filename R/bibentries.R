@@ -14,10 +14,21 @@ bibentries = c(
 	ewald_2024 = bibentry(
 		"inproceedings",
 		title = "A Guide to Feature Importance Methods for Scientific Inference",
-		booktitle = "Explainable Artificial Intelligence",
-		author = "Ewald, Fiona Katharina and Bothmann, Ludwig and Wright, Marvin N. and Bischl, Bernd and Casalicchio, Giuseppe and K\u00f6nig, Gunnar",
-		editor = "Longo, Luca and Lapuschkin, Sebastian and Seifert, Christin",
+		author = c(
+			person("Fiona Katharina", "Ewald"),
+			person("Ludwig", "Bothmann"),
+			person("Marvin N.", "Wright"),
+			person("Bernd", "Bischl"),
+			person("Giuseppe", "Casalicchio"),
+			person("Gunnar", "K\u00f6nig")
+		),
 		year = "2024",
+		booktitle = "Explainable Artificial Intelligence",
+		editor = c(
+			person("Luca", "Longo"),
+			person("Sebastian", "Lapuschkin"),
+			person("Christin", "Seifert")
+		),
 		pages = "440--464",
 		publisher = "Springer Nature Switzerland",
 		location = "Cham",
@@ -28,7 +39,12 @@ bibentries = c(
 	konig_2021 = bibentry(
 		"inproceedings",
 		title = "Relative Feature Importance",
-		author = "K\u00f6nig, Gunnar and Molnar, Christoph and Bischl, Bernd and Grosse-Wentrup, Moritz",
+		author = c(
+			person("Gunnar", "K\u00f6nig"),
+			person("Christoph", "Molnar"),
+			person("Bernd", "Bischl"),
+			person("Moritz", "Grosse-Wentrup")
+		),
 		year = "2021",
 		booktitle = "2020 25th International Conference on Pattern Recognition (ICPR)",
 		pages = "9318--9325",
@@ -38,7 +54,15 @@ bibentries = c(
 	blesch_2025 = bibentry(
 		"article",
 		title = "Conditional Feature Importance with Generative Modeling Using Adversarial Random Forests",
-		author = "Blesch, Kristin and Koenen, Niklas and Kapar, Jan and Golchian, Pegah and Burk, Lukas and Loecher, Markus and Wright, Marvin N.",
+		author = c(
+			person("Kristin", "Blesch"),
+			person("Niklas", "Koenen"),
+			person("Jan", "Kapar"),
+			person("Pegah", "Golchian"),
+			person("Lukas", "Burk"),
+			person("Markus", "Loecher"),
+			person("Marvin N.", "Wright")
+		),
 		year = "2025",
 		journal = "Proceedings of the AAAI Conference on Artificial Intelligence",
 		volume = "39",
@@ -50,9 +74,14 @@ bibentries = c(
 	watson_2023 = bibentry(
 		"inproceedings",
 		title = "Adversarial Random Forests for Density Estimation and Generative Modeling",
-		booktitle = "Proceedings of The 26th International Conference on Artificial Intelligence and Statistics",
-		author = "Watson, David S. and Blesch, Kristin and Kapar, Jan and Wright, Marvin N.",
+		author = c(
+			person("David S.", "Watson"),
+			person("Kristin", "Blesch"),
+			person("Jan", "Kapar"),
+			person("Marvin N.", "Wright")
+		),
 		year = "2023",
+		booktitle = "Proceedings of The 26th International Conference on Artificial Intelligence and Statistics",
 		pages = "5357--5375",
 		publisher = "PMLR",
 		url = "https://proceedings.mlr.press/v206/watson23a.html"
@@ -61,7 +90,7 @@ bibentries = c(
 	breiman_2001 = bibentry(
 		"article",
 		title = "Random Forests",
-		author = "Breiman, Leo",
+		author = person("Leo", "Breiman"),
 		year = "2001",
 		journal = "Machine Learning",
 		volume = "45",
@@ -73,7 +102,11 @@ bibentries = c(
 	fisher_2019 = bibentry(
 		"article",
 		title = "All Models Are Wrong, but Many Are Useful: Learning a Variable's Importance by Studying an Entire Class of Prediction Models Simultaneously",
-		author = "Fisher, Aaron and Rudin, Cynthia and Dominici, Francesca",
+		author = c(
+			person("Aaron", "Fisher"),
+			person("Cynthia", "Rudin"),
+			person("Francesca", "Dominici")
+		),
 		year = "2019",
 		journal = "Journal of Machine Learning Research",
 		volume = "20",
@@ -84,82 +117,102 @@ bibentries = c(
 	lundberg_2020 = bibentry(
 		"inproceedings",
 		title = "Understanding Global Feature Contributions With Additive Importance Measures",
-		booktitle = "Advances in Neural Information Processing Systems",
-		author = "Covert, Ian and Lundberg, Scott M and Lee, Su-In",
+		author = c(
+			person("Ian", "Covert"),
+			person("Scott M.", "Lundberg"),
+			person("Su-In", "Lee")
+		),
 		year = "2020",
+		booktitle = "Advances in Neural Information Processing Systems",
 		volume = "33",
 		pages = "17212--17223",
 		publisher = "Curran Associates, Inc.",
-		url = "https://proceedings.neurips.cc/paper/2020/hash/c7bf0b7c1a86d5eb3be2c722cf2cf746-Abstract.html",
+		url = "https://proceedings.neurips.cc/paper/2020/hash/c7bf0b7c1a86d5eb3be2c722cf2cf746-Abstract.html"
 	),
 
 	watson_2021 = bibentry(
 		"article",
-		title = "Testing conditional independence in supervised learning algorithms",
+		title = "Testing Conditional Independence in Supervised Learning Algorithms",
 		author = c(
 			person("David S.", "Watson"),
 			person("Marvin N.", "Wright")
 		),
+		year = "2021",
 		journal = "Machine Learning",
 		volume = "110",
 		number = "8",
-		pages = "2107-2129",
-		year = "2021",
+		pages = "2107--2129",
 		doi = "10.1007/s10994-021-06030-6"
 	),
 
 	blesch_2023 = bibentry(
 		"article",
-		title = "Conditional feature importance for mixed data",
+		title = "Conditional Feature Importance for Mixed Data",
 		author = c(
 			person("Kristin", "Blesch"),
 			person("David S.", "Watson"),
 			person("Marvin N.", "Wright")
 		),
+		year = "2023",
 		journal = "AStA Advances in Statistical Analysis",
 		volume = "108",
 		number = "2",
-		pages = "259-278",
-		year = "2023",
+		pages = "259--278",
 		doi = "10.1007/s10182-023-00477-9"
 	),
 
 	lei_2018 = bibentry(
 		"article",
 		title = "Distribution-Free Predictive Inference for Regression",
-		author = "Lei, Jing and , Max, G'Sell and , Alessandro, Rinaldo and , Ryan J., Tibshirani and Wasserman, Larry",
+		author = c(
+			person("Jing", "Lei"),
+			person("Max", "G'Sell"),
+			person("Alessandro", "Rinaldo"),
+			person("Ryan J.", "Tibshirani"),
+			person("Larry", "Wasserman")
+		),
 		year = "2018",
-		month = "jul",
 		journal = "Journal of the American Statistical Association",
 		volume = "113",
 		number = "523",
 		pages = "1094--1111",
-		publisher = "ASA Website",
-		issn = "0162-1459",
-		doi = "10.1080/01621459.2017.1307116",
+		doi = "10.1080/01621459.2017.1307116"
 	),
 
 	strobl_2008 = bibentry(
 		"article",
 		title = "Conditional Variable Importance for Random Forests",
-		author = "Strobl, Carolin and Boulesteix, Anne-Laure and Kneib, Thomas and Augustin, Thomas and Zeileis, Achim",
+		author = c(
+			person("Carolin", "Strobl"),
+			person("Anne-Laure", "Boulesteix"),
+			person("Thomas", "Kneib"),
+			person("Thomas", "Augustin"),
+			person("Achim", "Zeileis")
+		),
 		year = "2008",
-		month = "jul",
 		journal = "BMC Bioinformatics",
 		volume = "9",
 		number = "1",
 		pages = "307",
-		issn = "1471-2105",
 		doi = "10.1186/1471-2105-9-307"
 	),
 
 	molnar_2023 = bibentry(
 		"inproceedings",
 		title = "Relating the Partial Dependence Plot and Permutation Feature Importance to the Data Generating Process",
-		booktitle = "Explainable Artificial Intelligence",
-		author = "Molnar, Christoph and Freiesleben, Timo and K\u00f6nig, Gunnar and Herbinger, Julia and Reisinger, Tim and Casalicchio, Giuseppe and Wright, Marvin N. and Bischl, Bernd",
-		editor = "Longo, Luca",
+		author = c(
+			person("Christoph", "Molnar"),
+			person("Timo", "Freiesleben"),
+			person("Gunnar", "K\u00f6nig"),
+			person("Julia", "Herbinger"),
+			person("Tim", "Reisinger"),
+			person("Giuseppe", "Casalicchio"),
+			person("Marvin N.", "Wright"),
+			person("Bernd", "Bischl")
+		),
 		year = "2023",
+		booktitle = "Explainable Artificial Intelligence",
+		editor = person("Luca", "Longo"),
 		pages = "456--479",
 		publisher = "Springer Nature Switzerland",
 		doi = "10.1007/978-3-031-44064-9_24",
@@ -169,13 +222,15 @@ bibentries = c(
 	nadaeu_2003 = bibentry(
 		"article",
 		title = "Inference for the Generalization Error",
-		author = "Nadeau, Claude and Bengio, Yoshua",
+		author = c(
+			person("Claude", "Nadeau"),
+			person("Yoshua", "Bengio")
+		),
 		year = "2003",
 		journal = "Machine Learning",
 		volume = "52",
 		number = "3",
 		pages = "239--281",
-		issn = "1573-0565",
 		doi = "10.1023/A:1024068626366"
 	),
 
@@ -223,20 +278,6 @@ bibentries = c(
 		publisher = "Wiley-Interscience",
 		address = "Hoboken, NJ",
 		isbn = "9780471360919"
-	),
-
-	mardia_1979 = bibentry(
-		"book",
-		title = "Multivariate Analysis",
-		author = c(
-			person("K. V.", "Mardia"),
-			person("J. T.", "Kent"),
-			person("J. M.", "Bibby")
-		),
-		year = "1979",
-		publisher = "Academic Press",
-		address = "London",
-		isbn = "9780124712522"
 	),
 
 	hothorn_2006 = bibentry(

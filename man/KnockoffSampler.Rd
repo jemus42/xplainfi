@@ -30,13 +30,13 @@ sampled_seq = sampler_seq$sample("x1")
 }
 \references{
 Watson D, Wright M (2021).
-\dQuote{Testing conditional independence in supervised learning algorithms.}
-\emph{Machine Learning}, \bold{110}(8), 2107-2129.
+\dQuote{Testing Conditional Independence in Supervised Learning Algorithms.}
+\emph{Machine Learning}, \bold{110}(8), 2107--2129.
 \doi{10.1007/s10994-021-06030-6}.
 
 Blesch K, Watson D, Wright M (2023).
-\dQuote{Conditional feature importance for mixed data.}
-\emph{AStA Advances in Statistical Analysis}, \bold{108}(2), 259-278.
+\dQuote{Conditional Feature Importance for Mixed Data.}
+\emph{AStA Advances in Statistical Analysis}, \bold{108}(2), 259--278.
 \doi{10.1007/s10182-023-00477-9}.
 }
 \section{Super class}{

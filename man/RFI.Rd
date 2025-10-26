@@ -21,7 +21,7 @@ rfi$importance()
 \dontshow{\}) # examplesIf}
 }
 \references{
-König, Gunnar, Molnar, Christoph, Bischl, Bernd, Grosse-Wentrup, Moritz (2021).
+König G, Molnar C, Bischl B, Grosse-Wentrup M (2021).
 \dQuote{Relative Feature Importance.}
 In \emph{2020 25th International Conference on Pattern Recognition (ICPR)}, 9318--9325.
 \doi{10.1109/ICPR48806.2021.9413090}.

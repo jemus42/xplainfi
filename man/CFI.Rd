@@ -37,7 +37,7 @@ cfi_custom$importance()
 \dontshow{\}) # examplesIf}
 }
 \references{
-Blesch, Kristin, Koenen, Niklas, Kapar, Jan, Golchian, Pegah, Burk, Lukas, Loecher, Markus, Wright, N. M (2025).
+Blesch K, Koenen N, Kapar J, Golchian P, Burk L, Loecher M, Wright M (2025).
 \dQuote{Conditional Feature Importance with Generative Modeling Using Adversarial Random Forests.}
 \emph{Proceedings of the AAAI Conference on Artificial Intelligence}, \bold{39}(15), 15596--15604.
 \doi{10.1609/aaai.v39i15.33712}.
