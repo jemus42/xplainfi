@@ -164,7 +164,7 @@ KNNConditionalSampler = R6Class(
 					# This works but does a full sort
 					# neighbors = order(dists)[seq_len(k_actual)]
 					# This way we "just" get the indices of the kth neighbours we want
-					neighbors = which(dists <= sort(dists, partial = k)[k])
+					neighbors = which(dists <= sort(dists, partial = k_actual)[k_actual])
 					# After getting the neighbours, pick one random value as the sampling result
 					sampled_idx = sample(neighbors, 1)
 
