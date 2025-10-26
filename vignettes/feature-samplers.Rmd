@@ -16,9 +16,13 @@ knitr::opts_chunk$set(
 )
 ```
 
-Feature samplers are a core component of perturbation-based feature importance methods. They determine how features are replaced or perturbed when evaluating feature importance. This vignette introduces the different types of feature samplers available in xplainfi and demonstrates their use.
+Feature samplers are a core component of perturbation-based feature importance methods (PFI, CFI, RFI) and other methods based on some form of marginilization (SAGE).
+They determine how features are replaced or perturbed when evaluating feature importance. 
+This vignette introduces the different types of feature samplers available in xplainfi and demonstrates their use.
 
 ## Setup
+
+We create two tasks: One with mixed features (the seminal penguins data), and one with all-numeric features.
 
 ```{r load-libraries}
 library(xplainfi)
@@ -27,8 +31,8 @@ library(mlr3learners)
 library(data.table)
 
 # Create a task for demonstration
-task = tsk("penguins")
-task
+task_mixed = tsk("penguins")
+task_numeric = sim_dgp_correlated(n = 200)
 
 # Train a simple model
 learner = lrn("classif.ranger", num.trees = 50, predict_type = "prob")
@@ -46,7 +50,7 @@ All feature samplers inherit from the `FeatureSampler` base class, which provide
 ```{r feature-types}
 # Check supported feature types for different samplers
 task$feature_types
-permutation = PermutationSampler$new(task)
+permutation = PermutationSampler$new(task_mixed)
 permutation$feature_types
 ```
 
@@ -91,7 +95,6 @@ The `PermutationSampler` performs simple random permutation of features, breakin
 - The association between feature values **across rows** is broken
 - The marginal distribution of each feature is preserved
 
-**Important:** This differs from SAGE's "marginal" approach. While `PermutationSampler` shuffles features independently (breaking row structure), `MarginalSAGE` uses reference data but keeps rows intact.
 
 ```{r permutation-example}
 # Create permutation sampler
@@ -109,23 +112,14 @@ data.table(
 )
 ```
 
-**Use in PFI**: The permutation sampler is used by default in Permutation Feature Importance:
+Note that the permutation is only performed _within_ the requested `row_ids`.
 
-```{r pfi-init}
-# PFI uses marginal sampling by default
-pfi = PFI$new(
-	task = task,
-	learner = learner,
-	measure = msr("classif.ce")
-)
-
-# The sampler can be inspected
-pfi$sampler
-```
+**Use in PFI**: The permutation sampler is used by default in Permutation Feature Importance
 
 ## Marginal Reference Sampler
 
-The `MarginalReferenceSampler` is another type of marginal sampler that samples complete rows from reference data. Unlike `PermutationSampler` which shuffles feature values independently, this sampler preserves within-row dependencies by sampling intact observations.
+The `MarginalReferenceSampler` is another type of marginal sampler that samples complete rows from reference data.
+Unlike `PermutationSampler` which shuffles feature values independently, this sampler preserves within-row dependencies by sampling intact observations.
 
 **Key differences from PermutationSampler:**
 
@@ -140,7 +134,7 @@ In `xplainfi`, we separate the "feature sampling" and "model prediction" steps (
 
 ```{r marginal-ref-example}
 # Create marginal reference sampler with n_samples reference pool
-marginal_ref = MarginalReferenceSampler$new(task, n_samples = 30L)
+marginal_ref = MarginalReferenceSampler$new(task_mixed, n_samples = 30L)
 
 # Sample a feature - each row gets values from a randomly sampled reference row
 original = task$data(rows = 1:5)
@@ -162,27 +156,15 @@ data.table(
 
 **Preserving within-row correlations:**
 
-To demonstrate the key difference, consider features that are correlated:
+To demonstrate the difference, consider features that are correlated as in `task_numeric`:
 
 ```{r correlation-preservation}
-# Create task with correlated features
-set.seed(123)
-n = 50
-x1 = rnorm(n)
-corr_data = data.table(
-	x1 = x1,
-	x2 = x1 * 2 + rnorm(n, sd = 0.1), # Highly correlated with x1
-	x3 = rnorm(n),
-	y = factor(sample(c("A", "B"), n, replace = TRUE))
-)
-task_corr = as_task_classif(corr_data, target = "y")
-
 # Sample with PermutationSampler (breaks correlations)
-perm = PermutationSampler$new(task_corr)
+perm = PermutationSampler$new(task_numeric)
 sampled_perm = perm$sample(c("x1", "x2"), row_ids = 1:10)
 
 # Sample with MarginalReferenceSampler (preserves within-row correlations)
-ref = MarginalReferenceSampler$new(task_corr, n_samples = 50L)
+ref = MarginalReferenceSampler$new(task_numeric, n_samples = 50L)
 sampled_ref = ref$sample(c("x1", "x2"), row_ids = 1:10)
 
 # Check correlations
@@ -200,7 +182,8 @@ The reference sampler better preserves the correlation structure because it samp
 
 ## Conditional Samplers
 
-Conditional samplers account for dependencies between features by sampling from $P(X_j | X_{-j})$ rather than the marginal $P(X_j)$. This is crucial when features are correlated.
+Conditional samplers account for dependencies between features by sampling from $P(X_j | X_{-j})$ rather than the marginal $P(X_j)$.
+This is relevant when features are correlated.
 
 All conditional samplers inherit from `ConditionalSampler` and support:
 
@@ -225,9 +208,6 @@ The `GaussianConditionalSampler` assumes features follow a multivariate Gaussian
 - May produce out-of-range values
 
 ```{r gaussian-sampler}
-# Create a numeric task for Gaussian sampler (and later, knockoffs)
-task_numeric = sim_dgp_correlated(n = 100)
-
 # Create Gaussian conditional sampler
 gaussian = GaussianConditionalSampler$new(task_numeric)
 
@@ -251,7 +231,8 @@ Notice that the sampled values respect the conditional distribution - they're di
 
 ### ARF Sampler
 
-The `ARFSampler` uses Adversarial Random Forests to model complex conditional distributions. It's the most flexible conditional sampler.
+The `ARFSampler` uses Adversarial Random Forests to model complex conditional distributions.
+It's the most flexible conditional sampler.
 
 **Advantages**:
 
@@ -267,7 +248,7 @@ The `ARFSampler` uses Adversarial Random Forests to model complex conditional di
 
 ```{r arf-sampler}
 # Create ARF sampler (works with full task including categorical features)
-arf = ARFSampler$new(task, num_trees = 20, verbose = FALSE)
+arf = ARFSampler$new(task_mixed, num_trees = 20, verbose = FALSE)
 
 # Sample island conditioned on body measurements
 sampled = arf$sample(
@@ -277,7 +258,7 @@ sampled = arf$sample(
 )
 
 # Compare original and sampled island
-original = task$data(rows = 1:10)
+original = task_mixed$data(rows = 1:10)
 data.table(
 	original_island = original$island,
 	sampled_island = sampled$island,
@@ -286,19 +267,7 @@ data.table(
 )
 ```
 
-**Use in CFI**: ARFSampler is the default for Conditional Feature Importance:
-
-```{r cfi-init}
-# CFI uses ARF by default
-cfi = CFI$new(
-	task = task,
-	learner = learner,
-	measure = msr("classif.ce")
-)
-
-# The sampler can be inspected
-cfi$sampler
-```
+**Use in CFI**: ARFSampler is the default for Conditional Feature Importance since it can be used with any task, unlike other samplers.
 
 ### Ctree Conditional Sampler
 
@@ -317,7 +286,7 @@ The `CtreeConditionalSampler` uses conditional inference trees to partition the 
 
 ```{r ctree-sampler}
 # Create ctree sampler
-ctree = CtreeConditionalSampler$new(task)
+ctree = CtreeConditionalSampler$new(task_mixed)
 
 # Sample with default parameters
 sampled = ctree$sample(
@@ -326,7 +295,7 @@ sampled = ctree$sample(
 	conditioning_set = "island"
 )
 
-original = task$data(rows = 1:10)
+original = task_mixed$data(rows = 1:10)
 data.table(
 	island = original$island, # Conditioning feature
 	original = original$bill_length,
@@ -354,21 +323,21 @@ The `KNNConditionalSampler` finds k nearest neighbors based on conditioning feat
 
 ```{r knn-sampler}
 # Create kNN sampler with k=5 neighbors
-knn = KNNConditionalSampler$new(task, k = 5)
+knn = KNNConditionalSampler$new(task_numeric, k = 5)
 
 # Sample bill_length based on nearest neighbors in island and body_mass space
 sampled = knn$sample(
-	feature = "bill_length",
+	feature = "x1",
 	row_ids = 1:10,
-	conditioning_set = c("bill_depth", "body_mass")
+	conditioning_set = c("x2", "x3")
 )
 
-original = task$data(rows = 1:10)
+original = task_numeric$data(rows = 1:10)
 data.table(
-	bill_depth = original$bill_depth,
-	body_mass = original$body_mass,
-	original = original$bill_length,
-	sampled = sampled$bill_length
+	x2 = original$x2,
+	x3 = original$x3,
+	original = original$x1,
+	sampled = sampled$x1
 )
 ```
 
@@ -382,10 +351,9 @@ Knockoff samplers create synthetic features (knockoffs) that satisfy specific st
 
 Knockoffs are a separate category because:
 
-1. They require special construction to satisfy theoretical guarantees
+1. They require special construction to satisfy theoretical guarantees, and implementations are limited
 2. They don't support conditional sampling with arbitrary conditioning sets
-3. They create **new** features rather than resampling existing ones
-4. They're used primarily for feature selection with FDR control, not general importance
+3. They're used primarily for feature selection with FDR control, not general importance
 
 ### Gaussian Knockoffs
 
@@ -436,42 +404,6 @@ cfi_knockoff$importance(ci_method = "cpi")
 
 See `vignette("inference")` for more details on statistical inference with feature importance.
 
-## Comparing Samplers
-
-Different samplers make different assumptions and trade-offs. Here's a comparison using the numeric task:
-
-```{r sampler-comparison}
-# Sample the same feature with different methods
-original = task_numeric$data(rows = 1:5)
-
-# Permutation: breaks all dependencies
-permutation_sample = PermutationSampler$new(task_numeric)$sample(
-	"x1",
-	row_ids = 1:5
-)
-
-# Gaussian: assumes multivariate normal
-gaussian_sample = GaussianConditionalSampler$new(task_numeric)$sample(
-	"x1",
-	row_ids = 1:5,
-	conditioning_set = c("x2", "x3")
-)
-
-# kNN: samples from similar observations
-knn_sample = KNNConditionalSampler$new(task_numeric, k = 3)$sample(
-	"x1",
-	row_ids = 1:5,
-	conditioning_set = c("x2", "x3")
-)
-
-# Compare results
-data.table(
-	original = original$x1,
-	permutation = permutation_sample$x1,
-	gaussian = gaussian_sample$x1,
-	knn = knn_sample$x1
-)
-```
 
 **Key takeaways**:
 
@@ -488,7 +420,7 @@ data.table(
 | `GaussianConditionalSampler` | Continuous | Multivariate normal | Very fast | CFI with continuous features |
 | `ARFSampler` | All | None | Moderate | CFI, complex dependencies |
 | `CtreeConditionalSampler` | All | None | Moderate | CFI, interpretable sampling |
-| `KNNConditionalSampler` | All | None | Fast | CFI, simple local structure |
+| `KNNConditionalSampler` | Depends on metric | None | Fast | CFI, simple local structure |
 
 **General guidelines**:
 
