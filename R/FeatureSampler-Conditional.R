@@ -37,6 +37,24 @@ ConditionalSampler = R6Class(
 		#' @return Modified copy with sampled feature(s).
 		sample = function(feature, row_ids = NULL, conditioning_set = NULL, ...) {
 			data_copy = private$.get_task_data_by_row_id(row_ids)
+
+			# Determine conditioning set (note: NULL is different than character(0))
+			# Priority:
+			# 1) function argument,
+			# 2) stored param_set value,
+			# 3) default (all other features) (! important behavior expected by CFI implementation!)
+			conditioning_set = resolve_param(
+				conditioning_set,
+				self$param_set$values$conditioning_set,
+				setdiff(self$task$feature_names, feature)
+			)
+
+			if (xplain_opt("debug")) {
+				cli::cli_alert_info(
+					"Resolved conditioning_set: {.val {conditioning_set}}"
+				)
+			}
+
 			private$.sample_conditional(data_copy, feature, conditioning_set, ...)
 		},
 
@@ -53,6 +71,23 @@ ConditionalSampler = R6Class(
 				data_copy = data.table::copy(newdata)
 			} else {
 				data_copy = as.data.table(newdata)
+			}
+
+			# Determine conditioning set (note: NULL is different than character(0))
+			# Priority:
+			# 1) function argument,
+			# 2) stored param_set value,
+			# 3) default (all other features) (! important behavior expected by CFI implementation!)
+			conditioning_set = resolve_param(
+				conditioning_set,
+				self$param_set$values$conditioning_set,
+				setdiff(self$task$feature_names, feature)
+			)
+
+			if (xplain_opt("debug")) {
+				cli::cli_alert_info(
+					"Resolved conditioning_set: {.val {conditioning_set}}"
+				)
 			}
 
 			private$.sample_conditional(data_copy, feature, conditioning_set, ...)

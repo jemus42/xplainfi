@@ -114,44 +114,75 @@ expect_conditioning_set_behavior = function(sampler_class, task, ...) {
 	# Test 6: NULL conditioning_set should default to all other features
 	# This is critical for CFI - when no conditioning_set is specified,
 	# condition on everything except the target feature
-	result_null = sampler_no_cond$sample(
-		feature = target_feature,
-		row_ids = 1:5,
-		conditioning_set = NULL  # Explicitly pass NULL
+	#
+	# Strategy: Use debug mode to directly verify the resolved conditioning_set value
+	# This is much more reliable than checking stochastic sampling behavior
+
+	# Test with conditioning_set = NULL (should resolve to all other features)
+	messages_null = capture.output(
+		withr::with_options(
+			list(xplain.debug = TRUE),
+			sampler_no_cond$sample(
+				feature = target_feature,
+				row_ids = 1:5,
+				conditioning_set = NULL
+			)
+		),
+		type = "message"
 	)
 
-	# All OTHER features should remain unchanged (they are conditioning features)
+	# Extract the resolved conditioning_set from debug output
+	# Expected format: "Resolved conditioning_set: other_features"
+	resolved_null = paste(messages_null, collapse = " ")
+
+	testthat::expect_true(
+		nchar(resolved_null) > 0 && grepl("Resolved conditioning_set:", resolved_null, fixed = TRUE),
+		info = glue::glue("Debug output should contain resolved conditioning_set for NULL. Got: {resolved_null}")
+	)
+
+	# Verify that with NULL, all other features are in the conditioning set
 	for (feat in other_features) {
-		testthat::expect_identical(
-			result_null[[feat]],
-			original_data[[feat]],
-			info = glue::glue("With conditioning_set=NULL, feature '{feat}' should remain unchanged (it's a conditioning feature)")
-		)
-	}
-
-	# Target feature should be sampled (if numeric, likely different)
-	if (is.numeric(original_data[[target_feature]])) {
-		n_different = sum(result_null[[target_feature]] != original_data[[target_feature]])
 		testthat::expect_true(
-			n_different > 0,
-			info = glue::glue("With conditioning_set=NULL, target feature '{target_feature}' should be sampled")
+			grepl(feat, resolved_null, fixed = TRUE),
+			info = glue::glue(
+				"With conditioning_set=NULL, '{feat}' should be in the resolved conditioning_set. ",
+				"Debug output: {resolved_null}"
+			)
 		)
 	}
 
-	# Test 7: Empty conditioning_set (character(0)) should mean marginal sampling
-	# All features can change (no conditioning)
-	result_empty = sampler_no_cond$sample(
-		feature = target_feature,
-		row_ids = 1:5,
-		conditioning_set = character(0)  # Empty = marginal
+	# Test with conditioning_set = character(0) (should remain empty for marginal sampling)
+	messages_empty = capture.output(
+		withr::with_options(
+			list(xplain.debug = TRUE),
+			sampler_no_cond$sample(
+				feature = target_feature,
+				row_ids = 1:5,
+				conditioning_set = character(0)
+			)
+		),
+		type = "message"
 	)
 
-	# Target feature should still be sampled
-	checkmate::expect_data_table(result_empty, nrows = 5)
+	# Extract the resolved conditioning_set from debug output
+	resolved_empty = paste(messages_empty, collapse = " ")
 
-	# Note: We can't easily verify that "no conditioning" was applied without
-	# knowing the internal implementation details, but at minimum we verify
-	# the sampler handles character(0) without error
+	testthat::expect_true(
+		nchar(resolved_empty) > 0 && grepl("Resolved conditioning_set:", resolved_empty, fixed = TRUE),
+		info = glue::glue("Debug output should contain resolved conditioning_set for character(0). Got: {resolved_empty}")
+	)
+
+	# Verify that character(0) results in empty/no conditioning features
+	# With character(0), none of the other features should appear in the debug output
+	for (feat in other_features) {
+		testthat::expect_false(
+			grepl(feat, resolved_empty, fixed = TRUE),
+			info = glue::glue(
+				"With conditioning_set=character(0), '{feat}' should NOT be in the resolved conditioning_set. ",
+				"Debug output: {resolved_empty}"
+			)
+		)
+	}
 
 	invisible(NULL)
 }

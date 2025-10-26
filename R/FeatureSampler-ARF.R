@@ -213,17 +213,6 @@ ARFSampler = R6Class(
 			verbose = NULL,
 			parallel = NULL
 		) {
-			# Determine conditioning set (note: NULL is different than character(0))
-			# Priority:
-			# 1) function argument,
-			# 2) stored param_set value,
-			# 3) default (all other features) (! important behavior expected by CFI implementation!)
-			conditioning_set = resolve_param(
-				conditioning_set,
-				self$param_set$values$conditioning_set,
-				setdiff(self$task$feature_names, feature)
-			)
-
 			# Determine arf::forge parameters using hierarchical resolution
 			round = resolve_param(round, self$param_set$values$round, TRUE)
 			stepsize = resolve_param(stepsize, self$param_set$values$stepsize, 0)
