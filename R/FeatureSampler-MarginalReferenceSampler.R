@@ -9,7 +9,7 @@
 #' (Covert et al. 2020). For each observation, it samples a complete row from reference
 #' data and takes the specified feature values from that row. This approach:
 #'
-#' - Samples from the marginal distribution P(X_S) where S is the set of features
+#' - Samples from the marginal distribution \eqn{P(X_S)} where S is the set of features
 #' - Preserves dependencies **within** the sampled reference row
 #' - Breaks dependencies **between** test and reference data
 #'
@@ -22,7 +22,7 @@
 #'
 #' - `PermutationSampler`: Shuffles each feature independently, breaking all row structure
 #' - `MarginalReferenceSampler`: Samples complete rows, preserving within-row dependencies
-#' - `ConditionalSampler`: Samples from P(X_S | X_{-S}), conditioning on other features
+#' - `ConditionalSampler`: Samples from \eqn{P(X_S | X_{-S})}, conditioning on other features
 #'
 #' **Use in SAGE:**
 #'
@@ -42,10 +42,8 @@
 #' sampler_subsampled = MarginalReferenceSampler$new(task, n_samples = 50L)
 #' sampled2 = sampler_subsampled$sample("important1", row_ids = 1:10)
 #'
-#' @references
-#' Covert, I., Lundberg, S., & Lee, S. I. (2020).
-#' Understanding Global Feature Contributions With Additive Importance Measures.
-#' *Advances in Neural Information Processing Systems*, 33.
+#' @references `r print_bib("lundberg_2020")`
+
 #'
 #' @export
 MarginalReferenceSampler = R6Class(

@@ -302,7 +302,7 @@ bibentries = c(
 		author = c(
 			person("Kjersti", "Aas"),
 			person("Martin", "Jullum"),
-			person("Anders", "Løland")
+			person("Anders", "L\u00f8land")
 		),
 		year = "2021",
 		journal = "Artificial Intelligence",

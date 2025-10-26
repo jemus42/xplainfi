@@ -18,8 +18,8 @@
 #'
 #' **Comparison with ConditionalSampler:**
 #'
-#' - `MarginalSampler`: Samples from P(X_S) - no conditioning
-#' - `ConditionalSampler`: Samples from P(X_S | X_{-S}) - conditions on other features
+#' - `MarginalSampler`: Samples from \eqn{P(X_S)} - no conditioning
+#' - `ConditionalSampler`: Samples from \eqn{P(X_S | X_{-S})}- conditions on other features
 #'
 #' This base class implements the public `$sample()` and `$sample_newdata()` methods,
 #' delegating to private `.sample_marginal()` which subclasses must implement.

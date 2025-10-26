@@ -13,7 +13,7 @@ This sampler implements what is called "marginal imputation" in the SAGE literat
 (Covert et al. 2020). For each observation, it samples a complete row from reference
 data and takes the specified feature values from that row. This approach:
 \itemize{
-\item Samples from the marginal distribution P(X_S) where S is the set of features
+\item Samples from the marginal distribution \eqn{P(X_S)} where S is the set of features
 \item Preserves dependencies \strong{within} the sampled reference row
 \item Breaks dependencies \strong{between} test and reference data
 }
@@ -27,7 +27,7 @@ clarify that it samples from reference data.
 \itemize{
 \item \code{PermutationSampler}: Shuffles each feature independently, breaking all row structure
 \item \code{MarginalReferenceSampler}: Samples complete rows, preserving within-row dependencies
-\item \code{ConditionalSampler}: Samples from P(X_S | X_{-S}), conditioning on other features
+\item \code{ConditionalSampler}: Samples from \eqn{P(X_S | X_{-S})}, conditioning on other features
 }
 
 \strong{Use in SAGE:}
@@ -50,9 +50,10 @@ sampled2 = sampler_subsampled$sample("important1", row_ids = 1:10)
 
 }
 \references{
-Covert, I., Lundberg, S., & Lee, S. I. (2020).
-Understanding Global Feature Contributions With Additive Importance Measures.
-\emph{Advances in Neural Information Processing Systems}, 33.
+Covert I, Lundberg S, Lee S (2020).
+\dQuote{Understanding Global Feature Contributions With Additive Importance Measures.}
+In \emph{Advances in Neural Information Processing Systems}, volume 33, 17212--17223.
+\url{https://proceedings.neurips.cc/paper/2020/hash/c7bf0b7c1a86d5eb3be2c722cf2cf746-Abstract.html}.
 }
 \section{Super classes}{
 \code{\link[xplainfi:FeatureSampler]{xplainfi::FeatureSampler}} -> \code{\link[xplainfi:MarginalSampler]{xplainfi::MarginalSampler}} -> \code{MarginalReferenceSampler}

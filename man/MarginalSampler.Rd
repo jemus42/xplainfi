@@ -24,8 +24,8 @@ they preserve or break within-row dependencies:
 
 \strong{Comparison with ConditionalSampler:}
 \itemize{
-\item \code{MarginalSampler}: Samples from P(X_S) - no conditioning
-\item \code{ConditionalSampler}: Samples from P(X_S | X_{-S}) - conditions on other features
+\item \code{MarginalSampler}: Samples from \eqn{P(X_S)} - no conditioning
+\item \code{ConditionalSampler}: Samples from \eqn{P(X_S | X_{-S})}- conditions on other features
 }
 
 This base class implements the public \verb{$sample()} and \verb{$sample_newdata()} methods,
