@@ -1,7 +1,7 @@
 #' @title k-Nearest Neighbors Conditional Sampler
 #'
 #' @description Implements conditional sampling using k-nearest neighbors (kNN).
-#' For each observation, finds the k most similar observations based on conditioning
+#' For each observation, finds the `k` most similar observations based on conditioning
 #' features, then samples the target features from these neighbors.
 #'
 #' @details
@@ -23,12 +23,13 @@
 #' **Advantages:**
 #' - Very fast (no model training)
 #' - Works with any feature types
-#' - No hyperparameters besides k
+#' - No hyperparameters besides `k`
 #' - Naturally respects local data structure
 #'
 #' **Limitations:**
-#' - Sensitive to choice of k
-#' - Can produce duplicates if k is small
+#' - Sensitive to choice of `k`
+#' - The full task data is required for prediction
+#' - Can produce duplicates if `k` is small
 #' - Distance metric matters (currently Euclidean only)
 #' - May not extrapolate well to new regions
 #'
@@ -50,12 +51,12 @@
 #' - Troyanskaya, O., et al. (2001). Missing value estimation methods for DNA microarrays. Bioinformatics, 17(6), 520-525.
 #'
 #' @export
-KNNConditionalSampler = R6Class(
+KNNConditionalSampler2 = R6Class(
 	"KNNConditionalSampler",
 	inherit = ConditionalSampler,
 	public = list(
 		#' @field feature_types (`character()`) Feature types supported by the sampler.
-		feature_types = c("numeric", "integer", "factor", "ordered", "logical"),
+		feature_types = c("numeric", "integer"),
 
 		#' @description
 		#' Creates a new KNNConditionalSampler.
@@ -111,10 +112,8 @@ KNNConditionalSampler = R6Class(
 
 			# Handle marginal case (no conditioning)
 			if (is.null(conditioning_set) || length(conditioning_set) == 0) {
-				# Simple random sampling from training data
-				for (feat in feature) {
-					data[, (feat) := sample(training_data[[feat]], .N, replace = TRUE)]
-				}
+				# Simple random sampling (with replacement) from training data
+				data[, (feature) := lapply(.SD, sample, replace = TRUE), .SDcols = feature]
 				return(data[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)])
 			}
 
@@ -148,26 +147,29 @@ KNNConditionalSampler = R6Class(
 				)
 			}
 
-			# For each observation, find k nearest neighbors and sample
-			for (i in seq_len(nrow(data))) {
-				# Compute distances to all training observations
-				query_point = query_cond[i, , drop = FALSE]
-				distances = sqrt(rowSums((sweep(train_cond, 2, query_point))^2))
+			# Create temporary index column
+			data[, query_idx := .I]
 
-				# Find k nearest neighbors
-				# If k > n_train, use all training data
-				k_actual = min(k, length(distances))
-				neighbor_indices = order(distances)[seq_len(k_actual)]
+			# Do the nearest neighbor sampling
+			sampled = data[,
+				{
+					qp = query_cond[query_idx, , drop = FALSE]
+					# Euclidian distances
+					# sweep gets difference between each element in train_cond and query point
+					dists = sqrt(rowSums((sweep(train_cond, 2, qp))^2))
 
-				# Sample one neighbor uniformly
-				sampled_idx = sample(neighbor_indices, 1)
+					k_actual = min(k, length(dists))
+					neighbors = order(dists)[seq_len(k_actual)]
+					sampled_idx = sample(neighbors, 1)
 
-				# Replace target features with values from sampled neighbor
-				for (feat in feature) {
-					data[i, (feat) := training_data[[feat]][sampled_idx]]
-				}
-				# data[i, (feature) := training_data[sampled_idx, .SD, .SDcols = feature]]
-			}
+					.(sampled_idx = sampled_idx)
+				},
+				by = query_idx
+			]
+
+			# Assign the features
+			data[, (feature) := training_data[sampled$sampled_idx, .SD, .SDcols = feature]]
+			data[, query_idx := NULL]
 
 			data[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)]
 		}
