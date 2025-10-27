@@ -180,3 +180,5 @@ pfi$importance()
 #>  9: unimportant4 -0.0008701439
 #> 10: unimportant5 -0.0015809452
 ```
+
+See `vignette("xplainfi")` for more examples.

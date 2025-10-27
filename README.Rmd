@@ -92,8 +92,8 @@ While `pfi$importance()` contains the means across all iterations, `pfi$scores()
 For example:
 
 ```{r pfi-plot}
-#| fig-width: 6
-#| fig-height: 5
+#| fig-width: 9
+#| fig-height: 7
 library(ggplot2)
 
 ggplot(
@@ -126,3 +126,5 @@ pfi = PFI$new(
 pfi$compute()
 pfi$importance()
 ```
+
+See `vignette("xplainfi")` for more examples.
