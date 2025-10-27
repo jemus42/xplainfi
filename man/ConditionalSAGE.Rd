@@ -12,6 +12,7 @@ Uses \link{ConditionalARFSampler} as default \link{ConditionalSampler}.
 library(mlr3)
 task = tgen("friedman1")$generate(n = 100)
 
+\dontrun{
 # Using default ConditionalARFSampler
 sage = ConditionalSAGE$new(
   task = task,
@@ -21,17 +22,17 @@ sage = ConditionalSAGE$new(
   n_samples = 20
 )
 sage$compute()
+}
 \dontrun{
-# For more control over ARF sampling behavior:
-custom_sampler = ConditionalARFSampler$new(
-  task = task,
-  finite_bounds = "local" # can improve sampling behavior
+# For alternative conditional samplers:
+custom_sampler = ConditionalGaussianSampler$new(
+  task = task
 )
 sage_custom = ConditionalSAGE$new(
   task = task,
   learner = lrn("regr.ranger", num.trees = 50),
   measure = msr("regr.mse"),
-  n_permutations = 3L,
+  n_permutations = 5L,
   n_samples = 20,
   sampler = custom_sampler
 )
