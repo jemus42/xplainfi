@@ -142,37 +142,49 @@ PerturbationImportance = R6Class(
 						test_row_ids_replicated = rep.int(test_row_ids, times = n_repeats)
 						perturbed_data = sampler$sample(foi, row_ids = test_row_ids_replicated)
 
-						# Determine total rows to predict
-						total_rows = nrow(perturbed_data)
+						# Determine effective batch size for processing
+						# If batch_size is NULL, process all rows at once
+						# Otherwise, process in chunks of batch_size
+						effective_batch_size = batch_size %||% (test_size * n_repeats)
 
-						# If no batch_size or batch_size >= total_rows, predict all at once
-						if (is.null(batch_size) || batch_size >= total_rows) {
-							# Single batch prediction
+						# Split perturbed data into repeats first
+						perturbed_data_list = split(
+							perturbed_data,
+							rep(seq_len(n_repeats), each = test_size)
+						)
+
+						# Now process repeats, potentially in batches
+						n_batches = ceiling(n_repeats * test_size / effective_batch_size)
+
+						if (n_batches == 1) {
+							# Single batch: predict all repeats at once
 							if (is.function(this_learner$predict_newdata_fast)) {
+								# Fast path: predict all rows, then split
 								pred_raw = this_learner$predict_newdata_fast(
 									newdata = perturbed_data,
 									task = self$task
 								)
 
-								# pred_raw is a list with one element per row
-								# Split into n_repeats chunks
-								pred_list = split(pred_raw, rep(seq_len(n_repeats), each = test_size))
-
-								# Convert each chunk to Prediction object
-								preds = lapply(pred_list, \(p) {
+								# pred_raw is a list with $response, $se, etc. (each a vector)
+								# Split each component into n_repeats chunks
+								preds = lapply(seq_len(n_repeats), \(i) {
+									start_idx = (i - 1) * test_size + 1
+									end_idx = i * test_size
+									# Slice each component of pred_raw
+									pred_chunk = lapply(pred_raw, \(component) {
+										if (!is.null(component) && length(component) > 0) {
+											component[start_idx:end_idx]
+										} else {
+											NULL
+										}
+									})
 									private$.construct_pred(
-										raw_prediction = p,
+										raw_prediction = pred_chunk,
 										test_row_ids = self$resampling$test_set(iter)
 									)
 								})
 							} else {
-								# predict_newdata returns full Prediction object
-								# We need to split perturbed_data and predict each chunk
-								perturbed_data_list = split(
-									perturbed_data,
-									rep(seq_len(n_repeats), each = test_size)
-								)
-
+								# Regular path: predict each repeat separately
 								preds = lapply(perturbed_data_list, \(data_chunk) {
 									this_learner$predict_newdata(
 										newdata = data_chunk,
@@ -181,57 +193,55 @@ PerturbationImportance = R6Class(
 								})
 							}
 						} else {
-							# Batched prediction
-							n_batches = ceiling(total_rows / batch_size)
-							all_preds_raw = vector("list", n_batches)
+							# Multiple batches: process repeats in groups
+							preds = vector("list", n_repeats)
+
+							# Calculate which repeats go in each batch
+							repeats_per_batch = floor(effective_batch_size / test_size)
+							repeat_idx = 1
 
 							for (batch_idx in seq_len(n_batches)) {
-								start_row = (batch_idx - 1) * batch_size + 1
-								end_row = min(batch_idx * batch_size, total_rows)
-								batch_data = perturbed_data[start_row:end_row, ]
+								# Determine which repeats are in this batch
+								n_repeats_in_batch = min(repeats_per_batch, n_repeats - repeat_idx + 1)
+								repeat_indices = repeat_idx:(repeat_idx + n_repeats_in_batch - 1)
+
+								# Combine data for this batch
+								batch_data = rbindlist(perturbed_data_list[repeat_indices])
 
 								if (is.function(this_learner$predict_newdata_fast)) {
-									all_preds_raw[[batch_idx]] = this_learner$predict_newdata_fast(
+									pred_raw = this_learner$predict_newdata_fast(
 										newdata = batch_data,
 										task = self$task
 									)
+
+									# Split predictions back into repeats
+									for (i in seq_along(repeat_indices)) {
+										start_idx = (i - 1) * test_size + 1
+										end_idx = i * test_size
+										# Slice each component of pred_raw
+										pred_chunk = lapply(pred_raw, \(component) {
+											if (!is.null(component) && length(component) > 0) {
+												component[start_idx:end_idx]
+											} else {
+												NULL
+											}
+										})
+										preds[[repeat_indices[i]]] = private$.construct_pred(
+											raw_prediction = pred_chunk,
+											test_row_ids = self$resampling$test_set(iter)
+										)
+									}
 								} else {
-									all_preds_raw[[batch_idx]] = this_learner$predict_newdata(
-										newdata = batch_data,
-										task = self$task
-									)
+									# Predict each repeat in this batch separately
+									for (i in repeat_indices) {
+										preds[[i]] = this_learner$predict_newdata(
+											newdata = perturbed_data_list[[i]],
+											task = self$task
+										)
+									}
 								}
-							}
 
-							# Combine batches
-							if (is.function(this_learner$predict_newdata_fast)) {
-								combined_raw = unlist(all_preds_raw, recursive = FALSE)
-								# Split into n_repeats chunks
-								pred_list = split(combined_raw, rep(seq_len(n_repeats), each = test_size))
-
-								preds = lapply(pred_list, \(p) {
-									private$.construct_pred(
-										raw_prediction = p,
-										test_row_ids = self$resampling$test_set(iter)
-									)
-								})
-							} else {
-								# Combine Prediction objects
-								# Split combined predictions into n_repeats chunks
-								perturbed_data_list = split(
-									perturbed_data,
-									rep(seq_len(n_repeats), each = test_size)
-								)
-
-								# Map batches back to repeats
-								# This is more complex - need to figure out which batch predictions belong to which repeat
-								# For now, fall back to per-repeat prediction
-								preds = lapply(perturbed_data_list, \(data_chunk) {
-									this_learner$predict_newdata(
-										newdata = data_chunk,
-										task = self$task
-									)
-								})
+								repeat_idx = repeat_idx + n_repeats_in_batch
 							}
 						}
 
