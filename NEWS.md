@@ -43,10 +43,16 @@ This turns out to be still a period of major changes in the early phase, so, uhm
 - **Breaking**: Refactor `FeatureSampler` API to separate task-based and external data sampling (#49):
   - `$sample(feature, row_ids = NULL)` now samples from stored task using row IDs
   - `$sample_newdata(feature, newdata)` samples from external data (e.g., test set)
+- **Breaking**: Rename sampler classes for consistent hierarchical naming:
+  - `PermutationSampler` → `MarginalPermutationSampler`
+  - `ARFSampler` → `ConditionalARFSampler`
+  - `GaussianConditionalSampler` → `ConditionalGaussianSampler`
+  - `KNNConditionalSampler` → `ConditionalKNNSampler`
+  - `CtreeConditionalSampler` → `ConditionalCtreeSampler`
 - Add `MarginalSampler` base class for marginal sampling methods (no conditioning)
 - Add `MarginalReferenceSampler` that samples complete rows from reference data, preserving within-row dependencies. Implements SAGE's marginal sampling approach.
-- Refactor `PermutationSampler` to inherit from `MarginalSampler`
-- Extend `ARFSampler` to store more arguments on construction, making it easier to "preconfigure" the sampler via arguments used in `$sample()`.
+- Refactor `MarginalPermutationSampler` to inherit from `MarginalSampler`
+- Extend `ConditionalARFSampler` to store more arguments on construction, making it easier to "preconfigure" the sampler via arguments used in `$sample()`.
 - Standardize on `conditioning_set` as the name for the character vector defining features to condition on in `ConditionalSampler` and `RFI`.
 - Add `KnockoffSampler` (#16 via @mnwright)
   - Now supports `row_ids`-based sampling from stored task data
