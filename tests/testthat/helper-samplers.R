@@ -137,7 +137,9 @@ expect_conditioning_set_behavior = function(sampler_class, task, ...) {
 
 	testthat::expect_true(
 		nchar(resolved_null) > 0 && grepl("Resolved conditioning_set:", resolved_null, fixed = TRUE),
-		info = glue::glue("Debug output should contain resolved conditioning_set for NULL. Got: {resolved_null}")
+		info = glue::glue(
+			"Debug output should contain resolved conditioning_set for NULL. Got: {resolved_null}"
+		)
 	)
 
 	# Verify that with NULL, all other features are in the conditioning set
@@ -169,7 +171,9 @@ expect_conditioning_set_behavior = function(sampler_class, task, ...) {
 
 	testthat::expect_true(
 		nchar(resolved_empty) > 0 && grepl("Resolved conditioning_set:", resolved_empty, fixed = TRUE),
-		info = glue::glue("Debug output should contain resolved conditioning_set for character(0). Got: {resolved_empty}")
+		info = glue::glue(
+			"Debug output should contain resolved conditioning_set for character(0). Got: {resolved_empty}"
+		)
 	)
 
 	# Verify that character(0) results in empty/no conditioning features
@@ -186,4 +190,3 @@ expect_conditioning_set_behavior = function(sampler_class, task, ...) {
 
 	invisible(NULL)
 }
-

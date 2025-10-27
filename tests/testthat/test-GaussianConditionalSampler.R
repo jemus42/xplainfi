@@ -16,7 +16,7 @@ test_that("GaussianConditionalSampler initialization works", {
 
 test_that("GaussianConditionalSampler rejects non-numeric tasks", {
 	library(mlr3)
-	task = tsk("penguins")  # Has factor features
+	task = tsk("penguins") # Has factor features
 
 	expect_error(
 		GaussianConditionalSampler$new(task),

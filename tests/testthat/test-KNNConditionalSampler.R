@@ -15,7 +15,7 @@ test_that("KNNConditionalSampler initialization works", {
 test_that("KNNConditionalSampler works with default k", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
-	sampler = KNNConditionalSampler$new(task)  # Default k = 5L
+	sampler = KNNConditionalSampler$new(task) # Default k = 5L
 
 	expect_equal(sampler$param_set$values$k, 5L)
 })
