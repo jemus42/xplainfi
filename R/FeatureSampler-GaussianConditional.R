@@ -86,8 +86,19 @@ GaussianConditionalSampler = R6Class(
 		.sample_conditional = function(data, feature, conditioning_set, ...) {
 			# Handle marginal case (no conditioning)
 			if (length(conditioning_set) == 0) {
-				# Simple random sampling (with replacement) from training data
-				data[, (feature) := lapply(.SD, sample, replace = TRUE), .SDcols = feature]
+				# Sample from marginal Gaussian N(mu_feature, Sigma_feature)
+				mu_feature = self$mu[feature]
+				sigma_feature = self$sigma[feature, feature, drop = FALSE]
+
+				n_samples = nrow(data)
+				n_features = length(feature)
+
+				# Generate samples from multivariate Gaussian
+				samples = mvtnorm::rmvnorm(n_samples, mean = mu_feature, sigma = sigma_feature)
+
+				# Update data with sampled values
+				data[, (feature) := as.data.table(samples)]
+
 				return(data[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)])
 			}
 
