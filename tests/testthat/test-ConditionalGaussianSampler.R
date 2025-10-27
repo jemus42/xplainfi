@@ -1,9 +1,9 @@
-test_that("GaussianConditionalSampler initialization works", {
+test_that("ConditionalGaussianSampler initialization works", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
-	sampler = GaussianConditionalSampler$new(task)
+	sampler = ConditionalGaussianSampler$new(task)
 
-	expect_true(inherits(sampler, "GaussianConditionalSampler"))
+	expect_true(inherits(sampler, "ConditionalGaussianSampler"))
 	expect_true(inherits(sampler, "ConditionalSampler"))
 	expect_equal(sampler$label, "Gaussian Conditional Sampler")
 	expect_true(inherits(sampler$param_set, "ParamSet"))
@@ -14,20 +14,20 @@ test_that("GaussianConditionalSampler initialization works", {
 	expect_true(isSymmetric(sampler$sigma))
 })
 
-test_that("GaussianConditionalSampler rejects non-numeric tasks", {
+test_that("ConditionalGaussianSampler rejects non-numeric tasks", {
 	library(mlr3)
 	task = tsk("penguins") # Has factor features
 
 	expect_error(
-		GaussianConditionalSampler$new(task),
+		ConditionalGaussianSampler$new(task),
 		"unsupported feature types"
 	)
 })
 
-test_that("GaussianConditionalSampler marginal sampling works", {
+test_that("ConditionalGaussianSampler marginal sampling works", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
-	sampler = GaussianConditionalSampler$new(task)
+	sampler = ConditionalGaussianSampler$new(task)
 	data = task$data()
 
 	# Sample single feature without conditioning
@@ -43,10 +43,10 @@ test_that("GaussianConditionalSampler marginal sampling works", {
 	expect_false(identical(sampled_data$important1, data$important1[1:50]))
 })
 
-test_that("GaussianConditionalSampler conditional sampling with single conditioning feature", {
+test_that("ConditionalGaussianSampler conditional sampling with single conditioning feature", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
-	sampler = GaussianConditionalSampler$new(task)
+	sampler = ConditionalGaussianSampler$new(task)
 	data = task$data()
 
 	# Sample important2 | important1
@@ -68,10 +68,10 @@ test_that("GaussianConditionalSampler conditional sampling with single condition
 	expect_identical(sampled_data$important1, data$important1[1:50])
 })
 
-test_that("GaussianConditionalSampler conditional sampling with multiple features", {
+test_that("ConditionalGaussianSampler conditional sampling with multiple features", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
-	sampler = GaussianConditionalSampler$new(task)
+	sampler = ConditionalGaussianSampler$new(task)
 	data = task$data()
 
 	# Sample important2, important3 | important1
@@ -93,10 +93,10 @@ test_that("GaussianConditionalSampler conditional sampling with multiple feature
 	expect_identical(sampled_data$important1, data$important1[1:50])
 })
 
-test_that("GaussianConditionalSampler sample_newdata works", {
+test_that("ConditionalGaussianSampler sample_newdata works", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
-	sampler = GaussianConditionalSampler$new(task)
+	sampler = ConditionalGaussianSampler$new(task)
 
 	# Create external test data
 	test_data = task$data(rows = 1:10)
@@ -120,10 +120,10 @@ test_that("GaussianConditionalSampler sample_newdata works", {
 	expect_identical(sampled$important1, test_data$important1)
 })
 
-test_that("GaussianConditionalSampler handles single observation", {
+test_that("ConditionalGaussianSampler handles single observation", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
-	sampler = GaussianConditionalSampler$new(task)
+	sampler = ConditionalGaussianSampler$new(task)
 
 	test_data = task$data(rows = 1)
 
@@ -137,10 +137,10 @@ test_that("GaussianConditionalSampler handles single observation", {
 	expect_identical(sampled$important1, test_data$important1)
 })
 
-test_that("GaussianConditionalSampler is reproducible with seed", {
+test_that("ConditionalGaussianSampler is reproducible with seed", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
-	sampler = GaussianConditionalSampler$new(task)
+	sampler = ConditionalGaussianSampler$new(task)
 	test_data = task$data(rows = 1:10)
 
 	sampled1 = withr::with_seed(123, {
@@ -162,12 +162,12 @@ test_that("GaussianConditionalSampler is reproducible with seed", {
 	expect_identical(sampled1$important2, sampled2$important2)
 })
 
-test_that("GaussianConditionalSampler conditioning_set parameter behavior", {
+test_that("ConditionalGaussianSampler conditioning_set parameter behavior", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
 
 	expect_conditioning_set_behavior(
-		sampler_class = GaussianConditionalSampler,
+		sampler_class = ConditionalGaussianSampler,
 		task = task
 	)
 })

@@ -7,7 +7,7 @@
 #' @details
 #' This class provides a common interface for different marginal sampling approaches:
 #'
-#' - **PermutationSampler**: Shuffles features independently within the dataset
+#' - **MarginalPermutationSampler**: Shuffles features independently within the dataset
 #' - **MarginalReferenceSampler**: Samples complete rows from reference data
 #'
 #' Both approaches sample from the marginal distribution P(X_S), but differ in how

@@ -121,7 +121,7 @@ CFI preserves the joint distribution, which should better capture the interactio
 ```{r cfi-interactions}
 #| cache: true
 # Create ARF sampler for the interaction task
-sampler_int = ARFSampler$new(task = task_int, finite_bounds = "local")
+sampler_int = ConditionalARFSampler$new(task = task_int, finite_bounds = "local")
 
 cfi_int <- CFI$new(
 	task = task_int,
@@ -369,7 +369,7 @@ RFI can condition on the proxy to help isolate direct effects:
 ```{r rfi-confounding}
 #| cache: true
 # Create sampler for confounding task
-sampler_conf = ARFSampler$new(
+sampler_conf = ConditionalARFSampler$new(
 	task = task_conf,
 	verbose = FALSE,
 	finite_bounds = "local"
@@ -417,7 +417,7 @@ In many real-world situations, confounders are actually observable (e.g., demogr
 task_conf_obs <- sim_dgp_confounded(n = 1000, hidden = FALSE)
 
 # Now we can condition directly on the true confounder
-sampler_conf_obs = ARFSampler$new(
+sampler_conf_obs = ConditionalARFSampler$new(
 	task = task_conf_obs,
 	verbose = FALSE,
 	finite_bounds = "local"
@@ -601,7 +601,7 @@ Expected: PFI will show high importance for BOTH x1 and x2, even though only x1 
 ```{r cfi-correlated}
 #| cache: true
 # Create ARF sampler for correlated task
-sampler_cor = ARFSampler$new(task = task_cor, finite_bounds = "local")
+sampler_cor = ConditionalARFSampler$new(task = task_cor, finite_bounds = "local")
 
 cfi_cor <- CFI$new(
 	task = task_cor,
@@ -777,7 +777,7 @@ Now CFI  with the ARF sampler:
 
 ```{r all-methods-independent-cfi}
 #| cache: true
-sampler_ind = ARFSampler$new(task = task_ind, finite_bounds = "local")
+sampler_ind = ConditionalARFSampler$new(task = task_ind, finite_bounds = "local")
 cfi_ind <- CFI$new(
 	task = task_ind,
 	learner = learner,

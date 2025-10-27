@@ -47,7 +47,7 @@
 #' @examples
 #' library(mlr3)
 #' task = tgen("friedman1")$generate(n = 100)
-#' sampler = KNNConditionalSampler$new(task, k = 5)
+#' sampler = ConditionalKNNSampler$new(task, k = 5)
 #'
 #' # Sample features conditioned on others
 #' test_data = task$data(rows = 1:5)
@@ -60,15 +60,15 @@
 #' @references `r print_bib("little_2019", "troyanskaya_2001")`
 #'
 #' @export
-KNNConditionalSampler = R6Class(
-	"KNNConditionalSampler",
+ConditionalKNNSampler = R6Class(
+	"ConditionalKNNSampler",
 	inherit = ConditionalSampler,
 	public = list(
 		#' @field feature_types (`character()`) Feature types supported by the sampler.
 		feature_types = c("numeric", "integer", "factor", "ordered", "logical"),
 
 		#' @description
-		#' Creates a new KNNConditionalSampler.
+		#' Creates a new ConditionalKNNSampler.
 		#' @param task ([mlr3::Task]) Task to sample from.
 		#' @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`.
 		#' @param k (`integer(1)`: `5L`) Number of nearest neighbors to sample from.

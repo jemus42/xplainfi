@@ -142,7 +142,7 @@ FeatureImportanceMethod = R6Class(
 		#' `n_repeats = 5` in this context only improves the stability of the PFI estimate within the resampling iteration, whereas `rsmp("subsampling", repeats = 15)`
 		#' is used to accounter for learner variance and neccessitates variance correction factor.
 		#'
-		#' This appraoch can in principle also be applied to `CFI` and `RFI`, but beware that a conditional sample such as [ARFSampler] also needs to be trained on data,
+		#' This appraoch can in principle also be applied to `CFI` and `RFI`, but beware that a conditional sample such as [ConditionalARFSampler] also needs to be trained on data,
 		#' which would need to be taken account by the variance estimation method.
 		#' Analogously, the `"nadeau_bengio"` correction was recommended for the use with [PFI] by Molnar et al., so its use with other methods like [LOCO] or [SAGE] is experimental.
 		#'

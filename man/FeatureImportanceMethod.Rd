@@ -168,7 +168,7 @@ An approach leading to still imperfect, but improved variance estimates could be
 \code{n_repeats = 5} in this context only improves the stability of the PFI estimate within the resampling iteration, whereas \code{rsmp("subsampling", repeats = 15)}
 is used to accounter for learner variance and neccessitates variance correction factor.
 
-This appraoch can in principle also be applied to \code{CFI} and \code{RFI}, but beware that a conditional sample such as \link{ARFSampler} also needs to be trained on data,
+This appraoch can in principle also be applied to \code{CFI} and \code{RFI}, but beware that a conditional sample such as \link{ConditionalARFSampler} also needs to be trained on data,
 which would need to be taken account by the variance estimation method.
 Analogously, the \code{"nadeau_bengio"} correction was recommended for the use with \link{PFI} by Molnar et al., so its use with other methods like \link{LOCO} or \link{SAGE} is experimental.
 

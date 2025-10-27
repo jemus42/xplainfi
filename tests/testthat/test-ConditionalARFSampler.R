@@ -1,11 +1,11 @@
-test_that("ARFSampler basic functionality", {
+test_that("ConditionalARFSampler basic functionality", {
 	skip_if_not_installed("arf")
 	library(mlr3)
 	n = 100
 	task = tgen("circle", d = 5)$generate(n = n)
-	sampler = ARFSampler$new(task)
+	sampler = ConditionalARFSampler$new(task)
 
-	expect_true(inherits(sampler, "ARFSampler"))
+	expect_true(inherits(sampler, "ConditionalARFSampler"))
 	expect_equal(sampler$label, "Adversarial Random Forest sampler")
 	expect_true(inherits(sampler$param_set, "ParamSet"))
 	expect_true("conditioning_set" %in% sampler$param_set$ids())
@@ -32,14 +32,14 @@ test_that("ARFSampler basic functionality", {
 	)
 })
 
-test_that("ARFSampler with conditioning_set parameter at initialization", {
+test_that("ConditionalARFSampler with conditioning_set parameter at initialization", {
 	skip_if_not_installed("arf")
 	library(mlr3)
 
 	task = tgen("circle", d = 5)$generate(n = 100)
 
 	# Initialize with specific conditioning features
-	sampler = ARFSampler$new(task, conditioning_set = c("x2", "x3"))
+	sampler = ConditionalARFSampler$new(task, conditioning_set = c("x2", "x3"))
 
 	expect_equal(sampler$param_set$values$conditioning_set, c("x2", "x3"))
 
@@ -56,7 +56,7 @@ test_that("ARFSampler with conditioning_set parameter at initialization", {
 	)
 })
 
-test_that("ARFSampler with empty conditioning set behaves like marginal sampling", {
+test_that("ConditionalARFSampler with empty conditioning set behaves like marginal sampling", {
 	skip_if_not_installed("arf")
 	library(mlr3)
 
@@ -64,10 +64,10 @@ test_that("ARFSampler with empty conditioning set behaves like marginal sampling
 	task = tgen("circle", d = 5)$generate(n = 100)
 
 	# ARF sampler with empty conditioning set
-	sampler_arf = ARFSampler$new(task, conditioning_set = character(0))
+	sampler_arf = ConditionalARFSampler$new(task, conditioning_set = character(0))
 
 	# Permutation sampler for comparison
-	sampler_permutation = PermutationSampler$new(task)
+	sampler_permutation = MarginalPermutationSampler$new(task)
 
 	data = task$data()
 
@@ -76,7 +76,7 @@ test_that("ARFSampler with empty conditioning set behaves like marginal sampling
 	# Sample with ARF (empty conditioning)
 	sampled_arf = sampler_arf$sample("x1")
 
-	# Sample with PermutationSampler for comparison
+	# Sample with MarginalPermutationSampler for comparison
 	sampled_permutation = sampler_permutation$sample("x1")
 
 	# Basic checks for ARF sampler
@@ -110,7 +110,7 @@ test_that("ARFSampler with empty conditioning set behaves like marginal sampling
 	expect_equal(sampler_arf$param_set$values$conditioning_set, character(0))
 })
 
-test_that("ARFSampler conditioning features priority", {
+test_that("ConditionalARFSampler conditioning features priority", {
 	skip_if_not_installed("arf")
 	library(mlr3)
 
@@ -118,7 +118,7 @@ test_that("ARFSampler conditioning features priority", {
 	data = task$data()
 
 	# Initialize with default conditioning features
-	sampler = ARFSampler$new(task, conditioning_set = c("x2"))
+	sampler = ConditionalARFSampler$new(task, conditioning_set = c("x2"))
 
 	# Test 1: Use stored conditioning features
 	sampled1 = sampler$sample("x1")
@@ -136,12 +136,12 @@ test_that("ARFSampler conditioning features priority", {
 	expect_equal(sampler$param_set$values$conditioning_set, c("x2"))
 })
 
-test_that("ARFSampler handles multiple features", {
+test_that("ConditionalARFSampler handles multiple features", {
 	skip_if_not_installed("arf")
 	library(mlr3)
 
 	task = tgen("circle", d = 5)$generate(n = 100)
-	sampler = ARFSampler$new(task)
+	sampler = ConditionalARFSampler$new(task)
 	data = task$data()
 
 	# Test multiple feature sampling
@@ -157,30 +157,30 @@ test_that("ARFSampler handles multiple features", {
 	)
 })
 
-test_that("ARFSampler works with different task types", {
+test_that("ConditionalARFSampler works with different task types", {
 	skip_if_not_installed("arf")
 	library(mlr3)
 
 	# Regression task
 	task_regr = tgen("circle", d = 4)$generate(n = 100)
-	sampler_regr = ARFSampler$new(task_regr)
+	sampler_regr = ConditionalARFSampler$new(task_regr)
 	sampled_regr = sampler_regr$sample("x1")
 	expect_sampler_output(sampled_regr, task_regr, nrows = 100)
 
 	# Binary classification task
 	task_classif = tsk("sonar")
-	sampler_classif = ARFSampler$new(task_classif)
+	sampler_classif = ConditionalARFSampler$new(task_classif)
 	sampled_classif = sampler_classif$sample("V1")
 	expect_sampler_output(sampled_classif, task_classif, nrows = task_classif$nrow)
 
 	# Multiclass classification task
 	task_multi = tsk("iris")
-	sampler_multi = ARFSampler$new(task_multi)
+	sampler_multi = ConditionalARFSampler$new(task_multi)
 	sampled_multi = sampler_multi$sample("Sepal.Length")
 	expect_sampler_output(sampled_multi, task_multi, nrows = 150)
 })
 
-test_that("ARFSampler parameter validation", {
+test_that("ConditionalARFSampler parameter validation", {
 	skip_if_not_installed("arf")
 	library(mlr3)
 
@@ -188,23 +188,23 @@ test_that("ARFSampler parameter validation", {
 
 	# Test with invalid conditioning features should still create the sampler
 	# (validation happens at sample time)
-	sampler = ARFSampler$new(task, conditioning_set = c("nonexistent_feature"))
-	expect_true(inherits(sampler, "ARFSampler"))
+	sampler = ConditionalARFSampler$new(task, conditioning_set = c("nonexistent_feature"))
+	expect_true(inherits(sampler, "ConditionalARFSampler"))
 	expect_equal(sampler$param_set$values$conditioning_set, c("nonexistent_feature"))
 })
 
-test_that("ARFSampler finite_bounds parameter", {
+test_that("ConditionalARFSampler finite_bounds parameter", {
 	skip_if_not_installed("arf")
 	library(mlr3)
 
 	task = tgen("circle", d = 5)$generate(n = 50)
 
 	# Test initialization with no bounds (default)
-	sampler = ARFSampler$new(task, finite_bounds = "no")
+	sampler = ConditionalARFSampler$new(task, finite_bounds = "no")
 	expect_equal(sampler$param_set$values$finite_bounds, "no")
 
 	# Test "local" bounds initialization
-	sampler_local = ARFSampler$new(task, finite_bounds = "local")
+	sampler_local = ConditionalARFSampler$new(task, finite_bounds = "local")
 	expect_equal(sampler_local$param_set$values$finite_bounds, "local")
 
 	# Test no bounds (default)
@@ -217,7 +217,7 @@ test_that("ARFSampler finite_bounds parameter", {
 })
 
 
-test_that("ARFSampler parameter priority and storage", {
+test_that("ConditionalARFSampler parameter priority and storage", {
 	skip_if_not_installed("arf")
 	library(mlr3)
 
@@ -225,7 +225,7 @@ test_that("ARFSampler parameter priority and storage", {
 	data = task$data()
 
 	# Initialize with stored parameters
-	sampler = ARFSampler$new(
+	sampler = ConditionalARFSampler$new(
 		task,
 		conditioning_set = "x2",
 		verbose = FALSE,
@@ -249,12 +249,12 @@ test_that("ARFSampler parameter priority and storage", {
 	expect_equal(sampler$param_set$values$parallel, FALSE)
 })
 
-test_that("ARFSampler param_set structure", {
+test_that("ConditionalARFSampler param_set structure", {
 	skip_if_not_installed("arf")
 	library(mlr3)
 
 	task = tgen("circle", d = 5)$generate(n = 50)
-	sampler = ARFSampler$new(task, finite_bounds = "no")
+	sampler = ConditionalARFSampler$new(task, finite_bounds = "no")
 
 	# Check param_set has the correct parameters
 	expect_true("conditioning_set" %in% sampler$param_set$ids())
@@ -284,14 +284,14 @@ test_that("ARFSampler param_set structure", {
 	expect_equal(sampler$param_set$values$finite_bounds, "no")
 })
 
-test_that("ARFSampler additional arf::forge parameters", {
+test_that("ConditionalARFSampler additional arf::forge parameters", {
 	skip_if_not_installed("arf")
 	library(mlr3)
 
 	task = tgen("circle", d = 5)$generate(n = 50)
 
 	# Test initialization with additional parameters
-	sampler = ARFSampler$new(
+	sampler = ConditionalARFSampler$new(
 		task,
 		round = FALSE,
 		finite_bounds = "no",
@@ -328,12 +328,12 @@ test_that("ARFSampler additional arf::forge parameters", {
 	expect_equal(sampler$param_set$values$verbose, FALSE)
 })
 
-test_that("ARFSampler default parameter values match arf::forge", {
+test_that("ConditionalARFSampler default parameter values match arf::forge", {
 	skip_if_not_installed("arf")
 	library(mlr3)
 
 	task = tgen("circle")$generate(n = 50)
-	sampler = ARFSampler$new(task)
+	sampler = ConditionalARFSampler$new(task)
 
 	# Check that defaults are reasonable for xplainfi usage
 	expect_equal(sampler$param_set$params[id == "finite_bounds"]$default[[1]], "no")
@@ -343,12 +343,12 @@ test_that("ARFSampler default parameter values match arf::forge", {
 	expect_equal(sampler$param_set$params[id == "parallel"]$default[[1]], FALSE)
 })
 
-test_that("ARFSampler conditioning_set parameter behavior", {
+test_that("ConditionalARFSampler conditioning_set parameter behavior", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
 
 	expect_conditioning_set_behavior(
-		sampler_class = ARFSampler,
+		sampler_class = ConditionalARFSampler,
 		task = task,
 		verbose = FALSE
 	)

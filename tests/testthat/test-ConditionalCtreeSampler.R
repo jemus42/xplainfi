@@ -1,9 +1,9 @@
-test_that("CtreeConditionalSampler initialization works", {
+test_that("ConditionalCtreeSampler initialization works", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
-	sampler = CtreeConditionalSampler$new(task)
+	sampler = ConditionalCtreeSampler$new(task)
 
-	expect_true(inherits(sampler, "CtreeConditionalSampler"))
+	expect_true(inherits(sampler, "ConditionalCtreeSampler"))
 	expect_true(inherits(sampler, "ConditionalSampler"))
 	expect_equal(sampler$label, "Conditional Inference Tree Conditional Sampler")
 	expect_true(inherits(sampler$param_set, "ParamSet"))
@@ -18,11 +18,11 @@ test_that("CtreeConditionalSampler initialization works", {
 	expect_true(inherits(sampler$tree_cache, "environment"))
 })
 
-test_that("CtreeConditionalSampler works with custom parameters", {
+test_that("ConditionalCtreeSampler works with custom parameters", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
 
-	sampler = CtreeConditionalSampler$new(
+	sampler = ConditionalCtreeSampler$new(
 		task,
 		mincriterion = 0.90,
 		minsplit = 10L,
@@ -36,10 +36,10 @@ test_that("CtreeConditionalSampler works with custom parameters", {
 	expect_equal(sampler$param_set$values$use_cache, FALSE)
 })
 
-test_that("CtreeConditionalSampler marginal sampling works", {
+test_that("ConditionalCtreeSampler marginal sampling works", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
-	sampler = CtreeConditionalSampler$new(task)
+	sampler = ConditionalCtreeSampler$new(task)
 	data = task$data()
 
 	# Sample without conditioning
@@ -55,10 +55,10 @@ test_that("CtreeConditionalSampler marginal sampling works", {
 	expect_true(all(sampled_data$important1 %in% data$important1))
 })
 
-test_that("CtreeConditionalSampler conditional sampling with single feature", {
+test_that("ConditionalCtreeSampler conditional sampling with single feature", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
-	sampler = CtreeConditionalSampler$new(task)
+	sampler = ConditionalCtreeSampler$new(task)
 	data = task$data()
 
 	# Sample important2 | important1
@@ -83,10 +83,10 @@ test_that("CtreeConditionalSampler conditional sampling with single feature", {
 	expect_true(all(sampled_data$important2 %in% data$important2))
 })
 
-test_that("CtreeConditionalSampler handles multiple features", {
+test_that("ConditionalCtreeSampler handles multiple features", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
-	sampler = CtreeConditionalSampler$new(task)
+	sampler = ConditionalCtreeSampler$new(task)
 	data = task$data()
 
 	# Sample multiple features conditionally
@@ -108,10 +108,10 @@ test_that("CtreeConditionalSampler handles multiple features", {
 	expect_identical(sampled_data$important1, data$important1[1:50])
 })
 
-test_that("CtreeConditionalSampler sample_newdata works", {
+test_that("ConditionalCtreeSampler sample_newdata works", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
-	sampler = CtreeConditionalSampler$new(task)
+	sampler = ConditionalCtreeSampler$new(task)
 
 	test_data = task$data(rows = 1:10)
 
@@ -133,12 +133,12 @@ test_that("CtreeConditionalSampler sample_newdata works", {
 	expect_identical(sampled$important1, test_data$important1)
 })
 
-test_that("CtreeConditionalSampler caching works", {
+test_that("ConditionalCtreeSampler caching works", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
 
 	# With caching enabled
-	sampler_cached = CtreeConditionalSampler$new(task, use_cache = TRUE)
+	sampler_cached = ConditionalCtreeSampler$new(task, use_cache = TRUE)
 	test_data = task$data(rows = 1:10)
 
 	# First call should build tree
@@ -159,7 +159,7 @@ test_that("CtreeConditionalSampler caching works", {
 	expect_equal(length(ls(sampler_cached$tree_cache)), 1)
 
 	# Without caching
-	sampler_uncached = CtreeConditionalSampler$new(task, use_cache = FALSE)
+	sampler_uncached = ConditionalCtreeSampler$new(task, use_cache = FALSE)
 	sampled3 = sampler_uncached$sample_newdata(
 		feature = "important2",
 		newdata = test_data,
@@ -168,12 +168,12 @@ test_that("CtreeConditionalSampler caching works", {
 	expect_equal(length(ls(sampler_uncached$tree_cache)), 0)
 })
 
-test_that("CtreeConditionalSampler handles different parameter values", {
+test_that("ConditionalCtreeSampler handles different parameter values", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
 
 	# More restrictive parameters (fewer splits)
-	sampler_restrictive = CtreeConditionalSampler$new(
+	sampler_restrictive = ConditionalCtreeSampler$new(
 		task,
 		mincriterion = 0.99,
 		minsplit = 50L,
@@ -181,7 +181,7 @@ test_that("CtreeConditionalSampler handles different parameter values", {
 	)
 
 	# Less restrictive parameters (more splits)
-	sampler_permissive = CtreeConditionalSampler$new(
+	sampler_permissive = ConditionalCtreeSampler$new(
 		task,
 		mincriterion = 0.90,
 		minsplit = 10L,
@@ -207,10 +207,10 @@ test_that("CtreeConditionalSampler handles different parameter values", {
 	expect_sampler_output(sampled_permissive, task, nrows = 10)
 })
 
-test_that("CtreeConditionalSampler handles single observation", {
+test_that("ConditionalCtreeSampler handles single observation", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
-	sampler = CtreeConditionalSampler$new(task)
+	sampler = ConditionalCtreeSampler$new(task)
 
 	test_data = task$data(rows = 1)
 
@@ -224,10 +224,10 @@ test_that("CtreeConditionalSampler handles single observation", {
 	expect_identical(sampled$important1, test_data$important1)
 })
 
-test_that("CtreeConditionalSampler is reproducible", {
+test_that("ConditionalCtreeSampler is reproducible", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
-	sampler = CtreeConditionalSampler$new(task)
+	sampler = ConditionalCtreeSampler$new(task)
 	test_data = task$data(rows = 1:10)
 
 	sampled1 = withr::with_seed(123, {
@@ -249,16 +249,16 @@ test_that("CtreeConditionalSampler is reproducible", {
 	expect_identical(sampled1$important2, sampled2$important2)
 })
 
-test_that("CtreeConditionalSampler works with mixed feature types", {
+test_that("ConditionalCtreeSampler works with mixed feature types", {
 	library(mlr3)
 
 	# Create task with mixed types
 	task = tgen("circle", d = 5)$generate(n = 100)
 
 	# ctree supports mixed types
-	sampler = CtreeConditionalSampler$new(task)
+	sampler = ConditionalCtreeSampler$new(task)
 
-	expect_true(inherits(sampler, "CtreeConditionalSampler"))
+	expect_true(inherits(sampler, "ConditionalCtreeSampler"))
 
 	test_data = task$data(rows = 1:10)
 
@@ -271,10 +271,10 @@ test_that("CtreeConditionalSampler works with mixed feature types", {
 	expect_sampler_output(sampled, task, nrows = 10)
 })
 
-test_that("CtreeConditionalSampler handles multiple conditioning features", {
+test_that("ConditionalCtreeSampler handles multiple conditioning features", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
-	sampler = CtreeConditionalSampler$new(task)
+	sampler = ConditionalCtreeSampler$new(task)
 	data = task$data()
 
 	# Sample one feature conditioned on multiple features
@@ -297,12 +297,12 @@ test_that("CtreeConditionalSampler handles multiple conditioning features", {
 	expect_identical(sampled_data$important2, data$important2[1:50])
 })
 
-test_that("CtreeConditionalSampler conditioning_set parameter behavior", {
+test_that("ConditionalCtreeSampler conditioning_set parameter behavior", {
 	library(mlr3)
 	task = tgen("friedman1")$generate(n = 100)
 
 	expect_conditioning_set_behavior(
-		sampler_class = CtreeConditionalSampler,
+		sampler_class = ConditionalCtreeSampler,
 		task = task
 	)
 })

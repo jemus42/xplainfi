@@ -47,7 +47,7 @@
 #' task = tgen("friedman1")$generate(n = 100)
 #'
 #' # Create sampler with default parameters
-#' sampler = CtreeConditionalSampler$new(task)
+#' sampler = ConditionalCtreeSampler$new(task)
 #'
 #' # Sample features conditioned on others
 #' test_data = task$data(rows = 1:5)
@@ -61,15 +61,15 @@
 #' @references `r print_bib("hothorn_2006", "aas_2021")`
 #'
 #' @export
-CtreeConditionalSampler = R6Class(
-	"CtreeConditionalSampler",
+ConditionalCtreeSampler = R6Class(
+	"ConditionalCtreeSampler",
 	inherit = ConditionalSampler,
 	public = list(
 		#' @field tree_cache (`environment`) Cache for fitted ctree models.
 		tree_cache = NULL,
 
 		#' @description
-		#' Creates a new CtreeConditionalSampler.
+		#' Creates a new ConditionalCtreeSampler.
 		#' @param task ([mlr3::Task]) Task to sample from.
 		#' @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`.
 		#' @param mincriterion (`numeric(1)`: `0.95`) Significance level threshold for splitting (1 - p-value).

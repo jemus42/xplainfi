@@ -37,7 +37,7 @@
 #' @examples
 #' library(mlr3)
 #' task = tgen("friedman1")$generate(n = 100)
-#' sampler = GaussianConditionalSampler$new(task)
+#' sampler = ConditionalGaussianSampler$new(task)
 #'
 #' # Sample x2, x3 conditioned on x1
 #' test_data = task$data(rows = 1:5)
@@ -50,8 +50,8 @@
 #' @references `r print_bib("anderson_2003")`
 #'
 #' @export
-GaussianConditionalSampler = R6Class(
-	"GaussianConditionalSampler",
+ConditionalGaussianSampler = R6Class(
+	"ConditionalGaussianSampler",
 	inherit = ConditionalSampler,
 	public = list(
 		#' @field feature_types (`character()`) Feature types supported by the sampler.
@@ -64,7 +64,7 @@ GaussianConditionalSampler = R6Class(
 		sigma = NULL,
 
 		#' @description
-		#' Creates a new GaussianConditionalSampler.
+		#' Creates a new ConditionalGaussianSampler.
 		#' @param task ([mlr3::Task]) Task to sample from. Must have only numeric/integer features.
 		#' @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`.
 		initialize = function(task, conditioning_set = NULL) {

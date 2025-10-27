@@ -46,7 +46,7 @@ All feature samplers inherit from the `FeatureSampler` base class, which provide
 ```{r feature-types}
 # Check supported feature types for different samplers
 task_mixed$feature_types
-permutation = PermutationSampler$new(task_mixed)
+permutation = MarginalPermutationSampler$new(task_mixed)
 permutation$feature_types
 ```
 
@@ -82,7 +82,7 @@ Notice that:
 
 ## Permutation Sampler
 
-The `PermutationSampler` performs simple random permutation of features, breaking their relationship with the target and other features. This is the classic approach used in Permutation Feature Importance (PFI).
+The `MarginalPermutationSampler` performs simple random permutation of features, breaking their relationship with the target and other features. This is the classic approach used in Permutation Feature Importance (PFI).
 
 **How it works:**
 
@@ -94,7 +94,7 @@ The `PermutationSampler` performs simple random permutation of features, breakin
 
 ```{r permutation-example}
 # Create permutation sampler
-permutation = PermutationSampler$new(task_mixed)
+permutation = MarginalPermutationSampler$new(task_mixed)
 
 # Sample a continuous feature
 original = task_mixed$data(rows = 1:10)
@@ -115,11 +115,11 @@ Note that the permutation is only performed _within_ the requested `row_ids`.
 ## Marginal Reference Sampler
 
 The `MarginalReferenceSampler` is another type of marginal sampler that samples complete rows from reference data.
-Unlike `PermutationSampler` which shuffles feature values independently, this sampler preserves within-row dependencies by sampling intact observations.
+Unlike `MarginalPermutationSampler` which shuffles feature values independently, this sampler preserves within-row dependencies by sampling intact observations.
 
-**Key differences from PermutationSampler:**
+**Key differences from MarginalPermutationSampler:**
 
-- **PermutationSampler**: Shuffles each feature independently → breaks dependencies between sampled features
+- **MarginalPermutationSampler**: Shuffles each feature independently → breaks dependencies between sampled features
 - **MarginalReferenceSampler**: Samples complete reference rows → preserves dependencies of the sampled features
 
 This is the approach used in [SAGE (Shapley Additive Global importancE)](https://github.com/iancovert/sage) for marginal feature importance. In this SAGE implementation, the [`MarginalImputer`](https://github.com/iancovert/sage/blob/master/sage/imputers.py#L44-L78), uses this approach.
@@ -156,8 +156,8 @@ To demonstrate the difference, consider features that are correlated as in `task
 Here, `x1` and `x2` are correlated, and if we sample them jointly, only `MarginalReferenceSampler` retains their original correlation (approximately).
 
 ```{r correlation-preservation}
-# Sample with PermutationSampler (breaks correlations)
-perm = PermutationSampler$new(task_numeric)
+# Sample with MarginalPermutationSampler (breaks correlations)
+perm = MarginalPermutationSampler$new(task_numeric)
 sampled_perm = perm$sample(c("x1", "x2"), row_ids = 1:10)
 
 # Sample with MarginalReferenceSampler (preserves within-row correlations)
@@ -190,7 +190,7 @@ All conditional samplers inherit from `ConditionalSampler` and support:
 
 ### Gaussian Conditional Sampler
 
-The `GaussianConditionalSampler` assumes features follow a multivariate Gaussian distribution and uses closed-form conditional distributions.
+The `ConditionalGaussianSampler` assumes features follow a multivariate Gaussian distribution and uses closed-form conditional distributions.
 
 **Advantages**:
 
@@ -206,7 +206,7 @@ The `GaussianConditionalSampler` assumes features follow a multivariate Gaussian
 
 ```{r gaussian-sampler}
 # Create Gaussian conditional sampler
-gaussian = GaussianConditionalSampler$new(task_numeric)
+gaussian = ConditionalGaussianSampler$new(task_numeric)
 
 # Sample x1 conditioned on other features
 sampled = gaussian$sample(
@@ -228,7 +228,7 @@ Notice that the sampled values respect the conditional distribution - they're di
 
 ### ARF Sampler
 
-The `ARFSampler` uses Adversarial Random Forests to model complex conditional distributions.
+The `ConditionalARFSampler` uses Adversarial Random Forests to model complex conditional distributions.
 It's the most flexible conditional sampler.
 
 **Advantages**:
@@ -245,7 +245,7 @@ It's the most flexible conditional sampler.
 
 ```{r arf-sampler}
 # Create ARF sampler (works with full task including categorical features)
-arf = ARFSampler$new(task_mixed, num_trees = 20, verbose = FALSE)
+arf = ConditionalARFSampler$new(task_mixed, num_trees = 20, verbose = FALSE)
 
 # Sample island conditioned on body measurements
 sampled = arf$sample(
@@ -264,11 +264,11 @@ data.table(
 )
 ```
 
-**Use in CFI**: ARFSampler is the default for Conditional Feature Importance since it can be used with any task, unlike other samplers.
+**Use in CFI**: ConditionalARFSampler is the default for Conditional Feature Importance since it can be used with any task, unlike other samplers.
 
 ### Ctree Conditional Sampler
 
-The `CtreeConditionalSampler` uses conditional inference trees to partition the feature space and sample from local neighborhoods.
+The `ConditionalCtreeSampler` uses conditional inference trees to partition the feature space and sample from local neighborhoods.
 
 **Advantages**:
 
@@ -283,7 +283,7 @@ The `CtreeConditionalSampler` uses conditional inference trees to partition the 
 
 ```{r ctree-sampler}
 # Create ctree sampler
-ctree = CtreeConditionalSampler$new(task_mixed)
+ctree = ConditionalCtreeSampler$new(task_mixed)
 
 # Sample with default parameters
 sampled = ctree$sample(
@@ -304,7 +304,7 @@ The ctree sampler partitions observations based on the conditioning features and
 
 ### kNN Conditional Sampler
 
-The `KNNConditionalSampler` finds k nearest neighbors based on conditioning features and samples from them.
+The `ConditionalKNNSampler` finds k nearest neighbors based on conditioning features and samples from them.
 
 **Advantages**:
 
@@ -330,7 +330,7 @@ The sampler automatically selects the appropriate distance metric based on condi
 
 ```{r knn-sampler-numeric}
 # Create kNN sampler with k=5 neighbors
-knn_numeric = KNNConditionalSampler$new(task_numeric, k = 5)
+knn_numeric = ConditionalKNNSampler$new(task_numeric, k = 5)
 
 # Sample x1 based on nearest neighbors in (x2, x3) space
 sampled_numeric = knn_numeric$sample(
@@ -352,7 +352,7 @@ data.table(
 
 ```{r knn-sampler-mixed}
 # Use task with categorical features
-knn_mixed = KNNConditionalSampler$new(task_mixed, k = 5)
+knn_mixed = ConditionalKNNSampler$new(task_mixed, k = 5)
 
 # Sample bill_length conditioning on island (categorical) and body_mass (numeric)
 sampled_mixed = knn_mixed$sample(
@@ -444,12 +444,12 @@ See `vignette("inference")` for more details on statistical inference with featu
 
 | Sampler | Feature Types | Assumptions | Speed | Use Case |
 |---------|--------------|-------------|-------|----------|
-| `PermutationSampler` | All | None | Very fast | PFI, uncorrelated features |
+| `MarginalPermutationSampler` | All | None | Very fast | PFI, uncorrelated features |
 | `KnockoffGaussianSampler` | Continuous | Multivariate normal | Fast | Model-X knockoffs |
-| `GaussianConditionalSampler` | Continuous | Multivariate normal | Very fast | CFI with continuous features |
-| `ARFSampler` | All | None | Moderate | CFI, complex dependencies |
-| `CtreeConditionalSampler` | All | None | Moderate | CFI, interpretable sampling |
-| `KNNConditionalSampler` | All | None (auto-selects distance) | Fast | CFI, simple local structure |
+| `ConditionalGaussianSampler` | Continuous | Multivariate normal | Very fast | CFI with continuous features |
+| `ConditionalARFSampler` | All | None | Moderate | CFI, complex dependencies |
+| `ConditionalCtreeSampler` | All | None | Moderate | CFI, interpretable sampling |
+| `ConditionalKNNSampler` | All | None (auto-selects distance) | Fast | CFI, simple local structure |
 
 **General guidelines**:
 

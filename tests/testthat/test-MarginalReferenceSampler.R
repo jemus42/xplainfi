@@ -121,7 +121,7 @@ test_that("MarginalReferenceSampler preserves within-row dependencies", {
 	expect_true(all(abs(sampled_data$x3 - sampled_data$x1 * 3) < 1e-10))
 })
 
-test_that("MarginalReferenceSampler vs PermutationSampler difference", {
+test_that("MarginalReferenceSampler vs MarginalPermutationSampler difference", {
 	library(mlr3)
 	# Create a task where features are correlated
 	set.seed(123)
@@ -141,15 +141,15 @@ test_that("MarginalReferenceSampler vs PermutationSampler difference", {
 	# Within-row correlation should be preserved (approximately)
 	cor_ref = cor(sampled_ref$x1, sampled_ref$x2)
 
-	# PermutationSampler breaks all correlations
-	permutation = PermutationSampler$new(task)
+	# MarginalPermutationSampler breaks all correlations
+	permutation = MarginalPermutationSampler$new(task)
 	set.seed(456)
 	sampled_perm = permutation$sample(c("x1", "x2"))
 
 	# Correlation should be much weaker (permutation breaks it)
 	cor_perm = cor(sampled_perm$x1, sampled_perm$x2)
 
-	# MarginalReferenceSampler should preserve correlation better than PermutationSampler
+	# MarginalReferenceSampler should preserve correlation better than MarginalPermutationSampler
 	# (though not perfectly since we're sampling with replacement)
 	expect_gt(abs(cor_ref), abs(cor_perm) * 0.5) # At least half the correlation preserved
 })

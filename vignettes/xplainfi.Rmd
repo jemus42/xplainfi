@@ -125,7 +125,7 @@ For advanced methods that account for feature dependencies, xplainfi provides di
 Let's demonstrate conditional sampling using Adversarial Random Forests, which preserves relationships between features when sampling:
 
 ```{r samplers-demo}
-arf_sampler <- ARFSampler$new(task)
+arf_sampler <- ConditionalARFSampler$new(task)
 
 sample_data <- task$data(rows = 1:5)
 sample_data[, .(important1, important2)]

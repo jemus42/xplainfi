@@ -144,7 +144,7 @@ Conditional SAGE uses conditional sampling (via ARF by default) to marginalize f
 
 ```{r conditional-sage}
 # Create Conditional SAGE instance using a conditional sampler
-sampler_gaussian = GaussianConditionalSampler$new(task)
+sampler_gaussian = ConditionalGaussianSampler$new(task)
 
 conditional_sage = ConditionalSAGE$new(
 	task = task,

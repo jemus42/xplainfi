@@ -1,9 +1,9 @@
-test_that("PermutationSampler works correctly", {
+test_that("MarginalPermutationSampler works correctly", {
 	library(mlr3)
 	task = tgen("circle", d = 5)$generate(n = 100)
-	sampler = PermutationSampler$new(task)
+	sampler = MarginalPermutationSampler$new(task)
 
-	expect_true(inherits(sampler, "PermutationSampler"))
+	expect_true(inherits(sampler, "MarginalPermutationSampler"))
 	expect_equal(sampler$label, "Permutation sampler")
 	expect_true(inherits(sampler$param_set, "ParamSet"))
 
@@ -23,10 +23,10 @@ test_that("PermutationSampler works correctly", {
 	expect_setequal(sampled_data$x1, data$x1)
 })
 
-test_that("PermutationSampler handles multiple features", {
+test_that("MarginalPermutationSampler handles multiple features", {
 	library(mlr3)
 	task = tgen("circle", d = 5)$generate(n = 100)
-	sampler = PermutationSampler$new(task)
+	sampler = MarginalPermutationSampler$new(task)
 	data = task$data()
 
 	# Test multiple feature sampling using row_ids
@@ -47,10 +47,10 @@ test_that("PermutationSampler handles multiple features", {
 	}
 })
 
-test_that("PermutationSampler preserves data.table properties", {
+test_that("MarginalPermutationSampler preserves data.table properties", {
 	library(mlr3)
 	task = tgen("circle", d = 5)$generate(n = 50)
-	sampler = PermutationSampler$new(task)
+	sampler = MarginalPermutationSampler$new(task)
 	data = task$data()
 
 	# Add a key to the data.table
@@ -72,23 +72,23 @@ test_that("PermutationSampler preserves data.table properties", {
 	expect_equal(key(data), "x1")
 })
 
-test_that("PermutationSampler works with different task types", {
+test_that("MarginalPermutationSampler works with different task types", {
 	library(mlr3)
 	# Regression task
 	task_regr = tgen("circle", d = 4)$generate(n = 100)
-	sampler_regr = PermutationSampler$new(task_regr)
+	sampler_regr = MarginalPermutationSampler$new(task_regr)
 	sampled_regr = sampler_regr$sample("x1")
 	expect_sampler_output(sampled_regr, task_regr, nrows = 100)
 
 	# Binary classification task
 	task_classif = tsk("sonar")
-	sampler_classif = PermutationSampler$new(task_classif)
+	sampler_classif = MarginalPermutationSampler$new(task_classif)
 	sampled_classif = sampler_classif$sample("V1")
 	expect_sampler_output(sampled_classif, task_classif, nrows = task_classif$nrow)
 
 	# Multiclass classification task
 	task_multi = tsk("iris")
-	sampler_multi = PermutationSampler$new(task_multi)
+	sampler_multi = MarginalPermutationSampler$new(task_multi)
 	sampled_multi = sampler_multi$sample("Sepal.Length")
 	expect_sampler_output(sampled_multi, task_multi, nrows = 150)
 })

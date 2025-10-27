@@ -5,7 +5,7 @@
 #' flexible conditional sampling by modeling the joint distribution.
 #'
 #' @details
-#' The ARFSampler fits an [Adversarial Random Forest][arf::arf] model on the task data,
+#' The ConditionalARFSampler fits an [Adversarial Random Forest][arf::arf] model on the task data,
 #' then uses it to generate samples from \eqn{P(X_j | X_{-j})} where \eqn{X_j} is the
 #' feature of interest and \eqn{X_{-j}} are the conditioning features.
 #'
@@ -13,7 +13,7 @@
 #' library(mlr3)
 #' task = tgen("2dnormals")$generate(n = 100)
 #' # Create sampler with default parameters
-#' sampler = ARFSampler$new(task, conditioning_set = "x2", verbose = FALSE)
+#' sampler = ConditionalARFSampler$new(task, conditioning_set = "x2", verbose = FALSE)
 #' # Sample using row_ids from stored task
 #' sampled_data = sampler$sample("x1", row_ids = 1:10)
 #' # Or use external data
@@ -21,7 +21,7 @@
 #' sampled_data_ext = sampler$sample_newdata("x1", newdata = data, conditioning_set = "x2")
 #'
 #' # Example with custom ARF parameters
-#' sampler_custom = ARFSampler$new(
+#' sampler_custom = ConditionalARFSampler$new(
 #'   task,
 #'   min_node_size = 10L,
 #'   finite_bounds = "local",
@@ -31,8 +31,8 @@
 #' @references `r print_bib("watson_2023", "blesch_2025")`
 #'
 #' @export
-ARFSampler = R6Class(
-	"ARFSampler",
+ConditionalARFSampler = R6Class(
+	"ConditionalARFSampler",
 	inherit = ConditionalSampler,
 	public = list(
 		#' @field feature_types (`character()`) Feature types supported by the sampler.
@@ -51,7 +51,7 @@ ARFSampler = R6Class(
 		psi = NULL,
 
 		#' @description
-		#' Creates a new instance of the ARFSampler class.
+		#' Creates a new instance of the ConditionalARFSampler class.
 		#' To fit the ARF in parallel, register a parallel backend first (see [arf::arf]) and set `parallel = TRUE`.
 		#' @param task ([mlr3::Task]) Task to sample from.
 		#' @param conditioning_set (`character` | `NULL`) Default conditioning set to use in `$sample()`. This parameter only affects the sampling behavior, not the ARF model fitting.

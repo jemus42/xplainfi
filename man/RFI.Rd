@@ -80,7 +80,7 @@ Default (\code{character(0)}) is equivalent to \code{PFI}. In \code{CFI}, this w
 
 \item{\code{n_repeats}}{(integer(1)) Number of permutation iterations. Can be overridden in \verb{$compute()}.}
 
-\item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to ARFSampler}
+\item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to ConditionalARFSampler}
 }
 \if{html}{\out{</div>}}
 }

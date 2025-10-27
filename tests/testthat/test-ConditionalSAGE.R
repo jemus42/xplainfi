@@ -142,7 +142,7 @@ test_that("ConditionalSAGE with friedman1 produces sensible results", {
 	expect_gt(max(abs(result$importance)), 0)
 })
 
-test_that("ConditionalSAGE uses ARFSampler by default", {
+test_that("ConditionalSAGE uses ConditionalARFSampler by default", {
 	skip_if_not_installed("arf")
 
 	set.seed(123)
@@ -156,15 +156,15 @@ test_that("ConditionalSAGE uses ARFSampler by default", {
 		n_samples = 20L
 	)
 
-	# Should have ARFSampler
-	checkmate::expect_r6(sage$sampler, "ARFSampler")
+	# Should have ConditionalARFSampler
+	checkmate::expect_r6(sage$sampler, "ConditionalARFSampler")
 	expect_equal(sage$label, "Conditional SAGE")
 })
 
 test_that("ConditionalSAGE with custom sampler", {
 	set.seed(123)
 	task = mlr3::tgen("spirals")$generate(n = 50)
-	custom_sampler = ARFSampler$new(task, finite_bounds = "local")
+	custom_sampler = ConditionalARFSampler$new(task, finite_bounds = "local")
 
 	sage = ConditionalSAGE$new(
 		task = task,
@@ -276,7 +276,7 @@ test_that("ConditionalSAGE batching with custom sampler", {
 	measure = mlr3::msr("regr.mse")
 
 	# Create custom ARF sampler
-	custom_sampler = ARFSampler$new(task, verbose = FALSE)
+	custom_sampler = ConditionalARFSampler$new(task, verbose = FALSE)
 
 	# Test with custom sampler - no batching
 	result_no_batch = withr::with_seed(42, {

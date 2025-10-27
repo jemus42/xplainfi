@@ -20,7 +20,7 @@
 #'
 #' **Comparison with other samplers:**
 #'
-#' - `PermutationSampler`: Shuffles each feature independently, breaking all row structure
+#' - `MarginalPermutationSampler`: Shuffles each feature independently, breaking all row structure
 #' - `MarginalReferenceSampler`: Samples complete rows, preserving within-row dependencies
 #' - `ConditionalSampler`: Samples from \eqn{P(X_S | X_{-S})}, conditioning on other features
 #'
