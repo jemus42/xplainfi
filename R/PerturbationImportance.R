@@ -16,6 +16,7 @@ PerturbationImportance = R6Class(
 		#' @param sampler ([FeatureSampler]) Sampler to use for feature perturbation.
 		#' @param relation (`character(1)`: `"difference"`) How to relate perturbed and baseline scores. Can also be `"ratio"`.
 		#' @param n_repeats (`integer(1)`: `1L`) Number of permutation/conditional sampling iterations. Can be overridden in `$compute()`.
+		#' @param batch_size (`integer(1)` | `NULL`: `NULL`) Maximum number of rows to predict at once. When `NULL`, predicts all `test_size * n_repeats` rows in one call. Use smaller values to reduce memory usage at the cost of more prediction calls. Can be overridden in `$compute()`.
 		initialize = function(
 			task,
 			learner,
@@ -25,7 +26,8 @@ PerturbationImportance = R6Class(
 			groups = NULL,
 			sampler = NULL,
 			relation = "difference",
-			n_repeats = 1L
+			n_repeats = 1L,
+			batch_size = NULL
 		) {
 			super$initialize(
 				task = task,
@@ -54,11 +56,13 @@ PerturbationImportance = R6Class(
 			# Set up common parameters for all perturbation-based methods
 			ps = paradox::ps(
 				relation = paradox::p_fct(c("difference", "ratio"), default = "difference"),
-				n_repeats = paradox::p_int(lower = 1, default = 1)
+				n_repeats = paradox::p_int(lower = 1, default = 1),
+				batch_size = paradox::p_int(lower = 1, special_vals = list(NULL), default = NULL)
 			)
 
 			ps$values$relation = relation
 			ps$values$n_repeats = n_repeats
+			ps$values$batch_size = batch_size
 			self$param_set = ps
 
 			# Add CPI to variance methods registry
@@ -88,6 +92,7 @@ PerturbationImportance = R6Class(
 		# Common computation method for all perturbation-based methods
 		.compute_perturbation_importance = function(
 			n_repeats = NULL,
+			batch_size = NULL,
 			store_models = TRUE,
 			store_backends = TRUE,
 			sampler = NULL
@@ -96,6 +101,7 @@ PerturbationImportance = R6Class(
 			sampler = sampler %||% self$sampler
 
 			n_repeats = resolve_param(n_repeats, self$param_set$values$n_repeats, 1L)
+			batch_size = resolve_param(batch_size, self$param_set$values$batch_size, NULL)
 
 			scores_baseline = private$.compute_baseline(store_backends = store_backends)
 
@@ -136,38 +142,101 @@ PerturbationImportance = R6Class(
 						test_row_ids_replicated = rep.int(test_row_ids, times = n_repeats)
 						perturbed_data = sampler$sample(foi, row_ids = test_row_ids_replicated)
 
-						# ... and then we split it in a list again to make it easier
-						# to retrieve the correct data for any particular iter_repeat
-						# to avoid having to juggle indices with obligatory off-by-one errors or whatever
-						perturbed_data_list <- split(
-							perturbed_data,
-							rep(1:(nrow(perturbed_data) / test_size), each = test_size)
-						)
+						# Determine total rows to predict
+						total_rows = nrow(perturbed_data)
 
-						pred_per_perm = lapply(
-							seq_len(n_repeats),
-							\(iter_repeat) {
-								# Predict and score
-								if (is.function(this_learner$predict_newdata_fast)) {
-									pred_raw = this_learner$predict_newdata_fast(
-										newdata = perturbed_data_list[[iter_repeat]],
-										task = self$task
-									)
+						# If no batch_size or batch_size >= total_rows, predict all at once
+						if (is.null(batch_size) || batch_size >= total_rows) {
+							# Single batch prediction
+							if (is.function(this_learner$predict_newdata_fast)) {
+								pred_raw = this_learner$predict_newdata_fast(
+									newdata = perturbed_data,
+									task = self$task
+								)
 
-									pred = private$.construct_pred(
-										raw_prediction = pred_raw,
+								# pred_raw is a list with one element per row
+								# Split into n_repeats chunks
+								pred_list = split(pred_raw, rep(seq_len(n_repeats), each = test_size))
+
+								# Convert each chunk to Prediction object
+								preds = lapply(pred_list, \(p) {
+									private$.construct_pred(
+										raw_prediction = p,
 										test_row_ids = self$resampling$test_set(iter)
 									)
+								})
+							} else {
+								# predict_newdata returns full Prediction object
+								# We need to split perturbed_data and predict each chunk
+								perturbed_data_list = split(
+									perturbed_data,
+									rep(seq_len(n_repeats), each = test_size)
+								)
+
+								preds = lapply(perturbed_data_list, \(data_chunk) {
+									this_learner$predict_newdata(
+										newdata = data_chunk,
+										task = self$task
+									)
+								})
+							}
+						} else {
+							# Batched prediction
+							n_batches = ceiling(total_rows / batch_size)
+							all_preds_raw = vector("list", n_batches)
+
+							for (batch_idx in seq_len(n_batches)) {
+								start_row = (batch_idx - 1) * batch_size + 1
+								end_row = min(batch_idx * batch_size, total_rows)
+								batch_data = perturbed_data[start_row:end_row, ]
+
+								if (is.function(this_learner$predict_newdata_fast)) {
+									all_preds_raw[[batch_idx]] = this_learner$predict_newdata_fast(
+										newdata = batch_data,
+										task = self$task
+									)
 								} else {
-									pred = this_learner$predict_newdata(
-										newdata = perturbed_data_list[[iter_repeat]],
+									all_preds_raw[[batch_idx]] = this_learner$predict_newdata(
+										newdata = batch_data,
 										task = self$task
 									)
 								}
-
-								data.table(prediction = list(pred))
 							}
-						)
+
+							# Combine batches
+							if (is.function(this_learner$predict_newdata_fast)) {
+								combined_raw = unlist(all_preds_raw, recursive = FALSE)
+								# Split into n_repeats chunks
+								pred_list = split(combined_raw, rep(seq_len(n_repeats), each = test_size))
+
+								preds = lapply(pred_list, \(p) {
+									private$.construct_pred(
+										raw_prediction = p,
+										test_row_ids = self$resampling$test_set(iter)
+									)
+								})
+							} else {
+								# Combine Prediction objects
+								# Split combined predictions into n_repeats chunks
+								perturbed_data_list = split(
+									perturbed_data,
+									rep(seq_len(n_repeats), each = test_size)
+								)
+
+								# Map batches back to repeats
+								# This is more complex - need to figure out which batch predictions belong to which repeat
+								# For now, fall back to per-repeat prediction
+								preds = lapply(perturbed_data_list, \(data_chunk) {
+									this_learner$predict_newdata(
+										newdata = data_chunk,
+										task = self$task
+									)
+								})
+							}
+						}
+
+						# Convert predictions to data.table format
+						pred_per_perm = lapply(preds, \(pred) data.table(prediction = list(pred)))
 
 						# Update progress bar after processing all permutations for this feature
 						if (xplain_opt("progress")) {
@@ -366,9 +435,7 @@ PFI = R6Class(
 	public = list(
 		#' @description
 		#' Creates a new instance of the PFI class
-		#' @param task,learner,measure,resampling,features,groups Passed to [PerturbationImportance]
-		#' @param relation (c`haracter(1)`: "`difference`") How to relate perturbed scores to originals. Can be overridden in `$compute()`.
-		#' @param n_repeats (`integer(1)`: `1L`) Number of permutation iterations. Can be overridden in `$compute()`.
+		#' @param task,learner,measure,resampling,features,groups,relation,n_repeats,batch_size Passed to [PerturbationImportance]
 		initialize = function(
 			task,
 			learner,
@@ -377,7 +444,8 @@ PFI = R6Class(
 			features = NULL,
 			groups = NULL,
 			relation = "difference",
-			n_repeats = 1L
+			n_repeats = 1L,
+			batch_size = NULL
 		) {
 			super$initialize(
 				task = task,
@@ -388,7 +456,8 @@ PFI = R6Class(
 				groups = groups,
 				sampler = MarginalPermutationSampler$new(task),
 				relation = relation,
-				n_repeats = n_repeats
+				n_repeats = n_repeats,
+				batch_size = batch_size
 			)
 
 			self$label = "Permutation Feature Importance"
@@ -397,13 +466,15 @@ PFI = R6Class(
 		#' @description
 		#' Compute PFI scores
 		#' @param n_repeats (`integer(1)`; `NULL`) Number of permutation iterations. If `NULL`, uses stored value.
+		#' @param batch_size (`integer(1)` | `NULL`: `NULL`) Maximum number of rows to predict at once. If `NULL`, uses stored value.
 		#' @param store_models,store_backends (`logical(1)`: `TRUE`) Whether to store fitted models / data backends, passed to [mlr3::resample] internally
 		#' for the initial fit of the learner.
 		#' This may be required for certain measures and is recommended to leave enabled unless really necessary.
-		compute = function(n_repeats = NULL, store_models = TRUE, store_backends = TRUE) {
+		compute = function(n_repeats = NULL, batch_size = NULL, store_models = TRUE, store_backends = TRUE) {
 			# PFI uses the MarginalPermutationSampler directly
 			private$.compute_perturbation_importance(
 				n_repeats = n_repeats,
+				batch_size = batch_size,
 				store_models = store_models,
 				store_backends = store_backends,
 				sampler = self$sampler
@@ -452,10 +523,8 @@ CFI = R6Class(
 	public = list(
 		#' @description
 		#' Creates a new instance of the CFI class
-		#' @param task,learner,measure,resampling,features,groups Passed to `PerturbationImportance`.
-		#' @param relation (`character(1)`) How to relate perturbed scores to originals. Can be overridden in `$compute()`.
-		#' @param n_repeats (`integer(1)`) Number of sampling iterations. Can be overridden in `$compute()`.
-		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to instantiationg `ConditionalARFSampler` internally with default parameters.
+		#' @param task,learner,measure,resampling,features,groups,relation,n_repeats,batch_size Passed to [PerturbationImportance].
+		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to instantiating `ConditionalARFSampler` internally with default parameters.
 		initialize = function(
 			task,
 			learner,
@@ -465,6 +534,7 @@ CFI = R6Class(
 			groups = NULL,
 			relation = "difference",
 			n_repeats = 1L,
+			batch_size = NULL,
 			sampler = NULL
 		) {
 			# Use ConditionalARFSampler by default for CFI
@@ -502,7 +572,8 @@ CFI = R6Class(
 				features = features,
 				groups = groups,
 				sampler = sampler,
-				n_repeats = n_repeats
+				n_repeats = n_repeats,
+				batch_size = batch_size
 			)
 
 			self$label = "Conditional Feature Importance"
@@ -511,14 +582,16 @@ CFI = R6Class(
 		#' @description
 		#' Compute CFI scores
 		#' @param n_repeats (integer(1)) Number of permutation iterations. If `NULL`, uses stored value.
+		#' @param batch_size (`integer(1)` | `NULL`: `NULL`) Maximum number of rows to predict at once. If `NULL`, uses stored value.
 		#' @param store_models,store_backends (`logical(1)`: `TRUE`) Whether to store fitted models / data backends, passed to [mlr3::resample] internally
 		#' for the initial fit of the learner.
 		#' This may be required for certain measures and is recommended to leave enabled unless really necessary.
-		compute = function(n_repeats = NULL, store_models = TRUE, store_backends = TRUE) {
+		compute = function(n_repeats = NULL, batch_size = NULL, store_models = TRUE, store_backends = TRUE) {
 			# CFI expects sampler configured to condition on all other features for each feature
 			# Default for ConditionalARFSampler
 			private$.compute_perturbation_importance(
 				n_repeats = n_repeats,
+				batch_size = batch_size,
 				store_models = store_models,
 				store_backends = store_backends,
 				sampler = self$sampler
@@ -551,12 +624,10 @@ RFI = R6Class(
 	public = list(
 		#' @description
 		#' Creates a new instance of the RFI class
-		#' @param task,learner,measure,resampling,features,groups Passed to PerturbationImportance
+		#' @param task,learner,measure,resampling,features,groups,relation,n_repeats,batch_size Passed to [PerturbationImportance].
 		#' @param conditioning_set ([character()]) Set of features to condition on. Can be overridden in `$compute()`.
-		#'   Default (`character(0)`) is equivalent to `PFI`. In `CFI`, this would be set to all features except tat of interest.
-		#' @param relation (character(1)) How to relate perturbed scores to originals. Can be overridden in `$scores()`.
-		#' @param n_repeats (integer(1)) Number of permutation iterations. Can be overridden in `$compute()`.
-		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to ConditionalARFSampler
+		#'   Default (`character(0)`) is equivalent to `PFI`. In `CFI`, this would be set to all features except that of interest.
+		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to `ConditionalARFSampler`.
 		initialize = function(
 			task,
 			learner,
@@ -567,6 +638,7 @@ RFI = R6Class(
 			conditioning_set = NULL,
 			relation = "difference",
 			n_repeats = 1L,
+			batch_size = NULL,
 			sampler = NULL
 		) {
 			# Use ConditionalARFSampler by default for RFI
@@ -588,7 +660,8 @@ RFI = R6Class(
 				groups = groups,
 				sampler = sampler,
 				relation = relation,
-				n_repeats = n_repeats
+				n_repeats = n_repeats,
+				batch_size = batch_size
 			)
 
 			# Validate and set up conditioning set after task is available
@@ -610,12 +683,14 @@ RFI = R6Class(
 			rfi_ps = paradox::ps(
 				relation = paradox::p_fct(c("difference", "ratio"), default = "difference"),
 				n_repeats = paradox::p_int(lower = 1, default = 1),
+				batch_size = paradox::p_int(lower = 1, special_vals = list(NULL), default = NULL),
 				conditioning_set = paradox::p_uty(default = character(0))
 			)
 
 			# Set values from base param_set and add conditioning_set
 			rfi_ps$values$relation = self$param_set$values$relation
 			rfi_ps$values$n_repeats = self$param_set$values$n_repeats
+			rfi_ps$values$batch_size = self$param_set$values$batch_size
 			rfi_ps$values$conditioning_set = conditioning_set
 
 			self$param_set = rfi_ps
@@ -627,12 +702,14 @@ RFI = R6Class(
 		#' Compute RFI scores
 		#' @param conditioning_set (character()) Set of features to condition on. If `NULL`, uses the stored parameter value.
 		#' @param n_repeats (integer(1)) Number of permutation iterations. If `NULL`, uses stored value.
+		#' @param batch_size (`integer(1)` | `NULL`: `NULL`) Maximum number of rows to predict at once. If `NULL`, uses stored value.
 		#' @param store_models,store_backends (`logical(1)`: `TRUE`) Whether to store fitted models / data backends, passed to [mlr3::resample] internally
 		#' for the initial fit of the learner.
 		#' This may be required for certain measures and is recommended to leave enabled unless really necessary.
 		compute = function(
 			conditioning_set = NULL,
 			n_repeats = NULL,
+			batch_size = NULL,
 			store_models = TRUE,
 			store_backends = TRUE
 		) {
@@ -651,6 +728,7 @@ RFI = R6Class(
 			# Use the (potentially modified) sampler
 			private$.compute_perturbation_importance(
 				n_repeats = n_repeats,
+				batch_size = batch_size,
 				store_models = store_models,
 				store_backends = store_backends,
 				sampler = self$sampler

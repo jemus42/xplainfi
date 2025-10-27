@@ -50,7 +50,8 @@ Creates a new instance of the PerturbationImportance class
   groups = NULL,
   sampler = NULL,
   relation = "difference",
-  n_repeats = 1L
+  n_repeats = 1L,
+  batch_size = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -64,6 +65,8 @@ Creates a new instance of the PerturbationImportance class
 \item{\code{relation}}{(\code{character(1)}: \code{"difference"}) How to relate perturbed and baseline scores. Can also be \code{"ratio"}.}
 
 \item{\code{n_repeats}}{(\code{integer(1)}: \code{1L}) Number of permutation/conditional sampling iterations. Can be overridden in \verb{$compute()}.}
+
+\item{\code{batch_size}}{(\code{integer(1)} | \code{NULL}: \code{NULL}) Maximum number of rows to predict at once. When \code{NULL}, predicts all \code{test_size * n_repeats} rows in one call. Use smaller values to reduce memory usage at the cost of more prediction calls. Can be overridden in \verb{$compute()}.}
 }
 \if{html}{\out{</div>}}
 }

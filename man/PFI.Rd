@@ -84,18 +84,15 @@ Creates a new instance of the PFI class
   features = NULL,
   groups = NULL,
   relation = "difference",
-  n_repeats = 1L
+  n_repeats = 1L,
+  batch_size = NULL
 )}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task, learner, measure, resampling, features, groups}}{Passed to \link{PerturbationImportance}}
-
-\item{\code{relation}}{(c\code{haracter(1)}: "\code{difference}") How to relate perturbed scores to originals. Can be overridden in \verb{$compute()}.}
-
-\item{\code{n_repeats}}{(\code{integer(1)}: \code{1L}) Number of permutation iterations. Can be overridden in \verb{$compute()}.}
+\item{\code{task, learner, measure, resampling, features, groups, relation, n_repeats, batch_size}}{Passed to \link{PerturbationImportance}}
 }
 \if{html}{\out{</div>}}
 }
@@ -106,13 +103,20 @@ Creates a new instance of the PFI class
 \subsection{Method \code{compute()}}{
 Compute PFI scores
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PFI$compute(n_repeats = NULL, store_models = TRUE, store_backends = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PFI$compute(
+  n_repeats = NULL,
+  batch_size = NULL,
+  store_models = TRUE,
+  store_backends = TRUE
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{n_repeats}}{(\code{integer(1)}; \code{NULL}) Number of permutation iterations. If \code{NULL}, uses stored value.}
+
+\item{\code{batch_size}}{(\code{integer(1)} | \code{NULL}: \code{NULL}) Maximum number of rows to predict at once. If \code{NULL}, uses stored value.}
 
 \item{\code{store_models, store_backends}}{(\code{logical(1)}: \code{TRUE}) Whether to store fitted models / data backends, passed to \link[mlr3:resample]{mlr3::resample} internally
 for the initial fit of the learner.
