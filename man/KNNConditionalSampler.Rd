@@ -11,14 +11,14 @@ features, then samples the target features from these neighbors.
 \details{
 This sampler approximates the conditional distribution \eqn{P(X_B | X_A = x_A)} by:
 \enumerate{
-\item Finding the k nearest neighbors of \eqn{x_A} in the training data using Euclidean distance
+\item Finding the k nearest neighbors of \eqn{x_A} in the training data
 \item Sampling uniformly from the target feature values \eqn{X_B} of these k neighbors
 }
 
 This is a simple, non-parametric approach that:
 \itemize{
 \item Requires no distributional assumptions
-\item Handles mixed feature types naturally
+\item Handles mixed feature types (numeric, integer, factor, ordered, logical)
 \item Is computationally efficient (no model fitting required)
 \item Adapts locally to the data structure
 }
@@ -28,11 +28,27 @@ missing data problems. As \eqn{k \to \infty} and \eqn{k/n \to 0}, the kNN condit
 distribution converges to the true conditional distribution under mild regularity
 conditions (Lipschitz continuity).
 
+\strong{Distance Metrics:}
+
+The sampler supports two distance metrics:
+\itemize{
+\item \strong{Euclidean}: For numeric/integer features only. Standardizes features before computing distances.
+\item \strong{Gower}: For mixed feature types. Handles numeric, factor, ordered, and logical features.
+Numeric features are range-normalized, categorical features use exact matching (0/1).
+}
+
+The \code{distance} parameter controls which metric to use:
+\itemize{
+\item \code{"auto"} (default): Automatically selects Euclidean for all-numeric features, Gower otherwise
+\item \code{"euclidean"}: Forces Euclidean distance (errors if non-numeric features present)
+\item \code{"gower"}: Forces Gower distance (works with any feature types)
+}
+
 \strong{Advantages:}
 \itemize{
 \item Very fast (no model training)
 \item Works with any feature types
-\item No hyperparameters besides \code{k}
+\item Automatic distance metric selection
 \item Naturally respects local data structure
 }
 
@@ -41,7 +57,6 @@ conditions (Lipschitz continuity).
 \item Sensitive to choice of \code{k}
 \item The full task data is required for prediction
 \item Can produce duplicates if \code{k} is small
-\item Distance metric matters (currently Euclidean only)
 \item May not extrapolate well to new regions
 }
 }

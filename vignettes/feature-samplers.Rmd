@@ -311,34 +311,66 @@ The `KNNConditionalSampler` finds k nearest neighbors based on conditioning feat
 - Very simple and intuitive
 - Fast (no model fitting)
 - Single hyperparameter (k)
+- Automatic distance metric selection
+- Supports mixed feature types (numeric, categorical, ordered, logical)
 
 **Limitations**:
 
 - Sensitive to choice of k
 - May produce duplicates if k is small
-- Distance metric matters (currently Euclidean)
 
-```{r knn-sampler}
+**Distance metric**:
+
+The sampler automatically selects the appropriate distance metric based on conditioning features:
+
+- **Euclidean distance** when all conditioning features are numeric/integer (standardized)
+- **Gower distance** when any conditioning features are categorical (factor, ordered, logical)
+
+#### Example 1: All-numeric conditioning (Euclidean distance)
+
+```{r knn-sampler-numeric}
 # Create kNN sampler with k=5 neighbors
-knn = KNNConditionalSampler$new(task_numeric, k = 5)
+knn_numeric = KNNConditionalSampler$new(task_numeric, k = 5)
 
-# Sample bill_length based on nearest neighbors in island and body_mass space
-sampled = knn$sample(
+# Sample x1 based on nearest neighbors in (x2, x3) space
+sampled_numeric = knn_numeric$sample(
 	feature = "x1",
-	row_ids = 1:10,
+	row_ids = 1:5,
 	conditioning_set = c("x2", "x3")
 )
 
-original = task_numeric$data(rows = 1:10)
+original_numeric = task_numeric$data(rows = 1:5)
 data.table(
-	x2 = original$x2,
-	x3 = original$x3,
-	original = original$x1,
-	sampled = sampled$x1
+	x2 = original_numeric$x2,
+	x3 = original_numeric$x3,
+	original_x1 = original_numeric$x1,
+	sampled_x1 = sampled_numeric$x1
 )
 ```
 
-The kNN sampler finds the k most similar observations (based on conditioning features) and samples from their feature values.
+#### Example 2: Mixed-type conditioning (Gower distance)
+
+```{r knn-sampler-mixed}
+# Use task with categorical features
+knn_mixed = KNNConditionalSampler$new(task_mixed, k = 5)
+
+# Sample bill_length conditioning on island (categorical) and body_mass (numeric)
+sampled_mixed = knn_mixed$sample(
+	feature = "bill_length",
+	row_ids = 1:5,
+	conditioning_set = c("island", "body_mass")
+)
+
+original_mixed = task_mixed$data(rows = 1:5)
+data.table(
+	island = original_mixed$island,
+	body_mass = original_mixed$body_mass,
+	original_bill = original_mixed$bill_length,
+	sampled_bill = sampled_mixed$bill_length
+)
+```
+
+The kNN sampler finds the k most similar observations (based on conditioning features) and samples from their feature values. The distance metric is chosen automatically based on feature types.
 
 ## Knockoff Samplers
 
@@ -417,7 +449,7 @@ See `vignette("inference")` for more details on statistical inference with featu
 | `GaussianConditionalSampler` | Continuous | Multivariate normal | Very fast | CFI with continuous features |
 | `ARFSampler` | All | None | Moderate | CFI, complex dependencies |
 | `CtreeConditionalSampler` | All | None | Moderate | CFI, interpretable sampling |
-| `KNNConditionalSampler` | Depends on metric | None | Fast | CFI, simple local structure |
+| `KNNConditionalSampler` | All | None (auto-selects distance) | Fast | CFI, simple local structure |
 
 **General guidelines**:
 

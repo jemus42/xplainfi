@@ -224,3 +224,67 @@ test_that("KNNConditionalSampler conditioning_set parameter behavior", {
 		k = 5L
 	)
 })
+
+test_that("KNNConditionalSampler works with categorical features using Gower distance", {
+	skip_if_not_installed("gower")
+	library(mlr3)
+
+	# Use penguins task which has factor features
+	task = tsk("penguins")
+	data = task$data()
+
+	# Create sampler
+	sampler = KNNConditionalSampler$new(task, k = 5L)
+
+	# Sample conditioning on categorical feature
+	test_data = task$data(rows = 1:10)
+	sampled = sampler$sample_newdata(
+		feature = "bill_length",
+		newdata = test_data,
+		conditioning_set = "island" # factor feature
+	)
+
+	expect_sampler_output(
+		sampled_data = sampled,
+		task = task,
+		original_data = test_data,
+		sampled_features = "bill_length",
+		nrows = 10
+	)
+
+	# Conditioning feature unchanged
+	expect_identical(sampled$island, test_data$island)
+
+	# Sampled values should come from training data
+	expect_true(all(sampled$bill_length %in% data$bill_length))
+})
+
+test_that("KNNConditionalSampler works with mixed numeric and categorical conditioning", {
+	skip_if_not_installed("gower")
+	library(mlr3)
+
+	task = tsk("penguins")
+	data = task$data()
+
+	sampler = KNNConditionalSampler$new(task, k = 5L)
+
+	# Sample conditioning on both numeric and factor features
+	test_data = task$data(rows = 1:10)
+	sampled = sampler$sample_newdata(
+		feature = "bill_length",
+		newdata = test_data,
+		conditioning_set = c("island", "body_mass") # factor + integer
+	)
+
+	expect_sampler_output(
+		sampled_data = sampled,
+		task = task,
+		original_data = test_data,
+		sampled_features = "bill_length",
+		nrows = 10
+	)
+
+	# Conditioning features unchanged
+	expect_identical(sampled$island, test_data$island)
+	expect_identical(sampled$body_mass, test_data$body_mass)
+})

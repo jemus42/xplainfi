@@ -6,12 +6,12 @@
 #'
 #' @details
 #' This sampler approximates the conditional distribution \eqn{P(X_B | X_A = x_A)} by:
-#' 1. Finding the k nearest neighbors of \eqn{x_A} in the training data using Euclidean distance
+#' 1. Finding the k nearest neighbors of \eqn{x_A} in the training data
 #' 2. Sampling uniformly from the target feature values \eqn{X_B} of these k neighbors
 #'
 #' This is a simple, non-parametric approach that:
 #' - Requires no distributional assumptions
-#' - Handles mixed feature types naturally
+#' - Handles mixed feature types (numeric, integer, factor, ordered, logical)
 #' - Is computationally efficient (no model fitting required)
 #' - Adapts locally to the data structure
 #'
@@ -20,17 +20,28 @@
 #' distribution converges to the true conditional distribution under mild regularity
 #' conditions (Lipschitz continuity).
 #'
+#' **Distance Metrics:**
+#'
+#' The sampler supports two distance metrics:
+#' - **Euclidean**: For numeric/integer features only. Standardizes features before computing distances.
+#' - **Gower**: For mixed feature types. Handles numeric, factor, ordered, and logical features.
+#'   Numeric features are range-normalized, categorical features use exact matching (0/1).
+#'
+#' The `distance` parameter controls which metric to use:
+#' - `"auto"` (default): Automatically selects Euclidean for all-numeric features, Gower otherwise
+#' - `"euclidean"`: Forces Euclidean distance (errors if non-numeric features present)
+#' - `"gower"`: Forces Gower distance (works with any feature types)
+#'
 #' **Advantages:**
 #' - Very fast (no model training)
 #' - Works with any feature types
-#' - No hyperparameters besides `k`
+#' - Automatic distance metric selection
 #' - Naturally respects local data structure
 #'
 #' **Limitations:**
 #' - Sensitive to choice of `k`
 #' - The full task data is required for prediction
 #' - Can produce duplicates if `k` is small
-#' - Distance metric matters (currently Euclidean only)
 #' - May not extrapolate well to new regions
 #'
 #' @examples
@@ -54,7 +65,7 @@ KNNConditionalSampler = R6Class(
 	inherit = ConditionalSampler,
 	public = list(
 		#' @field feature_types (`character()`) Feature types supported by the sampler.
-		feature_types = c("numeric", "integer"),
+		feature_types = c("numeric", "integer", "factor", "ordered", "logical"),
 
 		#' @description
 		#' Creates a new KNNConditionalSampler.
@@ -116,34 +127,49 @@ KNNConditionalSampler = R6Class(
 				return(data[, .SD, .SDcols = c(self$task$target_names, self$task$feature_names)])
 			}
 
+			# Determine distance metric based on conditioning feature types
+			# Use Gower distance if any non-numeric features present, otherwise Euclidean
+			cond_types = self$task$feature_types[id %in% conditioning_set, type]
+			use_gower = any(!cond_types %in% c("numeric", "integer"))
+
+			if (use_gower) {
+				require_package("gower")
+			}
+
 			# Conditional case: find k nearest neighbors for each observation
 			# Extract conditioning features from both data sources
-			query_cond = as.matrix(data[, .SD, .SDcols = conditioning_set])
-			train_cond = as.matrix(training_data[, .SD, .SDcols = conditioning_set])
+			query_cond_dt = data[, .SD, .SDcols = conditioning_set]
+			train_cond_dt = training_data[, .SD, .SDcols = conditioning_set]
 
-			# Normalize numeric features for distance calculation
-			# This ensures all features contribute equally to distance
-			numeric_cols = sapply(conditioning_set, function(col) {
-				is.numeric(training_data[[col]])
-			})
+			# For Euclidean distance: convert to matrix and standardize
+			if (!use_gower) {
+				query_cond = as.matrix(query_cond_dt)
+				train_cond = as.matrix(train_cond_dt)
 
-			if (any(numeric_cols)) {
-				# Compute means and SDs from training data
-				means = colMeans(train_cond[, numeric_cols, drop = FALSE])
-				sds = apply(train_cond[, numeric_cols, drop = FALSE], 2, stats::sd)
-				sds[sds == 0] = 1 # Avoid division by zero for constant features
+				# Normalize numeric features for distance calculation
+				# This ensures all features contribute equally to distance
+				numeric_cols = sapply(conditioning_set, function(col) {
+					is.numeric(training_data[[col]])
+				})
 
-				# Standardize both query and training data
-				query_cond[, numeric_cols] = scale(
-					query_cond[, numeric_cols, drop = FALSE],
-					center = means,
-					scale = sds
-				)
-				train_cond[, numeric_cols] = scale(
-					train_cond[, numeric_cols, drop = FALSE],
-					center = means,
-					scale = sds
-				)
+				if (any(numeric_cols)) {
+					# Compute means and SDs from training data
+					means = colMeans(train_cond[, numeric_cols, drop = FALSE])
+					sds = apply(train_cond[, numeric_cols, drop = FALSE], 2, stats::sd)
+					sds[sds == 0] = 1 # Avoid division by zero for constant features
+
+					# Standardize both query and training data
+					query_cond[, numeric_cols] = scale(
+						query_cond[, numeric_cols, drop = FALSE],
+						center = means,
+						scale = sds
+					)
+					train_cond[, numeric_cols] = scale(
+						train_cond[, numeric_cols, drop = FALSE],
+						center = means,
+						scale = sds
+					)
+				}
 			}
 
 			# Create temporary index column
@@ -152,10 +178,17 @@ KNNConditionalSampler = R6Class(
 			# Do the nearest neighbor sampling
 			sampled = data[,
 				{
-					qp = query_cond[query_idx, , drop = FALSE]
-					# Euclidian distances
-					# sweep gets difference between each element in train_cond and query point
-					dists = sqrt(rowSums((sweep(train_cond, 2, qp))^2))
+					# Calculate distances based on feature types
+					if (use_gower) {
+						# Gower distance for mixed types (handles numeric, factor, ordered, logical)
+						query_row = query_cond_dt[query_idx, ]
+						dists = gower::gower_dist(query_row, train_cond_dt)
+					} else {
+						# Euclidean distances for numeric types
+						qp = query_cond[query_idx, , drop = FALSE]
+						# sweep gets difference between each element in train_cond and query point
+						dists = sqrt(rowSums((sweep(train_cond, 2, qp))^2))
+					}
 
 					k_actual = min(k, length(dists))
 					# Thought I could use partial sorting here but

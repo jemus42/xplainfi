@@ -22,12 +22,13 @@ Imports:
     paradox (>= 1.0.0),
     R6,
     stats
-Suggests: 
+Suggests:
     arf,
     DiagrammeR,
     foreach,
     ggplot2,
     glue,
+    gower,
     knitr,
     knockoff,
     mlr3data,
