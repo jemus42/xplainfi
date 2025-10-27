@@ -95,7 +95,6 @@ NULL
 #' task_high_cor = sim_dgp_correlated(200, r = 0.95)
 #' cor(task_high_cor$data()$x1, task_high_cor$data()$x2)
 sim_dgp_correlated <- function(n = 500L, r = 0.9) {
-	require_package("mvtnorm")
 	# Generate x1 (causal) and x2 (spurious) with fixed correlation
 	x12 <- mvtnorm::rmvnorm(n, sigma = stats::toeplitz(r^(0:1)))
 	x1 <- x12[, 1]

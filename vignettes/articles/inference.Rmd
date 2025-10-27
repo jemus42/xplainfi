@@ -231,7 +231,7 @@ A noteable caveat of the knockoff approach is that they are not readily availabl
 An alternative is available using ARF as conditional sampler rather than knockoffs (CITE cARFi), which we can perform analogously:
 
 ```{r cfi-arf}
-arf_sampler = ARFSampler$new(
+arf_sampler = ConditionalARFSampler$new(
 	task = task,
 	finite_bounds = "local",
 	min_node_size = 20,

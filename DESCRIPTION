@@ -1,6 +1,6 @@
 Package: xplainfi
 Title: Feature Importance Methods for Model Interpretability
-Version: 0.1.0.9003
+Version: 0.1.0.9004
 Authors@R: 
     person("Lukas", "Burk", , "github@quantenbrot.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-7528-3795"))
@@ -18,21 +18,23 @@ Imports:
     data.table (>= 1.15.0),
     lgr,
     mlr3 (>= 1.1.0),
+    mvtnorm,
     paradox (>= 1.0.0),
     R6,
     stats
-Suggests: 
+Suggests:
     arf,
     DiagrammeR,
     foreach,
     ggplot2,
     glue,
+    gower,
     knitr,
     knockoff,
     mlr3data,
     mlr3fselect,
     mlr3learners,
-    mvtnorm,
+    partykit,
     patchwork,
     ranger,
     rmarkdown,

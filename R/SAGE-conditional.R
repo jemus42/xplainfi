@@ -1,7 +1,7 @@
 #' @title Conditional SAGE
 #'
 #' @description [SAGE] with conditional sampling (features are "marginalized" conditionally).
-#' Uses [ARFSampler] as default [ConditionalSampler].
+#' Uses [ConditionalARFSampler] as default [ConditionalSampler].
 #'
 #' @seealso [MarginalSAGE]
 #'
@@ -9,7 +9,8 @@
 #' library(mlr3)
 #' task = tgen("friedman1")$generate(n = 100)
 #'
-#' # Using default ARFSampler
+#' \dontrun{
+#' # Using default ConditionalARFSampler
 #' sage = ConditionalSAGE$new(
 #'   task = task,
 #'   learner = lrn("regr.ranger", num.trees = 50),
@@ -18,17 +19,17 @@
 #'   n_samples = 20
 #' )
 #' sage$compute()
+#' }
 #' \dontrun{
-#' # For more control over ARF sampling behavior:
-#' custom_sampler = ARFSampler$new(
-#'   task = task,
-#'   finite_bounds = "local" # can improve sampling behavior
+#' # For alternative conditional samplers:
+#' custom_sampler = ConditionalGaussianSampler$new(
+#'   task = task
 #' )
 #' sage_custom = ConditionalSAGE$new(
 #'   task = task,
 #'   learner = lrn("regr.ranger", num.trees = 50),
 #'   measure = msr("regr.mse"),
-#'   n_permutations = 3L,
+#'   n_permutations = 5L,
 #'   n_samples = 20,
 #'   sampler = custom_sampler
 #' )
@@ -45,7 +46,7 @@ ConditionalSAGE = R6Class(
 		#' @description
 		#' Creates a new instance of the ConditionalSAGE class.
 		#' @param task,learner,measure,resampling,features,n_permutations,batch_size,n_samples,early_stopping,convergence_threshold,se_threshold,min_permutations,check_interval Passed to [SAGE].
-		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to [ARFSampler].
+		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to [ConditionalARFSampler].
 		initialize = function(
 			task,
 			learner,
@@ -62,11 +63,11 @@ ConditionalSAGE = R6Class(
 			min_permutations = 10L,
 			check_interval = 2L
 		) {
-			# Use ARFSampler by default
+			# Use ConditionalARFSampler by default
 			if (is.null(sampler)) {
-				sampler = ARFSampler$new(task)
+				sampler = ConditionalARFSampler$new(task)
 				cli::cli_alert_info(
-					"No {.cls ConditionalSampler} provided, using {.cls ARFSampler} with default settings."
+					"No {.cls ConditionalSampler} provided, using {.cls ConditionalARFSampler} with default settings."
 				)
 			} else {
 				checkmate::assert_class(sampler, "ConditionalSampler")
@@ -134,8 +135,9 @@ ConditionalSAGE = R6Class(
 						)
 					]
 				} else {
-					# Empty coalition (all features marginalized) - just use original test data
-					# No conditional sampling needed since there are no conditioning features
+					# If marginalize_features is empty than we evaluate the coalition of all features
+					# in the task, so there's no room for any sampling and we just take all data
+					# no need to duplicate+average anything since prediction is deterministic (usually (I hope (right?)))
 					marginalized_test = copy(test_dt)
 					marginalized_test[, .test_instance_id := seq_len(n_test)]
 				}

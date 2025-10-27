@@ -9,13 +9,13 @@ Feature Importance Method Class
 Feature Importance Method Class
 }
 \references{
-Nadeau, Claude, Bengio, Yoshua (2003).
+Nadeau C, Bengio Y (2003).
 \dQuote{Inference for the Generalization Error.}
 \emph{Machine Learning}, \bold{52}(3), 239--281.
-ISSN 1573-0565, \doi{10.1023/A:1024068626366}.
-Molnar, Christoph, Freiesleben, Timo, König, Gunnar, Herbinger, Julia, Reisinger, Tim, Casalicchio, Giuseppe, Wright, N. M, Bischl, Bernd (2023).
+\doi{10.1023/A:1024068626366}.
+Molnar C, Freiesleben T, König G, Herbinger J, Reisinger T, Casalicchio G, Wright M, Bischl B (2023).
 \dQuote{Relating the Partial Dependence Plot and Permutation Feature Importance to the Data Generating Process.}
-In Longo, Luca (eds.), \emph{Explainable Artificial Intelligence}, 456--479.
+In Longo L (ed.), \emph{Explainable Artificial Intelligence}, 456--479.
 ISBN 978-3-031-44064-9, \doi{10.1007/978-3-031-44064-9_24}.
 }
 \section{Public fields}{
@@ -168,7 +168,7 @@ An approach leading to still imperfect, but improved variance estimates could be
 \code{n_repeats = 5} in this context only improves the stability of the PFI estimate within the resampling iteration, whereas \code{rsmp("subsampling", repeats = 15)}
 is used to accounter for learner variance and neccessitates variance correction factor.
 
-This appraoch can in principle also be applied to \code{CFI} and \code{RFI}, but beware that a conditional sample such as \link{ARFSampler} also needs to be trained on data,
+This appraoch can in principle also be applied to \code{CFI} and \code{RFI}, but beware that a conditional sample such as \link{ConditionalARFSampler} also needs to be trained on data,
 which would need to be taken account by the variance estimation method.
 Analogously, the \code{"nadeau_bengio"} correction was recommended for the use with \link{PFI} by Molnar et al., so its use with other methods like \link{LOCO} or \link{SAGE} is experimental.
 

@@ -11,7 +11,7 @@ Implementation of CFI using modular sampling approach
 library(mlr3)
 task = tgen("2dnormals")$generate(n = 100)
 
-# Using default ARFSampler
+# Using default ConditionalARFSampler
 cfi = CFI$new(
   task = task,
   learner = lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
@@ -21,7 +21,7 @@ cfi$compute()
 cfi$importance()
 \dontrun{
 # For more control over conditional sampling:
-custom_sampler = ARFSampler$new(
+custom_sampler = ConditionalARFSampler$new(
   task = task,
   finite_bounds = "local" # can improve sampling behavior
 )
@@ -37,7 +37,7 @@ cfi_custom$importance()
 \dontshow{\}) # examplesIf}
 }
 \references{
-Blesch, Kristin, Koenen, Niklas, Kapar, Jan, Golchian, Pegah, Burk, Lukas, Loecher, Markus, Wright, N. M (2025).
+Blesch K, Koenen N, Kapar J, Golchian P, Burk L, Loecher M, Wright M (2025).
 \dQuote{Conditional Feature Importance with Generative Modeling Using Adversarial Random Forests.}
 \emph{Proceedings of the AAAI Conference on Artificial Intelligence}, \bold{39}(15), 15596--15604.
 \doi{10.1609/aaai.v39i15.33712}.
@@ -92,7 +92,7 @@ Creates a new instance of the CFI class
 
 \item{\code{n_repeats}}{(\code{integer(1)}) Number of sampling iterations. Can be overridden in \verb{$compute()}.}
 
-\item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to instantiationg \code{ARFSampler} internally with default parameters.}
+\item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to instantiationg \code{ConditionalARFSampler} internally with default parameters.}
 }
 \if{html}{\out{</div>}}
 }

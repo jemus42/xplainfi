@@ -48,15 +48,39 @@ reference:
       - MarginalSAGE
       - ConditionalSAGE
   - title: Sampling Infrastructure
-  - subtitle: Marginal and conditional sampling
+    desc: Base class and three families of samplers (Marginal, Conditional, Knockoff)
+  - subtitle: Base classes
+    desc: |
+      Abstract base classes for the three sampler families. FeatureSampler is the top-level base class,
+      MarginalSampler is for marginal sampling methods, and ConditionalSampler is for conditional sampling methods.
     contents:
       - FeatureSampler
       - MarginalSampler
       - ConditionalSampler
-      - ARFSampler
+  - subtitle: Marginal sampling (no conditioning)
+    desc: |
+      Samplers that draw from the marginal distribution P(X_S) without conditioning on other features.
+    contents:
+      - MarginalPermutationSampler
+      - MarginalReferenceSampler
+  - subtitle: Conditional sampling (with conditioning)
+    desc: |
+      Samplers that draw from the conditional distribution P(X_S | X_C) where X_C is an arbitrary conditioning set.
+      The conditioning set can be specified via the `conditioning_set` parameter.
+    contents:
+      - ConditionalARFSampler
+      - ConditionalGaussianSampler
+      - ConditionalKNNSampler
+      - ConditionalCtreeSampler
+  - subtitle: Knockoff sampling
+    desc: |
+      Knockoffs satisfy certain theoretical properties that exceed those of the conditional samplers.
+      They generate one (or more) knockoff matrix on construction, and sampling is always performed
+      in reference to these. Unlike other samplers, they do not allow sampling from new data with `$sample_newdata()`,
+      as that would require re-creating a knockoff matrix on the fly.
+    contents:
       - KnockoffSampler
       - starts_with("Knockoff")
-      - contains("Sampler")
   - title: Utilities
   - contents:
       - wvim_design_matrix
@@ -73,7 +97,11 @@ articles:
       - articles/perturbation-importance
       - articles/loco
       - articles/sage-methods
+  - title: Specialized topics
+    # navbar: ~
+    contents:
       - articles/inference
+      - feature-samplers
   - title: Testing and Validation
     contents:
       - simulation-settings
@@ -84,18 +112,22 @@ navbar:
     articles:
       text: Articles
       menu:
-        - text: Method Showcase
-        - text: Perturbation-Based Methods (PFI, CFI, RFI)
+        - text: "Method Showcase"
+        - text: "Perturbation-Based Methods (PFI, CFI, RFI)"
           href: articles/perturbation-importance.html
-        - text: "Leave-Out/In Methods (LOCO, LOCI)"
+        - text: "Model Refitting Measures (LOCO, WVIM)"
           href: articles/loco.html
         - text: "Shapley Additive Global Importance (SAGE)"
           href: articles/sage-methods.html
+        - text: -------
+        - text: "Specialized Topics"
+        - text: "Feature Samplers"
+          href: articles/feature-samplers.html
         - text: "Inference for Feature Importances"
           href: articles/inference.html
         - text: -------
         - text: "Testing & Validation"
-        - text: Simulation Settings
+        - text: "Simulation Settings"
           href: articles/simulation-settings.html
         - text: "Comparison with fippy (Python)"
           href: articles/fippy-comparison.html

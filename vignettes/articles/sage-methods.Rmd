@@ -87,7 +87,7 @@ marginal_sage = MarginalSAGE$new(
 	learner = learner,
 	measure = measure,
 	resampling = resampling,
-	n_permutations = 30L, # More permutations for stable results
+	n_permutations = 15L,
 	n_samples = 100L
 )
 
@@ -143,21 +143,17 @@ marginal_sage$plot_convergence()
 Conditional SAGE uses conditional sampling (via ARF by default) to marginalize features while preserving dependencies between the remaining features. This can provide different insights, especially when features are correlated.
 
 ```{r conditional-sage}
-# Create Conditional SAGE instance using ARF as conditional sampler
-sampler_arf = ARFSampler$new(
-	task,
-	finite_bounds = "local",
-	min_node_size = 20
-)
+# Create Conditional SAGE instance using a conditional sampler
+sampler_gaussian = ConditionalGaussianSampler$new(task)
 
 conditional_sage = ConditionalSAGE$new(
 	task = task,
 	learner = learner,
 	measure = measure,
 	resampling = resampling,
-	n_permutations = 30L,
+	n_permutations = 15L,
 	n_samples = 100L,
-	sampler = sampler_arf
+	sampler = sampler_gaussian
 )
 
 # Compute SAGE values
@@ -242,7 +238,9 @@ ggplot(combined_results, aes(x = feature, y = importance, fill = method)) +
 
 ### Interpretation
 
-The results demonstrate the key difference between marginal and conditional SAGE:
+<!-- ((This explanation is wrong and doesn't match what we observe and needs to be corrected (and substantiated))) -->
+
+<!-- The results demonstrate the difference between marginal and conditional SAGE:
 
 1. **Marginal SAGE** treats each feature independently, so highly correlated features x1 and x2 both receive substantial importance scores reflecting their individual marginal contributions.
 
@@ -252,7 +250,7 @@ The results demonstrate the key difference between marginal and conditional SAGE
 
 4. **Noise feature x4** correctly receives near-zero importance in both methods.
 
-This pattern mirrors the difference between PFI and CFI: marginal methods show inflated importance for correlated features, while conditional methods provide a more accurate assessment of each feature's unique contribution.
+This pattern mirrors the difference between PFI and CFI: marginal methods show inflated importance for correlated features, while conditional methods provide a more accurate assessment of each feature's unique contribution. -->
 
 ## Comparison with PFI and CFI
 
@@ -261,7 +259,7 @@ For reference, let's compare SAGE methods with the analogous PFI and CFI methods
 ```{r pfi-cfi-comparison}
 # Quick PFI and CFI comparison for context
 pfi = PFI$new(task, learner, measure)
-cfi = CFI$new(task, learner, measure, sampler = sampler_arf)
+cfi = CFI$new(task, learner, measure, sampler = sampler_gaussian)
 
 pfi$compute()
 cfi$compute()
@@ -303,6 +301,9 @@ ggplot(method_comparison, aes(x = feature, y = importance, fill = method)) +
 	theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
+
+<!-- ((This similarly needs to be corrected))
+
 **Key Observations:**
 
 - **Marginal methods** (PFI, Marginal SAGE) both assign high importance to correlated features x1 and x2
@@ -310,4 +311,4 @@ ggplot(method_comparison, aes(x = feature, y = importance, fill = method)) +
 - **Independent feature x3** receives consistent importance across all methods
 - **Noise feature x4** is correctly identified as unimportant by all methods
 
-This demonstrates that the marginal vs conditional distinction is a fundamental concept that applies across different importance method families.
+This demonstrates that the marginal vs conditional distinction is a fundamental concept that applies across different importance method families. -->

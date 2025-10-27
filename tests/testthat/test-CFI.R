@@ -24,7 +24,7 @@ test_that("CFI can be constructed with simple objects", {
 	expect_identical(cfi$importance(), cfi$importance(relation = "difference"))
 })
 
-test_that("CFI uses ARFSampler by default", {
+test_that("CFI uses ConditionalARFSampler by default", {
 	skip_if_not_installed("ranger")
 	skip_if_not_installed("mlr3learners")
 	skip_if_not_installed("arf")
@@ -38,8 +38,8 @@ test_that("CFI uses ARFSampler by default", {
 		measure = mlr3::msr("classif.ce")
 	)
 
-	# Should have ARFSampler
-	checkmate::expect_r6(cfi$sampler, "ARFSampler")
+	# Should have ConditionalARFSampler
+	checkmate::expect_r6(cfi$sampler, "ConditionalARFSampler")
 	expect_equal(cfi$label, "Conditional Feature Importance")
 })
 
@@ -50,7 +50,7 @@ test_that("CFI with custom ARF sampler", {
 
 	set.seed(123)
 	task = mlr3::tgen("spirals")$generate(n = 100)
-	custom_sampler = ARFSampler$new(task)
+	custom_sampler = ConditionalARFSampler$new(task)
 
 	cfi = CFI$new(
 		task = task,
@@ -60,7 +60,7 @@ test_that("CFI with custom ARF sampler", {
 	)
 
 	# Should use the custom sampler
-	checkmate::expect_r6(cfi$sampler, "ARFSampler")
+	checkmate::expect_r6(cfi$sampler, "ConditionalARFSampler")
 	cfi$compute()
 	expect_importance_dt(cfi$importance(), features = cfi$features)
 })
@@ -75,7 +75,7 @@ test_that("CFI null result for featureless learner", {
 		task = task,
 		learner = mlr3::lrn("classif.featureless"),
 		measure = mlr3::msr("classif.ce")
-		# Uses ARFSampler by default
+		# Uses ConditionalARFSampler by default
 	)
 
 	cfi$compute()

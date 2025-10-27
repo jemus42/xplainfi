@@ -5,7 +5,8 @@ all: format doc README.md install check
 
 .PHONY: format
 format:
-	air format .
+	@echo "Formatting with $(shell air --version)"
+	@air format .
 
 .PHONY: doc
 doc: README.md

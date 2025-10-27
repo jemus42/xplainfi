@@ -23,7 +23,7 @@ test_that("RFI can be constructed with simple objects", {
 	expect_identical(rfi$importance(), rfi$importance(relation = "difference"))
 })
 
-test_that("RFI uses ARFSampler by default", {
+test_that("RFI uses ConditionalARFSampler by default", {
 	skip_if_not_installed("arf")
 
 	set.seed(123)
@@ -36,8 +36,8 @@ test_that("RFI uses ARFSampler by default", {
 		conditioning_set = "x2"
 	)
 
-	# Should have ARFSampler
-	checkmate::expect_r6(rfi$sampler, "ARFSampler")
+	# Should have ConditionalARFSampler
+	checkmate::expect_r6(rfi$sampler, "ConditionalARFSampler")
 	expect_equal(rfi$label, "Relative Feature Importance")
 })
 
@@ -119,7 +119,7 @@ test_that("RFI with custom ARF sampler", {
 
 	set.seed(123)
 	task = mlr3::tgen("spirals")$generate(n = 100)
-	custom_sampler = ARFSampler$new(task)
+	custom_sampler = ConditionalARFSampler$new(task)
 
 	rfi = RFI$new(
 		task = task,
@@ -130,7 +130,7 @@ test_that("RFI with custom ARF sampler", {
 	)
 
 	# Should use the custom sampler
-	checkmate::expect_r6(rfi$sampler, "ARFSampler")
+	checkmate::expect_r6(rfi$sampler, "ConditionalARFSampler")
 	rfi$compute()
 	expect_importance_dt(rfi$importance(), features = rfi$features)
 })

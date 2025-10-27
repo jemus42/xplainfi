@@ -46,7 +46,7 @@ PerturbationImportance = R6Class(
 					"Requested {.code n_repeats = {n_repeats}} permutations with {.cls {class(sampler)[[1]]}}",
 					"!" = "A {.cls KnockoffSampler} was constructed with {.val {sampler$param_set$values$iters}} iterations",
 					i = "Proceeding with {.code n_repeats = {sampler$param_set$values$iters}}",
-					i = "Reconstruct {.cls {class(sampler)[[1]]}} with {.code iters >= {n_repeats}} or use {.cls ARFSampler} if repeated sampling is required."
+					i = "Reconstruct {.cls {class(sampler)[[1]]}} with {.code iters >= {n_repeats}} or use {.cls ConditionalARFSampler} if repeated sampling is required."
 				))
 				n_repeats = sampler$param_set$values$iters
 			}
@@ -386,7 +386,7 @@ PFI = R6Class(
 				resampling = resampling,
 				features = features,
 				groups = groups,
-				sampler = MarginalSampler$new(task),
+				sampler = MarginalPermutationSampler$new(task),
 				relation = relation,
 				n_repeats = n_repeats
 			)
@@ -401,7 +401,7 @@ PFI = R6Class(
 		#' for the initial fit of the learner.
 		#' This may be required for certain measures and is recommended to leave enabled unless really necessary.
 		compute = function(n_repeats = NULL, store_models = TRUE, store_backends = TRUE) {
-			# PFI uses the MarginalSampler directly
+			# PFI uses the MarginalPermutationSampler directly
 			private$.compute_perturbation_importance(
 				n_repeats = n_repeats,
 				store_models = store_models,
@@ -422,7 +422,7 @@ PFI = R6Class(
 #' library(mlr3)
 #' task = tgen("2dnormals")$generate(n = 100)
 #'
-#' # Using default ARFSampler
+#' # Using default ConditionalARFSampler
 #' cfi = CFI$new(
 #'   task = task,
 #'   learner = lrn("classif.ranger", num.trees = 50, predict_type = "prob"),
@@ -432,7 +432,7 @@ PFI = R6Class(
 #' cfi$importance()
 #' \dontrun{
 #' # For more control over conditional sampling:
-#' custom_sampler = ARFSampler$new(
+#' custom_sampler = ConditionalARFSampler$new(
 #'   task = task,
 #'   finite_bounds = "local" # can improve sampling behavior
 #' )
@@ -455,7 +455,7 @@ CFI = R6Class(
 		#' @param task,learner,measure,resampling,features,groups Passed to `PerturbationImportance`.
 		#' @param relation (`character(1)`) How to relate perturbed scores to originals. Can be overridden in `$compute()`.
 		#' @param n_repeats (`integer(1)`) Number of sampling iterations. Can be overridden in `$compute()`.
-		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to instantiationg `ARFSampler` internally with default parameters.
+		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to instantiationg `ConditionalARFSampler` internally with default parameters.
 		initialize = function(
 			task,
 			learner,
@@ -467,14 +467,31 @@ CFI = R6Class(
 			n_repeats = 1L,
 			sampler = NULL
 		) {
-			# Use ARFSampler by default for CFI
+			# Use ConditionalARFSampler by default for CFI
 			if (is.null(sampler)) {
-				sampler = ARFSampler$new(task)
+				sampler = ConditionalARFSampler$new(task)
 				cli::cli_alert_info(
-					"No {.cls ConditionalSampler} provided, using {.cls ARFSampler} with default settings."
+					"No {.code sampler} provided, using {.cls ConditionalARFSampler} with default settings."
 				)
-			} else {
-				checkmate::assert_class(sampler, "ConditionalSampler")
+			}
+			# checkmate::assert_class would expect sampler to inherit from all clases, but
+			# the two are mutually exclusive (for now?)
+			if (!inherits(sampler, c("ConditionalSampler", "KnockoffSampler"))) {
+				cli::cli_abort(c(
+					x = "Provided sampler is of class {.cls {class(sampler)[[1]]}}.",
+					"!" = "Either a {.cls ConditionalSampler} or a {.cls KnockoffSampler} is needed for {.cls CFI}.",
+					i = "Choose a supported {.cls FeatureSampler}, such as {.cls ConditionalARFSampler} or {.class KnockoffGaussianSampler}."
+				))
+			}
+			if (
+				inherits(sampler, "ConditionalSampler") &&
+					!is.null(sampler$param_set$values$conditioning_set)
+			) {
+				cli::cli_warn(c(
+					"!" = "Provided sampler has a pre-configured {.code conditioning_set}.",
+					i = "To calculate {.cls CFI} correctly, {.code conditioning_set} will be reset such that sampling is performed conditionally on all remaining features."
+				))
+				sampler$param_set$values$conditioning_set = NULL
 			}
 
 			super$initialize(
@@ -499,7 +516,7 @@ CFI = R6Class(
 		#' This may be required for certain measures and is recommended to leave enabled unless really necessary.
 		compute = function(n_repeats = NULL, store_models = TRUE, store_backends = TRUE) {
 			# CFI expects sampler configured to condition on all other features for each feature
-			# Default for ARFSampler
+			# Default for ConditionalARFSampler
 			private$.compute_perturbation_importance(
 				n_repeats = n_repeats,
 				store_models = store_models,
@@ -539,7 +556,7 @@ RFI = R6Class(
 		#'   Default (`character(0)`) is equivalent to `PFI`. In `CFI`, this would be set to all features except tat of interest.
 		#' @param relation (character(1)) How to relate perturbed scores to originals. Can be overridden in `$scores()`.
 		#' @param n_repeats (integer(1)) Number of permutation iterations. Can be overridden in `$compute()`.
-		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to ARFSampler
+		#' @param sampler ([ConditionalSampler]) Optional custom sampler. Defaults to ConditionalARFSampler
 		initialize = function(
 			task,
 			learner,
@@ -552,11 +569,11 @@ RFI = R6Class(
 			n_repeats = 1L,
 			sampler = NULL
 		) {
-			# Use ARFSampler by default for RFI
+			# Use ConditionalARFSampler by default for RFI
 			if (is.null(sampler)) {
-				sampler = ARFSampler$new(task)
+				sampler = ConditionalARFSampler$new(task)
 				cli::cli_alert_info(
-					"No {.cls ConditionalSampler} provided, using {.cls ARFSampler} with default settings."
+					"No {.cls ConditionalSampler} provided, using {.cls ConditionalARFSampler} with default settings."
 				)
 			} else {
 				checkmate::assert_class(sampler, "ConditionalSampler")

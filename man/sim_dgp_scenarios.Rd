@@ -194,8 +194,8 @@ task = sim_dgp_independent(200)
 task$data()
 }
 \references{
-Ewald, Katharina F, Bothmann, Ludwig, Wright, N. M, Bischl, Bernd, Casalicchio, Giuseppe, König, Gunnar (2024).
+Ewald F, Bothmann L, Wright M, Bischl B, Casalicchio G, König G (2024).
 \dQuote{A Guide to Feature Importance Methods for Scientific Inference.}
-In Longo, Luca, Lapuschkin, Sebastian, Seifert, Christin (eds.), \emph{Explainable Artificial Intelligence}, 440--464.
+In Longo L, Lapuschkin S, Seifert C (eds.), \emph{Explainable Artificial Intelligence}, 440--464.
 ISBN 978-3-031-63797-1, \doi{10.1007/978-3-031-63797-1_22}.
 }

@@ -5,14 +5,15 @@
 \title{Conditional SAGE}
 \description{
 \link{SAGE} with conditional sampling (features are "marginalized" conditionally).
-Uses \link{ARFSampler} as default \link{ConditionalSampler}.
+Uses \link{ConditionalARFSampler} as default \link{ConditionalSampler}.
 }
 \examples{
 \dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE) && requireNamespace("arf", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 library(mlr3)
 task = tgen("friedman1")$generate(n = 100)
 
-# Using default ARFSampler
+\dontrun{
+# Using default ConditionalARFSampler
 sage = ConditionalSAGE$new(
   task = task,
   learner = lrn("regr.ranger", num.trees = 50),
@@ -21,17 +22,17 @@ sage = ConditionalSAGE$new(
   n_samples = 20
 )
 sage$compute()
+}
 \dontrun{
-# For more control over ARF sampling behavior:
-custom_sampler = ARFSampler$new(
-  task = task,
-  finite_bounds = "local" # can improve sampling behavior
+# For alternative conditional samplers:
+custom_sampler = ConditionalGaussianSampler$new(
+  task = task
 )
 sage_custom = ConditionalSAGE$new(
   task = task,
   learner = lrn("regr.ranger", num.trees = 50),
   measure = msr("regr.mse"),
-  n_permutations = 3L,
+  n_permutations = 5L,
   n_samples = 20,
   sampler = custom_sampler
 )
@@ -101,7 +102,7 @@ Creates a new instance of the ConditionalSAGE class.
 \describe{
 \item{\code{task, learner, measure, resampling, features, n_permutations, batch_size, n_samples, early_stopping, convergence_threshold, se_threshold, min_permutations, check_interval}}{Passed to \link{SAGE}.}
 
-\item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to \link{ARFSampler}.}
+\item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to \link{ConditionalARFSampler}.}
 }
 \if{html}{\out{</div>}}
 }
