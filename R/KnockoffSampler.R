@@ -185,10 +185,7 @@ KnockoffGaussianSampler = R6Class(
 	public = list(
 		#' @field feature_types (`character()`) Feature types supported by the sampler.
 		#'   Will be checked against the provied [mlr3::Task] to ensure compatibility.
-		feature_types = c(
-			"numeric",
-			"integer"
-		),
+		feature_types = c("numeric", "integer"),
 		#' @field x_tilde Knockoff matrix
 		x_tilde = NULL,
 

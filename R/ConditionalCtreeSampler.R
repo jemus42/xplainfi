@@ -65,9 +65,11 @@ ConditionalCtreeSampler = R6Class(
 	"ConditionalCtreeSampler",
 	inherit = ConditionalSampler,
 	public = list(
+		#' @field feature_types (`character()`) Feature types supported by the sampler.
+		#'   Will be checked against the provied [mlr3::Task] to ensure compatibility.
+		feature_types = c("numeric", "integer", "factor", "ordered"),
 		#' @field tree_cache (`environment`) Cache for fitted ctree models.
 		tree_cache = NULL,
-
 		#' @description
 		#' Creates a new ConditionalCtreeSampler.
 		#' @param task ([mlr3::Task]) Task to sample from.
@@ -181,9 +183,9 @@ ConditionalCtreeSampler = R6Class(
 		.get_or_build_tree = function(feature, conditioning_set) {
 			# Create cache key from feature names and conditioning set
 			cache_key = paste(
-				paste(sort(feature), collapse = "+"),
-				"given",
-				paste(sort(conditioning_set), collapse = "+")
+				paste(sort(match(feature, self$task$feature_names)), collapse = "+"),
+				"|",
+				paste(sort(match(conditioning_set, self$task$feature_names)), collapse = "+")
 			)
 
 			use_cache = self$param_set$values$use_cache
