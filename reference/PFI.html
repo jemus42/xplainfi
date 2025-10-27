@@ -19,7 +19,7 @@ the feature and the target variable."><script defer src="https://umami.jemu.name
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9003</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9004</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,8 +33,11 @@ the feature and the target variable."><script defer src="https://umami.jemu.name
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><h6 class="dropdown-header" data-toc-skip>Method Showcase</h6></li>
     <li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-Based Methods (PFI, CFI, RFI)</a></li>
-    <li><a class="dropdown-item" href="../articles/loco.html">Leave-Out/In Methods (LOCO, LOCI)</a></li>
+    <li><a class="dropdown-item" href="../articles/loco.html">Model Refitting Measures (LOCO, WVIM)</a></li>
     <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Specialized Topics</h6></li>
+    <li><a class="dropdown-item" href="../articles/feature-samplers.html">Feature Samplers</a></li>
     <li><a class="dropdown-item" href="../articles/inference.html">Inference for Feature Importances</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Testing &amp; Validation</h6></li>
@@ -82,19 +85,19 @@ the Random Forest algorithm. The method works by:</p><ol><li><p>Computing baseli
 </ol></div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
-    <p>Breiman, Leo (2001).
+    <p>Breiman L (2001).
 “Random Forests.”
 <em>Machine Learning</em>, <b>45</b>(1), 5–32.
 <a href="https://doi.org/10.1023/A%3A1010933404324" class="external-link">doi:10.1023/A:1010933404324</a>
 .
-Fisher, Aaron, Rudin, Cynthia, Dominici, Francesca (2019).
+Fisher A, Rudin C, Dominici F (2019).
 “All Models Are Wrong, but Many Are Useful: Learning a Variable's Importance by Studying an Entire Class of Prediction Models Simultaneously.”
 <em>Journal of Machine Learning Research</em>, <b>20</b>, 177.
 <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8323609/" class="external-link">https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8323609/</a>.
-Strobl, Carolin, Boulesteix, Anne-Laure, Kneib, Thomas, Augustin, Thomas, Zeileis, Achim (2008).
+Strobl C, Boulesteix A, Kneib T, Augustin T, Zeileis A (2008).
 “Conditional Variable Importance for Random Forests.”
 <em>BMC Bioinformatics</em>, <b>9</b>(1), 307.
-ISSN 1471-2105, <a href="https://doi.org/10.1186/1471-2105-9-307" class="external-link">doi:10.1186/1471-2105-9-307</a>
+<a href="https://doi.org/10.1186/1471-2105-9-307" class="external-link">doi:10.1186/1471-2105-9-307</a>
 .</p>
     </div>
     <div class="section level2">
@@ -207,10 +210,10 @@ This may be required for certain measures and is recommended to leave enabled un
 <span class="r-out co"><span class="r-pr">#&gt;</span>    feature importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;char&gt;      &lt;num&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1:      x1 0.04971281</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2:      x2 0.06961775</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3:      x3 0.01614181</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4:      x4 0.04258269</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5:      x5 0.06288374</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2:      x2 0.06268568</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3:      x3 0.01970687</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4:      x4 0.04624678</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5:      x5 0.05941771</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

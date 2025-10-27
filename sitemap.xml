@@ -2,6 +2,7 @@
 <url><loc>https://jemus42.github.io/xplainfi/404.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/LICENSE-text.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/LICENSE.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/articles/feature-samplers.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/articles/fippy-comparison.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/articles/index.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/articles/inference.html</loc></url>
@@ -13,8 +14,11 @@
 <url><loc>https://jemus42.github.io/xplainfi/authors.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/index.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/news/index.html</loc></url>
-<url><loc>https://jemus42.github.io/xplainfi/reference/ARFSampler.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/CFI.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/reference/ConditionalARFSampler.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/reference/ConditionalCtreeSampler.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/reference/ConditionalGaussianSampler.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/reference/ConditionalKNNSampler.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/ConditionalSAGE.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/ConditionalSampler.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/FeatureImportanceMethod.html</loc></url>
@@ -23,6 +27,8 @@
 <url><loc>https://jemus42.github.io/xplainfi/reference/KnockoffSampler.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/KnockoffSequentialSampler.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/LOCO.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/reference/MarginalPermutationSampler.html</loc></url>
+<url><loc>https://jemus42.github.io/xplainfi/reference/MarginalReferenceSampler.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/MarginalSAGE.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/MarginalSampler.html</loc></url>
 <url><loc>https://jemus42.github.io/xplainfi/reference/PFI.html</loc></url>

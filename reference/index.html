@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9003</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9004</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -27,8 +27,11 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><h6 class="dropdown-header" data-toc-skip>Method Showcase</h6></li>
     <li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-Based Methods (PFI, CFI, RFI)</a></li>
-    <li><a class="dropdown-item" href="../articles/loco.html">Leave-Out/In Methods (LOCO, LOCI)</a></li>
+    <li><a class="dropdown-item" href="../articles/loco.html">Model Refitting Measures (LOCO, WVIM)</a></li>
     <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Specialized Topics</h6></li>
+    <li><a class="dropdown-item" href="../articles/feature-samplers.html">Feature Samplers</a></li>
     <li><a class="dropdown-item" href="../articles/inference.html">Inference for Feature Importances</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Testing &amp; Validation</h6></li>
@@ -163,13 +166,13 @@
       </dl></div><div class="section level2">
       <h2 id="sampling-infrastructure">Sampling Infrastructure<a class="anchor" aria-label="anchor" href="#sampling-infrastructure"></a></h2>
 
-
+      <div class="section-desc"><p>Base class and three families of samplers (Marginal, Conditional, Knockoff)</p></div>
 
 
     </div><div class="section level2">
 
-      <h3 id="marginal-and-conditional-sampling">Marginal and conditional sampling<a class="anchor" aria-label="anchor" href="#marginal-and-conditional-sampling"></a></h3>
-
+      <h3 id="base-classes">Base classes<a class="anchor" aria-label="anchor" href="#base-classes"></a></h3>
+      <div class="section-desc"><p>Abstract base classes for the three sampler families. FeatureSampler is the top-level base class, MarginalSampler is for marginal sampling methods, and ConditionalSampler is for conditional sampling methods.</p></div>
 
 
     </div><div class="section level2">
@@ -188,20 +191,83 @@
           <code><a href="MarginalSampler.html">MarginalSampler</a></code>
 
         </dt>
-        <dd>Marginal Feature Sampler</dd>
+        <dd>Marginal Sampler Base Class</dd>
       </dl><dl><dt>
 
           <code><a href="ConditionalSampler.html">ConditionalSampler</a></code>
 
         </dt>
         <dd>Conditional Feature Sampler</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="marginal-sampling-no-conditioning-">Marginal sampling (no conditioning)<a class="anchor" aria-label="anchor" href="#marginal-sampling-no-conditioning-"></a></h3>
+      <div class="section-desc"><p>Samplers that draw from the marginal distribution P(X_S) without conditioning on other features.</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="MarginalPermutationSampler.html">MarginalPermutationSampler</a></code>
+
+        </dt>
+        <dd>Marginal Permutation Sampler</dd>
       </dl><dl><dt>
 
-          <code><a href="ARFSampler.html">ARFSampler</a></code>
+          <code><a href="MarginalReferenceSampler.html">MarginalReferenceSampler</a></code>
+
+        </dt>
+        <dd>Marginal Reference Sampler</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="conditional-sampling-with-conditioning-">Conditional sampling (with conditioning)<a class="anchor" aria-label="anchor" href="#conditional-sampling-with-conditioning-"></a></h3>
+      <div class="section-desc"><p>Samplers that draw from the conditional distribution P(X_S | X_C) where X_C is an arbitrary conditioning set. The conditioning set can be specified via the <code>conditioning_set</code> parameter.</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="ConditionalARFSampler.html">ConditionalARFSampler</a></code>
 
         </dt>
         <dd>ARF-based Conditional Sampler</dd>
       </dl><dl><dt>
+
+          <code><a href="ConditionalGaussianSampler.html">ConditionalGaussianSampler</a></code>
+
+        </dt>
+        <dd>Gaussian Conditional Sampler</dd>
+      </dl><dl><dt>
+
+          <code><a href="ConditionalKNNSampler.html">ConditionalKNNSampler</a></code>
+
+        </dt>
+        <dd>k-Nearest Neighbors Conditional Sampler</dd>
+      </dl><dl><dt>
+
+          <code><a href="ConditionalCtreeSampler.html">ConditionalCtreeSampler</a></code>
+
+        </dt>
+        <dd>(experimental) Conditional Inference Tree Conditional Sampler</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="knockoff-sampling">Knockoff sampling<a class="anchor" aria-label="anchor" href="#knockoff-sampling"></a></h3>
+      <div class="section-desc"><p>Knockoffs satisfy certain theoretical properties that exceed those of the conditional samplers. They generate one (or more) knockoff matrix on construction, and sampling is always performed in reference to these. Unlike other samplers, they do not allow sampling from new data with <code>$sample_newdata()</code>, as that would require re-creating a knockoff matrix on the fly.</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="KnockoffSampler.html">KnockoffSampler</a></code>
 

@@ -15,7 +15,7 @@ Feature Importance Method Class"><script defer src="https://umami.jemu.name/scri
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9003</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9004</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,8 +29,11 @@ Feature Importance Method Class"><script defer src="https://umami.jemu.name/scri
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><h6 class="dropdown-header" data-toc-skip>Method Showcase</h6></li>
     <li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-Based Methods (PFI, CFI, RFI)</a></li>
-    <li><a class="dropdown-item" href="../articles/loco.html">Leave-Out/In Methods (LOCO, LOCI)</a></li>
+    <li><a class="dropdown-item" href="../articles/loco.html">Model Refitting Measures (LOCO, WVIM)</a></li>
     <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Specialized Topics</h6></li>
+    <li><a class="dropdown-item" href="../articles/feature-samplers.html">Feature Samplers</a></li>
     <li><a class="dropdown-item" href="../articles/inference.html">Inference for Feature Importances</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Testing &amp; Validation</h6></li>
@@ -68,14 +71,14 @@ Feature Importance Method Class"><script defer src="https://umami.jemu.name/scri
 
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
-    <p>Nadeau, Claude, Bengio, Yoshua (2003).
+    <p>Nadeau C, Bengio Y (2003).
 “Inference for the Generalization Error.”
 <em>Machine Learning</em>, <b>52</b>(3), 239–281.
-ISSN 1573-0565, <a href="https://doi.org/10.1023/A%3A1024068626366" class="external-link">doi:10.1023/A:1024068626366</a>
+<a href="https://doi.org/10.1023/A%3A1024068626366" class="external-link">doi:10.1023/A:1024068626366</a>
 .
-Molnar, Christoph, Freiesleben, Timo, König, Gunnar, Herbinger, Julia, Reisinger, Tim, Casalicchio, Giuseppe, Wright, N. M, Bischl, Bernd (2023).
+Molnar C, Freiesleben T, König G, Herbinger J, Reisinger T, Casalicchio G, Wright M, Bischl B (2023).
 “Relating the Partial Dependence Plot and Permutation Feature Importance to the Data Generating Process.”
-In Longo, Luca (eds.), <em>Explainable Artificial Intelligence</em>, 456–479.
+In Longo L (ed.), <em>Explainable Artificial Intelligence</em>, 456–479.
 ISBN 978-3-031-44064-9, <a href="https://doi.org/10.1007/978-3-031-44064-9_24" class="external-link">doi:10.1007/978-3-031-44064-9_24</a>
 .</p>
     </div>
@@ -249,7 +252,7 @@ In such cases, observations may be used as train- and test instances simultaneou
 <span><span class="op">)</span></span></code></pre><p></p></div>
 <p><code>n_repeats = 5</code> in this context only improves the stability of the PFI estimate within the resampling iteration, whereas <code>rsmp("subsampling", repeats = 15)</code>
 is used to accounter for learner variance and neccessitates variance correction factor.</p>
-<p>This appraoch can in principle also be applied to <code>CFI</code> and <code>RFI</code>, but beware that a conditional sample such as <a href="ARFSampler.html">ARFSampler</a> also needs to be trained on data,
+<p>This appraoch can in principle also be applied to <code>CFI</code> and <code>RFI</code>, but beware that a conditional sample such as <a href="ConditionalARFSampler.html">ConditionalARFSampler</a> also needs to be trained on data,
 which would need to be taken account by the variance estimation method.
 Analogously, the <code>"nadeau_bengio"</code> correction was recommended for the use with <a href="PFI.html">PFI</a> by Molnar et al., so its use with other methods like <a href="LOCO.html">LOCO</a> or <a href="SAGE.html">SAGE</a> is experimental.</p>
 <p>Note that even if <code>measure</code> uses an <code>aggregator</code> function that is not the mean, variance estimation currently will always use <code><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean()</a></code> and <code><a href="https://rdrr.io/r/stats/cor.html" class="external-link">var()</a></code>.</p>

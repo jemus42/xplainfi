@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9003</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9004</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -27,8 +27,11 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><h6 class="dropdown-header" data-toc-skip>Method Showcase</h6></li>
     <li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-Based Methods (PFI, CFI, RFI)</a></li>
-    <li><a class="dropdown-item" href="../articles/loco.html">Leave-Out/In Methods (LOCO, LOCI)</a></li>
+    <li><a class="dropdown-item" href="../articles/loco.html">Model Refitting Measures (LOCO, WVIM)</a></li>
     <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Specialized Topics</h6></li>
+    <li><a class="dropdown-item" href="../articles/feature-samplers.html">Feature Samplers</a></li>
     <li><a class="dropdown-item" href="../articles/inference.html">Inference for Feature Importances</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Testing &amp; Validation</h6></li>
@@ -65,7 +68,7 @@
 
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
-    <p>König, Gunnar, Molnar, Christoph, Bischl, Bernd, Grosse-Wentrup, Moritz (2021).
+    <p>König G, Molnar C, Bischl B, Grosse-Wentrup M (2021).
 “Relative Feature Importance.”
 In <em>2020 25th International Conference on Pattern Recognition (ICPR)</em>, 9318–9325.
 <a href="https://doi.org/10.1109/ICPR48806.2021.9413090" class="external-link">doi:10.1109/ICPR48806.2021.9413090</a>
@@ -127,7 +130,7 @@ Default (<code>character(0)</code>) is equivalent to <code>PFI</code>. In <code>
 
 
 <dt><code>sampler</code></dt>
-<dd><p>(<a href="ConditionalSampler.html">ConditionalSampler</a>) Optional custom sampler. Defaults to ARFSampler</p></dd>
+<dd><p>(<a href="ConditionalSampler.html">ConditionalSampler</a>) Optional custom sampler. Defaults to ConditionalARFSampler</p></dd>
 
 
 </dl><p></p></div>
@@ -194,24 +197,24 @@ This may be required for certain measures and is recommended to leave enabled un
 <span class="r-in"><span>  measure <span class="op">=</span> <span class="fu"><a href="https://mlr3.mlr-org.com/reference/mlr_sugar.html" class="external-link">msr</a></span><span class="op">(</span><span class="st">"regr.mse"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  conditioning_set <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"important1"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;ConditionalSampler&gt;</span> provided, using <span style="color: #0000BB;">&lt;ARFSampler&gt;</span> with default settings.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;ConditionalSampler&gt;</span> provided, using <span style="color: #0000BB;">&lt;ConditionalARFSampler&gt;</span> with default settings.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> No <span style="color: #0000BB;">&lt;Resampling&gt;</span> provided</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `resampling = rsmp("holdout")` with default `ratio = 0.67`.</span>
 <span class="r-in"><span><span class="va">rfi</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">rfi</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;feature&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          feature  importance</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;       &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1  0.00000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2  7.27598555</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3  0.35174346</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4 14.45459932</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5  1.97509331</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 -0.19695665</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 -0.03946692</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 -0.04540018</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4  0.48101149</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5  0.48544008</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          feature importance</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;char&gt;      &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:   important1 0.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:   important2 8.96408601</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:   important3 0.96707100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:   important4 6.66713020</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   important5 2.12759184</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: unimportant1 0.02621582</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: unimportant2 0.17072419</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: unimportant3 0.24243550</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: unimportant4 0.05146187</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: unimportant5 0.18531430</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

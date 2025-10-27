@@ -30,7 +30,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9003</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9004</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,8 +46,11 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><h6 class="dropdown-header" data-toc-skip>Method Showcase</h6></li>
     <li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-Based Methods (PFI, CFI, RFI)</a></li>
-    <li><a class="dropdown-item" href="../articles/loco.html">Leave-Out/In Methods (LOCO, LOCI)</a></li>
+    <li><a class="dropdown-item" href="../articles/loco.html">Model Refitting Measures (LOCO, WVIM)</a></li>
     <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Specialized Topics</h6></li>
+    <li><a class="dropdown-item" href="../articles/feature-samplers.html">Feature Samplers</a></li>
     <li><a class="dropdown-item" href="../articles/inference.html">Inference for Feature Importances</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Testing &amp; Validation</h6></li>
@@ -176,7 +179,7 @@ interactions.</p>
 interaction effect:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create ARF sampler for the interaction task</span></span>
-<span><span class="va">sampler_int</span> <span class="op">=</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>task <span class="op">=</span> <span class="va">task_int</span>, finite_bounds <span class="op">=</span> <span class="st">"local"</span><span class="op">)</span></span>
+<span><span class="va">sampler_int</span> <span class="op">=</span> <span class="va"><a href="../reference/ConditionalARFSampler.html">ConditionalARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>task <span class="op">=</span> <span class="va">task_int</span>, finite_bounds <span class="op">=</span> <span class="st">"local"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">cfi_int</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/CFI.html">CFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>    task <span class="op">=</span> <span class="va">task_int</span>,</span>
@@ -374,7 +377,7 @@ affects both features and the outcome.</p>
 <p>RFI can condition on the proxy to help isolate direct effects:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create sampler for confounding task</span></span>
-<span><span class="va">sampler_conf</span> <span class="op">=</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span><span class="va">sampler_conf</span> <span class="op">=</span> <span class="va"><a href="../reference/ConditionalARFSampler.html">ConditionalARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>    task <span class="op">=</span> <span class="va">task_conf</span>,</span>
 <span>    verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>    finite_bounds <span class="op">=</span> <span class="st">"local"</span></span>
@@ -413,16 +416,19 @@ affects both features and the outcome.</p>
 <span>    n_repeats <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>    sampler <span class="op">=</span> <span class="va">sampler_conf</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: <span style="color: #BBBB00;">!</span> Provided sampler has a pre-configured `conditioning_set`.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> To calculate <span style="color: #0000BB;">&lt;CFI&gt;</span> correctly, `conditioning_set` will be reset such that</span></span>
+<span><span class="co">#&gt;   sampling is performed conditionally on all remaining features.</span></span>
 <span></span>
 <span><span class="va">cfi_conf</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">cfi_conf</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;        feature importance</span></span>
 <span><span class="co">#&gt;         &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1: independent  1.5421349</span></span>
-<span><span class="co">#&gt; 2:       proxy  0.0000000</span></span>
-<span><span class="co">#&gt; 3:          x1  0.5870479</span></span>
-<span><span class="co">#&gt; 4:          x2  0.6845953</span></span></code></pre></div>
+<span><span class="co">#&gt; 1: independent 1.50758052</span></span>
+<span><span class="co">#&gt; 2:       proxy 0.08119333</span></span>
+<span><span class="co">#&gt; 3:          x1 0.41999106</span></span>
+<span><span class="co">#&gt; 4:          x2 0.56474791</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="observable-confounder-scenario">Observable Confounder Scenario<a class="anchor" aria-label="anchor" href="#observable-confounder-scenario"></a>
@@ -435,7 +441,7 @@ performs when we can condition directly on the true confounder:</p>
 <span><span class="va">task_conf_obs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_dgp_scenarios.html">sim_dgp_confounded</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1000</span>, hidden <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Now we can condition directly on the true confounder</span></span>
-<span><span class="va">sampler_conf_obs</span> <span class="op">=</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span><span class="va">sampler_conf_obs</span> <span class="op">=</span> <span class="va"><a href="../reference/ConditionalARFSampler.html">ConditionalARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>    task <span class="op">=</span> <span class="va">task_conf_obs</span>,</span>
 <span>    verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>    finite_bounds <span class="op">=</span> <span class="st">"local"</span></span>
@@ -455,13 +461,13 @@ performs when we can condition directly on the true confounder:</p>
 <span><span class="va">rfi_conf_obs</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">rfi_conf_obs</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;        feature importance</span></span>
-<span><span class="co">#&gt;         &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  confounder 0.00000000</span></span>
-<span><span class="co">#&gt; 2: independent 1.45971227</span></span>
-<span><span class="co">#&gt; 3:       proxy 0.01343976</span></span>
-<span><span class="co">#&gt; 4:          x1 0.19391596</span></span>
-<span><span class="co">#&gt; 5:          x2 0.14734983</span></span>
+<span><span class="co">#&gt;        feature  importance</span></span>
+<span><span class="co">#&gt;         &lt;char&gt;       &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:  confounder  0.00000000</span></span>
+<span><span class="co">#&gt; 2: independent  1.36911697</span></span>
+<span><span class="co">#&gt; 3:       proxy -0.00342213</span></span>
+<span><span class="co">#&gt; 4:          x1  0.11714637</span></span>
+<span><span class="co">#&gt; 5:          x2  0.13905430</span></span>
 <span></span>
 <span><span class="co"># Compare with PFI on the same data</span></span>
 <span><span class="va">pfi_conf_obs</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/PFI.html">PFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
@@ -476,23 +482,23 @@ performs when we can condition directly on the true confounder:</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;        feature importance</span></span>
 <span><span class="co">#&gt;         &lt;char&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  confounder 1.72213895</span></span>
-<span><span class="co">#&gt; 2: independent 1.50763365</span></span>
-<span><span class="co">#&gt; 3:       proxy 0.07392453</span></span>
-<span><span class="co">#&gt; 4:          x1 0.65954495</span></span>
-<span><span class="co">#&gt; 5:          x2 0.70179623</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:  confounder 2.07586766</span></span>
+<span><span class="co">#&gt; 2: independent 1.41575093</span></span>
+<span><span class="co">#&gt; 3:       proxy 0.05561869</span></span>
+<span><span class="co">#&gt; 4:          x1 0.58641584</span></span>
+<span><span class="co">#&gt; 5:          x2 0.55868275</span></span></code></pre></div>
 <p><strong>Key Results:</strong></p>
 <ul>
 <li>
-<strong>x1 importance</strong>: PFI = 0.660, RFI|confounder =
-0.194</li>
+<strong>x1 importance</strong>: PFI = 0.586, RFI|confounder =
+0.117</li>
 <li>
-<strong>x2 importance</strong>: PFI = 0.702, RFI|confounder =
-0.147<br>
+<strong>x2 importance</strong>: PFI = 0.559, RFI|confounder =
+0.139<br>
 </li>
 <li>
-<strong>independent importance</strong>: PFI = 1.508, RFI|confounder
-= 1.460</li>
+<strong>independent importance</strong>: PFI = 1.416, RFI|confounder
+= 1.369</li>
 </ul>
 <p><strong>Insight</strong>: When conditioning on the true confounder,
 RFI should show reduced importance for x1 and x2 (since much of their
@@ -544,28 +550,28 @@ Scenario</caption>
 <tr class="odd">
 <td align="left">independent</td>
 <td align="right">1.554</td>
-<td align="right">1.542</td>
+<td align="right">1.508</td>
 <td align="right">1.580</td>
 <td align="right">-0.025</td>
 </tr>
 <tr class="even">
 <td align="left">proxy</td>
 <td align="right">0.323</td>
-<td align="right">0.000</td>
+<td align="right">0.081</td>
 <td align="right">0.000</td>
 <td align="right">0.323</td>
 </tr>
 <tr class="odd">
 <td align="left">x1</td>
 <td align="right">1.463</td>
-<td align="right">0.587</td>
+<td align="right">0.420</td>
 <td align="right">0.575</td>
 <td align="right">0.888</td>
 </tr>
 <tr class="even">
 <td align="left">x2</td>
 <td align="right">1.703</td>
-<td align="right">0.685</td>
+<td align="right">0.565</td>
 <td align="right">0.659</td>
 <td align="right">1.044</td>
 </tr>
@@ -629,10 +635,10 @@ features:</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;    feature    importance</span></span>
 <span><span class="co">#&gt;     &lt;char&gt;         &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:      x1  4.9301664408</span></span>
-<span><span class="co">#&gt; 2:      x2  0.4936027517</span></span>
-<span><span class="co">#&gt; 3:      x3  1.7456823303</span></span>
-<span><span class="co">#&gt; 4:      x4 -0.0005299677</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:      x1  4.6867344142</span></span>
+<span><span class="co">#&gt; 2:      x2  0.3840787294</span></span>
+<span><span class="co">#&gt; 3:      x3  1.6274358912</span></span>
+<span><span class="co">#&gt; 4:      x4 -0.0008064345</span></span></code></pre></div>
 <p>Expected: PFI will show high importance for BOTH x1 and x2, even
 though only x1 has a true causal effect. This happens because x2 is
 highly correlated with x1, so permuting x2 destroys predictive
@@ -643,7 +649,7 @@ information about x1.</p>
 </h4>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create ARF sampler for correlated task</span></span>
-<span><span class="va">sampler_cor</span> <span class="op">=</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>task <span class="op">=</span> <span class="va">task_cor</span>, finite_bounds <span class="op">=</span> <span class="st">"local"</span><span class="op">)</span></span>
+<span><span class="va">sampler_cor</span> <span class="op">=</span> <span class="va"><a href="../reference/ConditionalARFSampler.html">ConditionalARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>task <span class="op">=</span> <span class="va">task_cor</span>, finite_bounds <span class="op">=</span> <span class="st">"local"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">cfi_cor</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/CFI.html">CFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>    task <span class="op">=</span> <span class="va">task_cor</span>,</span>
@@ -657,12 +663,12 @@ information about x1.</p>
 <span><span class="va">cfi_cor</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">cfi_cor</span><span class="op">$</span><span class="fu">importance</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
-<span><span class="co">#&gt;    feature    importance</span></span>
-<span><span class="co">#&gt;     &lt;char&gt;         &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:      x1  1.6290836371</span></span>
-<span><span class="co">#&gt; 2:      x2  0.0317592529</span></span>
-<span><span class="co">#&gt; 3:      x3  1.6373422527</span></span>
-<span><span class="co">#&gt; 4:      x4 -0.0005807224</span></span></code></pre></div>
+<span><span class="co">#&gt;    feature importance</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:      x1 1.62917751</span></span>
+<span><span class="co">#&gt; 2:      x2 0.05588043</span></span>
+<span><span class="co">#&gt; 3:      x3 1.54564759</span></span>
+<span><span class="co">#&gt; 4:      x4 0.00280003</span></span></code></pre></div>
 <p>Expected: CFI should show high importance for x1 (the true causal
 feature) but near-zero importance for x2 (the spurious correlated
 feature) because conditional sampling preserves the correlation
@@ -696,9 +702,9 @@ predictors.</p>
 <span>    sampler <span class="op">=</span> <span class="va">sampler_cor</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">rfi_cor_x2</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><strong>RFI Results:</strong> - <strong>x2 given x1</strong>: 0.035
+<p><strong>RFI Results:</strong> - <strong>x2 given x1</strong>: 0.037
 (How much does x2 add when we already know x1?) - <strong>x1 given
-x2</strong>: 1.672 (How much does x1 add when we already know x2?)</p>
+x2</strong>: 1.673 (How much does x1 add when we already know x2?)</p>
 <p>Expected: When conditioning on x1, the importance of x2 should be
 near zero (and vice versa) because they’re almost identical - knowing
 one tells you almost everything about the other.</p>
@@ -730,14 +736,14 @@ one tells you almost everything about the other.</p>
 <tr class="odd">
 <td align="left">x1</td>
 <td align="right">1.629</td>
-<td align="right">4.930</td>
-<td align="right">0.330</td>
+<td align="right">4.687</td>
+<td align="right">0.348</td>
 </tr>
 <tr class="even">
 <td align="left">x2</td>
-<td align="right">0.032</td>
-<td align="right">0.494</td>
-<td align="right">0.064</td>
+<td align="right">0.056</td>
+<td align="right">0.384</td>
+<td align="right">0.145</td>
 </tr>
 </tbody>
 </table>
@@ -792,7 +798,7 @@ has only a direct effect on y (or no effect in the case of noise).</p>
 <span><span class="va">pfi_ind</span><span class="op">$</span><span class="fu">compute</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Now CFI with the ARF sampler:</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sampler_ind</span> <span class="op">=</span> <span class="va"><a href="../reference/ARFSampler.html">ARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>task <span class="op">=</span> <span class="va">task_ind</span>, finite_bounds <span class="op">=</span> <span class="st">"local"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">sampler_ind</span> <span class="op">=</span> <span class="va"><a href="../reference/ConditionalARFSampler.html">ConditionalARFSampler</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>task <span class="op">=</span> <span class="va">task_ind</span>, finite_bounds <span class="op">=</span> <span class="st">"local"</span><span class="op">)</span></span>
 <span><span class="va">cfi_ind</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/CFI.html">CFI</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>    task <span class="op">=</span> <span class="va">task_ind</span>,</span>
 <span>    learner <span class="op">=</span> <span class="va">learner</span>,</span>
@@ -854,32 +860,32 @@ different sampler:</p>
 <tbody>
 <tr class="odd">
 <td align="left">important1</td>
-<td align="right">7.830</td>
-<td align="right">0.192</td>
-<td align="left">Moderate</td>
-</tr>
-<tr class="even">
-<td align="left">important2</td>
-<td align="right">1.339</td>
-<td align="right">0.204</td>
-<td align="left">Low</td>
-</tr>
-<tr class="odd">
-<td align="left">important3</td>
-<td align="right">0.330</td>
-<td align="right">0.087</td>
+<td align="right">6.381</td>
+<td align="right">0.070</td>
 <td align="left">High</td>
 </tr>
 <tr class="even">
+<td align="left">important2</td>
+<td align="right">1.505</td>
+<td align="right">0.024</td>
+<td align="left">High</td>
+</tr>
+<tr class="odd">
+<td align="left">important3</td>
+<td align="right">0.387</td>
+<td align="right">0.204</td>
+<td align="left">Low</td>
+</tr>
+<tr class="even">
 <td align="left">unimportant1</td>
-<td align="right">-0.003</td>
-<td align="right">-1.582</td>
+<td align="right">-0.002</td>
+<td align="right">-1.795</td>
 <td align="left">High</td>
 </tr>
 <tr class="odd">
 <td align="left">unimportant2</td>
-<td align="right">-0.002</td>
-<td align="right">-2.733</td>
+<td align="right">-0.003</td>
+<td align="right">-0.909</td>
 <td align="left">High</td>
 </tr>
 </tbody>
@@ -939,16 +945,16 @@ observations appear in multiple resampling folds.</p>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;       feature importance conf_lower conf_upper</span></span>
 <span><span class="co">#&gt;        &lt;char&gt;      &lt;num&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1: important1  4.9930169  4.4537865  5.5322472</span></span>
-<span><span class="co">#&gt; 2: important2  1.1850612  1.0292612  1.3408612</span></span>
-<span><span class="co">#&gt; 3: important3  0.3634853  0.3215126  0.4054579</span></span>
+<span><span class="co">#&gt; 1: important1  5.7729103  5.2509557  6.2948650</span></span>
+<span><span class="co">#&gt; 2: important2  1.6695225  1.3058947  2.0331503</span></span>
+<span><span class="co">#&gt; 3: important3  0.2888848  0.2469061  0.3308635</span></span>
 <span><span class="va">imp_corrected</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"^important"</span>, <span class="va">feature</span><span class="op">)</span>, <span class="fu">.</span><span class="op">(</span><span class="va">feature</span>, <span class="va">importance</span>, <span class="va">conf_lower</span>, <span class="va">conf_upper</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt; Key: &lt;feature&gt;</span></span>
 <span><span class="co">#&gt;       feature importance conf_lower conf_upper</span></span>
 <span><span class="co">#&gt;        &lt;char&gt;      &lt;num&gt;      &lt;num&gt;      &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1: important1  4.9930169  3.9842093  6.0018244</span></span>
-<span><span class="co">#&gt; 2: important2  1.1850612  0.8935862  1.4765362</span></span>
-<span><span class="co">#&gt; 3: important3  0.3634853  0.2849616  0.4420089</span></span></code></pre></div>
+<span><span class="co">#&gt; 1: important1  5.7729103  4.7964226  6.7493981</span></span>
+<span><span class="co">#&gt; 2: important2  1.6695225  0.9892371  2.3498078</span></span>
+<span><span class="co">#&gt; 3: important3  0.2888848  0.2103498  0.3674197</span></span></code></pre></div>
 <p><img src="perturbation-importance_files/figure-html/variance-comparison-plot-1.png" width="768"></p>
 </div>
 <div class="section level3">

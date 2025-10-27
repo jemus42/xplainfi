@@ -15,7 +15,7 @@ as created by knockoff::create.second_order."><script defer src="https://umami.j
 
     <a class="navbar-brand me-2" href="../index.html">xplainfi</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9003</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9004</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,8 +29,11 @@ as created by knockoff::create.second_order."><script defer src="https://umami.j
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><h6 class="dropdown-header" data-toc-skip>Method Showcase</h6></li>
     <li><a class="dropdown-item" href="../articles/perturbation-importance.html">Perturbation-Based Methods (PFI, CFI, RFI)</a></li>
-    <li><a class="dropdown-item" href="../articles/loco.html">Leave-Out/In Methods (LOCO, LOCI)</a></li>
+    <li><a class="dropdown-item" href="../articles/loco.html">Model Refitting Measures (LOCO, WVIM)</a></li>
     <li><a class="dropdown-item" href="../articles/sage-methods.html">Shapley Additive Global Importance (SAGE)</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Specialized Topics</h6></li>
+    <li><a class="dropdown-item" href="../articles/feature-samplers.html">Feature Samplers</a></li>
     <li><a class="dropdown-item" href="../articles/inference.html">Inference for Feature Importances</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Testing &amp; Validation</h6></li>
@@ -56,7 +59,7 @@ as created by knockoff::create.second_order."><script defer src="https://umami.j
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Gaussian Knockoff Conditional Sampler</h1>
-      <small class="dont-index">Source: <a href="https://github.com/jemus42/xplainfi/blob/main/R/FeatureSampler.R" class="external-link"><code>R/FeatureSampler.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jemus42/xplainfi/blob/main/R/KnockoffSampler.R" class="external-link"><code>R/KnockoffSampler.R</code></a></small>
       <div class="d-none name"><code>KnockoffGaussianSampler.Rd</code></div>
     </div>
 
@@ -73,19 +76,19 @@ as created by <a href="https://rdrr.io/pkg/knockoff/man/create.second_order.html
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Watson D, Wright M (2021).
-“Testing conditional independence in supervised learning algorithms.”
-<em>Machine Learning</em>, <b>110</b>(8), 2107-2129.
+“Testing Conditional Independence in Supervised Learning Algorithms.”
+<em>Machine Learning</em>, <b>110</b>(8), 2107–2129.
 <a href="https://doi.org/10.1007/s10994-021-06030-6" class="external-link">doi:10.1007/s10994-021-06030-6</a>
 .</p>
 <p>Blesch K, Watson D, Wright M (2023).
-“Conditional feature importance for mixed data.”
-<em>AStA Advances in Statistical Analysis</em>, <b>108</b>(2), 259-278.
+“Conditional Feature Importance for Mixed Data.”
+<em>AStA Advances in Statistical Analysis</em>, <b>108</b>(2), 259–278.
 <a href="https://doi.org/10.1007/s10182-023-00477-9" class="external-link">doi:10.1007/s10182-023-00477-9</a>
 .</p>
     </div>
     <div class="section level2">
     <h2 id="super-classes">Super classes<a class="anchor" aria-label="anchor" href="#super-classes"></a></h2>
-    <p><code><a href="FeatureSampler.html">xplainfi::FeatureSampler</a></code> -&gt; <code><a href="ConditionalSampler.html">xplainfi::ConditionalSampler</a></code> -&gt; <code><a href="KnockoffSampler.html">xplainfi::KnockoffSampler</a></code> -&gt; <code>KnockoffGaussianSampler</code></p>
+    <p><code><a href="FeatureSampler.html">xplainfi::FeatureSampler</a></code> -&gt; <code><a href="KnockoffSampler.html">xplainfi::KnockoffSampler</a></code> -&gt; <code>KnockoffGaussianSampler</code></p>
     </div>
     <div class="section level2">
     <h2 id="public-fields">Public fields<a class="anchor" aria-label="anchor" href="#public-fields"></a></h2>
@@ -109,7 +112,7 @@ Will be checked against the provied <a href="https://mlr3.mlr-org.com/reference/
 <ul><li><p><a href="#method-KnockoffGaussianSampler-new"><code>KnockoffGaussianSampler$new()</code></a></p></li>
 <li><p><a href="#method-KnockoffGaussianSampler-clone"><code>KnockoffGaussianSampler$clone()</code></a></p></li>
 </ul></div><p><details open><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureSampler" data-id="print"><a href="FeatureSampler.html#method-print"><code>xplainfi::FeatureSampler$print()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="xplainfi" data-topic="ConditionalSampler" data-id="sample_newdata"><a href="ConditionalSampler.html#method-sample_newdata"><code>xplainfi::ConditionalSampler$sample_newdata()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="xplainfi" data-topic="FeatureSampler" data-id="sample_newdata"><a href="FeatureSampler.html#method-sample_newdata"><code>xplainfi::FeatureSampler$sample_newdata()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="xplainfi" data-topic="KnockoffSampler" data-id="sample"><a href="KnockoffSampler.html#method-sample"><code>xplainfi::KnockoffSampler$sample()</code></a></span></li>
 </ul></details></p><hr><a id="method-KnockoffGaussianSampler-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
