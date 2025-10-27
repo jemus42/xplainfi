@@ -111,12 +111,13 @@ sage_aggregate_predictions = function(combined_data, predictions, task_type, cla
 		# Rename aggregated columns to original class names
 		setnames(avg_preds, agg_cols, class_names)
 		avg_preds
-	} else {
+	} else if (task_type == "regr") {
 		# Regression: add predictions and aggregate
+		.prediction = NULL # the data.table NSE NOTE tax
 		combined_data[, .prediction := predictions]
 
 		combined_data[,
-			.(avg_pred = mean(.prediction, na.rm = TRUE)),
+			list(avg_pred = mean(.prediction, na.rm = TRUE)),
 			by = c(".coalition_id", ".test_instance_id")
 		]
 	}
