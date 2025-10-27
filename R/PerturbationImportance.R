@@ -153,8 +153,11 @@ PerturbationImportance = R6Class(
 							rep(seq_len(n_repeats), each = test_size)
 						)
 
-						# Now process repeats, potentially in batches
-						n_batches = ceiling(n_repeats * test_size / effective_batch_size)
+						# Calculate how many repeats can fit in each batch
+						repeats_per_batch = max(1, floor(effective_batch_size / test_size))
+
+						# Calculate number of batches needed based on repeats
+						n_batches = ceiling(n_repeats / repeats_per_batch)
 
 						if (n_batches == 1) {
 							# Single batch: predict all repeats at once
@@ -195,9 +198,6 @@ PerturbationImportance = R6Class(
 						} else {
 							# Multiple batches: process repeats in groups
 							preds = vector("list", n_repeats)
-
-							# Calculate which repeats go in each batch
-							repeats_per_batch = floor(effective_batch_size / test_size)
 							repeat_idx = 1
 
 							for (batch_idx in seq_len(n_batches)) {
