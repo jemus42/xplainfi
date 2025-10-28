@@ -480,7 +480,12 @@ PFI = R6Class(
 		#' @param store_models,store_backends (`logical(1)`: `TRUE`) Whether to store fitted models / data backends, passed to [mlr3::resample] internally
 		#' for the initial fit of the learner.
 		#' This may be required for certain measures and is recommended to leave enabled unless really necessary.
-		compute = function(n_repeats = NULL, batch_size = NULL, store_models = TRUE, store_backends = TRUE) {
+		compute = function(
+			n_repeats = NULL,
+			batch_size = NULL,
+			store_models = TRUE,
+			store_backends = TRUE
+		) {
 			# PFI uses the MarginalPermutationSampler directly
 			private$.compute_perturbation_importance(
 				n_repeats = n_repeats,
@@ -596,7 +601,12 @@ CFI = R6Class(
 		#' @param store_models,store_backends (`logical(1)`: `TRUE`) Whether to store fitted models / data backends, passed to [mlr3::resample] internally
 		#' for the initial fit of the learner.
 		#' This may be required for certain measures and is recommended to leave enabled unless really necessary.
-		compute = function(n_repeats = NULL, batch_size = NULL, store_models = TRUE, store_backends = TRUE) {
+		compute = function(
+			n_repeats = NULL,
+			batch_size = NULL,
+			store_models = TRUE,
+			store_backends = TRUE
+		) {
 			# CFI expects sampler configured to condition on all other features for each feature
 			# Default for ConditionalARFSampler
 			private$.compute_perturbation_importance(
@@ -612,7 +622,7 @@ CFI = R6Class(
 
 #' @title Relative Feature Importance
 #'
-#' @description Implementation of RFI using modular sampling approach
+#' @description RFI generalizes CFI and PFI with arbitrary conditioning sets and samplers.
 #'
 #' @references `r print_bib("konig_2021")`
 #'
@@ -691,19 +701,10 @@ RFI = R6Class(
 
 			# Create extended param_set for RFI with conditioning_set parameter
 			rfi_ps = paradox::ps(
-				relation = paradox::p_fct(c("difference", "ratio"), default = "difference"),
-				n_repeats = paradox::p_int(lower = 1, default = 1),
-				batch_size = paradox::p_int(lower = 1, special_vals = list(NULL), default = NULL),
 				conditioning_set = paradox::p_uty(default = character(0))
 			)
-
-			# Set values from base param_set and add conditioning_set
-			rfi_ps$values$relation = self$param_set$values$relation
-			rfi_ps$values$n_repeats = self$param_set$values$n_repeats
-			rfi_ps$values$batch_size = self$param_set$values$batch_size
 			rfi_ps$values$conditioning_set = conditioning_set
-
-			self$param_set = rfi_ps
+			self$param_set = c(self$param_set, rfi_ps)
 
 			self$label = "Relative Feature Importance"
 		},
