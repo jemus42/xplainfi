@@ -4,7 +4,7 @@
 \alias{RFI}
 \title{Relative Feature Importance}
 \description{
-Implementation of RFI using modular sampling approach
+RFI generalizes CFI and PFI with arbitrary conditioning sets and samplers.
 }
 \examples{
 \dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE) && requireNamespace("arf", quietly = TRUE)) withAutoprint(\{ # examplesIf}

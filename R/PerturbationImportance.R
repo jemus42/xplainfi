@@ -142,108 +142,20 @@ PerturbationImportance = R6Class(
 						test_row_ids_replicated = rep.int(test_row_ids, times = n_repeats)
 						perturbed_data = sampler$sample(foi, row_ids = test_row_ids_replicated)
 
-						# Determine effective batch size for processing
-						# If batch_size is NULL, process all rows at once
-						# Otherwise, process in chunks of batch_size
-						effective_batch_size = batch_size %||% (test_size * n_repeats)
-
-						# Split perturbed data into repeats first
+						# Split perturbed data into repeats (n_repeats elements, each with test_size rows)
 						perturbed_data_list = split(
 							perturbed_data,
 							rep(seq_len(n_repeats), each = test_size)
 						)
 
-						# Calculate how many repeats can fit in each batch
-						repeats_per_batch = max(1, floor(effective_batch_size / test_size))
-
-						# Calculate number of batches needed based on repeats
-						n_batches = ceiling(n_repeats / repeats_per_batch)
-
-						if (n_batches == 1) {
-							# Single batch: predict all repeats at once
-							if (is.function(this_learner$predict_newdata_fast)) {
-								# Fast path: predict all rows, then split
-								pred_raw = this_learner$predict_newdata_fast(
-									newdata = perturbed_data,
-									task = self$task
-								)
-
-								# pred_raw is a list with $response, $se, etc. (each a vector)
-								# Split each component into n_repeats chunks
-								preds = lapply(seq_len(n_repeats), \(i) {
-									start_idx = (i - 1) * test_size + 1
-									end_idx = i * test_size
-									# Slice each component of pred_raw
-									pred_chunk = lapply(pred_raw, \(component) {
-										if (!is.null(component) && length(component) > 0) {
-											component[start_idx:end_idx]
-										} else {
-											NULL
-										}
-									})
-									private$.construct_pred(
-										raw_prediction = pred_chunk,
-										test_row_ids = self$resampling$test_set(iter)
-									)
-								})
-							} else {
-								# Regular path: predict each repeat separately
-								preds = lapply(perturbed_data_list, \(data_chunk) {
-									this_learner$predict_newdata(
-										newdata = data_chunk,
-										task = self$task
-									)
-								})
-							}
-						} else {
-							# Multiple batches: process repeats in groups
-							preds = vector("list", n_repeats)
-							repeat_idx = 1
-
-							for (batch_idx in seq_len(n_batches)) {
-								# Determine which repeats are in this batch
-								n_repeats_in_batch = min(repeats_per_batch, n_repeats - repeat_idx + 1)
-								repeat_indices = repeat_idx:(repeat_idx + n_repeats_in_batch - 1)
-
-								# Combine data for this batch
-								batch_data = rbindlist(perturbed_data_list[repeat_indices])
-
-								if (is.function(this_learner$predict_newdata_fast)) {
-									pred_raw = this_learner$predict_newdata_fast(
-										newdata = batch_data,
-										task = self$task
-									)
-
-									# Split predictions back into repeats
-									for (i in seq_along(repeat_indices)) {
-										start_idx = (i - 1) * test_size + 1
-										end_idx = i * test_size
-										# Slice each component of pred_raw
-										pred_chunk = lapply(pred_raw, \(component) {
-											if (!is.null(component) && length(component) > 0) {
-												component[start_idx:end_idx]
-											} else {
-												NULL
-											}
-										})
-										preds[[repeat_indices[i]]] = private$.construct_pred(
-											raw_prediction = pred_chunk,
-											test_row_ids = self$resampling$test_set(iter)
-										)
-									}
-								} else {
-									# Predict each repeat in this batch separately
-									for (i in repeat_indices) {
-										preds[[i]] = this_learner$predict_newdata(
-											newdata = perturbed_data_list[[i]],
-											task = self$task
-										)
-									}
-								}
-
-								repeat_idx = repeat_idx + n_repeats_in_batch
-							}
-						}
+						# Use batched prediction helper
+						preds = predict_batched(
+							learner = this_learner,
+							data_list = perturbed_data_list,
+							task = self$task,
+							test_row_ids = test_row_ids,
+							batch_size = batch_size
+						)
 
 						# Convert predictions to data.table format
 						pred_per_perm = lapply(preds, \(pred) data.table(prediction = list(pred)))
