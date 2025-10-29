@@ -17,6 +17,7 @@ Imports:
     cli,
     data.table (>= 1.15.0),
     lgr,
+    mirai,
     mlr3 (>= 1.1.0),
     mvtnorm,
     paradox (>= 1.0.0),

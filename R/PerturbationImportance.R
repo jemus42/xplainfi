@@ -107,14 +107,14 @@ PerturbationImportance = R6Class(
 
 			# Get predictions for each resampling iter, permutation iter, feature
 			# Create progress bar that tracks resampling_iter × feature/group combinations
-			if (xplain_opt("progress")) {
-				n_features_or_groups = length(self$groups %||% self$features)
-				total_iterations = self$resampling$iters * n_features_or_groups
-				progress_bar_id = cli::cli_progress_bar(
-					"Computing importances",
-					total = total_iterations
-				)
-			}
+			# if (xplain_opt("progress")) {
+			# n_features_or_groups = length(self$groups %||% self$features)
+			# total_iterations = self$resampling$iters * n_features_or_groups
+			# progress_bar_id = cli::cli_progress_bar(
+			# 	"Computing importances",
+			# 	total = total_iterations
+			# )
+			# }
 
 			all_preds = lapply(seq_len(self$resampling$iters), \(iter) {
 				# Extract the learner here once because apparently reassembly is expensive
@@ -129,8 +129,7 @@ PerturbationImportance = R6Class(
 				} else {
 					iteration_proxy = self$groups
 				}
-
-				pred_per_feature = lapply(
+				pred_per_feature = mirai::mirai_map(
 					iteration_proxy,
 					\(foi) {
 						# Sample feature - sampler handles conditioning appropriately
@@ -157,18 +156,24 @@ PerturbationImportance = R6Class(
 							batch_size = batch_size
 						)
 
-						# Convert predictions to data.table format
+						# Store predictions in data.table list column
 						pred_per_perm = lapply(preds, \(pred) data.table(prediction = list(pred)))
 
 						# Update progress bar after processing all permutations for this feature
-						if (xplain_opt("progress")) {
-							cli::cli_progress_update(id = progress_bar_id)
-						}
+						# if (xplain_opt("progress")) {
+						# 	cli::cli_progress_update(id = progress_bar_id)
+						# }
 
 						# Append iteration id for within-resampling permutations
 						rbindlist(pred_per_perm, idcol = "iter_repeat")
 					}
 				)
+
+				pred_per_feature = mirai::collect_mirai(
+					pred_per_feature #,
+					#options = c(".stop", ".progress" = "Computing importance")
+				)
+
 				# When groups are defined, "feature" is the group name
 				# mild misnomer for convenience because if-else'ing the column name is annoying
 				rbindlist(pred_per_feature, idcol = "feature")
@@ -181,9 +186,9 @@ PerturbationImportance = R6Class(
 			self$predictions = all_preds
 
 			# Close progress bar
-			if (xplain_opt("progress")) {
-				cli::cli_progress_done(id = progress_bar_id)
-			}
+			# if (xplain_opt("progress")) {
+			# 	cli::cli_progress_done(id = progress_bar_id)
+			# }
 
 			scores = data.table::copy(all_preds)[,
 				score_post := vapply(
