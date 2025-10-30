@@ -116,6 +116,9 @@ PerturbationImportance = R6Class(
 			# )
 			# }
 
+			# Check if mirai daemons are running for parallelization
+			use_mirai = mirai::status()[["daemons"]] > 0L
+
 			all_preds = lapply(seq_len(self$resampling$iters), \(iter) {
 				# Extract the learner here once because apparently reassembly is expensive
 				this_learner = self$resample_result$learners[[iter]]
@@ -129,50 +132,102 @@ PerturbationImportance = R6Class(
 				} else {
 					iteration_proxy = self$groups
 				}
-				pred_per_feature = mirai::mirai_map(
-					iteration_proxy,
-					\(foi) {
-						# Sample feature - sampler handles conditioning appropriately
-						# If CFI, ConditionalSampler must use all non-FOI features as conditioning set
-						# If RFI, `conditioning_set` must be pre-configured!
-						# foi can be one or more feature names
-						# We also try to minimize the number of times we call $sample(),
-						# so we get the perturbed data for all n_repeats at once
-						test_row_ids_replicated = rep.int(test_row_ids, times = n_repeats)
-						perturbed_data = sampler$sample(foi, row_ids = test_row_ids_replicated)
 
-						# Split perturbed data into repeats (n_repeats elements, each with test_size rows)
-						perturbed_data_list = split(
-							perturbed_data,
-							rep(seq_len(n_repeats), each = test_size)
-						)
+				if (use_mirai) {
+					# Get learner-specific packages that need to be loaded in workers
+					learner_packages = this_learner$packages
 
-						# Use batched prediction helper
-						preds = predict_batched(
-							learner = this_learner,
-							data_list = perturbed_data_list,
+					# Parallel processing with mirai
+					pred_per_feature = mirai::mirai_map(
+						iteration_proxy,
+						\(foi, task, learner, sampler, test_row_ids, n_repeats, batch_size, learner_packages) {
+							# Load learner packages in worker
+							for (pkg in learner_packages) {
+								library(pkg, character.only = TRUE)
+							}
+
+							# Sample feature - sampler handles conditioning appropriately
+							test_row_ids_replicated = rep.int(test_row_ids, times = n_repeats)
+							perturbed_data = sampler$sample(foi, row_ids = test_row_ids_replicated)
+
+							# Split perturbed data into repeats (n_repeats elements, each with test_size rows)
+							test_size = length(test_row_ids)
+							perturbed_data_list = split(
+								perturbed_data,
+								rep(seq_len(n_repeats), each = test_size)
+							)
+
+							# Use batched prediction helper
+							preds = xplainfi:::predict_batched(
+								learner = learner,
+								data_list = perturbed_data_list,
+								task = task,
+								test_row_ids = test_row_ids,
+								batch_size = batch_size
+							)
+
+							# Store predictions in data.table list column
+							pred_per_perm = lapply(preds, \(pred) data.table::data.table(prediction = list(pred)))
+
+							# Append iteration id for within-resampling permutations
+							data.table::rbindlist(pred_per_perm, idcol = "iter_repeat")
+						},
+						# Export required objects to workers
+						.args = list(
 							task = self$task,
+							learner = this_learner,
+							sampler = sampler,
 							test_row_ids = test_row_ids,
-							batch_size = batch_size
+							n_repeats = n_repeats,
+							batch_size = batch_size,
+							learner_packages = learner_packages
 						)
+					)
 
-						# Store predictions in data.table list column
-						pred_per_perm = lapply(preds, \(pred) data.table(prediction = list(pred)))
+					pred_per_feature = mirai::collect_mirai(pred_per_feature)
 
-						# Update progress bar after processing all permutations for this feature
-						# if (xplain_opt("progress")) {
-						# 	cli::cli_progress_update(id = progress_bar_id)
-						# }
-
-						# Append iteration id for within-resampling permutations
-						rbindlist(pred_per_perm, idcol = "iter_repeat")
+					# Check for errors in parallel execution
+					has_errors = vapply(pred_per_feature, inherits, logical(1), "miraiError")
+					if (any(has_errors)) {
+						error_msgs = pred_per_feature[has_errors]
+						cli::cli_abort(c(
+							"Errors occurred in mirai worker processes:",
+							"x" = "Feature{?s} {.val {names(error_msgs)}} failed",
+							"i" = "Error message{?s}: {.val {sapply(error_msgs, as.character)}}"
+						))
 					}
-				)
+				} else {
+					# Sequential processing (no daemons)
+					pred_per_feature = lapply(
+						iteration_proxy,
+						\(foi) {
+							# Sample feature - sampler handles conditioning appropriately
+							test_row_ids_replicated = rep.int(test_row_ids, times = n_repeats)
+							perturbed_data = sampler$sample(foi, row_ids = test_row_ids_replicated)
 
-				pred_per_feature = mirai::collect_mirai(
-					pred_per_feature #,
-					#options = c(".stop", ".progress" = "Computing importance")
-				)
+							# Split perturbed data into repeats (n_repeats elements, each with test_size rows)
+							perturbed_data_list = split(
+								perturbed_data,
+								rep(seq_len(n_repeats), each = test_size)
+							)
+
+							# Use batched prediction helper
+							preds = predict_batched(
+								learner = this_learner,
+								data_list = perturbed_data_list,
+								task = self$task,
+								test_row_ids = test_row_ids,
+								batch_size = batch_size
+							)
+
+							# Store predictions in data.table list column
+							pred_per_perm = lapply(preds, \(pred) data.table(prediction = list(pred)))
+
+							# Append iteration id for within-resampling permutations
+							rbindlist(pred_per_perm, idcol = "iter_repeat")
+						}
+					)
+				}
 
 				# When groups are defined, "feature" is the group name
 				# mild misnomer for convenience because if-else'ing the column name is annoying
