@@ -300,7 +300,7 @@ SAGE = R6Class(
 			names(sage_values) = self$features
 			names(sage_values_sq) = self$features
 
-			# Pre-generate ALL permutations upfront to ensure consistent random state.
+			# Pre-generate `n_permutations` permutations upfront
 			# Relevant for reproducibility, especially when using early stopping or parallel processing.
 			# Example: if self$features = c("x1", "x2", "x3") and n_permutations = 2,
 			# all_permutations might be list(c("x2", "x1", "x3"), c("x3", "x1", "x2"))
