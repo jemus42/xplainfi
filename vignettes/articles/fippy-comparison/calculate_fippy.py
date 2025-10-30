@@ -168,7 +168,8 @@ def main():
         np.random.seed(123)
         ex_msage, sage_orderings = explainer.msage(
             X_test, y_test,
-            nr_runs=100,
+            nr_runs=30,
+            nr_resample_marginalize = 200,
             detect_convergence=True
         )
         msage_results = extract_fippy_results(ex_msage, list(X_train.columns))
@@ -186,7 +187,8 @@ def main():
         np.random.seed(123)
         ex_csage, sage_orderings = explainer.csage(
             X_test, y_test,
-            nr_runs=100,
+            nr_runs=30,
+            nr_resample_marginalize = 200,
             detect_convergence=True
         )
         csage_results = extract_fippy_results(ex_csage, list(X_train.columns))
