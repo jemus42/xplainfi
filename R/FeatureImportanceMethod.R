@@ -291,8 +291,10 @@ FeatureImportanceMethod = R6Class(
 			private$.scores = NULL
 			private$.obs_losses = NULL
 			self$predictions = NULL
-			# SAGE
-			self$n_permutations_used = NULL
+			# SAGE-specific fields (only reset if they exist)
+			if ("n_permutations_used" %in% names(self)) {
+				self$n_permutations_used = NULL
+			}
 		},
 
 		#' @description
@@ -525,24 +527,24 @@ FeatureImportanceMethod = R6Class(
 		# Take the raw predictions as returned by $predict_newdata_fast and convert to Prediction object fitting the task type to simplify type-specific handling
 		# @param raw_prediction `list` with elements `reponse` (vector) or `prob` (matrix) depending on task type.
 		# @param test_row_ids `integer()` test set row ids, important to ensure predictions can be matched with original observations / baseline predictions
-		.construct_pred = function(raw_prediction, test_row_ids) {
-			truth = self$task$truth(rows = test_row_ids)
+		# .construct_pred = function(raw_prediction, test_row_ids) {
+		# 	truth = self$task$truth(rows = test_row_ids)
 
-			switch(
-				self$task$task_type,
-				classif = PredictionClassif$new(
-					row_ids = test_row_ids,
-					truth = truth,
-					response = raw_prediction$response, # vector of class names or NULL
-					prob = raw_prediction$prob # matrix for predict_type prob or NULL
-				),
-				regr = PredictionRegr$new(
-					row_ids = test_row_ids,
-					truth = truth,
-					response = raw_prediction$response # numeric
-				)
-			)
-		},
+		# 	switch(
+		# 		self$task$task_type,
+		# 		classif = PredictionClassif$new(
+		# 			row_ids = test_row_ids,
+		# 			truth = truth,
+		# 			response = raw_prediction$response, # vector of class names or NULL
+		# 			prob = raw_prediction$prob # matrix for predict_type prob or NULL
+		# 		),
+		# 		regr = PredictionRegr$new(
+		# 			row_ids = test_row_ids,
+		# 			truth = truth,
+		# 			response = raw_prediction$response # numeric
+		# 		)
+		# 	)
+		# },
 
 		# Utility to convert named list of groups of features into data.table to
 		# make it a little easier to match group names and features in list columns etc

@@ -4,7 +4,7 @@
 \alias{RFI}
 \title{Relative Feature Importance}
 \description{
-Implementation of RFI using modular sampling approach
+RFI generalizes CFI and PFI with arbitrary conditioning sets and samplers.
 }
 \examples{
 \dontshow{if (requireNamespace("ranger", quietly = TRUE) && requireNamespace("mlr3learners", quietly = TRUE) && requireNamespace("arf", quietly = TRUE)) withAutoprint(\{ # examplesIf}
@@ -64,6 +64,7 @@ Creates a new instance of the RFI class
   conditioning_set = NULL,
   relation = "difference",
   n_repeats = 1L,
+  batch_size = NULL,
   sampler = NULL
 )}\if{html}{\out{</div>}}
 }
@@ -71,16 +72,12 @@ Creates a new instance of the RFI class
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{task, learner, measure, resampling, features, groups}}{Passed to PerturbationImportance}
+\item{\code{task, learner, measure, resampling, features, groups, relation, n_repeats, batch_size}}{Passed to \link{PerturbationImportance}.}
 
 \item{\code{conditioning_set}}{(\code{\link[=character]{character()}}) Set of features to condition on. Can be overridden in \verb{$compute()}.
-Default (\code{character(0)}) is equivalent to \code{PFI}. In \code{CFI}, this would be set to all features except tat of interest.}
+Default (\code{character(0)}) is equivalent to \code{PFI}. In \code{CFI}, this would be set to all features except that of interest.}
 
-\item{\code{relation}}{(character(1)) How to relate perturbed scores to originals. Can be overridden in \verb{$scores()}.}
-
-\item{\code{n_repeats}}{(integer(1)) Number of permutation iterations. Can be overridden in \verb{$compute()}.}
-
-\item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to ConditionalARFSampler}
+\item{\code{sampler}}{(\link{ConditionalSampler}) Optional custom sampler. Defaults to \code{ConditionalARFSampler}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -94,6 +91,7 @@ Compute RFI scores
 \if{html}{\out{<div class="r">}}\preformatted{RFI$compute(
   conditioning_set = NULL,
   n_repeats = NULL,
+  batch_size = NULL,
   store_models = TRUE,
   store_backends = TRUE
 )}\if{html}{\out{</div>}}
@@ -105,6 +103,8 @@ Compute RFI scores
 \item{\code{conditioning_set}}{(character()) Set of features to condition on. If \code{NULL}, uses the stored parameter value.}
 
 \item{\code{n_repeats}}{(integer(1)) Number of permutation iterations. If \code{NULL}, uses stored value.}
+
+\item{\code{batch_size}}{(\code{integer(1)} | \code{NULL}: \code{NULL}) Maximum number of rows to predict at once. If \code{NULL}, uses stored value.}
 
 \item{\code{store_models, store_backends}}{(\code{logical(1)}: \code{TRUE}) Whether to store fitted models / data backends, passed to \link[mlr3:resample]{mlr3::resample} internally
 for the initial fit of the learner.
