@@ -27,6 +27,8 @@ Suggests:
     arf,
     DiagrammeR,
     foreach,
+    future,
+    future.apply,
     ggplot2,
     glue,
     gower,
